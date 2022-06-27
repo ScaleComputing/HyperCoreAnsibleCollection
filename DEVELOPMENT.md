@@ -23,3 +23,16 @@ ansible-test sanity --venv
 ansible-test units --venv
 ansible-test integration --venv
 ```
+
+Build collection.
+
+```yaml
+ansible-galaxy collection build
+```
+
+Run sample playbook.
+Sample ansible.cfg is there to ensure collection does not need to be inatalled.
+
+```yaml
+ansible-playbook -i localhost, sample-playbook.yml -v
+```

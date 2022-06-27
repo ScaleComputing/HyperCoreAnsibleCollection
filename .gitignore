@@ -1,0 +1,4 @@
+.venv
+.pyc
+tests/output
+*.tar.gz

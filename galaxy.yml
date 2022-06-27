@@ -12,4 +12,10 @@ repository: http://example.com/repository
 documentation: http://docs.example.com
 homepage: http://example.com
 issues: http://example.com/issue/tracker
-build_ignore: []
+build_ignore:
+- .idea
+- .gitignore
+- tests
+# files used during local testing/building
+- ansible.cfg
+- sample*

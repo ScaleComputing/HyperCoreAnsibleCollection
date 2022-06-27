@@ -1,0 +1,9 @@
+# Run as
+# ansible-playbook -i localhost, sample-playbook.yml -v
+- name: test playbook
+  hosts: all
+  tasks:
+    - name: Retrieve all VMs with specific name
+      scale_computing.hc3.sample_vm_info:
+        name: vm-a
+      register: result
