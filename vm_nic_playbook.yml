@@ -3,9 +3,10 @@
   tasks:
   - name: Create nic #We leave MAC address blank, it auto-generates
     scale_computing.hc3.vm_nic:
-      host: 'https://10.5.11.30'
-      username: 'admin'
-      password: 'admin'
+      cluster_instance:
+        url: 'https://10.5.11.30'
+        username: 'admin'
+        password: 'admin'
       state: PRESENT #PRESENT, ABSENT
       virDomainUUID: '2e36ee02-5f97-4f93-a966-bde5beda796e' #UUID of the VM, where NIC is being handled on
       nics:

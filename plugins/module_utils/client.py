@@ -50,7 +50,7 @@ class Response:
 class Client:
     def __init__(
         self,
-        host,
+        host,  # TODO rename param to url
         username=None,
         password=None,
     ):
