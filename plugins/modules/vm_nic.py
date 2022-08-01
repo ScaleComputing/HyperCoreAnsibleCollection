@@ -17,24 +17,10 @@ short_description: Sample plugin
 description:
   - A sample plugin with boilerplate code.
 version_added: 0.0.1
-extends_documentation_fragment: []
+extends_documentation_fragment:
+  - scale_computing.hc3.cluster_instance
 seealso: []
 options:
-  host:
-    description:
-      - Host address.
-    type: str
-    required: true
-  username:
-    description:
-      - Scale computing username
-    type: str
-    required: true
-  password:
-    description:
-      - Scale computing password
-    type: str
-    required: true
   uuid:
     description:
       - VM UUID
@@ -67,7 +53,7 @@ vms:
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import errors
+from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.utils import is_valid_uuid, get_nic_by_uuid, wait_task, get_all_nics
 
@@ -141,18 +127,7 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            host=dict(
-                type="str",
-                required=True,
-            ),
-            password=dict(
-                type="str",
-                required=True,
-            ),
-            username=dict(
-                type="str",
-                required=True,
-            ),
+            arguments.get_spec("cluster_instance"),
             state=dict(
                 type="str",
                 required=True,
@@ -173,10 +148,11 @@ def main():
     )
 
     try:
-        host = module.params["host"]
-        username = module.params["username"]
-        password = module.params["password"]
-        client = Client(host, username, password)
+        url = module.params["cluster_instance"]["url"]
+        username = module.params["cluster_instance"]["username"]
+        password = module.params["cluster_instance"]["password"]
+        
+        client = Client(url, username, password)
         vms = run(module, client)
         module.exit_json(changed=False, vms=vms)
     except errors.ScaleComputingError as e:
