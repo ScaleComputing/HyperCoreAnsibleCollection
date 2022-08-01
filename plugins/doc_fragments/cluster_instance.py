@@ -16,11 +16,12 @@ options:
       - Scale Computing HC3 instance information.
     type: dict
     suboptions:
-      url:
+      host:
         description:
           - The HC3 instance url.
           - If not set, the value of the C(SC_URL) environment
             variable will be used.
+          - For example "https://10.1.2.3:443".
         required: true
         type: str
       username:

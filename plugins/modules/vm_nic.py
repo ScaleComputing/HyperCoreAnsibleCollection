@@ -148,11 +148,11 @@ def main():
     )
 
     try:
-        url = module.params["cluster_instance"]["url"]
+        host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
         
-        client = Client(url, username, password)
+        client = Client(host, username, password)
         vms = run(module, client)
         module.exit_json(changed=False, vms=vms)
     except errors.ScaleComputingError as e:

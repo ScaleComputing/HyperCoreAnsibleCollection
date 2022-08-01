@@ -50,7 +50,7 @@ class Response:
 class Client:
     def __init__(
         self,
-        host,  # TODO rename param to url
+        host,
         username=None,
         password=None,
     ):
@@ -60,7 +60,7 @@ class Client:
                 "Value must start with 'https://' or 'http://'".format(host)
             )
 
-        self.host = host  # host vs url
+        self.host = host
         self.username = username
         self.password = password
 

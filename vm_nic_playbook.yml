@@ -4,7 +4,7 @@
   - name: Create nic #We leave MAC address blank, it auto-generates
     scale_computing.hc3.vm_nic:
       cluster_instance:
-        url: 'https://10.5.11.30'
+        host: 'https://10.5.11.30'
         username: 'admin'
         password: 'admin'
       state: PRESENT #PRESENT, ABSENT
