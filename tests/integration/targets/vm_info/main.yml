@@ -1,0 +1,10 @@
+- name: run the new module
+    sample_vm_info:
+      host: 'https://10.5.11.30'
+      username: 'admin'
+      password: 'admin'
+    register: testout
+
+# TODO now check there are some VMs inside,
+# that some well-known VM is inside,
+# that well-known VM hass correct attributes.

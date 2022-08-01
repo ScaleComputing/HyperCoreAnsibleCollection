@@ -1,0 +1,19 @@
+# all sample playbooks into same subdir ?
+# We want to exclude them from collection.zip in galaxy.yml.
+- name: test vm_nic module
+  hosts: localhost  
+  tasks:
+  - name: Create nic
+    scale_computing.hc3.vm_nic_info:
+      host: 'https://10.5.11.30'
+      username: 'admin'
+      password: 'admin'
+      nic_uuid: 'be70f385-d879-43d6-a7be-48bbc8410472' #This is UUID of the NiC, not VM, remove for complete list of all NiC
+    register: testout
+
+# TODO @domen write/copy sample playbook first.
+# Copy it from scale-ansible-collection-docs/ - which file/files? - scale-ansible-collection-docs/docs/user-stories/ or?
+
+  - name: output the HTTP request results
+    debug:
+      var: testout

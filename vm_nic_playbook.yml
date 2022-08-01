@@ -1,0 +1,34 @@
+- name: test vm_nic module
+  hosts: localhost  
+  tasks:
+  - name: Create nic #We leave MAC address blank, it auto-generates
+    scale_computing.hc3.vm_nic:
+      host: 'https://10.5.11.30'
+      username: 'admin'
+      password: 'admin'
+      state: PRESENT #PRESENT, ABSENT
+      virDomainUUID: '2e36ee02-5f97-4f93-a966-bde5beda796e' #UUID of the VM, where NIC is being handled on
+      nics:
+      - nic_uuid: '2532821d-0ead-4327-bb35-d0fec362aa38' #UUID of the NiC
+        type: VIRTIO #RTL8139, INTEL_E1000, VIRTIO
+        vlan: 0 #Default 0
+        connected: true #Default true
+      - nic_uuid: '11d15c6d-3de0-4c76-8f98-864455af0056' #UUID of the NiC
+        type: RTL8139 #RTL8139, INTEL_E1000, VIRTIO
+        vlan: 1 #Default 0
+        connected: true #Default true
+      - nic_uuid: 'be8648b3-e896-46fd-ba10-9883412db88d' #UUID of the NiC
+        type: VIRTIO #RTL8139, INTEL_E1000, VIRTIO
+        vlan: 1 #Default 0
+        connected: true #Default true
+      - nic_uuid: '473e736d-9792-4546-8bec-5fd4b3b3d230' #UUID of the NiC
+        type: VIRTIO #RTL8139, INTEL_E1000, VIRTIO
+        vlan: 1 #Default 0
+        connected: true #Default true
+    register: testout
+# Above sample, can work only with very specific VM - uuid are used for addressing the objects.
+# Best illustration of our main problem - how to address HC3 objects.
+
+  - name: output the HTTP request results
+    debug:
+      var: testout
