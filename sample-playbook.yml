@@ -1,9 +1,16 @@
 # Run as
 # ansible-playbook -i localhost, sample-playbook.yml -v
-- name: test playbook
-  hosts: all
+- name: test vm_info module
+  hosts: localhost
   tasks:
-    - name: Retrieve all VMs with specific name
-      scale_computing.hc3.sample_vm_info:
-        name: vm-a
-      register: result
+  - name: run the vm_info module
+    scale_computing.hc3.vm_info:
+      host: 'https://10.5.11.30'
+      username: 'admin'
+      password: 'admin'
+      #uuid: 'f0c91f97-cbfc-40f8-b918-ab77ae8ea7fb'	#used to filter based on UUID of virtual device
+    register: testout
+ 
+  - name: output the HTTP request results
+    debug:
+      var: testout

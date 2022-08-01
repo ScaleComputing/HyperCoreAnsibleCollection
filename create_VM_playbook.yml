@@ -1,0 +1,51 @@
+# Rename file to create_vm_playbook.yml? We have module vm_info, not VM_info.
+# Can we put all sample playbooks into a single sub-directory?
+- name: test vm module
+  hosts: localhost
+  environment:
+    key: value
+  tasks:
+  - name: Create VM
+    scale_computing.hc3.vm:
+      # Get HC3 host and related parameters (username, password, anything else?)
+      # from env or as module parameter.
+      # We need to define the env variables names.
+      # HC3_x or SCALE_ or SCALE_COMPUTING_ or SCALE_HC3_?
+      # HC3_API_URL, HC3_API_USERNAME, HC3_API_PASSWORD
+      # Later we wil have also username/password for SMB access.
+      host: 'https://10.5.11.30'  # host or API_URL
+      username: 'admin'
+      password: 'admin'
+      name: XLAB-POST-Domen
+      description: Demo VM
+      state: SHUTDOWN
+      tags: 'Xlab,Domen'
+      memory: 536870912	#In Bytes
+      numVCPU: 2
+      disks:
+        - type: IDE_DISK
+          capacity: 524288000
+          name: disk-0
+      nics:
+        - vlan: 0
+          type: RTL8139
+      attachGuestToolsISO: true  # default false (same as HC3)
+      boot_devices:
+        - type: disk  # real disk
+          name/slot/id: 0
+        - type: nic
+          vlan: 0
+        - type: disk  # ISO image
+          name/slot/id: 1
+      cloud_init:  # optional
+        metadata: 'yaml content'
+        userdata: 'yaml content'
+    # We need to define what should be in module output
+    # Standard fields are stdout, stderr, changed etc,
+    # we add some object/objects/items/something - "vm" maybe?
+    # "vm" is dict, same as returned by vm_info.
+    register: testout
+
+  - name: output the HTTP request results
+    debug:
+      var: testout
