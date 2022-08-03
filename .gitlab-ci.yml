@@ -16,7 +16,38 @@ check_format:
   image: python:3.8.12-slim-buster
   before_script:
     # TODO bake this into our dedicated test image
-    - pip3 install -r sanity.requirements
+    - pip3 install -r sanity.requirements -r test.requirements
   script:
     - black -t py27 plugins tests/unit --check
 
+coverage:
+  stage: test
+  image: python:3.8.12-slim-buster
+  before_script:
+    - pip3 install -r sanity.requirements -r test.requirements
+    - apt update
+    - apt install -y git
+  script:
+    - pip install ansible-core==2.13.1
+    # ansible-test needs special directory structure.
+    - mkdir -p /work-dir/ansible_collections/scale_computing/
+    - cp -a ./  /work-dir/ansible_collections/scale_computing/hc3
+    - pushd /work-dir/ansible_collections/scale_computing/hc3
+    #
+    # - ansible-test coverage erase --venv
+    # Use venv, until we agree about dind - eventually we need to move to github anyway?
+    - ansible-test units --coverage
+    - ansible-test coverage html --requirements
+    - ansible-test coverage report --omit 'tests/*' --show-missing
+    - ls -al tests/output/reports/coverage
+    - popd
+    #
+    # Move artifacts back to initial dir, so they can be collected by gitlab.
+    - mkdir -p tests/output/reports/coverage
+    - cp -a /work-dir/ansible_collections/scale_computing/hc3/tests/output/reports/coverage/ tests/output/reports/coverage/
+    - ls -al tests/output/reports/coverage
+  artifacts:
+    paths:
+      - tests/output/reports/coverage
+    expose_as: html_coverage
+    expire_in: 10 week
