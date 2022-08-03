@@ -67,3 +67,19 @@ sanity:
     - pushd /work-dir/ansible_collections/scale_computing/hc3
     #
     - ansible-test sanity
+
+integration:
+  stage: test
+  image: python:3.8.12-slim-buster
+  before_script:
+    - pip3 install -r sanity.requirements -r test.requirements
+    - apt update
+    - apt install -y git
+  script:
+    - pip install ansible-core==2.13.1
+    # ansible-test needs special directory structure.
+    - mkdir -p /work-dir/ansible_collections/scale_computing/
+    - cp -a ./  /work-dir/ansible_collections/scale_computing/hc3
+    - pushd /work-dir/ansible_collections/scale_computing/hc3
+    #
+    - ansible-test integration
