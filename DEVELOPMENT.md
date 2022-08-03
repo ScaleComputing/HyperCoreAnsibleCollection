@@ -16,7 +16,21 @@ cd hc3
 # pip install -r test-requirements.txt -r sanity.requirements
 ```
 
-Run tests, in venv or in container:
+Included `Makefile` contains shortcuts for common development tasks,
+running tests, linter, code formatting, source directory cleanup etc.
+To list all available commands, run just `make`, and you will get something like:
+
+```
+(.venv) [me@mypc hc3]$ make
+Available targets:
+clean:  ## Remove all auto-generated files
+format:  ## Format python code with black
+integration:  ## Run integration tests
+sanity:  ## Run sanity tests
+units:  ## Run unit tests
+```
+
+If you want to run tests with a single python version (e.g. not with whole test matrix), use:
 
 ```
 ansible-test sanity --venv
