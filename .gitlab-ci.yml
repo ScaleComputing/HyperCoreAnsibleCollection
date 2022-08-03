@@ -1,0 +1,22 @@
+image: python:3.8.12-slim-buster  # TODO gitlab registry
+
+variables:
+  SC_HOST: https://10.5.11.30
+  SC_USERNAME: admin
+  # SC_PASSWORD: provide value in gitlab CI/CD settings
+
+stages:
+  - test
+  - build  # build collection tar.gz
+  - deploy  # push collection tar.gz to galaxy
+
+# Just check if any .py file would be changed by black
+check_format:
+  stage: test
+  image: python:3.8.12-slim-buster
+  before_script:
+    # TODO bake this into our dedicated test image
+    - pip3 install -r sanity.requirements
+  script:
+    - black -t py27 plugins tests/unit --check
+
