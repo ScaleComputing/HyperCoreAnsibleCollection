@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2022, XLAB Steampunk <steampunk@xlab.si>
 #
-# TODO licence
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 
@@ -99,10 +99,11 @@ class Client:
             raise ScaleComputingError(e.reason)
         return Response(raw_resp.status, raw_resp.read(), raw_resp.headers)
 
-    def request(self, method, path, query=None, data=None, headers=None, bytes=None):
+    def request(
+        self, method, path, query=None, data=None, headers=None, binary_data=None
+    ):
         # Make sure we only have one kind of payload
-        # bytes is builtin keyword; binary_data, binary_payload?
-        if data is not None and bytes is not None:
+        if data is not None and binary_data is not None:
             raise AssertionError(
                 "Cannot have JSON and binary payload in a single request."
             )
@@ -117,36 +118,35 @@ class Client:
         if data is not None:
             data = json.dumps(data, separators=(",", ":"))
             headers["Content-type"] = "application/json"
-        elif bytes is not None:
-            data = bytes
+        elif binary_data is not None:
+            data = binary_data
         return self._request(method, url, data=data, headers=headers)
 
     def get(self, path, query=None):
         resp = self.request("GET", path, query=query)
         if resp.status in (200, 404):
             return resp
-        # raise UnexpectedAPIResponse(response=resp) ?
-        raise UnexpectedAPIResponse(resp.status, resp.data)
+        raise UnexpectedAPIResponse(response=resp)
 
     def post(self, path, data, query=None):
         resp = self.request("POST", path, data=data, query=query)
         if resp.status == 201:
             return resp
-        raise UnexpectedAPIResponse(resp.status, resp.data)
+        raise UnexpectedAPIResponse(response=resp)
 
     def patch(self, path, data, query=None):
         resp = self.request("PATCH", path, data=data, query=query)
         if resp.status == 200:
             return resp
-        raise UnexpectedAPIResponse(resp.status, resp.data)
+        raise UnexpectedAPIResponse(response=resp)
 
     def put(self, path, data, query=None):
         resp = self.request("PUT", path, data=data, query=query)
         if resp.status == 200:
             return resp
-        raise UnexpectedAPIResponse(resp.status, resp.data)
+        raise UnexpectedAPIResponse(response=resp)
 
     def delete(self, path, query=None):
         resp = self.request("DELETE", path, query=query)
         if resp.status != 204:
-            raise UnexpectedAPIResponse(resp.status, resp.data)
+            raise UnexpectedAPIResponse(response=resp)

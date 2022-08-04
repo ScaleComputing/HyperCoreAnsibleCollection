@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2022, XLAB Steampunk <steampunk@xlab.si>
 #
-# TODO licence
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 from typing_extensions import Required
@@ -68,25 +68,36 @@ vms:
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import errors
+from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.utils import is_valid_uuid, get_nic_by_uuid
+from ..module_utils.vm import VM
+from ..module_utils.utils import validate_uuid
 
 
 def check_parameters(module):
-    if module.params["nic_uuid"] and not is_valid_uuid(module.params["nic_uuid"]):
-        raise ValueError("Check UUID in playbook")
+    if module.params["vm_uuid"]:
+        validate_uuid(module.params["vm_uuid"])
+        
+def create_vm_object(module, client): # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
+  if module.params["vm_uuid"]:
+    virtual_machine_dict = VM.get(client, uuid=module.params["vm_uuid"])[0]
+  else:
+    virtual_machine_dict = VM.get(client, name=module.params["vm_name"])[0]
+  virtual_machine = VM(client=client, vm_dict=virtual_machine_dict)
+  return virtual_machine
 
 
 def run(module, client):
     check_parameters(module)
-
-    end_point = "/rest/v1/VirDomainNetDevice"
-    if module.params["nic_uuid"]:
-        json_response = get_nic_by_uuid(client, module.params["nic_uuid"])
+    if module.params["vlan"]:
+        virtual_machine = create_vm_object(module, client)
+        json_response = virtual_machine.find_net_dev(module.params["vlan"]).serialize()
     else:
-        json_response = client.request("GET", end_point).json
-
+        response_net_dev_list = []
+        virtual_machine = create_vm_object(module, client)
+        for net_dev in virtual_machine.net_devs_list:
+          response_net_dev_list.append(net_dev.serialize())
+        json_response = response_net_dev_list
     return json_response
 
 
@@ -94,32 +105,30 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            host=dict(
+            arguments.get_spec("cluster_instance"),
+            vm_name=dict(
                 type="str",
-                required=True,
             ),
-            password=dict(
+            vm_uuid=dict(
                 type="str",
-                required=True,
             ),
-            username=dict(
-                type="str",
-                required=True,
-            ),
-            nic_uuid=dict(
-                type="str",
+            vlan=dict(
+                type="int",
             ),
         ),
-        # we plan to identify VM by name (maybe UUID), NIC by vlan.
         mutually_exclusive=[
-            ("name", "uuid"),
+            ("vm_name", "vm_uuid"),
+        ],
+        required_one_of=[
+            ("vm_name", "vm_uuid")
         ],
     )
 
     try:
-        host = module.params["host"]
-        username = module.params["username"]
-        password = module.params["password"]
+        host = module.params["cluster_instance"]["host"]
+        username = module.params["cluster_instance"]["username"]
+        password = module.params["cluster_instance"]["password"]
+        
         client = Client(host, username, password)
         vms = run(module, client)
         # We do not want to just show complete API response to end user.

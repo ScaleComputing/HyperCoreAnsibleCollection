@@ -5,10 +5,13 @@
   tasks:
   - name: Create nic
     scale_computing.hc3.vm_nic_info:
-      host: 'https://10.5.11.30'
-      username: 'admin'
-      password: 'admin'
-      nic_uuid: 'be70f385-d879-43d6-a7be-48bbc8410472' #This is UUID of the NiC, not VM, remove for complete list of all NiC
+      cluster_instance:
+        host: 'https://10.5.11.30'
+        username: 'admin'
+        password: 'admin'
+      vm_name: 'XLAB-POST-Domen'
+      #vm_uuid: '2e36ee02-5f97-4f93-a966-bde5beda796e'
+      #vlan: 15
     register: testout
 
 # TODO @domen write/copy sample playbook first.

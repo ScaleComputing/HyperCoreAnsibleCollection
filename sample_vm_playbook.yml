@@ -13,15 +13,19 @@
       # HC3_x or SCALE_ or SCALE_COMPUTING_ or SCALE_HC3_?
       # HC3_API_URL, HC3_API_USERNAME, HC3_API_PASSWORD
       # Later we wil have also username/password for SMB access.
-      host: 'https://10.5.11.30'  # host or API_URL
-      username: 'admin'
-      password: 'admin'
-      name: XLAB-POST-Domen
+      cluster_instance:
+        host: 'https://10.5.11.30'
+        username: 'admin'
+        password: 'admin'
+      name: XLAB-POST-TEST
       description: Demo VM
-      state: SHUTDOWN
-      tags: 'Xlab,Domen'
+      power_state: shutdown
+      state: present
+      tags:
+        - 'Xlab'
+        - 'Domen'
       memory: 536870912	#In Bytes
-      numVCPU: 2
+      vcpu: 2
       disks:
         - type: IDE_DISK
           capacity: 524288000
@@ -38,8 +42,8 @@
         - type: disk  # ISO image
           name/slot/id: 1
       cloud_init:  # optional
-        metadata: 'yaml content'
-        userdata: 'yaml content'
+        metadata: {}
+        userdata: {}
     # We need to define what should be in module output
     # Standard fields are stdout, stderr, changed etc,
     # we add some object/objects/items/something - "vm" maybe?

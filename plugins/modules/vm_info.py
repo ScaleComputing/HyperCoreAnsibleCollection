@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2022, XLAB Steampunk <steampunk@xlab.si>
 #
-# TODO licence
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 
@@ -66,150 +66,53 @@ vms:
   returned: success
   type: list
   sample:
-    - "boot_devices": 
+    - "boot_devices":  # TODO check what we promised
             - "name": ""
-              "slot": 0,
-              "type": "disk",
+              "disk_slot": 0
+              "type": "virtio_disk"
               "uuid": "fec11a1d-e8e3-4a50-8b50-57dece3e8baf"
-      "cloud_init": {
-              "metadata": ""
-              "userdata": ""
       "description": "XLAB-ac1-export-20220705T201528: "
-      "disks":
-            - "capacity": "8 GB"
+      "disks":  # TODO check what we promised
+            - "size": 8589934592
               "name": ""
-              "slot": 0
-              "type": "VIRTIO_DISK"
+              "disk_slot": 0
+              "type": "virtio_disk"
               "uuid": "e8c8aa6b-1043-48a0-8407-2c432d705378"
-              "mem": "488 MB"
+              "memory": 536870912
       "name": "XLAB-CentOS-7-x86_64-GenericCloud-2111"
       "nics":
-            - "type": "RTL8139",
+            - "type": "RTL8139"
               "uuid": "4c627449-99c6-475b-8e8e-9ae2587db5fc"
               "vlan": 0
-      "numVCPU": 2
-      "state": "SHUTOFF"
-      "tags": "Xlab,ac1,us3",
+      "vcpu": 2
+      "power_state": "shutoff"
+      "tags": "Xlab,ac1,us3"
       "uuid": "f0c91f97-cbfc-40f8-b918-ab77ae8ea7fb"
 """
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import errors
+from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.utils import is_valid_uuid
+from ..module_utils.vm import VM
+from ..module_utils.utils import validate_uuid
 
 
-def value_from_B_to_MB(value):
-    return str(round(value / 1048576))
-
-
-def value_from_B_to_GB(value):
-    return str(round(value / 1073741824))
-
-
-def find_boot_device(all_device_dict, boot_device_list):
-    boot_device_info_list = []
-    for device_uuid in all_device_dict.keys():
-        if device_uuid in boot_device_list:
-            boot_device_info_list.append(all_device_dict[device_uuid])
-    return boot_device_info_list
-
-
-def create_disk_info_list(disk_data_list):
-    disk_info_list = []
-    for disk in disk_data_list:
-        virtual_machine_disk_info_dict = {}
-        virtual_machine_disk_info_dict["uuid"] = disk["uuid"]
-        virtual_machine_disk_info_dict["slot"] = disk["slot"]
-        virtual_machine_disk_info_dict["name"] = disk["name"]
-        # will we use capacity or size?
-        # with unit GB/MB or without unit (so it is bytes, always)?
-        virtual_machine_disk_info_dict["capacity"] = (
-            value_from_B_to_GB(disk["capacity"]) + " GB"
-        )
-        virtual_machine_disk_info_dict["type"] = disk["type"]
-        disk_info_list.append(virtual_machine_disk_info_dict)
-    return disk_info_list
-
-
-def create_network_interface_info_list(network_interface_data_list):
-    network_interface_info_list = []
-    for network_interface in network_interface_data_list:
-        virtual_machine_nic_info_dict = {}
-        virtual_machine_nic_info_dict["uuid"] = network_interface["uuid"]
-        virtual_machine_nic_info_dict["vlan"] = network_interface["vlan"]
-        virtual_machine_nic_info_dict["type"] = network_interface["type"]
-        network_interface_info_list.append(virtual_machine_nic_info_dict)
-    return network_interface_info_list
-
-
-def create_all_device_info_dict(all_device_dict):
-    all_device_info_dict = {}
-
-    for disk in all_device_dict["blockDevs"]:
-        all_device_info_dict[disk["uuid"]] = {
-            "type": "disk",
-            "name": disk["name"],
-            "slot": disk["slot"],
-            "uuid": disk["uuid"],
-        }
-    for network_interface in all_device_dict["netDevs"]:
-        all_device_info_dict[network_interface["uuid"]] = {
-            "type": "nic",
-            "vlan": network_interface["vlan"],
-            "uuid": network_interface["uuid"],
-        }
-
-    return all_device_info_dict
-
-
-def create_vm_info_list(json_data):
-    virtual_machines_info_list = []
-    for virtual_machine_info in json_data:
-        virtual_machine_info_dict = {}
-        virtual_machine_info_dict["uuid"] = virtual_machine_info["uuid"]
-        virtual_machine_info_dict["name"] = virtual_machine_info["name"]
-        virtual_machine_info_dict["description"] = virtual_machine_info["description"]
-        virtual_machine_info_dict["memory"] = (
-            value_from_B_to_MB(virtual_machine_info["mem"]) + " MB"
-        )
-        virtual_machine_info_dict["state"] = virtual_machine_info["state"]
-        virtual_machine_info_dict["numVCPU"] = virtual_machine_info["numVCPU"]
-        virtual_machine_info_dict["tags"] = virtual_machine_info["tags"]
-
-        virtual_machine_info_dict["disks"] = create_disk_info_list(
-            virtual_machine_info["blockDevs"]
-        )
-        virtual_machine_info_dict["nics"] = create_network_interface_info_list(
-            virtual_machine_info["netDevs"]
-        )
-        all_device_dict = create_all_device_info_dict(virtual_machine_info)
-
-        boot_devices = find_boot_device(
-            all_device_dict, virtual_machine_info["bootDevices"]
-        )
-        virtual_machine_info_dict["boot_devices"] = boot_devices
-
-        # HC3 does not report cloudInitData in GET response.
-        # We should drop it in vm_info too?
-        virtual_machine_info_dict["cloud_init"] = {
-            "userdata": virtual_machine_info["cloudInitData"]["userData"],
-            "metadata": virtual_machine_info["cloudInitData"]["metaData"],
-        }
-
-        virtual_machines_info_list.append(virtual_machine_info_dict)
-    return virtual_machines_info_list
-
-
-def run(module, client):
-    end_point = "/rest/v1/VirDomain"
-    if module.params["uuid"] and is_valid_uuid(module.params["uuid"]):
-        end_point += "/" + module.params["uuid"]
-
-    json_response = client.request("GET", end_point).json
-
-    virtual_machine_info_list = create_vm_info_list(json_response)
+def run(module, client): # if we decide to use vm_name and vm_uuid across all playbooks we can add most of this to .get method in VM class
+    virtual_machine_info_list = []
+    if module.params["uuid"]: # Search by uuid
+      validate_uuid(module.params["uuid"])
+      virtual_machine = VM(client=client, vm_dict=VM.get(client, uuid=module.params["uuid"])[0])
+      virtual_machine_info_list = virtual_machine.create_vm_info_list()
+    elif module.params["name"]: # Search by name
+      virtual_machine = VM(client=client, vm_dict=VM.get(client, name=module.params["name"])[0])
+      virtual_machine_info_list = virtual_machine.create_vm_info_list()
+    else:                      # No name or uuid, we return all VMs
+      #virtual_machine = VM(client=client)
+      virtual_machines = VM.get(client) # List of all virtual machines in the cluster
+      for virtual_machine in virtual_machines:
+        virtual_machine = VM(client=client, vm_dict=virtual_machine)
+        virtual_machine_info_list.append(virtual_machine.create_vm_info_list())
 
     return virtual_machine_info_list
 
@@ -218,30 +121,20 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-            host=dict(
-                type="str",
-                required=True,
-            ),
-            username=dict(
-                type="str",
-                required=True,
-            ),
-            password=dict(
-                type="str",
-                required=True,
-            ),
+            arguments.get_spec("cluster_instance"),
             uuid=dict(type="str"),
-            # we want/need to search for VM by name (and/or UUID).
+            name=dict(type="str"),
         ),
         mutually_exclusive=[
-            ("uuid"),  # uuid and name?
+            ("uuid", "name"),
         ],
     )
 
     try:
-        host = module.params["host"]
-        username = module.params["username"]
-        password = module.params["password"]
+        host = module.params["cluster_instance"]["host"]
+        username = module.params["cluster_instance"]["username"]
+        password = module.params["cluster_instance"]["password"]
+        
         client = Client(host, username, password)
         vms = run(module, client)
         module.exit_json(changed=False, vms=vms)
