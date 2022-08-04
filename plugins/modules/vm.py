@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2022, XLAB Steampunk <steampunk@xlab.si>
 #
-# TODO licence
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 
@@ -59,38 +59,45 @@ vm:
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import errors
+from ..module_utils import arguments, errors
 from ..module_utils.client import Client
+from ..module_utils.vm import VM
 
 
-def create_post_body(module):
-    post_body = {}
+# @Jure / @Justin define how we want to handle boot_device at VM creation
+def parse_boot_device_list_to_str(boot_device_list):
+    return []
 
-    optional = {"attachGuestToolsISO": module.params["attachGuestToolsISO"]}
-    # ne vem, kaj module.params.pop naredi. To ni navaden dict.pop?
-    module.params.pop("username", None)
-    module.params.pop("password", None)
-    module.params.pop("host", None)
-    module.params.pop("attachGuestToolsISO", None)
-    module.params["blockDevs"] = module.params["disks"]
-    module.params.pop("disks", None)
-    module.params["mem"] = module.params["memory"]
-    module.params.pop("memory", None)
-    module.params["netDevs"] = module.params["nics"]
-    module.params.pop("nics", None)
 
-    post_body["dom"] = module.params
-    post_body["options"] = optional
+def create_vm_body(virtual_machine):
+    vm_body = {}
+    optional = {}
+    temp_dict = virtual_machine.serialize()
+    optional["attachGuestToolsISO"] = temp_dict["attachGuestToolsISO"]
+    temp_dict.pop("attachGuestToolsISO")
+    vm_body["dom"] = temp_dict
+    vm_body["options"] = optional
+    return vm_body
 
-    return post_body
+
+def create_vm_update_body(virtual_machine):
+    update_body = virtual_machine.serialize()
+    update_body.pop("attachGuestToolsISO")
+    return update_body
 
 
 def run(module, client):
     end_point = "/rest/v1/VirDomain"
-
-    # TODO check if VM already exists, modify it if it needs to be modified.
-    data = create_post_body(module)
-    json_response = client.request("POST", end_point, data=data).json
+    
+    new_virtual_machine = VM(client=client, vm_dict=module.params)
+    existing_virtual_machines = VM.get(client=client, name=new_virtual_machine.name)
+    if not existing_virtual_machines:
+        data = create_vm_body(new_virtual_machine)
+        json_response = client.request("POST", end_point, data=data).json
+    else: # TODO check if VM needs to be updated ()
+        end_point += "/" + existing_virtual_machines[0]["uuid"]
+        data = create_vm_update_body(new_virtual_machine)
+        json_response = client.request("PATCH", end_point, data=data).json
 
     return json_response
 
@@ -99,43 +106,44 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,  # False ATM
         argument_spec=dict(
-            host=dict(
-                type="str",
-                required=True,
-            ),
-            password=dict(
-                type="str",
-                required=True,
-            ),
-            username=dict(
-                type="str",
-                required=True,
-            ),
+            arguments.get_spec("cluster_instance"),
             name=dict(
                 type="str",
+                required=True,
             ),
             description=dict(
                 type="str",
             ),
             memory=dict(
                 type="int",
+                required=True,
             ),
-            numVCPU=dict(
+            vcpu=dict(
                 type="int",
+                required=True,
+            ),
+            power_state=dict(
+                type="str",
+                choices=[
+                    # TODO check those options
+                    "running",
+                    "blocked",
+                    "paused",
+                    "shutdown",
+                    "shutoff",
+                    "crashed",
+                ],
             ),
             state=dict(
                 type="str",
                 choices=[
-                    "RUNNING",
-                    "BLOCKED",
-                    "PAUSED",
-                    "SHUTDOWN",
-                    "SHUTOFF",
-                    "CRASHED",
+                    "present",
+                    "absent",
                 ],
+                required=True,
             ),
             tags=dict(
-                type="str",
+                type="list",
             ),
             disks=dict(
                 type="list",
@@ -152,19 +160,18 @@ def main():
             cloud_init=dict(
                 type="dict",
             ),
+            # TODO we want attachGuestToolsISO or attach_guest_tools_iso ? Consistency - attach_guest_tools_iso.
             attachGuestToolsISO=dict(
                 type="bool",
             ),
         ),
-        mutually_exclusive=[
-            ("name", "uuid"),
-        ],
     )
 
     try:
-        host = module.params["host"]
-        username = module.params["username"]
-        password = module.params["password"]
+        host = module.params["cluster_instance"]["host"]
+        username = module.params["cluster_instance"]["username"]
+        password = module.params["cluster_instance"]["password"]
+        
         client = Client(host, username, password)
         vms = run(module, client)
         module.exit_json(changed=False, vms=vms)
