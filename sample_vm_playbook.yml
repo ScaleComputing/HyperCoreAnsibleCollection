@@ -17,7 +17,7 @@
         host: 'https://10.5.11.30'
         username: 'admin'
         password: 'admin'
-      name: XLAB-demo-vm
+      name: XLAB-us11-example6
       description: Demo VM
       power_state: shutdown
       state: present

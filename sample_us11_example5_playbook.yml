@@ -1,0 +1,14 @@
+- name: US 11 - As a user I want to be able to add, update and remove VNICs so that I can reconfigure the networking
+  hosts: localhost
+  tasks:
+  - name: Change VLAN on NIC
+    scale_computing.hc3.vm_nic:
+      cluster_instance:
+          host: 'https://10.5.11.30'
+          username: 'admin'
+          password: 'admin'
+      vm_name: XLAB-demo-vm
+      items:
+        - vlan: 1
+          vlan_new: 10
+      state: set

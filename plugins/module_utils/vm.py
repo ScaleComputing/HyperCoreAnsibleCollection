@@ -64,20 +64,13 @@ class VM:
         return necessary_virtual_machine_info_dict
 
     # Primarily used for vm_info | should return complete info that user can copy paste to create new VM
-    def create_vm_info_list(self, virtual_machine_list=None):
+    def create_vm_info_list(self):
         virtual_machines_info_list = []
-        if virtual_machine_list: # In case user wants a list of all VMs
-            for virtual_machine_info_dict in virtual_machine_list:
-                virtual_machine_info_dict = VM.create_vm_info(virtual_machine_info_dict)
-                virtual_machine_info_dict["disks"] = BlockDev.create_disk_info_list(virtual_machine_info_dict["disks"])
-                virtual_machine_info_dict["nics"] = NetDev.create_network_interface_info_list(virtual_machine_info_dict["nics"])
-                virtual_machines_info_list.append(virtual_machine_info_dict)
-        else: # Otherwise data is taken from the object VM
-            virtual_machine_info_dict = self.serialize()
-            virtual_machine_info_dict = VM.create_vm_info(virtual_machine_info_dict)
-            virtual_machine_info_dict["disks"] = BlockDev.create_disk_info_list(self.block_devs_list)
-            virtual_machine_info_dict["nics"] = NetDev.create_network_interface_info_list(self.net_devs_list)
-            virtual_machines_info_list.append(virtual_machine_info_dict)
+        virtual_machine_info_dict = self.serialize()
+        virtual_machine_info_dict = VM.create_vm_info(virtual_machine_info_dict)
+        virtual_machine_info_dict["disks"] = BlockDev.create_disk_info_list(self.block_devs_list)
+        virtual_machine_info_dict["nics"] = NetDev.create_network_interface_info_list(self.net_devs_list)
+        virtual_machines_info_list.append(virtual_machine_info_dict)
         return virtual_machines_info_list
 
 
@@ -132,13 +125,23 @@ class VM:
         return vm_dict
 
 
-    def find_net_dev(self, vlan):
-        all_vlans = [nic.vlan for nic in self.net_devs_list]
-        # TODO raise specific exception
-        assert all_vlans.count(vlan) <= 1
-        for net_dev in self.net_devs_list:
-            if net_dev.vlan == vlan:
-                return net_dev
+    # search by vlan or mac as specified in US-11:
+    # (https://gitlab.xlab.si/scale-ansible-collection/scale-ansible-collection-docs/-/blob/develop/docs/user-stories/us11-manage-vnics.md)
+    def find_net_dev(self, vlan=None, mac=None):
+        if vlan:
+            all_vlans = [nic.vlan for nic in self.net_devs_list]
+            # TODO raise specific exception
+            assert all_vlans.count(vlan) <= 1
+            for net_dev in self.net_devs_list:
+                if net_dev.vlan == vlan:
+                    return net_dev
+        else:
+            all_macs = [nic.mac for nic in self.net_devs_list]
+            # TODO raise specific exception
+            assert all_macs.count(mac) <= 1
+            for net_dev in self.net_devs_list:
+                if net_dev.mac == mac:
+                    return net_dev
 
 
     def find_block_dev(self, slot):
