@@ -17,7 +17,7 @@
         host: 'https://10.5.11.30'
         username: 'admin'
         password: 'admin'
-      name: XLAB-POST-TEST
+      name: XLAB-demo-vm
       description: Demo VM
       power_state: shutdown
       state: present

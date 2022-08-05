@@ -16,8 +16,7 @@ class NetDev:
     def __eq__(self, other):
         return (self.vlan == other.vlan and self.new_vlan == other.new_vlan and 
                 self.net_dev_type == other.net_dev_type and self.connected == other.connected and 
-                self.uuid == other.uuid and self.macAddress == other.macAddress and 
-                self.ipv4Addresses == other.ipv4Addresses)
+                self.uuid == other.uuid and self.macAddress == other.macAddress)
 
     # Compare two Network interfaces
     @classmethod
@@ -45,23 +44,24 @@ class NetDev:
             raise MissingValue("in network interface dictionary - nic.py - (create_network_interface_info_list)")
         return network_interface_info_list
 
+    # Pack object into dictionary, ready to be sent
     def serialize(self):
         net_dev_dict = {}
         net_dev_dict["vlan"] = self.vlan
-        net_dev_dict["new_vlan"] = self.new_vlan
-        net_dev_dict["type"] = self.net_dev_type
+        if self.new_vlan:
+            net_dev_dict["new_vlan"] = self.new_vlan
+        net_dev_dict["type"] = self.net_dev_type.upper()
         net_dev_dict["connected"] = self.connected
-        net_dev_dict["vm_uuid"] = self.vm_uuid
-        net_dev_dict["uuid"] = self.uuid
-        net_dev_dict["macAddress"] = self.macAddress
-        net_dev_dict["ipv4Addresses"] = self.ipv4Addresses
+        net_dev_dict["virDomainUUID"] = self.vm_uuid
+        if self.macAddress: # if it's empty we don't send, so it auto-generates
+            net_dev_dict["macAddress"] = self.macAddress
         return net_dev_dict
 
 
     def deserialize(self, net_dev_dict):
         self.vlan = net_dev_dict.get("vlan", 0)
         self.new_vlan = net_dev_dict.get("new_vlan", None)
-        self.net_dev_type = net_dev_dict.get("type", "")
+        self.net_dev_type = net_dev_dict.get("type", "").upper()
         self.connected = net_dev_dict.get("connected", True)
         self.vm_uuid = net_dev_dict.get("vm_uuid", "")
         self.uuid = net_dev_dict.get("uuid", "")
