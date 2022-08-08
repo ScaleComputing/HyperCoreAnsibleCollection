@@ -28,7 +28,7 @@ class InvalidUuidFormatError(ScaleComputingError):
     def __init__(self, data):
         self.message = "Invalid UUID - {0}".format(data)
         super(InvalidUuidFormatError, self).__init__(self.message)
-        
+
 
 class MissingParameter(ScaleComputingError):
     def __init__(self, data):

@@ -15,7 +15,6 @@ class TaskTag:
         task = client.request("GET", end_point + "/" + task_tag).json[0]
         return task
 
-
     @classmethod
     def wait_task(cls, client, task):
         if type(task) == dict and "taskTag" in task.keys():

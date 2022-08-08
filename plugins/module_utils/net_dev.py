@@ -12,20 +12,23 @@ class NetDev:
         if net_dev_dict:
             self.deserialize(net_dev_dict)
 
-
     def __eq__(self, other):
-        return (self.vlan == other.vlan and self.new_vlan == other.new_vlan and 
-                self.net_dev_type == other.net_dev_type and self.connected == other.connected and 
-                self.uuid == other.uuid and self.macAddress == other.macAddress and 
-                self.ipv4Addresses == other.ipv4Addresses)
+        return (
+            self.vlan == other.vlan
+            and self.new_vlan == other.new_vlan
+            and self.net_dev_type == other.net_dev_type
+            and self.connected == other.connected
+            and self.uuid == other.uuid
+            and self.macAddress == other.macAddress
+            and self.ipv4Addresses == other.ipv4Addresses
+        )
 
     # Compare two Network interfaces
     @classmethod
     def compare(cls, old_net_dev, new_net_dev):
-        if (new_net_dev == old_net_dev):
+        if new_net_dev == old_net_dev:
             return True
         return False
-
 
     # Primarily used for vm_info and vm_nic_info | should return info that user can copy paste to create new netowrk interface
     @classmethod
@@ -36,13 +39,23 @@ class NetDev:
                 virtual_machine_net_dev_info_dict = {}
                 virtual_machine_net_dev_info_dict["uuid"] = network_interface.uuid
                 virtual_machine_net_dev_info_dict["vlan"] = network_interface.vlan
-                virtual_machine_net_dev_info_dict["type"] = network_interface.net_dev_type
-                virtual_machine_net_dev_info_dict["macAddress"] = network_interface.macAddress
-                virtual_machine_net_dev_info_dict["connected"] = network_interface.connected
-                virtual_machine_net_dev_info_dict["ipv4Addresses"] = network_interface.ipv4Addresses
+                virtual_machine_net_dev_info_dict[
+                    "type"
+                ] = network_interface.net_dev_type
+                virtual_machine_net_dev_info_dict[
+                    "macAddress"
+                ] = network_interface.macAddress
+                virtual_machine_net_dev_info_dict[
+                    "connected"
+                ] = network_interface.connected
+                virtual_machine_net_dev_info_dict[
+                    "ipv4Addresses"
+                ] = network_interface.ipv4Addresses
                 network_interface_info_list.append(virtual_machine_net_dev_info_dict)
         except KeyError:
-            raise MissingValue("in network interface dictionary - nic.py - (create_network_interface_info_list)")
+            raise MissingValue(
+                "in network interface dictionary - nic.py - (create_network_interface_info_list)"
+            )
         return network_interface_info_list
 
     def serialize(self):
@@ -56,7 +69,6 @@ class NetDev:
         net_dev_dict["macAddress"] = self.macAddress
         net_dev_dict["ipv4Addresses"] = self.ipv4Addresses
         return net_dev_dict
-
 
     def deserialize(self, net_dev_dict):
         self.vlan = net_dev_dict.get("vlan", 0)
