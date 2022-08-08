@@ -1,0 +1,70 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Retrieve all VMs
+      scale_computing.hc3.api: &retrieve-all-vms
+        action: get
+        endpoint: /rest/v1/VirDomain
+      register: initial
+
+    - name: Create a VM
+      scale_computing.hc3.api:
+        action: post
+        endpoint: /rest/v1/VirDomain
+        data:
+          dom:
+            name: XLAB-jc1
+            tags: Xlab,jc1,us1,integration-test3
+            mem: 512100100
+            numVCPU: 2
+            blockDevs:
+              - type: VIRTIO_DISK
+                capacity: 8100100100
+                name: jc1-disk-0
+            netDevs:
+              - type: RTL8139
+                vlan: 0
+                connected: true
+          options:
+            attachGuestToolsISO: true
+      register: vm_created
+    - ansible.builtin.assert:
+        that:
+          - vm_created is changed
+
+    - name: Retrieve all VMs after creating a new resource
+      scale_computing.hc3.api: *retrieve-all-vms
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.record | length == initial.record | length + 1
+
+    - name: Update the VM
+      scale_computing.hc3.api:
+        action: patch
+        endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+        data:
+          description: updated description
+      register: vm_updated
+
+    - name: Verify VM's description has been modified
+      scale_computing.hc3.api:
+        action: get
+        endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.record.0.description == "updated description"
+
+    - name: Verify that record has been deleted
+      scale_computing.hc3.api:
+        action: delete
+        endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - not result.record

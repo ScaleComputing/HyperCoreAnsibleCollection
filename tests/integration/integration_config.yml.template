@@ -1,0 +1,5 @@
+# Replace the values of variables with connection and access
+# details for your Personal Developer Instance
+sc_host: <your_host>
+sc_username: <your_user>
+sc_password: <your_password>

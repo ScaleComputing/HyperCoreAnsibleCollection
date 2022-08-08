@@ -107,7 +107,6 @@ class Client:
             raise AssertionError(
                 "Cannot have JSON and binary payload in a single request."
             )
-
         escaped_path = quote(path.strip("/"))
         if escaped_path:
             escaped_path = "/" + escaped_path
@@ -130,7 +129,7 @@ class Client:
 
     def post(self, path, data, query=None):
         resp = self.request("POST", path, data=data, query=query)
-        if resp.status == 201:
+        if resp.status == 201 or resp.status == 200:
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
@@ -148,5 +147,5 @@ class Client:
 
     def delete(self, path, query=None):
         resp = self.request("DELETE", path, query=query)
-        if resp.status != 204:
+        if resp.status != 204 and resp.status != 200:
             raise UnexpectedAPIResponse(response=resp)

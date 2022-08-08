@@ -190,7 +190,7 @@ def main():
         host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
-        
+
         client = Client(host, username, password)
         vms = run(module, client)
         module.exit_json(changed=True, vms=vms)
