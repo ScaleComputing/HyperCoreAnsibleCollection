@@ -11,7 +11,6 @@ import sys
 
 import pytest
 
-from scale_computing.hc3.plugins.module_utils import errors
 from scale_computing.hc3.plugins.modules import api
 
 pytestmark = pytest.mark.skipif(
