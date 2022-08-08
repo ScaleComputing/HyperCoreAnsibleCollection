@@ -1,1 +1,0 @@
-plugins/modules/sample_vm_info.py validate-modules:missing-gplv3-license
