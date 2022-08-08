@@ -3,8 +3,6 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from .errors import MissingValue
-
 
 class NetDev:
     def __init__(self, client=None, net_dev_dict=None):
