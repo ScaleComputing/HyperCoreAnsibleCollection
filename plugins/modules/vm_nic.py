@@ -12,20 +12,38 @@ DOCUMENTATION = r"""
 module: vm_nic
 
 author:
-  - First Second (@firstsecond)
-short_description: Sample plugin
+  - Domen Dobnikar (@domen_dobnikar)
+short_description: Plugin handles actions over network interfaces
 description:
-  - A sample plugin with boilerplate code.
+  - Plugin enables actions over network interfaces on a specified virtual machine
+  - Can create, update, delete specified network interfaces
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hc3.cluster_instance
 seealso: []
 options:
-  uuid:
+  state:
     description:
-      - VM UUID
-      - If included only VMs with matching UUID will be returned.
+      - State defines which operation should plugin do over selected network interfaces
+      - present, absent, set
+    choices: [ present, absent, set ]
     type: str
+    required: True
+  vm_name:
+    description:
+      - Virtual machine name
+      - Used to identify selected virtual machine by name
+    type: str
+  vm_uuid:
+    description:
+      - Virtual machine uniquie identifier
+      - Used to identify selected virtual machine by uuid
+    type: str
+  items:
+    description:
+      - List of network interfaces
+    type: list
+    elements: dict
 """
 
 EXAMPLES = r"""

@@ -3,17 +3,25 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+
+from __future__ import absolute_import, division, print_function
+
+__metaclass__ = type
+
 from time import sleep
+
+from ..module_utils.errors import MissingParameter
 
 
 class TaskTag:
     @classmethod
     def get_task_by_task_tag(cls, client, task_tag):
-        # we do not to return just the first of all tags, if function is called with task_tag="" due to typo.s
-        assert task_tag
-        end_point = "/rest/v1/TaskTag"
-        task = client.request("GET", end_point + "/" + task_tag).json[0]
-        return task
+        if task_tag:
+            end_point = "/rest/v1/TaskTag"
+            task = client.request("GET", end_point + "/" + task_tag).json[0]
+            return task
+        else:
+            raise MissingParameter("task_tag - task_tag.py - get_task_by_task_tag()")
 
     @classmethod
     def wait_task(cls, client, task):

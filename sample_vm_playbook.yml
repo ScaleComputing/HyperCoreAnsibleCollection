@@ -24,7 +24,7 @@
       tags:
         - 'Xlab'
         - 'Domen'
-      memory: 536870912	#In Bytes
+      memory: 536870912 #In Bytes
       vcpu: 2
       disks:
         - type: IDE_DISK

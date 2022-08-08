@@ -31,6 +31,12 @@ SHARED_SPECS = dict(
                 no_log=True,
                 fallback=(env_fallback, ["SC_PASSWORD"]),
             ),
+            timeout=dict(
+                type="float",
+                required=True,
+                no_log=True,
+                fallback=(env_fallback, ["SC_TIMEOUT"]),
+            ),
         ),
         required_together=[("username", "password")],
     ),

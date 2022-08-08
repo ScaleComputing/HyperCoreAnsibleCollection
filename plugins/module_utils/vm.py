@@ -3,7 +3,12 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from ..module_utils.errors import MissingValue
+
+from __future__ import absolute_import, division, print_function
+
+__metaclass__ = type
+
+from ..module_utils.errors import MissingValue, DeviceNotUnique
 from ..module_utils.net_dev import NetDev
 from ..module_utils.block_dev import BlockDev
 
@@ -31,7 +36,8 @@ class VM:
         if name:
             all_vm_names = [vm["name"] for vm in all_vms_list]
             # TODO raise specific exception if multiple VMs have same name
-            assert all_vm_names.count(name) <= 1
+            if all_vm_names.count(name) > 1:
+                raise DeviceNotUnique("Virtual machine - vm.py - get()")
             for (
                 vm
             ) in (
@@ -158,14 +164,16 @@ class VM:
         if vlan:
             all_vlans = [nic.vlan for nic in self.net_devs_list]
             # TODO raise specific exception
-            assert all_vlans.count(vlan) <= 1
+            if all_vlans.count(vlan) > 1:
+                raise DeviceNotUnique("nic - vm.py - find_net_dev()")
             for net_dev in self.net_devs_list:
                 if net_dev.vlan == vlan:
                     return net_dev
         else:
             all_macs = [nic.mac for nic in self.net_devs_list]
             # TODO raise specific exception
-            assert all_macs.count(mac) <= 1
+            if all_macs.count(mac) > 1:
+                raise DeviceNotUnique("nic - vm.py - find_net_dev()")
             for net_dev in self.net_devs_list:
                 if net_dev.mac == mac:
                     return net_dev
@@ -174,7 +182,8 @@ class VM:
         # TODO we need to find by (vm_name, disk_type, disk_slot).
         all_slots = [disk.slot for disk in self.block_devs_list]
         # TODO raise specific exception
-        assert all_slots.count(slot) <= 1
+        if all_slots.count(slot) > 1:
+            raise DeviceNotUnique("disk - vm.py - find_block_dev()")
         for block_dev in self.block_devs_list:
             if block_dev.slot == slot:
                 return block_dev

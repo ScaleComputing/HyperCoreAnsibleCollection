@@ -12,34 +12,31 @@ DOCUMENTATION = r"""
 module: vm_nic_info
 
 author:
-  - First Second (@firstsecond)
-short_description: Sample plugin
+  - Domen Dobnikar (@domen_dobnikar)
+short_description: Returns info about nic.
 description:
-  - A sample plugin with boilerplate code.
+  - Returns info about all or specific nic on a selected virtual device.
 version_added: 0.0.1
-extends_documentation_fragment: []
+extends_documentation_fragment:
+  - scale_computing.hc3.cluster_instance
 seealso: []
 options:
-  host:
+  vm_name:
     description:
-      - Host address.
+      - Virtual machine name
+      - Used to identify selected virtual machine by name
     type: str
-    required: true
-  username:
+  vm_uuid:
     description:
-      - Scale computing username
+      - Virtual machine uniquie identifier
+      - Used to identify selected virtual machine by uuid
     type: str
-    required: true
-  password:
+  vlan:
     description:
-      - Scale computing password
-    type: str
-    required: true
-  uuid:
-    description:
-      - VM UUID
-      - If included only VMs with matching UUID will be returned.
-    type: str
+      - Vlan on which network interface is operating on
+      - Used to identify specific network interface
+      - If included only network interface with the specified vlan will be returned
+    type: int
 """
 
 EXAMPLES = r"""
@@ -128,6 +125,7 @@ def main():
         host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
+        timeout = module.params["cluster_instance"]["timeout"]
 
         client = Client(host, username, password)
         vms = run(module, client)
