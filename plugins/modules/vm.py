@@ -187,10 +187,7 @@ def main():
                 ],
                 required=True,
             ),
-            tags=dict(
-                type="list",
-                elements="str"
-            ),
+            tags=dict(type="list", elements="str"),
             disks=dict(
                 type="list",
                 elements="dict",

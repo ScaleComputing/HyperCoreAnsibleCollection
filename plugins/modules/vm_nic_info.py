@@ -125,7 +125,6 @@ def main():
         host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
-        timeout = module.params["cluster_instance"]["timeout"]
 
         client = Client(host, username, password)
         vms = run(module, client)
