@@ -137,7 +137,12 @@ def check_state_decide_action(module, client, state):
         for net_dev in module.params["items"]:
             net_dev["vm_uuid"] = virtual_machine.uuid
             net_dev = NetDev(client=client, net_dev_dict=net_dev)
-            existing_net_dev = virtual_machine.find_net_dev(net_dev.vlan)
+            if net_dev.vlan:
+                existing_net_dev = virtual_machine.find_net_dev(vlan=net_dev.vlan)
+            elif net_dev.mac:
+                existing_net_dev = virtual_machine.find_net_dev(vlan=net_dev.mac)
+            else:
+                raise errors.MissingValue("VLAN and MAC in vm_nic.py ")
             if state in [State.present, State.set]:
                 json_response = do_present_or_set(client, end_point, existing_net_dev, net_dev)
             else:

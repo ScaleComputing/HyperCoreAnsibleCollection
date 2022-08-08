@@ -53,7 +53,10 @@ class NetDev:
             net_dev_dict["connected"] = self.connected
         net_dev_dict["virDomainUUID"] = self.vm_uuid
         if self.mac: # if it's empty we don't send, it auto-generates
-            net_dev_dict["macAddress"] = self.mac
+            if self.mac_address_new: # user wants to change mac address
+                net_dev_dict["macAddress"] = self.mac_address_new
+            else:
+                net_dev_dict["macAddress"] = self.mac
         return net_dev_dict
 
 
@@ -65,4 +68,5 @@ class NetDev:
         self.vm_uuid = net_dev_dict.get("vm_uuid", "")
         self.uuid = net_dev_dict.get("uuid", "")
         self.mac = net_dev_dict.get("mac", net_dev_dict.get("macAddress", "")) # mac is from playbook, macAddress is from API
+        self.mac_address_new = net_dev_dict.get("mac_address_new", None)       # user wants to change mac to mac_new
         self.ipv4Addresses = net_dev_dict.get("ipv4Addresses", [])
