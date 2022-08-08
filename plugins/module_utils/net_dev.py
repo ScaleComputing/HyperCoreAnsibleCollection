@@ -49,7 +49,7 @@ class NetDev:
             network_interface_info_list.append(virtual_machine_net_dev_info_dict)
         return network_interface_info_list
 
-    # Pack object into dictionary, ready to be sent
+    # Pack object into dictionary, ready to be sent to HC3
     def serialize(self):
         net_dev_dict = {}
         net_dev_dict["vlan"] = self.vlan
