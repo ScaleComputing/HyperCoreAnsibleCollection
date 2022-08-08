@@ -17,3 +17,12 @@ def validate_uuid(value):
         uuid.UUID(value, version=4)
     except ValueError:
         raise InvalidUuidFormatError(value)
+
+
+def filter_dict(input, *field_names):
+    output = {}
+    for field_name in field_names:
+        value = input[field_name]
+        if value is not None:
+            output[field_name] = value
+    return output

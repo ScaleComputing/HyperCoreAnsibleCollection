@@ -15,6 +15,9 @@ from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
 
 from ansible_collections.scale_computing.hc3.plugins.module_utils.client import Client
+from ansible_collections.scale_computing.hc3.plugins.module_utils.rest_client import (
+    RestClient,
+)
 
 
 @pytest.fixture
@@ -22,18 +25,9 @@ def client(mocker):
     return mocker.Mock(spec=Client)
 
 
-"""
-
 @pytest.fixture
-def table_client(mocker):
-    return mocker.Mock(spec=TableClient)
-
-
-@pytest.fixture
-def attachment_client(mocker):
-    return mocker.Mock(spec=AttachmentClient)
-
-"""
+def rest_client(mocker):
+    return mocker.Mock(spec=RestClient)
 
 
 @pytest.fixture
