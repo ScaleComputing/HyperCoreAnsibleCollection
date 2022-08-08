@@ -45,6 +45,6 @@ options:
             Computing HC3 API instance.
           - If not set, the value of the C(SC_TIMEOUT) environment
             variable will be used.
-        required: true
+        required: false
         type: float
 """

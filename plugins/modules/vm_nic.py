@@ -12,20 +12,38 @@ DOCUMENTATION = r"""
 module: vm_nic
 
 author:
-  - First Second (@firstsecond)
-short_description: Sample plugin
+  - Domen Dobnikar (@domen_dobnikar)
+short_description: Plugin handles actions over network interfaces
 description:
-  - A sample plugin with boilerplate code.
+  - Plugin enables actions over network interfaces on a specified virtual machine
+  - Can create, update, delete specified network interfaces
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hc3.cluster_instance
 seealso: []
 options:
-  uuid:
+  state:
     description:
-      - VM UUID
-      - If included only VMs with matching UUID will be returned.
+      - State defines which operation should plugin do over selected network interfaces
+      - present, absent, set
+    choices: [ present, absent, set ]
     type: str
+    required: True
+  vm_name:
+    description:
+      - Virtual machine name
+      - Used to identify selected virtual machine by name
+    type: str
+  vm_uuid:
+    description:
+      - Virtual machine uniquie identifier
+      - Used to identify selected virtual machine by uuid
+    type: str
+  items:
+    description:
+      - List of network interfaces
+    type: list
+    elements: dict
 """
 
 EXAMPLES = r"""
@@ -67,26 +85,14 @@ def check_parameters(module):
         validate_uuid(module.params["vm_uuid"])
 
 
-def create_request_body(net_dev, vm_uuid):
-    request_body = {}
-    request_body["virDomainUUID"] = vm_uuid
-    request_body["type"] = net_dev.net_dev_type
-    if net_dev.new_vlan:
-        request_body["vlan"] = net_dev.new_vlan
-    else:
-        request_body["vlan"] = net_dev.vlan
-    request_body["connected"] = net_dev.connected
-    return request_body
-
-
-def create_nic(net_dev, client, end_point, vm_uuid):
-    request_body = create_request_body(net_dev, vm_uuid)
+def create_nic(client, end_point, net_dev):
+    request_body = net_dev.serialize()
     json_response = client.request("POST", end_point, data=request_body).json
     return json_response
 
 
-def update_nic(new_net_dev, client, end_point, vm_uuid):
-    request_body = create_request_body(new_net_dev, vm_uuid)
+def update_nic(client, end_point, new_net_dev):
+    request_body = new_net_dev.serialize()
     json_response = client.request("PATCH", end_point, data=request_body).json
     return json_response
 
@@ -98,11 +104,12 @@ def delete_nic(client, end_point):
 
 def create_nic_uuid_list(module):
     net_dev_uuid_list = []
-    for net_dev in module.params["nics"]:
-        if "new_vlan" in net_dev.keys():
-            net_dev_uuid_list.append(net_dev["new_vlan"])
-        else:
-            net_dev_uuid_list.append(net_dev["vlan"])
+    if module.params["items"]:
+        for net_dev in module.params["items"]:
+            if "vlan_new" in net_dev.keys():
+                net_dev_uuid_list.append(net_dev["vlan_new"])
+            else:
+                net_dev_uuid_list.append(net_dev["vlan"])
     return net_dev_uuid_list
 
 
@@ -128,30 +135,43 @@ def create_vm(
     return virtual_machine
 
 
+def do_present_or_set(client, end_point, existing_net_dev, new_net_dev):
+    if existing_net_dev and not NetDev.compare(existing_net_dev, new_net_dev):
+        json_response = update_nic(
+            client, end_point + "/" + existing_net_dev.uuid, new_net_dev
+        )
+    else:
+        json_response = create_nic(client, end_point, new_net_dev)
+    return json_response
+
+
+def do_absent(client, end_point, existing_net_dev):
+    json_response = delete_nic(client, end_point + "/" + existing_net_dev.uuid)
+    return json_response
+
+
 def check_state_decide_action(module, client, state):
     end_point = "/rest/v1/VirDomainNetDevice"
     json_response = "No changes"
     virtual_machine = create_vm(module, client)
-    for net_dev in module.params["nics"]:
-        net_dev = NetDev(client=client, net_dev_dict=net_dev)
-        existing_net_dev = virtual_machine.find_net_dev(net_dev.vlan)
-        if existing_net_dev:
-            if state in [State.present, State.set] and not NetDev.compare(
-                existing_net_dev, net_dev
-            ):
-                json_response = update_nic(
-                    net_dev,
-                    client,
-                    end_point + "/" + existing_net_dev.uuid,
-                    virtual_machine.uuid,
+
+    if module.params["items"]:
+        for net_dev in module.params["items"]:
+            net_dev["vm_uuid"] = virtual_machine.uuid
+            net_dev = NetDev(client=client, net_dev_dict=net_dev)
+            if net_dev.vlan:
+                existing_net_dev = virtual_machine.find_net_dev(vlan=net_dev.vlan)
+            elif net_dev.mac:
+                existing_net_dev = virtual_machine.find_net_dev(vlan=net_dev.mac)
+            else:
+                raise errors.MissingValue("VLAN and MAC in vm_nic.py ")
+            if state in [State.present, State.set]:
+                json_response = do_present_or_set(
+                    client, end_point, existing_net_dev, net_dev
                 )
-            elif state == State.absent:
-                json_response = delete_nic(
-                    client, end_point + "/" + existing_net_dev.uuid
-                )
-        elif state in [State.present, State.set]:
-            json_response = create_nic(net_dev, client, end_point, virtual_machine.uuid)
-        TaskTag.wait_task(client, json_response)
+            else:
+                json_response = do_absent(client, end_point, existing_net_dev)
+            TaskTag.wait_task(client, json_response)
     if state == State.set:
         updated_virtual_machine = create_vm(
             module, client
@@ -184,7 +204,7 @@ def main():
             vm_name=dict(
                 type="str",
             ),
-            nics=dict(
+            items=dict(
                 type="list",
                 elements="dict",
             ),

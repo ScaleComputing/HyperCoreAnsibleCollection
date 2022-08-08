@@ -3,7 +3,12 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from ..module_utils.errors import MissingValue
+
+from __future__ import absolute_import, division, print_function
+
+__metaclass__ = type
+
+from ..module_utils.errors import MissingValue, DeviceNotUnique
 from ..module_utils.net_dev import NetDev
 from ..module_utils.block_dev import BlockDev
 
@@ -31,7 +36,8 @@ class VM:
         if name:
             all_vm_names = [vm["name"] for vm in all_vms_list]
             # TODO raise specific exception if multiple VMs have same name
-            assert all_vm_names.count(name) <= 1
+            if all_vm_names.count(name) > 1:
+                raise DeviceNotUnique("Virtual machine - vm.py - get()")
             for (
                 vm
             ) in (
@@ -89,30 +95,17 @@ class VM:
         return necessary_virtual_machine_info_dict
 
     # Primarily used for vm_info | should return complete info that user can copy paste to create new VM
-    def create_vm_info_list(self, virtual_machine_list=None):
+    def create_vm_info_list(self):
         virtual_machines_info_list = []
-        if virtual_machine_list:  # In case user wants a list of all VMs
-            for virtual_machine_info_dict in virtual_machine_list:
-                virtual_machine_info_dict = VM.create_vm_info(virtual_machine_info_dict)
-                virtual_machine_info_dict["disks"] = BlockDev.create_disk_info_list(
-                    virtual_machine_info_dict["disks"]
-                )
-                virtual_machine_info_dict[
-                    "nics"
-                ] = NetDev.create_network_interface_info_list(
-                    virtual_machine_info_dict["nics"]
-                )
-                virtual_machines_info_list.append(virtual_machine_info_dict)
-        else:  # Otherwise data is taken from the object VM
-            virtual_machine_info_dict = self.serialize()
-            virtual_machine_info_dict = VM.create_vm_info(virtual_machine_info_dict)
-            virtual_machine_info_dict["disks"] = BlockDev.create_disk_info_list(
-                self.block_devs_list
-            )
-            virtual_machine_info_dict[
-                "nics"
-            ] = NetDev.create_network_interface_info_list(self.net_devs_list)
-            virtual_machines_info_list.append(virtual_machine_info_dict)
+        virtual_machine_info_dict = self.serialize()
+        virtual_machine_info_dict = VM.create_vm_info(virtual_machine_info_dict)
+        virtual_machine_info_dict["disks"] = BlockDev.create_disk_info_list(
+            self.block_devs_list
+        )
+        virtual_machine_info_dict["nics"] = NetDev.create_network_interface_info_list(
+            self.net_devs_list
+        )
+        virtual_machines_info_list.append(virtual_machine_info_dict)
         return virtual_machines_info_list
 
     def deserialize(self, vm_dict):
@@ -165,19 +158,32 @@ class VM:
         vm_dict["attachGuestToolsISO"] = self.attach_guest_tools_iso
         return vm_dict
 
-    def find_net_dev(self, vlan):
-        all_vlans = [nic.vlan for nic in self.net_devs_list]
-        # TODO raise specific exception
-        assert all_vlans.count(vlan) <= 1
-        for net_dev in self.net_devs_list:
-            if net_dev.vlan == vlan:
-                return net_dev
+    # search by vlan or mac as specified in US-11:
+    # (https://gitlab.xlab.si/scale-ansible-collection/scale-ansible-collection-docs/-/blob/develop/docs/user-stories/us11-manage-vnics.md)
+    def find_net_dev(self, vlan=None, mac=None):
+        if vlan:
+            all_vlans = [nic.vlan for nic in self.net_devs_list]
+            # TODO raise specific exception
+            if all_vlans.count(vlan) > 1:
+                raise DeviceNotUnique("nic - vm.py - find_net_dev()")
+            for net_dev in self.net_devs_list:
+                if net_dev.vlan == vlan:
+                    return net_dev
+        else:
+            all_macs = [nic.mac for nic in self.net_devs_list]
+            # TODO raise specific exception
+            if all_macs.count(mac) > 1:
+                raise DeviceNotUnique("nic - vm.py - find_net_dev()")
+            for net_dev in self.net_devs_list:
+                if net_dev.mac == mac:
+                    return net_dev
 
     def find_block_dev(self, slot):
         # TODO we need to find by (vm_name, disk_type, disk_slot).
         all_slots = [disk.slot for disk in self.block_devs_list]
         # TODO raise specific exception
-        assert all_slots.count(slot) <= 1
+        if all_slots.count(slot) > 1:
+            raise DeviceNotUnique("disk - vm.py - find_block_dev()")
         for block_dev in self.block_devs_list:
             if block_dev.slot == slot:
                 return block_dev

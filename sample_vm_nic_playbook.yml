@@ -7,18 +7,14 @@
         host: 'https://10.5.11.30'
         username: 'admin'
         password: 'admin'
-      state: set #present, absent, set
-      vm_name: 'XLAB-POST-Domen' #VM name, where NIC is being handled on
+      state: present #present, absent, set
+      vm_name: 'XLAB-POST-TEST' #VM name, where NIC is being handled on
       #vm_uuid: '2e36ee02-5f97-4f93-a966-bde5beda796e' #can also pass VM UUID instead of name | either or
-      nics:
+      items:
       - vlan: 15 #Default 0
         #new_vlan: 15 #This overwrites vlan, even during create
         #nic_uuid: 'acbd04bc-6486-4db4-bce3-065f3e92d3cb' #UUID of the NiC
         type: RTL8139 #RTL8139, INTEL_E1000, VIRTIO
-        connected: true #Default true
-      - vlan: 1 #Default 0
-        #nic_uuid: '6834b0ae-476d-42b6-be5b-6e0d6ef6f81d' #UUID of the NiC
-        type: INTEL_E1000 #RTL8139, INTEL_E1000, VIRTIO
         connected: true #Default true
     register: testout
 

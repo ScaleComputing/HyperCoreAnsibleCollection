@@ -17,14 +17,14 @@
         host: 'https://10.5.11.30'
         username: 'admin'
         password: 'admin'
-      name: XLAB-POST-TEST
+      name: XLAB-us11-example6
       description: Demo VM
       power_state: shutdown
       state: present
       tags:
         - 'Xlab'
         - 'Domen'
-      memory: 536870912	#In Bytes
+      memory: 536870912 #In Bytes
       vcpu: 2
       disks:
         - type: IDE_DISK

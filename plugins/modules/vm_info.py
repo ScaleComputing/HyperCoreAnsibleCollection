@@ -13,32 +13,23 @@ module: vm_info
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Sample plugin
+short_description: Return info about virtual machines
 description:
-  - A sample plugin with boilerplate code.
+  - Plugin return information about all or specific virtual machines in a cluster
 version_added: 0.0.1
-extends_documentation_fragment: []
+extends_documentation_fragment:
+  - scale_computing.hc3.cluster_instance
 seealso: []
 options:
-  host:
-    description:
-      - Host address.
-    type: str
-    required: true
-  username:
-    description:
-      - Scale computing username
-    type: str
-    required: true
-  password:
-    description:
-      - Scale computing password
-    type: str
-    required: true
   uuid:
     description:
-      - VM UUID
-      - If included only VMs with matching UUID will be returned.
+      - Virtual machine uniquie identifier
+      - Used to identify selected virtual machine by uuid
+    type: str
+  name:
+    description:
+      - Virtual machine name
+      - Used to identify selected virtual machine by name
     type: str
 """
 
