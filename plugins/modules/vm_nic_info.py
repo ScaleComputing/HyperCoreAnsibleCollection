@@ -77,14 +77,17 @@ from ..module_utils.utils import validate_uuid
 def check_parameters(module):
     if module.params["vm_uuid"]:
         validate_uuid(module.params["vm_uuid"])
-        
-def create_vm_object(module, client): # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
-  if module.params["vm_uuid"]:
-    virtual_machine_dict = VM.get(client, uuid=module.params["vm_uuid"])[0]
-  else:
-    virtual_machine_dict = VM.get(client, name=module.params["vm_name"])[0]
-  virtual_machine = VM(client=client, vm_dict=virtual_machine_dict)
-  return virtual_machine
+
+
+def create_vm_object(
+    module, client
+):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
+    if module.params["vm_uuid"]:
+        virtual_machine_dict = VM.get(client, uuid=module.params["vm_uuid"])[0]
+    else:
+        virtual_machine_dict = VM.get(client, name=module.params["vm_name"])[0]
+    virtual_machine = VM(client=client, vm_dict=virtual_machine_dict)
+    return virtual_machine
 
 
 def run(module, client):
@@ -96,7 +99,7 @@ def run(module, client):
         response_net_dev_list = []
         virtual_machine = create_vm_object(module, client)
         for net_dev in virtual_machine.net_devs_list:
-          response_net_dev_list.append(net_dev.serialize())
+            response_net_dev_list.append(net_dev.serialize())
         json_response = response_net_dev_list
     return json_response
 
@@ -119,16 +122,14 @@ def main():
         mutually_exclusive=[
             ("vm_name", "vm_uuid"),
         ],
-        required_one_of=[
-            ("vm_name", "vm_uuid")
-        ],
+        required_one_of=[("vm_name", "vm_uuid")],
     )
 
     try:
         host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
-        
+
         client = Client(host, username, password)
         vms = run(module, client)
         # We do not want to just show complete API response to end user.

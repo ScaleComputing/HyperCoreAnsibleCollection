@@ -12,19 +12,22 @@ class NetDev:
         if net_dev_dict:
             self.deserialize(net_dev_dict)
 
-
     def __eq__(self, other):
-        return (self.vlan == other.vlan and self.vlan_new == other.vlan_new and 
-                self.net_dev_type == other.net_dev_type and self.connected == other.connected and 
-                self.uuid == other.uuid and self.mac == other.mac)
+        return (
+            self.vlan == other.vlan
+            and self.vlan_new == other.vlan_new
+            and self.net_dev_type == other.net_dev_type
+            and self.connected == other.connected
+            and self.uuid == other.uuid
+            and self.mac == other.mac
+        )
 
     # Compare two Network interfaces
     @classmethod
     def compare(cls, old_net_dev, new_net_dev):
-        if (new_net_dev == old_net_dev):
+        if new_net_dev == old_net_dev:
             return True
         return False
-
 
     # Primarily used for vm_info and vm_nic_info | should return info that user can copy paste to create new netowrk interface
     @classmethod
@@ -37,7 +40,9 @@ class NetDev:
             virtual_machine_net_dev_info_dict["type"] = network_interface.net_dev_type
             virtual_machine_net_dev_info_dict["mac"] = network_interface.mac
             virtual_machine_net_dev_info_dict["connected"] = network_interface.connected
-            virtual_machine_net_dev_info_dict["ipv4Addresses"] = network_interface.ipv4Addresses
+            virtual_machine_net_dev_info_dict[
+                "ipv4Addresses"
+            ] = network_interface.ipv4Addresses
             network_interface_info_list.append(virtual_machine_net_dev_info_dict)
         return network_interface_info_list
 
@@ -45,20 +50,19 @@ class NetDev:
     def serialize(self):
         net_dev_dict = {}
         net_dev_dict["vlan"] = self.vlan
-        if self.vlan_new: # if not None, vlan_new is used
+        if self.vlan_new:  # if not None, vlan_new is used
             net_dev_dict["vlan"] = self.vlan_new
         if self.net_dev_type:
             net_dev_dict["type"] = self.net_dev_type.upper()
         if self.connected:
             net_dev_dict["connected"] = self.connected
         net_dev_dict["virDomainUUID"] = self.vm_uuid
-        if self.mac: # if it's empty we don't send, it auto-generates
-            if self.mac_address_new: # user wants to change mac address
+        if self.mac:  # if it's empty we don't send, it auto-generates
+            if self.mac_address_new:  # user wants to change mac address
                 net_dev_dict["macAddress"] = self.mac_address_new
             else:
                 net_dev_dict["macAddress"] = self.mac
         return net_dev_dict
-
 
     def deserialize(self, net_dev_dict):
         self.vlan = net_dev_dict.get("vlan", 0)
@@ -67,6 +71,10 @@ class NetDev:
         self.connected = net_dev_dict.get("connected", True)
         self.vm_uuid = net_dev_dict.get("vm_uuid", "")
         self.uuid = net_dev_dict.get("uuid", "")
-        self.mac = net_dev_dict.get("mac", net_dev_dict.get("macAddress", "")) # mac is from playbook, macAddress is from API
-        self.mac_address_new = net_dev_dict.get("mac_address_new", None)       # user wants to change mac to mac_new
+        self.mac = net_dev_dict.get(
+            "mac", net_dev_dict.get("macAddress", "")
+        )  # mac is from playbook, macAddress is from API
+        self.mac_address_new = net_dev_dict.get(
+            "mac_address_new", None
+        )  # user wants to change mac to mac_new
         self.ipv4Addresses = net_dev_dict.get("ipv4Addresses", [])

@@ -7,32 +7,36 @@ from ..module_utils.errors import MissingValue
 from ..module_utils.net_dev import NetDev
 from ..module_utils.block_dev import BlockDev
 
+
 class VM:
     def __init__(self, client=None, vm_dict=None):
         self.client = client
         if vm_dict:
             self.deserialize(vm_dict)
 
-
     @property
     def net_devs_list(self):
         return self._net_devs_list
-
 
     @property
     def block_devs_list(self):
         return self._block_devs_list
 
-
     @classmethod
-    def get(cls, client, name=None, uuid=None): # get all VMs or specific (requires parameter Name or uuid)
+    def get(
+        cls, client, name=None, uuid=None
+    ):  # get all VMs or specific (requires parameter Name or uuid)
         end_point = "/rest/v1/VirDomain/"
         all_vms_list = client.request("GET", end_point).json
         if name:
             all_vm_names = [vm["name"] for vm in all_vms_list]
             # TODO raise specific exception if multiple VMs have same name
             assert all_vm_names.count(name) <= 1
-            for vm in all_vms_list: # find first | what if more than one VM with the same name?
+            for (
+                vm
+            ) in (
+                all_vms_list
+            ):  # find first | what if more than one VM with the same name?
                 if vm["name"] == name:
                     return [vm]
             return []
@@ -43,24 +47,45 @@ class VM:
             return []
         return all_vms_list
 
-
     # Primarily used for vm_info | should return info that user can copy paste to create new VM
     @classmethod
     def create_vm_info(cls, virtual_machine_info_dict):
         necessary_virtual_machine_info_dict = {}
         try:
-            necessary_virtual_machine_info_dict["uuid"] = virtual_machine_info_dict["uuid"]
-            necessary_virtual_machine_info_dict["name"] = virtual_machine_info_dict["name"]
-            necessary_virtual_machine_info_dict["description"] = virtual_machine_info_dict["description"]
-            necessary_virtual_machine_info_dict["memory"] = virtual_machine_info_dict["mem"]
-            necessary_virtual_machine_info_dict["power_state"] = virtual_machine_info_dict["state"]
-            necessary_virtual_machine_info_dict["vcpu"] = virtual_machine_info_dict["numVCPU"]
-            necessary_virtual_machine_info_dict["tags"] = virtual_machine_info_dict["tags"]
-            necessary_virtual_machine_info_dict["disks"] = virtual_machine_info_dict["blockDevs"]
-            necessary_virtual_machine_info_dict["nics"] = virtual_machine_info_dict["netDevs"]
-            necessary_virtual_machine_info_dict["boot_devices"] = virtual_machine_info_dict["bootDevices"]
+            necessary_virtual_machine_info_dict["uuid"] = virtual_machine_info_dict[
+                "uuid"
+            ]
+            necessary_virtual_machine_info_dict["name"] = virtual_machine_info_dict[
+                "name"
+            ]
+            necessary_virtual_machine_info_dict[
+                "description"
+            ] = virtual_machine_info_dict["description"]
+            necessary_virtual_machine_info_dict["memory"] = virtual_machine_info_dict[
+                "mem"
+            ]
+            necessary_virtual_machine_info_dict[
+                "power_state"
+            ] = virtual_machine_info_dict["state"]
+            necessary_virtual_machine_info_dict["vcpu"] = virtual_machine_info_dict[
+                "numVCPU"
+            ]
+            necessary_virtual_machine_info_dict["tags"] = virtual_machine_info_dict[
+                "tags"
+            ]
+            necessary_virtual_machine_info_dict["disks"] = virtual_machine_info_dict[
+                "blockDevs"
+            ]
+            necessary_virtual_machine_info_dict["nics"] = virtual_machine_info_dict[
+                "netDevs"
+            ]
+            necessary_virtual_machine_info_dict[
+                "boot_devices"
+            ] = virtual_machine_info_dict["bootDevices"]
         except KeyError:
-            raise MissingValue("in virtual machine info dictionary - vm.py - (create_vm_info)")
+            raise MissingValue(
+                "in virtual machine info dictionary - vm.py - (create_vm_info)"
+            )
         return necessary_virtual_machine_info_dict
 
     # Primarily used for vm_info | should return complete info that user can copy paste to create new VM
@@ -68,11 +93,14 @@ class VM:
         virtual_machines_info_list = []
         virtual_machine_info_dict = self.serialize()
         virtual_machine_info_dict = VM.create_vm_info(virtual_machine_info_dict)
-        virtual_machine_info_dict["disks"] = BlockDev.create_disk_info_list(self.block_devs_list)
-        virtual_machine_info_dict["nics"] = NetDev.create_network_interface_info_list(self.net_devs_list)
+        virtual_machine_info_dict["disks"] = BlockDev.create_disk_info_list(
+            self.block_devs_list
+        )
+        virtual_machine_info_dict["nics"] = NetDev.create_network_interface_info_list(
+            self.net_devs_list
+        )
         virtual_machines_info_list.append(virtual_machine_info_dict)
         return virtual_machines_info_list
-
 
     def deserialize(self, vm_dict):
         self.name = vm_dict.get("name", "")
@@ -101,10 +129,10 @@ class VM:
         # TODO cloud_init_data userData/metaData will be provided as a dict.
         # Also, only one might be provided (corner cases...).
         # TODO Update this part fo code.
-        self.cloud_init_data = vm_dict.get("cloudInitData", {"userData": {}, "metaData": {}})
+        self.cloud_init_data = vm_dict.get(
+            "cloudInitData", {"userData": {}, "metaData": {}}
+        )
         self.attach_guest_tools_iso = vm_dict.get("attachGuestToolsISO", False)
-
-
 
     def serialize(self):
         vm_dict = {}
@@ -124,7 +152,6 @@ class VM:
         vm_dict["attachGuestToolsISO"] = self.attach_guest_tools_iso
         return vm_dict
 
-
     # search by vlan or mac as specified in US-11:
     # (https://gitlab.xlab.si/scale-ansible-collection/scale-ansible-collection-docs/-/blob/develop/docs/user-stories/us11-manage-vnics.md)
     def find_net_dev(self, vlan=None, mac=None):
@@ -142,7 +169,6 @@ class VM:
             for net_dev in self.net_devs_list:
                 if net_dev.mac == mac:
                     return net_dev
-
 
     def find_block_dev(self, slot):
         # TODO we need to find by (vm_name, disk_type, disk_slot).

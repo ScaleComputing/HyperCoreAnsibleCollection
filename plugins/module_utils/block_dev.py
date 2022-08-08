@@ -5,12 +5,12 @@
 
 from ..module_utils.errors import MissingValue
 
+
 class BlockDev:
     def __init__(self, client=None, block_dev_dict=None):
         self.client = client
         if block_dev_dict:
             self.deserialize(block_dev_dict)
-
 
     # Primarily used for vm_info | should return info that user can copy paste to create new block device
     @classmethod
@@ -26,10 +26,11 @@ class BlockDev:
                 virtual_machine_disk_info_dict["type"] = block_dev.block_dev_type
                 disk_info_list.append(virtual_machine_disk_info_dict)
         except KeyError:
-            raise MissingValue("in block devices list - block_dev.py - (create_disk_info_list)")
+            raise MissingValue(
+                "in block devices list - block_dev.py - (create_disk_info_list)"
+            )
         return disk_info_list
-    
-    
+
     def serialize(self):
         block_dev_dict = {}
         block_dev_dict["uuid"] = self.uuid
@@ -38,7 +39,6 @@ class BlockDev:
         block_dev_dict["size"] = self.size
         block_dev_dict["block_dev_type"] = self.block_dev_type
         return block_dev_dict
-
 
     def deserialize(self, block_dev_dict):
         self.uuid = block_dev_dict.get("uuid", "")

@@ -98,18 +98,22 @@ def create_nic_uuid_list(module):
 def delete_not_used_nics(module, client, end_point, virtual_machine):
     nic_uuid_list = create_nic_uuid_list(module)
     for net_dev in virtual_machine.net_devs_list:
-        if (
-            net_dev.vlan not in nic_uuid_list
-        ):
+        if net_dev.vlan not in nic_uuid_list:
             json_response = delete_nic(client, end_point + "/" + net_dev.uuid)
             TaskTag.wait_task(client, json_response)
 
 
-def create_vm(module, client): # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
+def create_vm(
+    module, client
+):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
     if module.params["vm_uuid"]:
-        virtual_machine = VM(client=client, vm_dict=VM.get(client, uuid=module.params["vm_uuid"])[0])
+        virtual_machine = VM(
+            client=client, vm_dict=VM.get(client, uuid=module.params["vm_uuid"])[0]
+        )
     else:
-        virtual_machine = VM(client=client, vm_dict=VM.get(client, name=module.params["vm_name"])[0])
+        virtual_machine = VM(
+            client=client, vm_dict=VM.get(client, name=module.params["vm_name"])[0]
+        )
     return virtual_machine
 
 
@@ -121,18 +125,18 @@ def do_present_or_set(client, end_point, existing_net_dev, new_net_dev):
     else:
         json_response = create_nic(client, end_point, new_net_dev)
     return json_response
-    
+
 
 def do_absent(client, end_point, existing_net_dev):
     json_response = delete_nic(client, end_point + "/" + existing_net_dev.uuid)
     return json_response
 
-    
+
 def check_state_decide_action(module, client, state):
     end_point = "/rest/v1/VirDomainNetDevice"
     json_response = "No changes"
     virtual_machine = create_vm(module, client)
-    
+
     if module.params["items"]:
         for net_dev in module.params["items"]:
             net_dev["vm_uuid"] = virtual_machine.uuid
@@ -144,12 +148,16 @@ def check_state_decide_action(module, client, state):
             else:
                 raise errors.MissingValue("VLAN and MAC in vm_nic.py ")
             if state in [State.present, State.set]:
-                json_response = do_present_or_set(client, end_point, existing_net_dev, net_dev)
+                json_response = do_present_or_set(
+                    client, end_point, existing_net_dev, net_dev
+                )
             else:
                 json_response = do_absent(client, end_point, existing_net_dev)
             TaskTag.wait_task(client, json_response)
     if state == State.set:
-        updated_virtual_machine = create_vm(module, client) #VM was updated, so we need to get the updated data from server
+        updated_virtual_machine = create_vm(
+            module, client
+        )  # VM was updated, so we need to get the updated data from server
         delete_not_used_nics(module, client, end_point, updated_virtual_machine)
     return json_response
 
@@ -157,9 +165,7 @@ def check_state_decide_action(module, client, state):
 def run(module, client):
     check_parameters(module)
 
-    json_response = check_state_decide_action(
-        module, client, module.params["state"]
-    )
+    json_response = check_state_decide_action(module, client, module.params["state"])
 
     return json_response
 
@@ -188,16 +194,14 @@ def main():
         mutually_exclusive=[
             ("vm_name", "vm_uuid"),
         ],
-        required_one_of=[
-            ("vm_name", "vm_uuid")
-        ],
+        required_one_of=[("vm_name", "vm_uuid")],
     )
 
     try:
         host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
-        
+
         client = Client(host, username, password)
         vms = run(module, client)
         module.exit_json(changed=True, vms=vms)
