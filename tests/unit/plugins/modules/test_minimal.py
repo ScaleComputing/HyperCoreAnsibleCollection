@@ -1,4 +1,5 @@
 from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 import sys
@@ -14,5 +15,5 @@ def test_ok_always():
     pass
 
 
-#def test_error_always():
+# def test_error_always():
 #    1234/0
