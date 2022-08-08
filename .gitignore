@@ -1,5 +1,5 @@
 .venv
-.pyc
+*.pyc
 tests/output
 *.tar.gz
 
