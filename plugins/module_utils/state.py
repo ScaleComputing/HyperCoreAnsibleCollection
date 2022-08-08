@@ -5,7 +5,7 @@
 
 import enum
 
-#Maybe create enums.py or scale_enums.py and move all enum classes there? @Jure @Justin
+# Maybe create enums.py or scale_enums.py and move all enum classes there? @Jure @Justin
 class State(str, enum.Enum):
     present = "present"
     absent = "absent"

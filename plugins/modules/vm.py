@@ -88,13 +88,13 @@ def create_vm_update_body(virtual_machine):
 
 def run(module, client):
     end_point = "/rest/v1/VirDomain"
-    
+
     new_virtual_machine = VM(client=client, vm_dict=module.params)
     existing_virtual_machines = VM.get(client=client, name=new_virtual_machine.name)
     if not existing_virtual_machines:
         data = create_vm_body(new_virtual_machine)
         json_response = client.request("POST", end_point, data=data).json
-    else: # TODO check if VM needs to be updated ()
+    else:  # TODO check if VM needs to be updated ()
         end_point += "/" + existing_virtual_machines[0]["uuid"]
         data = create_vm_update_body(new_virtual_machine)
         json_response = client.request("PATCH", end_point, data=data).json
@@ -171,7 +171,7 @@ def main():
         host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
-        
+
         client = Client(host, username, password)
         vms = run(module, client)
         module.exit_json(changed=False, vms=vms)

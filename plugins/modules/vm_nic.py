@@ -109,18 +109,22 @@ def create_nic_uuid_list(module):
 def delete_not_used_nics(module, client, end_point, virtual_machine):
     nic_uuid_list = create_nic_uuid_list(module)
     for net_dev in virtual_machine.net_devs_list:
-        if (
-            net_dev.vlan not in nic_uuid_list
-        ):
+        if net_dev.vlan not in nic_uuid_list:
             json_response = delete_nic(client, end_point + "/" + net_dev.uuid)
             TaskTag.wait_task(client, json_response)
 
 
-def create_vm(module, client): # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
+def create_vm(
+    module, client
+):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
     if module.params["vm_uuid"]:
-        virtual_machine = VM(client=client, vm_dict=VM.get(client, uuid=module.params["vm_uuid"])[0])
+        virtual_machine = VM(
+            client=client, vm_dict=VM.get(client, uuid=module.params["vm_uuid"])[0]
+        )
     else:
-        virtual_machine = VM(client=client, vm_dict=VM.get(client, name=module.params["vm_name"])[0])
+        virtual_machine = VM(
+            client=client, vm_dict=VM.get(client, name=module.params["vm_name"])[0]
+        )
     return virtual_machine
 
 
@@ -132,17 +136,26 @@ def check_state_decide_action(module, client, state):
         net_dev = NetDev(client=client, net_dev_dict=net_dev)
         existing_net_dev = virtual_machine.find_net_dev(net_dev.vlan)
         if existing_net_dev:
-            if state in [State.present, State.set] and not NetDev.compare(existing_net_dev, net_dev):
+            if state in [State.present, State.set] and not NetDev.compare(
+                existing_net_dev, net_dev
+            ):
                 json_response = update_nic(
-                    net_dev, client, end_point + "/" + existing_net_dev.uuid, virtual_machine.uuid
+                    net_dev,
+                    client,
+                    end_point + "/" + existing_net_dev.uuid,
+                    virtual_machine.uuid,
                 )
             elif state == State.absent:
-                json_response = delete_nic(client, end_point + "/" + existing_net_dev.uuid)
+                json_response = delete_nic(
+                    client, end_point + "/" + existing_net_dev.uuid
+                )
         elif state in [State.present, State.set]:
             json_response = create_nic(net_dev, client, end_point, virtual_machine.uuid)
         TaskTag.wait_task(client, json_response)
     if state == State.set:
-        updated_virtual_machine = create_vm(module, client) #VM was updated, so we need to get the updated data from server
+        updated_virtual_machine = create_vm(
+            module, client
+        )  # VM was updated, so we need to get the updated data from server
         delete_not_used_nics(module, client, end_point, updated_virtual_machine)
     return json_response
 
@@ -150,9 +163,7 @@ def check_state_decide_action(module, client, state):
 def run(module, client):
     check_parameters(module)
 
-    json_response = check_state_decide_action(
-        module, client, module.params["state"]
-    )
+    json_response = check_state_decide_action(module, client, module.params["state"])
 
     return json_response
 
@@ -181,9 +192,7 @@ def main():
         mutually_exclusive=[
             ("vm_name", "vm_uuid"),
         ],
-        required_one_of=[
-            ("vm_name", "vm_uuid")
-        ],
+        required_one_of=[("vm_name", "vm_uuid")],
     )
 
     try:
