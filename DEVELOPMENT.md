@@ -13,6 +13,8 @@ cd ansible_collections/scale_computing/
 git clone ssh://git@gitlab.xlab.si:13022/scale-ansible-collection/scale-computing-hc3-ansible-collection.git hc3
 cd hc3
 
+# Install community.general collection, since we like to have stdout_callback=community.general.yaml in ansible.cfg
+ansible-galaxy collection install community.general
 # Optional, if you want to run "ansible-test --venv ..."
 # pip install -r test.requirements.txt -r sanity.requirements
 ```
