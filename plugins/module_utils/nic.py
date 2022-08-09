@@ -15,7 +15,7 @@ class Nic:
         self.vm_uuid = ""
         self.type = None  # TODO Use Enum
         self.mac = ""
-        self.mac_address_new = None
+        self.mac_new = None
         self.vlan = None
         self.vlan_new = None
         self.connected = None
@@ -47,11 +47,11 @@ class Nic:
             nic_dict["type"] = self.type.upper()  # TODO enum
         if self.connected is not None:
             nic_dict["connected"] = self.connected
-        # TODO corner case: module is called without mac, with mac_address_new.
-        # It is desired to change MAC to the mac_address_new, right?
+        # TODO corner case: module is called without mac, with mac_new.
+        # It is desired to change MAC to the mac_new, right?
         if self.mac:  # if it's empty we don't send, it auto-generates
-            if self.mac_address_new:  # user wants to change mac address
-                nic_dict["macAddress"] = self.mac_address_new
+            if self.mac_new:  # user wants to change mac address
+                nic_dict["macAddress"] = self.mac_new
             else:
                 nic_dict["macAddress"] = self.mac
         return nic_dict
@@ -89,7 +89,7 @@ class Nic:
         obj.vm_uuid = nic_dict.get("vm_uuid", "")
         obj.type = nic_dict.get("type", "")  # TODO use enum
         obj.mac = nic_dict.get("mac", "")
-        obj.mac_address_new = nic_dict.get("mac_address_new", None)
+        obj.mac_new = nic_dict.get("mac_new", None)
         obj.vlan = nic_dict["vlan"]
         obj.vlan_new = nic_dict.get("vlan_new", None)
         # obj.connected = nic_dict.get("connected", None)

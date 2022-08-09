@@ -12,7 +12,7 @@
         - vlan: 1
           mac: 7C:4C:58:C7:13:95
           vlan_new: 10
-          mac_address_new: 01:23:45:67:89:ab
+          mac_new: 01:23:45:67:89:ab
           type: virtio
       state: present
     loop:
