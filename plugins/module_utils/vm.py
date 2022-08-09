@@ -8,31 +8,38 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from ..module_utils.errors import MissingValue, DeviceNotUnique
-from ..module_utils.net_dev import NetDev
-from ..module_utils.block_dev import BlockDev
+from ..module_utils.errors import DeviceNotUnique
+from ..module_utils.nic import Nic
+from ..module_utils.disk import Disk
+from ..module_utils.rest_client import RestClient
 
 
 class VM:
-    def __init__(self, client=None, vm_dict=None):
+    def __init__(self, from_hc3, vm_dict, client=None):
+        # TODO simplify this __init__, add two classmethods create_from_hc3(data) and create_from_ansible(data)
+        # The data_from_hc3 is almost that thing.
+        # See also Nic class.
         self.client = client
-        if vm_dict:
-            self.deserialize(vm_dict)
+        if from_hc3:
+            self.data_from_hc3(vm_dict)
+        else:
+            self.data_from_ansible(vm_dict)
 
     @property
-    def net_devs_list(self):
-        return self._net_devs_list
+    def nic_list(self):
+        return self._nic_list
 
     @property
-    def block_devs_list(self):
-        return self._block_devs_list
+    def disk_list(self):
+        return self._disk_list
 
     @classmethod
     def get(
         cls, client, name=None, uuid=None
     ):  # get all VMs or specific (requires parameter Name or uuid)
+        rest_client = RestClient(client=client)
         end_point = "/rest/v1/VirDomain/"
-        all_vms_list = client.request("GET", end_point).json
+        all_vms_list = rest_client.list_records(endpoint=end_point)
         if name:
             all_vm_names = [vm["name"] for vm in all_vms_list]
             # TODO raise specific exception if multiple VMs have same name
@@ -53,84 +60,58 @@ class VM:
             return []
         return all_vms_list
 
-    # Primarily used for vm_info | should return info that user can copy paste to create new VM
-    @classmethod
-    def create_vm_info(cls, virtual_machine_info_dict):
-        necessary_virtual_machine_info_dict = {}
-        try:
-            necessary_virtual_machine_info_dict["uuid"] = virtual_machine_info_dict[
-                "uuid"
-            ]
-            necessary_virtual_machine_info_dict["name"] = virtual_machine_info_dict[
-                "name"
-            ]
-            necessary_virtual_machine_info_dict[
-                "description"
-            ] = virtual_machine_info_dict["description"]
-            necessary_virtual_machine_info_dict["memory"] = virtual_machine_info_dict[
-                "mem"
-            ]
-            necessary_virtual_machine_info_dict[
-                "power_state"
-            ] = virtual_machine_info_dict["state"]
-            necessary_virtual_machine_info_dict["vcpu"] = virtual_machine_info_dict[
-                "numVCPU"
-            ]
-            necessary_virtual_machine_info_dict["tags"] = virtual_machine_info_dict[
-                "tags"
-            ]
-            necessary_virtual_machine_info_dict["disks"] = virtual_machine_info_dict[
-                "blockDevs"
-            ]
-            necessary_virtual_machine_info_dict["nics"] = virtual_machine_info_dict[
-                "netDevs"
-            ]
-            necessary_virtual_machine_info_dict[
-                "boot_devices"
-            ] = virtual_machine_info_dict["bootDevices"]
-        except KeyError:
-            raise MissingValue(
-                "in virtual machine info dictionary - vm.py - (create_vm_info)"
-            )
-        return necessary_virtual_machine_info_dict
-
-    # Primarily used for vm_info | should return complete info that user can copy paste to create new VM
-    def create_vm_info_list(self):
-        virtual_machines_info_list = []
-        virtual_machine_info_dict = self.serialize()
-        virtual_machine_info_dict = VM.create_vm_info(virtual_machine_info_dict)
-        virtual_machine_info_dict["disks"] = BlockDev.create_disk_info_list(
-            self.block_devs_list
-        )
-        virtual_machine_info_dict["nics"] = NetDev.create_network_interface_info_list(
-            self.net_devs_list
-        )
-        virtual_machines_info_list.append(virtual_machine_info_dict)
-        return virtual_machines_info_list
-
-    def deserialize(self, vm_dict):
-        self.name = vm_dict.get("name", "")
+    # from hc3
+    def data_from_ansible(self, vm_dict):
+        # TODO For mandatory parameters [] can be used.
+        self.uuid = vm_dict.get("uuid", "")
+        self.name = vm_dict.get("vm_name", "")
         self.tags = []
         if "tags" in vm_dict.keys() and vm_dict["tags"]:
-            if type(vm_dict["tags"]) == str:
-                for tag in vm_dict["tags"].split(","):
-                    self.tags.append(tag)
-            else:
-                for tag in vm_dict["tags"]:
-                    self.tags.append(tag)
-        self.uuid = vm_dict.get("uuid", "")
+            for tag in vm_dict["tags"]:
+                self.tags.append(tag)
         self.description = vm_dict.get("description", "")
-        self.mem = vm_dict.get("mem", 0)
+        self.mem = vm_dict.get("memory", 0)
         self.power_state = vm_dict.get("power_state", "")
+        self.numVCPU = vm_dict.get("vcpu", 0)
+        self._disks_list = []
+        self._nic_list = []
+        if "disks" in vm_dict.keys() and vm_dict["disks"]:
+            for disk in vm_dict["disks"]:
+                self.disk_list.append(Disk(from_hc3=True, disk_dict=disk))
+        if "nics" in vm_dict.keys() and vm_dict["nics"]:
+            for nic in vm_dict["nics"]:
+                self.nic_list.append(Nic(from_hc3=True, nic_dict=nic))
+        self.bootDevices = vm_dict.get("boot_devices", [])
+        # TODO cloud_init_data userData/metaData will be provided as a dict.
+        # Also, only one might be provided (corner cases...).
+        # TODO Update this part fo code.
+        self.cloud_init_data = vm_dict.get(
+            "cloudInitData", {"userData": {}, "metaData": {}}
+        )
+        self.attach_guest_tools_iso = vm_dict.get("attachGuestToolsISO", False)
+
+    def data_from_hc3(self, vm_dict):
+        # TODO For always-present field [] can be used.
+        self.uuid = vm_dict.get("uuid", "")
+        self.name = vm_dict.get("name", "")
+        self.description = vm_dict.get("description", "")
+        self.operating_system = vm_dict.get("operatingSystem", "")
+        self.power_state = vm_dict.get("state", "")
+        self.desired_disposition = vm_dict.get("desiredDisposition", "")
+        self.console = vm_dict.get("console", {})
+        self.mem = vm_dict.get("mem", 0)
         self.numVCPU = vm_dict.get("numVCPU", 0)
-        self._block_devs_list = []
-        self._net_devs_list = []
-        if "blockDevs" in vm_dict.keys() and vm_dict["blockDevs"]:
-            for block_dev in vm_dict["blockDevs"]:
-                self.block_devs_list.append(BlockDev(block_dev_dict=block_dev))
-        if "netDevs" in vm_dict.keys() and vm_dict["netDevs"]:
-            for net_dev in vm_dict["netDevs"]:
-                self.net_devs_list.append(NetDev(net_dev_dict=net_dev))
+        self._disks_list = []
+        self._nic_list = []
+        for disk in vm_dict["blockDevs"]:
+            self.disk_list.append(Disk(from_hc3=True, disk_dict=disk))
+        for nic in vm_dict["netDevs"]:
+            self.nic_list.append(Nic.create_from_hc3(nic_dict=nic))
+        self.stats = vm_dict["stats"]
+        self.latest_task_tag = vm_dict.get("latestTaskTag", {})
+        self.tags = []
+        for tag in vm_dict["tags"].split(","):
+            self.tags.append(tag)
         self.bootDevices = vm_dict.get("bootDevices", [])
         # TODO cloud_init_data userData/metaData will be provided as a dict.
         # Also, only one might be provided (corner cases...).
@@ -140,50 +121,82 @@ class VM:
         )
         self.attach_guest_tools_iso = vm_dict.get("attachGuestToolsISO", False)
 
-    def serialize(self):
-        vm_dict = {}
-        vm_dict["name"] = self.name
-        vm_dict["tags"] = ",".join(self.tags)
-        vm_dict["uuid"] = self.uuid
-        vm_dict["description"] = self.description
-        vm_dict["mem"] = self.mem
+    def data_to_hc3(self):
+        vm_dict = {
+            "name": self.name,
+            "description": self.description,
+            "mem": self.mem,
+            "numVCPU": self.numVCPU,
+            "blockDevs": self.disk_list,
+            "netDevs": self.nic_list,
+            "tags": ",".join(self.tags),
+            "uuid": self.uuid,
+            "bootDevices": self.bootDevices,
+            # TODO userData and metaData for HC3 must be base64 encoded yaml content
+            # vm_dict["cloudInitData"] = self.cloud_init_data
+            "attachGuestToolsISO": self.attach_guest_tools_iso,
+        }
+        if self.operating_system:
+            vm_dict["operatingSystem"] = self.operating_system
         # state attribute is used by HC3 only during VM create.
-        vm_dict["state"] = self.power_state.upper()
-        vm_dict["numVCPU"] = self.numVCPU
-        vm_dict["blockDevs"] = self.block_devs_list
-        vm_dict["netDevs"] = self.net_devs_list
-        vm_dict["bootDevices"] = self.bootDevices
-        # TODO userData and metaData for HC3 must be base64 encoded yaml content
-        # vm_dict["cloudInitData"] = self.cloud_init_data
-        vm_dict["attachGuestToolsISO"] = self.attach_guest_tools_iso
+        if self.power_state:
+            vm_dict["state"] = self.power_state.upper()
+        if self.desired_disposition:
+            vm_dict["desiredDisposition"] = self.desired_disposition
+        if self.console:
+            vm_dict["console"] = self.console
+
+        if self.stats:
+            vm_dict["stats"] = self.stats
+        if self.latest_task_tag:
+            vm_dict["latestTaskTag"] = self.latest_task_tag
+        return vm_dict
+
+    def data_to_ansible(self):
+        vm_dict = {
+            "name": self.name,
+            "description": self.description,
+            "operatingSystem": self.operating_system,
+            # state attribute is used by HC3 only during VM create.
+            "power_state": self.power_state.upper(),
+            "memory": self.mem,
+            "vcpu": self.numVCPU,
+            "disks": [disk.data_to_ansible() for disk in self.disk_list],
+            "nics": [nic.data_to_ansible() for nic in self.nic_list],
+            "tags": ",".join(self.tags),
+            "uuid": self.uuid,
+            "boot_devices": self.bootDevices,
+            # TODO userData and metaData for HC3 must be base64 encoded yaml content
+            # vm_dict["cloudInitData"] = self.cloud_init_data
+            "attachGuestToolsISO": self.attach_guest_tools_iso,
+        }
         return vm_dict
 
     # search by vlan or mac as specified in US-11:
     # (https://gitlab.xlab.si/scale-ansible-collection/scale-ansible-collection-docs/-/blob/develop/docs/user-stories/us11-manage-vnics.md)
-    def find_net_dev(self, vlan=None, mac=None):
+    def find_nic(self, vlan=None, mac=None):
         if vlan:
-            all_vlans = [nic.vlan for nic in self.net_devs_list]
+            all_vlans = [nic.vlan for nic in self.nic_list]
             # TODO raise specific exception
             if all_vlans.count(vlan) > 1:
-                raise DeviceNotUnique("nic - vm.py - find_net_dev()")
-            for net_dev in self.net_devs_list:
-                if net_dev.vlan == vlan:
-                    return net_dev
+                raise DeviceNotUnique("nic - vm.py - find_nic()")
+            for nic in self.nic_list:
+                if nic.vlan == vlan:
+                    return nic
         else:
-            all_macs = [nic.mac for nic in self.net_devs_list]
+            all_macs = [nic.mac for nic in self.nic_list]
             # TODO raise specific exception
             if all_macs.count(mac) > 1:
-                raise DeviceNotUnique("nic - vm.py - find_net_dev()")
-            for net_dev in self.net_devs_list:
-                if net_dev.mac == mac:
-                    return net_dev
+                raise DeviceNotUnique("nic - vm.py - find_nic()")
+            for nic in self.nic_list:
+                if nic.mac == mac:
+                    return nic
 
-    def find_block_dev(self, slot):
+    def find_disk(self, slot):
         # TODO we need to find by (vm_name, disk_type, disk_slot).
-        all_slots = [disk.slot for disk in self.block_devs_list]
-        # TODO raise specific exception
+        all_slots = [disk.slot for disk in self.disk_list]
         if all_slots.count(slot) > 1:
-            raise DeviceNotUnique("disk - vm.py - find_block_dev()")
-        for block_dev in self.block_devs_list:
-            if block_dev.slot == slot:
-                return block_dev
+            raise DeviceNotUnique("disk - vm.py - find_disk()")
+        for disk in self.disk_list:
+            if disk.slot == slot:
+                return disk

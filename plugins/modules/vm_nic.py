@@ -75,7 +75,7 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.vm import VM
-from ..module_utils.net_dev import NetDev
+from ..module_utils.nic import Nic
 from ..module_utils.state import State
 from ..module_utils.utils import validate_uuid
 
@@ -85,14 +85,14 @@ def check_parameters(module):
         validate_uuid(module.params["vm_uuid"])
 
 
-def create_nic(client, end_point, net_dev):
-    request_body = net_dev.serialize()
+def create_nic(client, end_point, nic):
+    request_body = nic.data_to_hc3()
     json_response = client.request("POST", end_point, data=request_body).json
     return json_response
 
 
-def update_nic(client, end_point, new_net_dev):
-    request_body = new_net_dev.serialize()
+def update_nic(client, end_point, new_nic):
+    request_body = new_nic.data_to_hc3()
     json_response = client.request("PATCH", end_point, data=request_body).json
     return json_response
 
@@ -103,77 +103,79 @@ def delete_nic(client, end_point):
 
 
 def create_nic_uuid_list(module):
-    net_dev_uuid_list = []
+    new_nic_uuid_list = []
     if module.params["items"]:
-        for net_dev in module.params["items"]:
-            if "vlan_new" in net_dev.keys():
-                net_dev_uuid_list.append(net_dev["vlan_new"])
+        for nic in module.params["items"]:
+            if "vlan_new" in nic.keys():
+                new_nic_uuid_list.append(nic["vlan_new"])
             else:
-                net_dev_uuid_list.append(net_dev["vlan"])
-    return net_dev_uuid_list
+                new_nic_uuid_list.append(nic["vlan"])
+    return new_nic_uuid_list
 
 
 def delete_not_used_nics(module, client, end_point, virtual_machine):
     nic_uuid_list = create_nic_uuid_list(module)
-    for net_dev in virtual_machine.net_devs_list:
-        if net_dev.vlan not in nic_uuid_list:
-            json_response = delete_nic(client, end_point + "/" + net_dev.uuid)
+    for nic in virtual_machine.nic_list:
+        if nic.vlan not in nic_uuid_list:
+            json_response = delete_nic(client, end_point + "/" + nic.uuid)
             TaskTag.wait_task(client, json_response)
 
 
-def create_vm(
+def find_vm(
     module, client
 ):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
     if module.params["vm_uuid"]:
         virtual_machine = VM(
-            client=client, vm_dict=VM.get(client, uuid=module.params["vm_uuid"])[0]
+            from_hc3=True,
+            vm_dict=VM.get(client, uuid=module.params["vm_uuid"])[0],
+            client=client,
         )
     else:
         virtual_machine = VM(
-            client=client, vm_dict=VM.get(client, name=module.params["vm_name"])[0]
+            from_hc3=True,
+            vm_dict=VM.get(client, name=module.params["vm_name"])[0],
+            client=client,
         )
     return virtual_machine
 
 
-def do_present_or_set(client, end_point, existing_net_dev, new_net_dev):
-    if existing_net_dev and not NetDev.compare(existing_net_dev, new_net_dev):
-        json_response = update_nic(
-            client, end_point + "/" + existing_net_dev.uuid, new_net_dev
-        )
+def do_present_or_set(client, end_point, existing_nic, new_nic):
+    if existing_nic and not Nic.compare(existing_nic, new_nic):
+        json_response = update_nic(client, end_point + "/" + existing_nic.uuid, new_nic)
     else:
-        json_response = create_nic(client, end_point, new_net_dev)
+        json_response = create_nic(client, end_point, new_nic)
     return json_response
 
 
-def do_absent(client, end_point, existing_net_dev):
-    json_response = delete_nic(client, end_point + "/" + existing_net_dev.uuid)
+def do_absent(client, end_point, existing_nic):
+    json_response = delete_nic(client, end_point + "/" + existing_nic.uuid)
     return json_response
 
 
 def check_state_decide_action(module, client, state):
     end_point = "/rest/v1/VirDomainNetDevice"
     json_response = "No changes"
-    virtual_machine = create_vm(module, client)
+    virtual_machine = find_vm(module, client)
 
     if module.params["items"]:
-        for net_dev in module.params["items"]:
-            net_dev["vm_uuid"] = virtual_machine.uuid
-            net_dev = NetDev(client=client, net_dev_dict=net_dev)
-            if net_dev.vlan:
-                existing_net_dev = virtual_machine.find_net_dev(vlan=net_dev.vlan)
-            elif net_dev.mac:
-                existing_net_dev = virtual_machine.find_net_dev(vlan=net_dev.mac)
+        for nic in module.params["items"]:
+            nic["vm_uuid"] = virtual_machine.uuid
+            nic = Nic.create_from_ansible(nic_dict=nic)
+            if nic.vlan is not None:
+                existing_nic = virtual_machine.find_nic(vlan=nic.vlan)
+            elif nic.mac:
+                existing_nic = virtual_machine.find_nic(vlan=nic.mac)
             else:
-                raise errors.MissingValue("VLAN and MAC in vm_nic.py ")
-            if state in [State.present, State.set]:
-                json_response = do_present_or_set(
-                    client, end_point, existing_net_dev, net_dev
+                raise errors.MissingValueAnsible(
+                    "VLAN and MAC - vm_nic.py - check_state_decide_action()"
                 )
+            if state in [State.present, State.set]:
+                json_response = do_present_or_set(client, end_point, existing_nic, nic)
             else:
-                json_response = do_absent(client, end_point, existing_net_dev)
+                json_response = do_absent(client, end_point, existing_nic)
             TaskTag.wait_task(client, json_response)
     if state == State.set:
-        updated_virtual_machine = create_vm(
+        updated_virtual_machine = find_vm(
             module, client
         )  # VM was updated, so we need to get the updated data from server
         delete_not_used_nics(module, client, end_point, updated_virtual_machine)

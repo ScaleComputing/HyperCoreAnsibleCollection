@@ -46,6 +46,11 @@ options:
         may be assigned the default value automatically.
       - If I(action==delete), data option is going to be ignored.
     default: {}
+  endpoint:
+    description:
+      - The raw endpoint that we want to perform post, patch or delete operation on.
+    type: str
+    required: true
 """
 
 
@@ -246,10 +251,19 @@ def main():
     module = AnsibleModule(
         supports_check_mode=False,
         argument_spec=dict(
-            arguments.get_spec("cluster_instance", "endpoint", "action"),
+            arguments.get_spec("cluster_instance"),
             data=dict(
                 type="dict",
                 default=dict(),
+            ),
+            action=dict(
+                type="str",
+                choices=["post", "patch", "delete", "get", "put"],
+                required=True,
+            ),
+            endpoint=dict(
+                type="str",
+                required=True,
             ),
         ),
     )
