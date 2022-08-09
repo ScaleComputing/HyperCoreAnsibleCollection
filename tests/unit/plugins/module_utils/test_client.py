@@ -16,7 +16,10 @@ from ansible.module_utils.common.text.converters import to_text
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.six.moves.urllib.parse import urlparse, parse_qs
 
-from ansible_collections.scale_computing.hc3.plugins.module_utils import client, errors
+from ansible_collections.scale_computing.hypercore.plugins.module_utils import (
+    client,
+    errors,
+)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"

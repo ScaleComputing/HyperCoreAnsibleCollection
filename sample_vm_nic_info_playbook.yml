@@ -4,7 +4,7 @@
   hosts: localhost  
   tasks:
   - name: Create nic
-    scale_computing.hc3.vm_nic_info:
+    scale_computing.hypercore.vm_nic_info:
       cluster_instance:
         host: 'https://10.5.11.30'
         username: 'admin'

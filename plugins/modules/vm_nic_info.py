@@ -18,7 +18,7 @@ description:
   - Returns info about all or specific nic on a selected virtual device.
 version_added: 0.0.1
 extends_documentation_fragment:
-  - scale_computing.hc3.cluster_instance
+  - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
   vm_name:
@@ -41,11 +41,11 @@ options:
 
 EXAMPLES = r"""
 - name: Retrieve all VMs
-  scale_computing.hc3.sample_vm_info:
+  scale_computing.hypercore.sample_vm_info:
   register: result
 
 - name: Retrieve all VMs with specific name
-  scale_computing.hc3.sample_vm_info:
+  scale_computing.hypercore.sample_vm_info:
     name: vm-a
   register: result
 """
@@ -133,7 +133,7 @@ def main():
         client = Client(host, username, password)
         vms = run(module, client)
         # We do not want to just show complete API response to end user.
-        # Because API response content changes with HC3 version.
+        # Because API response content changes with HyperCore version.
         module.exit_json(changed=False, vms=vms)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))

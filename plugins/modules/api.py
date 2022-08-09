@@ -14,13 +14,13 @@ module: api
 
 author:
   - Tjaž Eržen (@tjazsch)
-short_description: API interaction with Scale Computing HC3
+short_description: API interaction with Scale Computing HyperCore
 description:
   - Perform GET, POST, PATCH, DELETE or PUT requests on resource(s) from the given endpoint
 version_added: 0.0.1
 extends_documentation_fragment:
-  - scale_computing.hc3.cluster_instance
-  - scale_computing.hc3.endpoint
+  - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.endpoint
 seealso: []
 options:
   action:
@@ -56,7 +56,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create a VM with specified data
-  scale_computing.hc3.api:
+  scale_computing.hypercore.api:
     action: post
     cluster_instance:
       host: "https://0.0.0.0"
@@ -82,7 +82,7 @@ EXAMPLES = r"""
   register: result
 
 - name: Retrieve all VMs
-  scale_computing.hc3.api:
+  scale_computing.hypercore.api:
     action: get
     cluster_instance:
       host: https://0.0.0.0
@@ -92,7 +92,7 @@ EXAMPLES = r"""
   register: result
 
 - name: Retrieve a specific VM
-  scale_computing.hc3.api:
+  scale_computing.hypercore.api:
     action: get
     cluster_instance:
       host: https://0.0.0.0
@@ -102,7 +102,7 @@ EXAMPLES = r"""
   register: result
 
 - name: Delete a VM
-  scale_computing.hc3.api:
+  scale_computing.hypercore.api:
     action: delete
     cluster_instance:
       host: https://0.0.0.0
@@ -112,7 +112,7 @@ EXAMPLES = r"""
   register: result
 
 - name: Clone a VM from snapshot
-  scale_computing.hc3.api:
+  scale_computing.hypercore.api:
     action: post
     cluster_instance:
       host: https://0.0.0.0
@@ -127,7 +127,7 @@ EXAMPLES = r"""
   register: result
 
 - name: Patch (an existing) record
-  scale_computing.hc3.api:
+  scale_computing.hypercore.api:
     action: post
     cluster_instance:
       host: https://0.0.0.0
@@ -157,7 +157,7 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - Result that HC3 REST API returns when an endpoint is called.
+    - Result that HyperCore REST API returns when an endpoint is called.
     - The content structure is dependent on the API endpoint.
   returned: success
   type: list
