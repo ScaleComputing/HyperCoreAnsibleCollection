@@ -19,7 +19,7 @@ description:
   - Can create, update, delete specified network interfaces
 version_added: 0.0.1
 extends_documentation_fragment:
-  - scale_computing.hc3.cluster_instance
+  - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
   state:
@@ -48,11 +48,11 @@ options:
 
 EXAMPLES = r"""
 - name: Retrieve all VMs
-  scale_computing.hc3.sample_vm_info:
+  scale_computing.hypercore.sample_vm_info:
   register: result
 
 - name: Retrieve all VMs with specific name
-  scale_computing.hc3.sample_vm_info:
+  scale_computing.hypercore.sample_vm_info:
     name: vm-a
   register: result
 """

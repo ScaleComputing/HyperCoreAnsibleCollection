@@ -1,14 +1,14 @@
-# Make sure we have ansible_collections/scale_computing/hc3 as a prefix. This is
+# Make sure we have ansible_collections/scale_computing/hypercore as a prefix. This is
 # ugly as hack, but it works. I suggest all future developer to treat next few
 # lines as an opportunity to learn a thing or two about GNU make ;)
 collection := $(notdir $(realpath $(CURDIR)      ))
 namespace  := $(notdir $(realpath $(CURDIR)/..   ))
 toplevel   := $(notdir $(realpath $(CURDIR)/../..))
 
-err_msg := Place collection at <WHATEVER>/ansible_collections/scale_computing/hc3
+err_msg := Place collection at <WHATEVER>/ansible_collections/scale_computing/hypercore
 ifeq (true,$(CI))
   $(info Running in CI setting, skipping directory checks.)
-else ifneq (hc3,$(collection))
+else ifneq (hypercore,$(collection))
   $(error $(err_msg))
 else ifneq (scale_computing,$(namespace))
   $(error $(err_msg))

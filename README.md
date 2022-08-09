@@ -1,4 +1,4 @@
-# Ansible Collection - scale_computing.hc3
+# Ansible Collection - scale_computing.hypercore
 
 Documentation for the collection.
 

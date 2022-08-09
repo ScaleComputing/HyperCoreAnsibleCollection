@@ -11,7 +11,7 @@ import sys
 
 import pytest
 
-from ansible_collections.scale_computing.hc3.plugins.modules import api
+from ansible_collections.scale_computing.hypercore.plugins.modules import api
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"

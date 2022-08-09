@@ -4,7 +4,7 @@
   hosts: localhost
   tasks:
   - name: run the vm_info module
-    scale_computing.hc3.vm_info:
+    scale_computing.hypercore.vm_info:
       cluster_instance:
         host: 'https://10.5.11.30'
         username: 'admin'

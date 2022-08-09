@@ -18,7 +18,7 @@ description:
   - Module creates a new virtual machine or updates existing virtual machine.
 version_added: 0.0.1
 extends_documentation_fragment:
-  - scale_computing.hc3.cluster_instance
+  - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
   vm_name:
@@ -84,7 +84,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create a VM
-  scale_computing.hc3.vm:
+  scale_computing.hypercore.vm:
     vm_name: demo-vm
     # TODO
   register: result

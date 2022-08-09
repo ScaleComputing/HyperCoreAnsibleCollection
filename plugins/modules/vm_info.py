@@ -18,7 +18,7 @@ description:
   - Plugin return information about all or specific virtual machines in a cluster
 version_added: 0.0.1
 extends_documentation_fragment:
-  - scale_computing.hc3.cluster_instance
+  - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
   uuid:
@@ -35,14 +35,14 @@ options:
 
 EXAMPLES = r"""
 - name: Retrieve all VMs
-  scale_computing.hc3.sample_vm_info:
+  scale_computing.hypercore.sample_vm_info:
     host: 'Host IP address'
     username: 'Your scale cluster username'
     password: 'Your scale cluster password'
   register: result
 
 - name: Retrieve all VMs with specific UUID
-  scale_computing.hc3.sample_vm_info:
+  scale_computing.hypercore.sample_vm_info:
     host: 'Host IP address'
     username: 'Your scale cluster username'
     password: 'Your scale cluster password'
