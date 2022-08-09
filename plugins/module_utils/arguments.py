@@ -40,15 +40,6 @@ SHARED_SPECS = dict(
         ),
         required_together=[("username", "password")],
     ),
-    endpoint=dict(
-        type="str",
-        required=True,
-    ),
-    action=dict(
-        type="str",
-        required=True,
-        choices=["post", "patch", "delete", "get", "put"],
-    ),
 )
 
 

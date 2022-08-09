@@ -82,7 +82,11 @@ def create_vm_object(
         virtual_machine_dict = VM.get(client, uuid=module.params["vm_uuid"])[0]
     else:
         virtual_machine_dict = VM.get(client, name=module.params["vm_name"])[0]
-    virtual_machine = VM(client=client, vm_dict=virtual_machine_dict)
+    virtual_machine = VM(
+        from_hc3=True,
+        vm_dict=virtual_machine_dict,
+        client=client,
+    )
     return virtual_machine
 
 
@@ -90,13 +94,13 @@ def run(module, client):
     check_parameters(module)
     if module.params["vlan"]:
         virtual_machine = create_vm_object(module, client)
-        json_response = virtual_machine.find_net_dev(module.params["vlan"]).serialize()
+        json_response = virtual_machine.find_nic(module.params["vlan"]).data_to_hc3()
     else:
-        response_net_dev_list = []
+        response_nic_list = []
         virtual_machine = create_vm_object(module, client)
-        for net_dev in virtual_machine.net_devs_list:
-            response_net_dev_list.append(net_dev.serialize())
-        json_response = response_net_dev_list
+        for nic in virtual_machine.nic_list:
+            response_nic_list.append(nic.data_to_hc3())
+        json_response = response_nic_list
     return json_response
 
 

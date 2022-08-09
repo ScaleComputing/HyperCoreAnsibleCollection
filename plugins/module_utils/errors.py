@@ -30,16 +30,25 @@ class InvalidUuidFormatError(ScaleComputingError):
         super(InvalidUuidFormatError, self).__init__(self.message)
 
 
-class MissingParameter(ScaleComputingError):
+# In-case function parameter is optional but required
+class MissingFunctionParameter(ScaleComputingError):
     def __init__(self, data):
         self.message = "Missing parameter - {0}".format(data)
-        super(MissingParameter, self).__init__(self.message)
+        super(MissingFunctionParameter, self).__init__(self.message)
 
 
-class MissingValue(ScaleComputingError):
+# In-case argument spec doesn't catch exception
+class MissingValueAnsible(ScaleComputingError):
     def __init__(self, data):
         self.message = "Missing value - {0}".format(data)
-        super(MissingValue, self).__init__(self.message)
+        super(MissingValueAnsible, self).__init__(self.message)
+
+
+# In-case argument spec doesn't catch exception
+class MissingValueHC3(ScaleComputingError):
+    def __init__(self, data):
+        self.message = "Missing value - {0}".format(data)
+        super(MissingValueHC3, self).__init__(self.message)
 
 
 class DeviceNotUnique(ScaleComputingError):

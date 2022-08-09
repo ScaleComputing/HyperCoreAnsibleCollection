@@ -61,7 +61,7 @@ sanity:
     # Same as "make sanity"
     # TODO reuse Makefile
     - black -t py27 --check --diff --color plugins tests/unit
-    - flake8
+    - flake8 --exclude tests/output/
     - ansible-test sanity
 
 integration:
