@@ -2,7 +2,7 @@
   hosts: localhost
   tasks:
   - name: Add/Update one NIC interface
-    scale_computing.hc3.vm_nic:
+    scale_computing.hypercore.vm_nic:
       cluster_instance:
           host: 'https://10.5.11.30'
           username: 'admin'

@@ -14,8 +14,10 @@ import pytest
 from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
 
-from ansible_collections.scale_computing.hc3.plugins.module_utils.client import Client
-from ansible_collections.scale_computing.hc3.plugins.module_utils.rest_client import (
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
+    Client,
+)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.rest_client import (
     RestClient,
 )
 

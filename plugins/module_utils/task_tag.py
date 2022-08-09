@@ -10,8 +10,7 @@ __metaclass__ = type
 
 from time import sleep
 
-from ..module_utils.errors import MissingParameter
-from . import errors
+from ..module_utils.errors import MissingFunctionParameter
 
 
 class TaskTag:
@@ -22,7 +21,9 @@ class TaskTag:
             task = client.request("GET", end_point + "/" + task_tag).json[0]
             return task
         else:
-            raise MissingParameter("task_tag - task_tag.py - get_task_by_task_tag()")
+            raise MissingFunctionParameter(
+                "task_tag - task_tag.py - get_task_by_task_tag()"
+            )
 
     @classmethod
     def wait_task(cls, client, task):

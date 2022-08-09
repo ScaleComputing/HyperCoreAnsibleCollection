@@ -23,8 +23,8 @@ coverage:
     - pip install ansible-core==2.13.1
     # ansible-test needs special directory structure.
     - mkdir -p /work-dir/ansible_collections/scale_computing/
-    - cp -a ./  /work-dir/ansible_collections/scale_computing/hc3
-    - pushd /work-dir/ansible_collections/scale_computing/hc3
+    - cp -a ./  /work-dir/ansible_collections/scale_computing/hypercore
+    - pushd /work-dir/ansible_collections/scale_computing/hypercore
     #
     # - ansible-test coverage erase --venv
     # Use venv, until we agree about dind - eventually we need to move to github anyway?
@@ -36,7 +36,7 @@ coverage:
     #
     # Move artifacts back to initial dir, so they can be collected by gitlab.
     - mkdir -p tests/output/reports/coverage
-    - cp -a /work-dir/ansible_collections/scale_computing/hc3/tests/output/reports/coverage/ tests/output/reports/coverage/
+    - cp -a /work-dir/ansible_collections/scale_computing/hypercore/tests/output/reports/coverage/ tests/output/reports/coverage/
     - ls -al tests/output/reports/coverage
   artifacts:
     paths:
@@ -55,13 +55,13 @@ sanity:
     - pip install ansible-core==2.13.1
     # ansible-test needs special directory structure.
     - mkdir -p /work-dir/ansible_collections/scale_computing/
-    - cp -a ./  /work-dir/ansible_collections/scale_computing/hc3
-    - pushd /work-dir/ansible_collections/scale_computing/hc3
+    - cp -a ./  /work-dir/ansible_collections/scale_computing/hypercore
+    - pushd /work-dir/ansible_collections/scale_computing/hypercore
     #
     # Same as "make sanity"
     # TODO reuse Makefile
     - black -t py27 --check --diff --color plugins tests/unit
-    - flake8
+    - flake8 --exclude tests/output/
     - ansible-test sanity
 
 integration:
@@ -75,7 +75,7 @@ integration:
     - pip install ansible-core==2.13.1
     # ansible-test needs special directory structure.
     - mkdir -p /work-dir/ansible_collections/scale_computing/
-    - cp -a ./  /work-dir/ansible_collections/scale_computing/hc3
-    - pushd /work-dir/ansible_collections/scale_computing/hc3
+    - cp -a ./  /work-dir/ansible_collections/scale_computing/hypercore
+    - pushd /work-dir/ansible_collections/scale_computing/hypercore
     #
     - ansible-test integration

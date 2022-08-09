@@ -18,10 +18,10 @@ description:
   - Module creates a new virtual machine or updates existing virtual machine.
 version_added: 0.0.1
 extends_documentation_fragment:
-  - scale_computing.hc3.cluster_instance
+  - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
-  name:
+  vm_name:
     description:
       - Virtual machine name
       - Used to identify selected virtual machine by name
@@ -84,8 +84,8 @@ options:
 
 EXAMPLES = r"""
 - name: Create a VM
-  scale_computing.hc3.vm:
-    name: demo-vm
+  scale_computing.hypercore.vm:
+    vm_name: demo-vm
     # TODO
   register: result
 """
@@ -97,7 +97,7 @@ vm:
   returned: success
   type: dict  #?
   sample:
-    name: "vm-name"
+    vm_name: "vm-name"
     uuid: "1234-0001"
     state: "running"
 """
@@ -117,7 +117,7 @@ def parse_boot_device_list_to_str(boot_device_list):
 def create_vm_body(virtual_machine):
     vm_body = {}
     optional = {}
-    temp_dict = virtual_machine.serialize()
+    temp_dict = virtual_machine.data_to_hc3()
     optional["attachGuestToolsISO"] = temp_dict["attachGuestToolsISO"]
     temp_dict.pop("attachGuestToolsISO")
     vm_body["dom"] = temp_dict
@@ -126,7 +126,7 @@ def create_vm_body(virtual_machine):
 
 
 def create_vm_update_body(virtual_machine):
-    update_body = virtual_machine.serialize()
+    update_body = virtual_machine.data_to_hc3()
     update_body.pop("attachGuestToolsISO")
     return update_body
 
@@ -134,7 +134,7 @@ def create_vm_update_body(virtual_machine):
 def run(module, client):
     end_point = "/rest/v1/VirDomain"
 
-    new_virtual_machine = VM(client=client, vm_dict=module.params)
+    new_virtual_machine = VM(from_hc3=False, vm_dict=module.params, client=client)
     existing_virtual_machines = VM.get(client=client, name=new_virtual_machine.name)
     if not existing_virtual_machines:
         data = create_vm_body(new_virtual_machine)
@@ -152,7 +152,7 @@ def main():
         supports_check_mode=True,  # False ATM
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            name=dict(
+            vm_name=dict(
                 type="str",
                 required=True,
             ),

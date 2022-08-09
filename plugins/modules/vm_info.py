@@ -18,7 +18,7 @@ description:
   - Plugin return information about all or specific virtual machines in a cluster
 version_added: 0.0.1
 extends_documentation_fragment:
-  - scale_computing.hc3.cluster_instance
+  - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
   uuid:
@@ -26,7 +26,7 @@ options:
       - Virtual machine uniquie identifier
       - Used to identify selected virtual machine by uuid
     type: str
-  name:
+  vm_name:
     description:
       - Virtual machine name
       - Used to identify selected virtual machine by name
@@ -35,14 +35,14 @@ options:
 
 EXAMPLES = r"""
 - name: Retrieve all VMs
-  scale_computing.hc3.sample_vm_info:
+  scale_computing.hypercore.sample_vm_info:
     host: 'Host IP address'
     username: 'Your scale cluster username'
     password: 'Your scale cluster password'
   register: result
 
 - name: Retrieve all VMs with specific UUID
-  scale_computing.hc3.sample_vm_info:
+  scale_computing.hypercore.sample_vm_info:
     host: 'Host IP address'
     username: 'Your scale cluster username'
     password: 'Your scale cluster password'
@@ -70,7 +70,7 @@ vms:
               "type": "virtio_disk"
               "uuid": "e8c8aa6b-1043-48a0-8407-2c432d705378"
               "memory": 536870912
-      "name": "XLAB-CentOS-7-x86_64-GenericCloud-2111"
+      "vm_name": "XLAB-CentOS-7-x86_64-GenericCloud-2111"
       "nics":
             - "type": "RTL8139"
               "uuid": "4c627449-99c6-475b-8e8e-9ae2587db5fc"
@@ -96,20 +96,24 @@ def run(
     if module.params["uuid"]:  # Search by uuid
         validate_uuid(module.params["uuid"])
         virtual_machine = VM(
-            client=client, vm_dict=VM.get(client, uuid=module.params["uuid"])[0]
+            from_hc3=True,
+            vm_dict=VM.get(client, uuid=module.params["uuid"])[0],
+            client=client,
         )
-        virtual_machine_info_list = virtual_machine.create_vm_info_list()
-    elif module.params["name"]:  # Search by name
+        virtual_machine_info_list.append(virtual_machine.data_to_ansible())
+    elif module.params["vm_name"]:  # Search by name
         virtual_machine = VM(
-            client=client, vm_dict=VM.get(client, name=module.params["name"])[0]
+            from_hc3=True,
+            vm_dict=VM.get(client, name=module.params["vm_name"])[0],
+            client=client,
         )
-        virtual_machine_info_list = virtual_machine.create_vm_info_list()
+        virtual_machine_info_list.append(virtual_machine.data_to_ansible())
     else:  # No name or uuid, we return all VMs
         # virtual_machine = VM(client=client)
         virtual_machines = VM.get(client)  # List of all virtual machines in the cluster
         for virtual_machine in virtual_machines:
-            virtual_machine = VM(client=client, vm_dict=virtual_machine)
-            virtual_machine_info_list.append(virtual_machine.create_vm_info_list())
+            virtual_machine = VM(from_hc3=True, vm_dict=virtual_machine, client=client)
+            virtual_machine_info_list.append(virtual_machine.data_to_ansible())
 
     return virtual_machine_info_list
 
@@ -120,10 +124,10 @@ def main():
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             uuid=dict(type="str"),
-            name=dict(type="str"),
+            vm_name=dict(type="str"),
         ),
         mutually_exclusive=[
-            ("uuid", "name"),
+            ("uuid", "vm_name"),
         ],
     )
 

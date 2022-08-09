@@ -14,12 +14,12 @@ class ModuleDocFragment(object):
 options:
   cluster_instance:
     description:
-      - Scale Computing HC3 instance information.
+      - Scale Computing HyperCore instance information.
     type: dict
     suboptions:
       host:
         description:
-          - The HC3 instance url.
+          - The HyperCore instance url.
           - If not set, the value of the C(SC_URL) environment
             variable will be used.
           - For example "https://10.1.2.3:443".
@@ -42,7 +42,7 @@ options:
       timeout:
         description:
           - Timeout in seconds for the connection with the Scale
-            Computing HC3 API instance.
+            Computing HyperCore API instance.
           - If not set, the value of the C(SC_TIMEOUT) environment
             variable will be used.
         required: false
