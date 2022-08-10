@@ -36,12 +36,9 @@
         that:
           - vm_created is changed
 
-    - ansible.builtin.debug:
-        var: vm_created
-
-    # TODO wait on TaskTag to be in "state": "COMPLETE"
-    - ansible.builtin.pause:
-        seconds: 3
+    - name: Wait for the object to be created
+      scale_computing.hc3.task_wait:
+        task_tag: "{{vm_created.record}}"
 
     - name: Retrieve all VMs after creating a new resource
       scale_computing.hypercore.api: *retrieve-all-vms

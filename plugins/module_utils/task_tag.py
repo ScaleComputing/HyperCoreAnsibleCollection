@@ -27,12 +27,16 @@ class TaskTag:
 
     @classmethod
     def wait_task(cls, client, task):
-        if type(task) == dict and "taskTag" in task.keys():
+        if type(task) != dict:
+            raise errors.ScaleComputingError("task should be dictionary.")
+        if "taskTag" not in task.keys():
+            raise errors.ScaleComputingError("taskTag is not in task dictionary.")
+
+        task_status = TaskTag.get_task_by_task_tag(client, task["taskTag"])
+        while (
+            type(task_status) == dict
+            and "state" in task_status.keys()
+            and task_status["state"] in ["RUNNING", "QUEUED"]
+        ):
+            sleep(1)
             task_status = TaskTag.get_task_by_task_tag(client, task["taskTag"])
-            while (
-                type(task_status) == dict
-                and "state" in task_status.keys()
-                and task_status["state"] in ["RUNNING", "QUEUED"]
-            ):
-                sleep(1)
-                task_status = TaskTag.get_task_by_task_tag(client, task["taskTag"])
