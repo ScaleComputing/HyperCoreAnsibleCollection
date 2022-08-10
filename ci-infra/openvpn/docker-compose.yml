@@ -13,5 +13,6 @@ services:
       - 8443:8443
     environment:
       - EXTRA_BACKGROUND_CMD=socat TCP-LISTEN:8443,fork,reuseaddr TCP:10.5.11.30:443
+    restart: on-failure
 volumes:
   config:

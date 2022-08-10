@@ -25,7 +25,7 @@ your-password
 Run:
 ```
 cd scale_computing/hypercore/ci-infra/openvpn
-docker-compose rm -f; docker-compose down --remove-orphans; docker-compose build; docker-compose up
+docker-compose rm -f; docker-compose down --remove-orphans; docker-compose build; docker-compose up -d
 ```
 
 Test it works:
