@@ -16,7 +16,7 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: API interaction with Scale Computing HyperCore
 description:
-  - Perform GET, POST, PATCH, DELETE or PUT requests on resource(s) from the given endpoint
+  - Perform GET, POST, PATCH or DELETE requests on resource(s) from the given endpoint
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -33,7 +33,6 @@ options:
       - patch
       - delete
       - get
-      - put
   data:
     type: dict
     description:
@@ -220,12 +219,6 @@ def delete_record(module, rest_client):
     return True, None, dict(before=record, after=None)
 
 
-def put_record(module, rest_client):
-    # TODO (tjazsch): Implement PUT method
-    module.warn("Put methods has not been implemented yet.")
-    return -1, -1, -1
-
-
 def get_records(module, rest_client):
     records = rest_client.list_records(
         query=module.params["data"],
@@ -242,8 +235,6 @@ def run(module, rest_client):
         return post_record(module, rest_client)
     elif action == "get":  # GET method
         return get_records(module, rest_client)
-    elif action == "put":  # GET method
-        return put_record(module, rest_client)
     return delete_record(module, rest_client)  # DELETE methodx
 
 
@@ -258,7 +249,7 @@ def main():
             ),
             action=dict(
                 type="str",
-                choices=["post", "patch", "delete", "get", "put"],
+                choices=["post", "patch", "delete", "get"],
                 required=True,
             ),
             endpoint=dict(
