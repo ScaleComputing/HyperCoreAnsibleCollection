@@ -140,26 +140,6 @@ class TestRun:
             dict(before=dict(name="Existing record"), after=None),
         )
 
-    def test_run_call_put_method(self, create_module, client):
-        # TODO: Put method hasn't been implemented yet, so tests still have to be written.
-        #       Harcoding value for now.
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                action="put",
-                endpoint="/rest/v1/VirDomain",
-                unique_id="id",
-                data=dict(),
-            )
-        )
-
-        result = api.run(module, client)
-        assert result == (-1, -1, -1)
-
 
 class TestGetMethod:
     def test_get_method_record_present(self, create_module, rest_client):
@@ -216,28 +196,6 @@ class TestGetMethod:
         )
 
         assert result == (False, [], None)
-
-
-class TestPutMethod:
-    def test_put_method(self, create_module, rest_client):
-        # TODO: Put method hasn't been implemented yet, so tests still have to be written.
-        #       Harcoding value for now.
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                action="put",
-                endpoint="/rest/v1/VirDomain",
-                unique_id="id",
-                data=dict(),
-            )
-        )
-
-        result = api.put_record(module, rest_client)
-        assert result == (-1, -1, -1)
 
 
 class TestDeleteRecord:
