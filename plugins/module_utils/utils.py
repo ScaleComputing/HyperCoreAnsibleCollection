@@ -31,10 +31,23 @@ def filter_dict(input, *field_names):
 
 class PayloadMapper:
 
+    """
+    Represent abstract class from which each 'endpoint class' will inherit from.
+    Every class that will represent module object will (most likely) have to implement those methods.
+    """
+
     @abstractmethod
     def to_ansible(self, hypercore_data):
         pass
 
     @abstractmethod
     def to_hypercore(self, ansible_data):
+        pass
+
+    @abstractmethod
+    def from_ansible(self, hypercore_data):
+        pass
+
+    @abstractmethod
+    def from_hypercore(self, ansible_data):
         pass

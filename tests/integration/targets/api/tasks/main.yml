@@ -37,7 +37,7 @@
           - vm_created is changed
 
     - name: Wait for the object to be created
-      scale_computing.hc3.task_wait:
+      scale_computing.hypercore.task_wait:
         task_tag: "{{vm_created.record}}"
 
     - name: Retrieve all VMs after creating a new resource
