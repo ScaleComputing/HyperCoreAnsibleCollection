@@ -25,8 +25,8 @@ class Disk:
             "uuid": self.uuid,
             "slot": self.slot,
             "name": self.name,
-            "size": self.size,
-            "type": self.type,
+            "capacity": self.size,
+            "type": self.type.upper(),  # TODO enum
         }
         return disk
 

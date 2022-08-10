@@ -76,7 +76,7 @@ options:
     description:
       - Configuration data to be used by cloud-init (Linux) or cloudbase-init (Windows)
     type: dict
-  attachGuestToolsISO:
+  attach_guest_tools_iso:
     description:
       - If supported by operating system, create an extra device to attach the Scale Guest OS tools ISO
     type: bool
@@ -203,8 +203,7 @@ def main():
             cloud_init=dict(
                 type="dict",
             ),
-            # TODO we want attachGuestToolsISO or attach_guest_tools_iso ? Consistency - attach_guest_tools_iso.
-            attachGuestToolsISO=dict(
+            attach_guest_tools_iso=dict(
                 type="bool",
             ),
         ),
