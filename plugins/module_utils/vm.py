@@ -62,6 +62,12 @@ class VM:
 
     # from hc3
     def data_from_ansible(self, vm_dict):
+        # set to None also attributes that are newer set via ansible module
+        # TODO those should be set to None/"" in __init__
+        self.operating_system = None
+        self.desired_disposition = None
+        self.latest_task_tag = None
+
         # TODO For mandatory parameters [] can be used.
         self.uuid = vm_dict.get("uuid", "")
         self.name = vm_dict.get("vm_name", "")
@@ -73,14 +79,14 @@ class VM:
         self.mem = vm_dict.get("memory", 0)
         self.power_state = vm_dict.get("power_state", "")
         self.numVCPU = vm_dict.get("vcpu", 0)
-        self._disks_list = []
+        self._disk_list = []
         self._nic_list = []
         if "disks" in vm_dict.keys() and vm_dict["disks"]:
             for disk in vm_dict["disks"]:
                 self.disk_list.append(Disk(from_hc3=True, disk_dict=disk))
         if "nics" in vm_dict.keys() and vm_dict["nics"]:
             for nic in vm_dict["nics"]:
-                self.nic_list.append(Nic(from_hc3=True, nic_dict=nic))
+                self.nic_list.append(Nic.create_from_ansible(nic_dict=nic))
         self.bootDevices = vm_dict.get("boot_devices", [])
         # TODO cloud_init_data userData/metaData will be provided as a dict.
         # Also, only one might be provided (corner cases...).
@@ -98,16 +104,14 @@ class VM:
         self.operating_system = vm_dict.get("operatingSystem", "")
         self.power_state = vm_dict.get("state", "")
         self.desired_disposition = vm_dict.get("desiredDisposition", "")
-        self.console = vm_dict.get("console", {})
         self.mem = vm_dict.get("mem", 0)
         self.numVCPU = vm_dict.get("numVCPU", 0)
-        self._disks_list = []
+        self._disk_list = []
         self._nic_list = []
         for disk in vm_dict["blockDevs"]:
             self.disk_list.append(Disk(from_hc3=True, disk_dict=disk))
         for nic in vm_dict["netDevs"]:
             self.nic_list.append(Nic.create_from_hc3(nic_dict=nic))
-        self.stats = vm_dict["stats"]
         self.latest_task_tag = vm_dict.get("latestTaskTag", {})
         self.tags = []
         for tag in vm_dict["tags"].split(","):
@@ -127,11 +131,13 @@ class VM:
             "description": self.description,
             "mem": self.mem,
             "numVCPU": self.numVCPU,
-            "blockDevs": self.disk_list,
-            "netDevs": self.nic_list,
+            "blockDevs": [disk.data_to_hc3() for disk in self.disk_list],
+            "netDevs": [nic.data_to_hc3() for nic in self.nic_list],
             "tags": ",".join(self.tags),
             "uuid": self.uuid,
-            "bootDevices": self.bootDevices,
+            # TODO bootDevices for HC3 should be a list of UUIDs (I think)
+            # If new VM is created, we can get those UUIDs only after VM is created.
+            # "bootDevices": self.bootDevices,
             # TODO userData and metaData for HC3 must be base64 encoded yaml content
             # vm_dict["cloudInitData"] = self.cloud_init_data
             "attachGuestToolsISO": self.attach_guest_tools_iso,
@@ -143,11 +149,7 @@ class VM:
             vm_dict["state"] = self.power_state.upper()
         if self.desired_disposition:
             vm_dict["desiredDisposition"] = self.desired_disposition
-        if self.console:
-            vm_dict["console"] = self.console
 
-        if self.stats:
-            vm_dict["stats"] = self.stats
         if self.latest_task_tag:
             vm_dict["latestTaskTag"] = self.latest_task_tag
         return vm_dict

@@ -2,8 +2,6 @@
 # Can we put all sample playbooks into a single sub-directory?
 - name: test vm module
   hosts: localhost
-  environment:
-    key: value
   tasks:
   - name: Create VM
     scale_computing.hypercore.vm:
@@ -13,34 +11,30 @@
       # HyperCore_x or SCALE_ or SCALE_COMPUTING_ or SCALE_HyperCore_?
       # HyperCore_API_URL, HyperCore_API_USERNAME, HyperCore_API_PASSWORD
       # Later we wil have also username/password for SMB access.
-      cluster_instance:
-        host: 'https://10.5.11.30'
-        username: 'admin'
-        password: 'admin'
-      name: XLAB-us11-example6
+      vm_name: XLAB-us11-example6
       description: Demo VM
       power_state: shutdown
       state: present
       tags:
         - 'Xlab'
         - 'Domen'
-      memory: 536870912 #In Bytes
+      memory: 536870912 # In Bytes
       vcpu: 2
+      attach_guest_tools_iso: true  # default false (same as HyperCore)
       disks:
-        - type: IDE_DISK
-          capacity: 524288000
-          name: disk-0
+        - type: virtio_disk
+          disk_slot: 0
+          size: 524288000
       nics:
         - vlan: 0
           type: RTL8139
-      attachGuestToolsISO: true  # default false (same as HyperCore)
       boot_devices:
-        - type: disk  # real disk
-          name/slot/id: 0
+        - type: virtio_disk  # real disk
+          disk_slot: 0
         - type: nic
-          vlan: 0
-        - type: disk  # ISO image
-          name/slot/id: 1
+          nic_vlan: 0
+        - type: ide_cdrom  # ISO image
+          disk_slot: 1
       cloud_init:  # optional
         metadata: {}
         userdata: {}
