@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2022, XLAB Steampunk <steampunk@xlab.si>
 #
-# TODO licence
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
 
@@ -17,26 +17,26 @@ author:
 short_description: Wait for the object with given task_tag to be created.
 description:
   - Helper module, which waits till the object with the given task_tag is actually created
-  - Usually used within a context of a larger role. Whenever POST, PATCH or DELETE method is applied on the HC3
+  - Usually used within a context of a larger role. Whenever POST, PATCH or DELETE method is applied on the HyperCore
     object, a dict in with keys createdUUID and taskTag is returned. Depending on taskTag's status, the object's
     request might be still in queue or may be already executed. This module ensures that the object's request is not
     on queue anymore.
 version_added: 0.0.1
 extends_documentation_fragment:
-  - scale_computing.hc3.cluster_instance
+  - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
   task_tag:
     type: dict
     description:
-      - Result when calling POST, PATCH or DELETE method on the HC3 object.
+      - Result when calling POST, PATCH or DELETE method on the HyperCore object.
     required: true
 """
 
 
 EXAMPLES = r"""
 - name: Wait for the object to be created
-  scale_computing.hc3.task_wait:
+  scale_computing.hypercore.task_wait:
     task_tag:
       createdUUID: c2d38319-db6b-4cdf-93c6-d628b47c7809
       taskTag: 1483
