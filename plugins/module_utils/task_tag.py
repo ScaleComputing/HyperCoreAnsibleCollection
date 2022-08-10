@@ -11,6 +11,7 @@ __metaclass__ = type
 from time import sleep
 
 from ..module_utils.errors import MissingFunctionParameter
+from ..module_utils import errors
 
 
 class TaskTag:
