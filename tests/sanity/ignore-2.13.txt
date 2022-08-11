@@ -1,0 +1,11 @@
+ci-infra/openvpn/openvpn.sh shellcheck:SC1117  # openvpn.sh is stolen, try to keep it as-is.
+ci-infra/openvpn/openvpn.sh shellcheck:SC2012
+ci-infra/openvpn/openvpn.sh shellcheck:SC2013
+ci-infra/openvpn/openvpn.sh shellcheck:SC2015
+ci-infra/openvpn/openvpn.sh shellcheck:SC2046
+ci-infra/openvpn/openvpn.sh shellcheck:SC2086
+ci-infra/openvpn/openvpn.sh shellcheck:SC2129
+ci-infra/openvpn/openvpn.sh shellcheck:SC2155
+ci-infra/openvpn/openvpn.sh shellcheck:SC2162
+ci-infra/openvpn/openvpn.sh shellcheck:SC2196
+ci-infra/openvpn/openvpn.sh shellcheck:SC2230
