@@ -1,0 +1,54 @@
+---
+# https://docs.ansible.com/ansible/devel/community/collection_contributors/collection_integration_add.html -
+# sample how to define dependencies between tests, like run setup_postgresql_db before postgresql_info.
+
+# ----------------------------------------------------------
+# Check GET response contains all fields returned by HC3.
+# /ping returns a dict type
+- name: Get HC3 ping
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/ping
+  register: ping_result
+
+# HC3 returns {"status": "Active"}
+- ansible.builtin.assert:
+    that:
+      - ping_result is not changed
+      # do we want to return list (records) or a single record?
+      # ATM ping_result.record is list.
+#      - ping_result.record.status == "Active"  # TODO fix
+#      - ping_result.record.status is defined
+
+# /Node returns a list type
+- name: Get HC3 Node
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/Node
+  register: nodes_result
+
+- ansible.builtin.assert:
+    that:
+      - nodes_result is not changed
+      - nodes_result.record is iterable
+      - nodes_result.record[0] is iterable
+      # TODO nodes_result.record[0].backplaneIP or nodes_result.record[0][0].backplaneIP
+      # nodes_result.record[0].backplaneIP looks nicer
+      - nodes_result.record[0].backplaneIP is defined
+
+# ----------------------------------------------------------
+#: Test HTTP status_code not 2xx is reported as failure to user
+- name: POST invalid data to /ISO
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/ISO
+    data:
+      somekey: somevalue
+  register: iso_result
+  ignore_errors: True
+
+- ansible.builtin.assert:
+    that:
+      # Hm. Is there any case where something would be changed, even if HTTP call failed?
+      - iso_result is not changed
+      - iso_result is failed
