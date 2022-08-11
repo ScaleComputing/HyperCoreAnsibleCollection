@@ -15,13 +15,14 @@ from ansible_collections.scale_computing.hypercore.plugins.modules import vm_nic
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
 
 import json
+import uuid
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
 )
 
 class TestAbsent:
-    def test_ensure_absent(self, client, create_module):
+    def test_create_nic_uuid_list_with_two_nics(self, create_module):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -31,21 +32,29 @@ class TestAbsent:
                 ),
                 vm_name="unit_test_vm",
                 state="present",
+                items=[{
+                    "vlan": 1
+                },
+                       {
+                    "vlan": 2   
+                }]
             )
         )
-        existing_nic = Nic.create_from_hc3(
-            {
-                "virDomainUUID": "1234-5678-9101",
-                "uuid": "1234-5678-9101",
-                "type": "virtio",
-                "mac": None,
-                "vlan": 1,
-                "connected": True,
-                "ipv4Addresses": []
-            }
+        
+        results = vm_nic.create_nic_uuid_list(module)
+        assert results == [1,2]
+
+    def test_check_parameters_with_vm_uuid(self, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_uuid="9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece"
+            )
         )
-        end_point="/rest/v1/VirDomain"
-        client.request.return_value = json.dumps({"bla": 1})
-        results = vm_nic.do_absent(client, end_point, existing_nic)
-        print(results)
-        assert results == {}
+        results = vm_nic.check_parameters(module)
+        assert results == None
+
