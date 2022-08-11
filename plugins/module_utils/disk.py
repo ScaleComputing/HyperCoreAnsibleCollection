@@ -41,6 +41,7 @@ class Disk:
 
     # Parsing data from API
     def data_from_hc3(self, disk_dict):
+        # TODO raise MissingValuesHC3 exception
         # UUID must be always presnt in HC3 output. Use [], fail if uuid is missing.
         # Similar for other fields.
         # Maybe: raise specific exception from errors.py (MissingValuesHC3).

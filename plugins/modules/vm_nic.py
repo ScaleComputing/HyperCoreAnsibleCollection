@@ -139,7 +139,7 @@ def find_vm(
     return virtual_machine
 
 
-def do_present_or_set(client, end_point, existing_nic, new_nic):
+def ensure_present_or_set(client, end_point, existing_nic, new_nic):
     if existing_nic and not Nic.compare(existing_nic, new_nic):
         json_response = update_nic(client, end_point + "/" + existing_nic.uuid, new_nic)
     else:
@@ -147,14 +147,14 @@ def do_present_or_set(client, end_point, existing_nic, new_nic):
     return json_response
 
 
-def do_absent(client, end_point, existing_nic):
+def ensure_absent(client, end_point, existing_nic):
     json_response = delete_nic(client, end_point + "/" + existing_nic.uuid)
     return json_response
 
 
 def check_state_decide_action(module, client, state):
     end_point = "/rest/v1/VirDomainNetDevice"
-    json_response = "No changes"
+    json_response = {}
     virtual_machine = find_vm(module, client)
 
     if module.params["items"]:
@@ -170,10 +170,13 @@ def check_state_decide_action(module, client, state):
                     "VLAN and MAC - vm_nic.py - check_state_decide_action()"
                 )
             if state in [State.present, State.set]:
-                json_response = do_present_or_set(client, end_point, existing_nic, nic)
+                json_response = ensure_present_or_set(
+                    client, end_point, existing_nic, nic
+                )
             else:
-                json_response = do_absent(client, end_point, existing_nic)
-            TaskTag.wait_task(client, json_response)
+                json_response = ensure_absent(client, end_point, existing_nic)
+            if "taskTag" in json_response.keys():
+                TaskTag.wait_task(client, json_response)
     if state == State.set:
         updated_virtual_machine = find_vm(
             module, client
@@ -182,12 +185,18 @@ def check_state_decide_action(module, client, state):
     return json_response
 
 
+def create_output(json_response):
+    if "taskTag" in json_response.keys():
+        return True, json_response["taskTag"]
+    return True, {"taskTag": "No task tag"}
+
+
 def run(module, client):
     check_parameters(module)
 
     json_response = check_state_decide_action(module, client, module.params["state"])
 
-    return json_response
+    return create_output(json_response)
 
 
 def main():
@@ -223,8 +232,8 @@ def main():
         password = module.params["cluster_instance"]["password"]
 
         client = Client(host, username, password)
-        vms = run(module, client)
-        module.exit_json(changed=True, vms=vms)
+        changed, debug_task_tag = run(module, client)
+        module.exit_json(changed=changed, debug_task_tag=debug_task_tag)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

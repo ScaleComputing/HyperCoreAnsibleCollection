@@ -11,7 +11,11 @@
       # HyperCore_x or SCALE_ or SCALE_COMPUTING_ or SCALE_HyperCore_?
       # HyperCore_API_URL, HyperCore_API_USERNAME, HyperCore_API_PASSWORD
       # Later we wil have also username/password for SMB access.
-      vm_name: XLAB-us11-example6
+      cluster_instance:
+        host: 'https://10.5.11.30'
+        username: 'admin'
+        password: 'admin'
+      name: XLAB-demo-vm
       description: Demo VM
       power_state: shutdown
       state: present

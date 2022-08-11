@@ -79,29 +79,32 @@ def create_vm_object(
     module, client
 ):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
     if module.params["vm_uuid"]:
-        virtual_machine_dict = VM.get(client, uuid=module.params["vm_uuid"])[0]
+        virtual_machine_list = VM.get(client, uuid=module.params["vm_uuid"])
+        if not virtual_machine_list:
+            raise errors.VMNotFound(module.params["vm_uuid"])
+        virtual_machine_dict = virtual_machine_list[0]
     else:
-        virtual_machine_dict = VM.get(client, name=module.params["vm_name"])[0]
-    virtual_machine = VM(
-        from_hc3=True,
-        vm_dict=virtual_machine_dict,
-        client=client,
-    )
+        virtual_machine_list = VM.get(client, name=module.params["vm_name"])
+        if not virtual_machine_list:
+            raise errors.VMNotFound(module.params["vm_name"])
+        virtual_machine_dict = virtual_machine_list[0]
+    virtual_machine = VM(from_hc3=True, vm_dict=virtual_machine_dict, client=client)
     return virtual_machine
+
+
+def create_output(records):
+    return False, records
 
 
 def run(module, client):
     check_parameters(module)
     if module.params["vlan"]:
         virtual_machine = create_vm_object(module, client)
-        json_response = virtual_machine.find_nic(module.params["vlan"]).data_to_hc3()
-    else:
-        response_nic_list = []
+        records = virtual_machine.find_nic(module.params["vlan"]).data_to_ansible()
+    else:  # No vlan, we output all NICs for specified VM
         virtual_machine = create_vm_object(module, client)
-        for nic in virtual_machine.nic_list:
-            response_nic_list.append(nic.data_to_hc3())
-        json_response = response_nic_list
-    return json_response
+        records = [nic.data_to_ansible() for nic in virtual_machine.nic_list]
+    return create_output(records)
 
 
 def main():
@@ -131,10 +134,10 @@ def main():
         password = module.params["cluster_instance"]["password"]
 
         client = Client(host, username, password)
-        vms = run(module, client)
+        changed, records = run(module, client)
         # We do not want to just show complete API response to end user.
-        # Because API response content changes with HyperCore version.
-        module.exit_json(changed=False, vms=vms)
+        # Because API response content changes with HC3 version.
+        module.exit_json(changed=changed, records=records)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 
