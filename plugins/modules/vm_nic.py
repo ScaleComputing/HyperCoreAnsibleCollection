@@ -142,14 +142,20 @@ def find_vm(
 def ensure_present_or_set(client, end_point, existing_nic, new_nic):
     if existing_nic and not Nic.compare(existing_nic, new_nic):
         json_response = update_nic(client, end_point + "/" + existing_nic.uuid, new_nic)
-    else:
+    elif not existing_nic:
         json_response = create_nic(client, end_point, new_nic)
+    else:
+        return {"taskTag": "No task tag"}
     return json_response
 
 
 def ensure_absent(client, end_point, existing_nic):
-    json_response = delete_nic(client, end_point + "/" + existing_nic.uuid)
-    return json_response
+    #TODO check if nic exists other return changed=False and No task tag
+    #TODO add integration test for this specific bug
+    if existing_nic:
+        json_response = delete_nic(client, end_point + "/" + existing_nic.uuid)
+        return json_response
+    return {"taskTag": "No task tag"}
 
 
 def check_state_decide_action(module, client, state):
@@ -162,6 +168,8 @@ def check_state_decide_action(module, client, state):
             nic["vm_uuid"] = virtual_machine.uuid
             nic = Nic.create_from_ansible(nic_dict=nic)
             if nic.vlan is not None:
+                #TODO we have vlan_new and mac_new - corner case
+                #TODO integration test to check this corner cases
                 existing_nic = virtual_machine.find_nic(vlan=nic.vlan)
             elif nic.mac:
                 existing_nic = virtual_machine.find_nic(vlan=nic.mac)
