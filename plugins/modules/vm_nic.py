@@ -150,8 +150,8 @@ def ensure_present_or_set(client, end_point, existing_nic, new_nic):
 
 
 def ensure_absent(client, end_point, existing_nic):
-    #TODO check if nic exists other return changed=False and No task tag
-    #TODO add integration test for this specific bug
+    # TODO check if nic exists other return changed=False and No task tag
+    # TODO add integration test for this specific bug
     if existing_nic:
         json_response = delete_nic(client, end_point + "/" + existing_nic.uuid)
         return json_response
@@ -168,8 +168,8 @@ def check_state_decide_action(module, client, state):
             nic["vm_uuid"] = virtual_machine.uuid
             nic = Nic.create_from_ansible(nic_dict=nic)
             if nic.vlan is not None:
-                #TODO we have vlan_new and mac_new - corner case
-                #TODO integration test to check this corner cases
+                # TODO we have vlan_new and mac_new - corner case
+                # TODO integration test to check this corner cases
                 existing_nic = virtual_machine.find_nic(vlan=nic.vlan)
             elif nic.mac:
                 existing_nic = virtual_machine.find_nic(vlan=nic.mac)
