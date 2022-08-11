@@ -37,17 +37,17 @@ class PayloadMapper:
     """
 
     @abstractmethod
-    def to_ansible(self, hypercore_data):
+    def to_ansible(self):
         pass
 
     @abstractmethod
-    def to_hypercore(self, ansible_data):
+    def to_hypercore(self):
         pass
 
     @abstractmethod
-    def from_ansible(self, hypercore_data):
+    def from_ansible(self, ansible_data):
         pass
 
     @abstractmethod
-    def from_hypercore(self, ansible_data):
+    def from_hypercore(self, ):
         pass
