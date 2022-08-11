@@ -55,3 +55,9 @@ class DeviceNotUnique(ScaleComputingError):
     def __init__(self, data):
         self.message = "Device is not unique - {0}".format(data)
         super(DeviceNotUnique, self).__init__(self.message)
+
+
+class VMNotFound(ScaleComputingError):
+    def __init__(self, data):
+        self.message = "Virtual machine - {0} - not found".format(data)
+        super(VMNotFound, self).__init__(self.message)

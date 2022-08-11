@@ -8,13 +8,15 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from ..module_utils.type import NicType
+
 
 class Nic:
     def __init__(self):
-        self.uuid = ""
-        self.vm_uuid = ""
-        self.type = None  # TODO Use Enum
-        self.mac = ""
+        self.uuid = None
+        self.vm_uuid = None
+        self.type = None
+        self.mac = None
         self.mac_new = None
         self.vlan = None
         self.vlan_new = None
@@ -29,6 +31,18 @@ class Nic:
             and self.uuid == other.uuid
             and self.mac == other.mac
         )
+
+    @classmethod
+    def handle_nic_type(cls, nic_type):
+        if nic_type:
+            if nic_type.upper() == NicType.INTEL_E1000:
+                actual_nic_type = nic_type.upper()  # INTEL_E1000
+            elif nic_type.upper() == NicType.VIRTIO:
+                actual_nic_type = nic_type.lower()  # virtio
+            else:
+                actual_nic_type = nic_type.upper()  # RTL8139
+            return actual_nic_type
+        return nic_type
 
     # Compare two Network interfaces
     @classmethod
@@ -47,13 +61,10 @@ class Nic:
             nic_dict["type"] = self.type.upper()  # TODO enum
         if self.connected is not None:
             nic_dict["connected"] = self.connected
-        # TODO corner case: module is called without mac, with mac_new.
-        # It is desired to change MAC to the mac_new, right?
         if self.mac:  # if it's empty we don't send, it auto-generates
-            if self.mac_new:  # user wants to change mac address
-                nic_dict["macAddress"] = self.mac_new
-            else:
-                nic_dict["macAddress"] = self.mac
+            nic_dict["macAddress"] = self.mac
+        if self.mac_new:  # user wants to change mac address
+            nic_dict["macAddress"] = self.mac_new
         return nic_dict
 
     def data_to_ansible(self):
@@ -74,8 +85,7 @@ class Nic:
         # HC3 API GET /VirDomain - we get virDomainUUID for each Nic
         # HC3 API GET /VirDomainNetDevice - virDomainUUID might be empty string
         obj.vm_uuid = nic_dict["virDomainUUID"]
-        # TODO fix - INTEL_E1000 -> intel_e1000, RTL. Use Enum
-        obj.type = nic_dict["type"].lower()
+        obj.type = Nic.handle_nic_type(nic_dict.get("type", None))
         obj.mac = nic_dict.get("macAddress", "")
         obj.vlan = nic_dict.get("vlan", 0)
         obj.connected = nic_dict.get("connected", True)
@@ -85,13 +95,10 @@ class Nic:
     @classmethod
     def create_from_ansible(cls, nic_dict):
         obj = Nic()
-        # obj.uuid = nic_dict.get("uuid", "")
-        obj.vm_uuid = nic_dict.get("vm_uuid", "")
-        obj.type = nic_dict.get("type", "")  # TODO use enum
-        obj.mac = nic_dict.get("mac", "")
+        obj.vm_uuid = nic_dict.get("vm_uuid", None)
+        obj.type = Nic.handle_nic_type(nic_dict.get("type", None))
+        obj.mac = nic_dict.get("mac", None)
         obj.mac_new = nic_dict.get("mac_new", None)
         obj.vlan = nic_dict["vlan"]
         obj.vlan_new = nic_dict.get("vlan_new", None)
-        # obj.connected = nic_dict.get("connected", None)
-        # obj.ipv4Addresses = nic_dict.get("ipv4Addresses", [])
         return obj
