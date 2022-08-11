@@ -38,16 +38,39 @@ class PayloadMapper:
 
     @abstractmethod
     def to_ansible(self):
+        """
+        Transforms from python-native to ansible-native object.
+        Used mostly in *_info modules for performing GET requests
+        :return: ansible-native dictionary.
+        """
         pass
 
     @abstractmethod
     def to_hypercore(self):
+        """
+        Transforms python-native to hypercore-native object.
+        Used for using either post or patch methods onto hypercore API.
+        :return: hypercore-native dictionary.
+        """
         pass
 
+    @classmethod
     @abstractmethod
     def from_ansible(self, ansible_data):
+        """
+        Transforms from ansible_data (module.params) to python-object.
+        :param ansible_data: Field that is inputed from ansible playbook. Is most likely
+        equivalent to "module.params" in python
+        :return: python object
+        """
         pass
 
+    @classmethod
     @abstractmethod
-    def from_hypercore(self, ):
+    def from_hypercore(self, hypercore_data):
+        """
+        Transforms from hypercore-native dictionary to python-object.
+        :param hypercore_data: Dictionary from hypercore API
+        :return: python object
+        """
         pass
