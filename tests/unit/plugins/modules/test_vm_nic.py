@@ -12,7 +12,7 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_nic
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
 
 import json
 import uuid
@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
 )
 
-class TestAbsent:
+class TestNicList:
     def test_create_nic_uuid_list_with_two_nics(self, create_module):
         module = create_module(
             params=dict(
@@ -56,5 +56,27 @@ class TestAbsent:
             )
         )
         results = vm_nic.check_parameters(module)
+        assert results == None
+
+
+    def test_delete_not_used_nics(self, client, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                items=[{
+                    "vlan": 1
+                },
+                       {
+                    "vlan": 2   
+                }]
+            )
+        )
+        end_point ="/rest/v1/VirDomain"
+        virtual_machine = VM(from_hc3=False, vm_dict={})
+        results = vm_nic.delete_not_used_nics(module, client, end_point, virtual_machine)
         assert results == None
 
