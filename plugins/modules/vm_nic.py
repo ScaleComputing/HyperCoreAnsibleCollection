@@ -124,7 +124,7 @@ def delete_not_used_nics(module, client, end_point, virtual_machine):
 def find_vm(
     module, client
 ):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
-    if module.params["vm_uuid"]:
+    if "vm_uuid" in module.params.keys() and module.params["vm_uuid"]:
         virtual_machine = VM(
             from_hc3=True,
             vm_dict=VM.get(client, uuid=module.params["vm_uuid"])[0],
