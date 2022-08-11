@@ -12,6 +12,7 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_nic
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
 
 import json
@@ -80,3 +81,28 @@ class TestNicList:
         results = vm_nic.delete_not_used_nics(module, client, end_point, virtual_machine)
         assert results == None
 
+class TestAbsent:
+    def test_ensure_absent_nic_already_absent(self, client, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                state="absent"
+            )
+        )
+        end_point ="/rest/v1/VirDomainNetDevice"
+        existing_nic = Nic.create_from_hc3({
+            "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1
+        })
+        client.request.return_value.json = {"taskTag": "No task tag"}
+
+        results = vm_nic.ensure_absent(client, end_point, existing_nic)
+
+        print(results)
+        assert results == {"taskTag": "No task tag"}
+        
