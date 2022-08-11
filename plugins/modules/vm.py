@@ -107,6 +107,8 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.vm import VM
+from ..module_utils.state import State
+from ..module_utils.task_tag import TaskTag
 
 
 # @Jure / @Justin define how we want to handle boot_device at VM creation
@@ -114,21 +116,51 @@ def parse_boot_device_list_to_str(boot_device_list):
     return []
 
 
-def create_vm_body(virtual_machine):
+def vm_create_body(virtual_machine):
     vm_body = {}
     optional = {}
     temp_dict = virtual_machine.data_to_hc3()
-    optional["attachGuestToolsISO"] = temp_dict["attachGuestToolsISO"]
-    temp_dict.pop("attachGuestToolsISO")
+    if "attachGuestToolsISO" in temp_dict.keys():
+        optional["attachGuestToolsISO"] = temp_dict["attachGuestToolsISO"]
+        temp_dict.pop("attachGuestToolsISO")
     vm_body["dom"] = temp_dict
     vm_body["options"] = optional
     return vm_body
 
 
-def create_vm_update_body(virtual_machine):
+def vm_update_body(virtual_machine):
     update_body = virtual_machine.data_to_hc3()
-    update_body.pop("attachGuestToolsISO")
+    if "attachGuestToolsISO" in update_body.keys():
+        update_body.pop("attachGuestToolsISO")
     return update_body
+
+
+def vm_delete(client, virtual_machine, end_point):
+    return client.request("DELETE", end_point + "/" + virtual_machine.uuid).json
+
+
+def do_absent(client, existing_virtual_machine, end_point):
+    if existing_virtual_machine:
+        return vm_delete(client, existing_virtual_machine, end_point)
+    return {}
+
+
+def do_present_or_set(client, existing_virtual_machine, new_virtual_machine, end_point):
+    if existing_virtual_machine:
+        data = vm_update_body(existing_virtual_machine)
+        json_response = client.request(
+            "PATCH", end_point + "/" + existing_virtual_machine.uuid, data=data
+        ).json
+    else:
+        data = vm_create_body(new_virtual_machine)
+        json_response = client.request("POST", end_point, data=data).json
+    return json_response
+
+
+def create_output(json_response):
+    if "taskTag" in json_response.keys():
+        return True, json_response["taskTag"]
+    return True, {"taskTag": "No task tag"}
 
 
 def run(module, client):
@@ -136,15 +168,21 @@ def run(module, client):
 
     new_virtual_machine = VM(from_hc3=False, vm_dict=module.params, client=client)
     existing_virtual_machines = VM.get(client=client, name=new_virtual_machine.name)
-    if not existing_virtual_machines:
-        data = create_vm_body(new_virtual_machine)
-        json_response = client.request("POST", end_point, data=data).json
-    else:  # TODO check if VM needs to be updated ()
-        end_point += "/" + existing_virtual_machines[0]["uuid"]
-        data = create_vm_update_body(new_virtual_machine)
-        json_response = client.request("PATCH", end_point, data=data).json
+    existing_virtual_machine = []
+    if existing_virtual_machines:
+        existing_virtual_machine = VM(
+            from_hc3=True, vm_dict=existing_virtual_machines[0]
+        )
 
-    return json_response
+    if module.params["state"] in [State.present, State.set]:
+        json_response = do_present_or_set(
+            client, existing_virtual_machine, new_virtual_machine, end_point
+        )
+    else:
+        json_response = do_absent(client, existing_virtual_machine, end_point)
+    if "taskTag" in json_response.keys():
+        TaskTag.wait_task(client=client, task=json_response)
+    return create_output(json_response)
 
 
 def main():
@@ -215,8 +253,8 @@ def main():
         password = module.params["cluster_instance"]["password"]
 
         client = Client(host, username, password)
-        vms = run(module, client)
-        module.exit_json(changed=False, vms=vms)
+        changed, debug_task_tag = run(module, client)
+        module.exit_json(changed=changed, debug_task_tag=debug_task_tag)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

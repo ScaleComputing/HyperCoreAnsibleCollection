@@ -1,0 +1,108 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Delete XLAB-vm_nic_info_CI_test
+      scale_computing.hypercore.vm: &delete-XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_info_CI_test
+        state: absent
+        memory: 536870912
+        vcpu: 2
+
+    - name: Create XLAB-vm_nic_info_CI_test
+      scale_computing.hypercore.vm:
+        vm_name: XLAB-vm_nic_info_CI_test
+        description: Demo VM
+        power_state: shutdown
+        state: present
+        tags:
+          - 'Xlab'
+          - 'CI'
+          - 'test'
+        memory: 536870912
+        vcpu: 2
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+
+    - name: Create Nic in XLAB-vm_nic_info_CI_test
+      scale_computing.hypercore.vm_nic:
+        vm_name: XLAB-vm_nic_info_CI_test
+        items:
+          - vlan: 1
+            type: RTL8139
+          - vlan: 2
+            type: virtio
+        state: set        
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+
+    - name: Retrieve all Nics on demo-vm
+      scale_computing.hypercore.vm_nic_info: &Retrieve-all-Nics-on-demo-vm
+        vm_name: XLAB-vm_nic_info_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records | length == 2
+          - output.records.0.vlan == 1
+          - output.records.0.type == 'RTL8139'
+          - output.records.1.vlan == 2
+          - output.records.1.type == 'virtio'
+          - output is not changed
+
+    - name: Retrieve vlan2 Nic on demo-vm
+      scale_computing.hypercore.vm_nic_info:
+        vm_name: XLAB-vm_nic_info_CI_test
+        vlan: 2
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records.vlan == 2
+          - output.records.type == 'virtio'
+          - output is not changed
+  
+    - name: Retrieve vlan1 Nic on demo-vm
+      scale_computing.hypercore.vm_nic_info:
+        vm_name: XLAB-vm_nic_info_CI_test
+        vlan: 1
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records.vlan == 1
+          - output.records.type == 'RTL8139'
+          - output is not changed
+
+    - name: Delete Nic in XLAB-vm_nic_info_CI_test
+      scale_computing.hypercore.vm_nic:
+        vm_name: XLAB-vm_nic_info_CI_test
+        items:
+          - vlan: 1
+            type: RTL8139
+        state: absent        
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+
+    - name: Retrieve all Nics on demo-vm
+      scale_computing.hypercore.vm_nic_info: *Retrieve-all-Nics-on-demo-vm
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records | length == 1
+          - output.records.0.vlan == 2
+          - output.records.0.type == 'virtio'
+          - output is not changed
+
+    - name: Delete XLAB-vm_nic_CI_test
+      scale_computing.hypercore.vm: *delete-XLAB-vm_nic_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed

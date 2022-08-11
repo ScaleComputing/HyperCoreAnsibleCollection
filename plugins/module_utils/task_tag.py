@@ -10,7 +10,6 @@ __metaclass__ = type
 
 from time import sleep
 
-from ..module_utils.errors import MissingFunctionParameter
 from ..module_utils import errors
 
 
@@ -22,7 +21,7 @@ class TaskTag:
             task = client.request("GET", end_point + "/" + task_tag).json[0]
             return task
         else:
-            raise MissingFunctionParameter(
+            raise errors.MissingFunctionParameter(
                 "task_tag - task_tag.py - get_task_by_task_tag()"
             )
 

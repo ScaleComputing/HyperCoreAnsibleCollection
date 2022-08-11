@@ -81,6 +81,7 @@ class VM:
         self.numVCPU = vm_dict.get("vcpu", 0)
         self._disk_list = []
         self._nic_list = []
+        self.operating_system = vm_dict.get("operatingSystem", None)
         if "disks" in vm_dict.keys() and vm_dict["disks"]:
             for disk in vm_dict["disks"]:
                 self.disk_list.append(Disk(from_hc3=True, disk_dict=disk))
@@ -104,6 +105,7 @@ class VM:
         self.operating_system = vm_dict.get("operatingSystem", "")
         self.power_state = vm_dict.get("state", "")
         self.desired_disposition = vm_dict.get("desiredDisposition", "")
+        self.console = vm_dict.get("console", {})
         self.mem = vm_dict.get("mem", 0)
         self.numVCPU = vm_dict.get("numVCPU", 0)
         self._disk_list = []
@@ -112,6 +114,7 @@ class VM:
             self.disk_list.append(Disk(from_hc3=True, disk_dict=disk))
         for nic in vm_dict["netDevs"]:
             self.nic_list.append(Nic.create_from_hc3(nic_dict=nic))
+        self.stats = vm_dict["stats"]
         self.latest_task_tag = vm_dict.get("latestTaskTag", {})
         self.tags = []
         for tag in vm_dict["tags"].split(","):
@@ -147,11 +150,6 @@ class VM:
         # state attribute is used by HC3 only during VM create.
         if self.power_state:
             vm_dict["state"] = self.power_state.upper()
-        if self.desired_disposition:
-            vm_dict["desiredDisposition"] = self.desired_disposition
-
-        if self.latest_task_tag:
-            vm_dict["latestTaskTag"] = self.latest_task_tag
         return vm_dict
 
     def data_to_ansible(self):
