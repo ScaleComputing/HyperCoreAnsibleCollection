@@ -195,7 +195,7 @@ def check_state_decide_action(module, client, state):
 
 def create_output(json_response):
     if "taskTag" in json_response.keys():
-        return True, json_response["taskTag"]
+        return True, {"taskTag": json_response["taskTag"]}
     return True, {"taskTag": "No task tag"}
 
 

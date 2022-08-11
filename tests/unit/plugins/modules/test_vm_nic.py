@@ -197,6 +197,23 @@ class TestNicList:
         results = vm_nic.create_nic_uuid_list(module)
         assert results == [1, 2]
 
+    def test_create_nic_uuid_list_with_two_nics_and_vla_new(self, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="unit_test_vm",
+                state="present",
+                items=[{"vlan": 1, "vlan_new": 3}, {"vlan": 2}],
+            )
+        )
+
+        results = vm_nic.create_nic_uuid_list(module)
+        assert results == [3, 2]
+
     def test_check_parameters_with_vm_uuid(self, create_module):
         module = create_module(
             params=dict(
@@ -211,7 +228,7 @@ class TestNicList:
         results = vm_nic.check_parameters(module)
         assert results is None
 
-    def test_delete_not_used_nics(self, client, create_module):
+    def test_delete_not_used_nics_all_nics_are_in_use(self, client, create_module):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -224,6 +241,24 @@ class TestNicList:
         )
         end_point = "/rest/v1/VirDomain"
         virtual_machine = VM(from_hc3=False, vm_dict={})
+        results = vm_nic.delete_not_used_nics(
+            module, client, end_point, virtual_machine
+        )
+        assert results is None
+
+    def test_delete_not_used_nics_vlan1_deleted(self, client, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                items=[{"vlan": 1}, {"vlan": 2}],
+            )
+        )
+        end_point = "/rest/v1/VirDomain"
+        virtual_machine = VM(from_hc3=False, vm_dict={"nics": [{"vlan": 2}]})
         results = vm_nic.delete_not_used_nics(
             module, client, end_point, virtual_machine
         )
@@ -355,3 +390,138 @@ class TestPresentAndSet:
         print(Nic.compare(existing_nic, new_nic))
         print(results)
         assert results == {"taskTag": "1234"}
+
+
+class TestFindVM:
+    def test_find_vm_with_name(self, client, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="unit_test_vm",
+                state="present",
+                items=[{"vlan": 1}, {"vlan": 2}],
+            )
+        )
+        client.get.return_value.json = [
+            {
+                "name": "unit_test_vm",
+                "blockDevs": [],
+                "netDevs": [],
+                "stats": "bla",
+                "tags": "XLAB,test",
+            }
+        ]
+        virtual_machine = vm_nic.find_vm(module, client)
+
+        assert virtual_machine.name == "unit_test_vm"
+
+    def test_find_vm_with_uuid(self, client, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                state="present",
+                items=[{"vlan": 1}, {"vlan": 2}],
+            )
+        )
+        client.get.return_value.json = [
+            {
+                "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "blockDevs": [],
+                "netDevs": [],
+                "stats": "bla",
+                "tags": "XLAB,test",
+            }
+        ]
+        virtual_machine = vm_nic.find_vm(module, client)
+
+        assert virtual_machine.uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
+
+
+class TestCheckStateDecideAction:
+    def test_check_state_decide_action_no_nics_from_ansible_state_is_set(
+        self, client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="unit_test_vm",
+                state="set",
+                items=[],
+            )
+        )
+        client.get.return_value.json = [
+            {
+                "name": "unit_test_vm",
+                "blockDevs": [],
+                "netDevs": [],
+                "stats": "bla",
+                "tags": "XLAB,test",
+            }
+        ]
+        results = vm_nic.check_state_decide_action(
+            module, client, module.params["state"]
+        )
+        assert results == {}
+
+    def test_check_state_decide_action_state_absent_no_existing_nic(
+        self, client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="unit_test_vm",
+                state="absent",
+                items=[{"vlan": 1}, {"vlan": 2}],
+            )
+        )
+        client.get.return_value.json = [
+            {
+                "name": "unit_test_vm",
+                "blockDevs": [],
+                "netDevs": [],
+                "stats": "bla",
+                "tags": "XLAB,test",
+            }
+        ]
+        client.request.return_value.json = [1, 2]
+        results = vm_nic.check_state_decide_action(
+            module, client, module.params["state"]
+        )
+        assert results == {"taskTag": "No task tag"}
+
+
+class TestCreateOutput:
+    def test_create_output_with_task_tag(self):
+        json_response = {"taskTag": "1234"}
+        results = vm_nic.create_output(json_response)
+        print(results)
+        assert results == (True, {"taskTag": "1234"})
+
+    def test_create_output_with_task_tag_no_task_tag(self):
+        json_response = {"taskTag": "No task tag"}
+        results = vm_nic.create_output(json_response)
+        print(results)
+        assert results == (True, {"taskTag": "No task tag"})
+
+    def test_create_output_with_empty_json_response(self):
+        json_response = {}
+        results = vm_nic.create_output(json_response)
+        print(results)
+        assert results == (True, {"taskTag": "No task tag"})
