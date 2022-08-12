@@ -53,14 +53,6 @@ class TestGet:
             "enable": False,
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
         }
-        vm_dict = {
-            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "name": "XLAB_test_vm",
-            "blockDevs": [],
-            "netDevs": [],
-            "stats": "bla",
-            "tags": "XLAB,test",
-        }
         rest_client.get_record.return_value = hypercore_data
         results = Replication.get(
             rest_client=rest_client, vm_uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
