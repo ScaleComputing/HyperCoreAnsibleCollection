@@ -8,8 +8,10 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from ..module_utils.utils import PayloadMapper
 
-class Replication:
+
+class Replication(PayloadMapper):
     def __init__(self):
         self.vm_uuid = None
         self.vm_name = None
@@ -41,6 +43,15 @@ class Replication:
         # TODO: When remote_cluster_info is implemented, replace this with cluster name
         obj.remote_cluster = hypercore_data["connectionUUID"]
         return obj
+
+    @classmethod
+    def create_from_ansible(cls, hypercore_data, virtual_machine_obj):
+        # TODO: Implement with vm_replication module
+        return
+
+    def data_to_hypercore(self):
+        # TODO: Implement with vm_replication module
+        return
 
     def data_to_ansible(self):
         replication_info_dict = {
