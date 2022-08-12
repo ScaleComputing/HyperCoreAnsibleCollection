@@ -124,7 +124,7 @@ def delete_not_used_nics(module, client, end_point, virtual_machine):
 def find_vm(
     module, client
 ):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
-    if module.params["vm_uuid"]:
+    if "vm_uuid" in module.params.keys() and module.params["vm_uuid"]:
         virtual_machine = VM(
             from_hc3=True,
             vm_dict=VM.get(client, uuid=module.params["vm_uuid"])[0],
@@ -139,17 +139,25 @@ def find_vm(
     return virtual_machine
 
 
-def ensure_present_or_set(client, end_point, existing_nic, new_nic):
-    if existing_nic and not Nic.compare(existing_nic, new_nic):
-        json_response = update_nic(client, end_point + "/" + existing_nic.uuid, new_nic)
-    else:
+def ensure_present_or_set(client, end_point, existing_hc3_nic, new_nic):
+    if existing_hc3_nic and not existing_hc3_nic.is_update_needed(new_nic):
+        json_response = update_nic(
+            client, end_point + "/" + existing_hc3_nic.uuid, new_nic
+        )
+    elif not existing_hc3_nic:
         json_response = create_nic(client, end_point, new_nic)
+    else:
+        return {}
     return json_response
 
 
-def ensure_absent(client, end_point, existing_nic):
-    json_response = delete_nic(client, end_point + "/" + existing_nic.uuid)
-    return json_response
+def ensure_absent(client, end_point, existing_hc3_nic):
+    # TODO check if nic exists other return changed=False and No task tag
+    # TODO add integration test for this specific bug
+    if existing_hc3_nic:
+        json_response = delete_nic(client, end_point + "/" + existing_hc3_nic.uuid)
+        return json_response
+    return {}
 
 
 def check_state_decide_action(module, client, state):
@@ -162,19 +170,21 @@ def check_state_decide_action(module, client, state):
             nic["vm_uuid"] = virtual_machine.uuid
             nic = Nic.create_from_ansible(nic_dict=nic)
             if nic.vlan is not None:
-                existing_nic = virtual_machine.find_nic(vlan=nic.vlan)
+                # TODO we have vlan_new and mac_new - corner case
+                # TODO integration test to check this corner cases
+                existing_hc3_nic = virtual_machine.find_nic(vlan=nic.vlan)
             elif nic.mac:
-                existing_nic = virtual_machine.find_nic(vlan=nic.mac)
+                existing_hc3_nic = virtual_machine.find_nic(vlan=nic.mac)
             else:
                 raise errors.MissingValueAnsible(
                     "VLAN and MAC - vm_nic.py - check_state_decide_action()"
                 )
             if state in [State.present, State.set]:
                 json_response = ensure_present_or_set(
-                    client, end_point, existing_nic, nic
+                    client, end_point, existing_hc3_nic, nic
                 )
             else:
-                json_response = ensure_absent(client, end_point, existing_nic)
+                json_response = ensure_absent(client, end_point, existing_hc3_nic)
             if "taskTag" in json_response.keys():
                 TaskTag.wait_task(client, json_response)
     if state == State.set:
@@ -187,8 +197,8 @@ def check_state_decide_action(module, client, state):
 
 def create_output(json_response):
     if "taskTag" in json_response.keys():
-        return True, json_response["taskTag"]
-    return True, {"taskTag": "No task tag"}
+        return True, {"taskTag": json_response["taskTag"]}
+    return True, {}
 
 
 def run(module, client):

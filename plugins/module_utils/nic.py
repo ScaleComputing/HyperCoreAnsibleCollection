@@ -24,11 +24,52 @@ class Nic:
         self.ipv4Addresses = []
 
     def __eq__(self, other):
+        if self.vlan_new is not None and not self.mac_new:
+            return (
+                self.vlan_new == other.vlan
+                and self.type == other.type
+                and self.vm_uuid == other.vm_uuid
+                and self.mac == other.mac
+            )
+        elif other.vlan_new is not None and not other.mac_new:
+            return (
+                self.vlan == other.vlan_new
+                and self.type == other.type
+                and self.vm_uuid == other.vm_uuid
+                and self.mac == other.mac
+            )
+        elif self.mac_new and self.vlan_new is None:
+            return (
+                self.vlan == other.vlan
+                and self.type == other.type
+                and self.vm_uuid == other.vm_uuid
+                and self.mac_new == other.mac
+            )
+        elif other.mac_new and other.vlan_new is None:
+            return (
+                self.vlan == other.vlan
+                and self.type == other.type
+                and self.vm_uuid == other.vm_uuid
+                and self.mac == other.mac_new
+            )
+        elif self.vlan_new is not None and self.mac_new:
+            return (
+                self.vlan_new == other.vlan
+                and self.type == other.type
+                and self.vm_uuid == other.vm_uuid
+                and self.mac_new == other.mac
+            )
+        elif other.vlan_new is not None and other.mac_new:
+            return (
+                self.vlan == other.vlan_new
+                and self.type == other.type
+                and self.vm_uuid == other.vm_uuid
+                and self.mac == other.mac_new
+            )
         return (
             self.vlan == other.vlan
             and self.type == other.type
-            and self.connected == other.connected
-            and self.uuid == other.uuid
+            and self.vm_uuid == other.vm_uuid
             and self.mac == other.mac
         )
 
@@ -44,10 +85,9 @@ class Nic:
             return actual_nic_type
         return nic_type
 
-    # Compare two Network interfaces
-    @classmethod
-    def compare(cls, old_nic, new_nic):
-        return new_nic == old_nic
+    # Compares hc3 nic to ansible nic
+    def is_update_needed(self, ansible_nic):
+        return self == ansible_nic
 
     def data_to_hc3(self):
         nic_dict = {
@@ -86,7 +126,7 @@ class Nic:
         # HC3 API GET /VirDomainNetDevice - virDomainUUID might be empty string
         obj.vm_uuid = nic_dict["virDomainUUID"]
         obj.type = Nic.handle_nic_type(nic_dict.get("type", None))
-        obj.mac = nic_dict.get("macAddress", "")
+        obj.mac = nic_dict.get("macAddress", None)
         obj.vlan = nic_dict.get("vlan", 0)
         obj.connected = nic_dict.get("connected", True)
         obj.ipv4Addresses = nic_dict.get("ipv4Addresses", [])
