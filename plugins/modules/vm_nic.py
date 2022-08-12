@@ -141,7 +141,9 @@ def find_vm(
 
 def ensure_present_or_set(client, end_point, existing_hc3_nic, new_nic):
     if existing_hc3_nic and not existing_hc3_nic.is_update_needed(new_nic):
-        json_response = update_nic(client, end_point + "/" + existing_hc3_nic.uuid, new_nic)
+        json_response = update_nic(
+            client, end_point + "/" + existing_hc3_nic.uuid, new_nic
+        )
     elif not existing_hc3_nic:
         json_response = create_nic(client, end_point, new_nic)
     else:
