@@ -24,42 +24,42 @@ class Nic:
         self.ipv4Addresses = []
 
     def __eq__(self, other):
-        if self.vlan_new and not self.mac_new:
+        if self.vlan_new is not None and not self.mac_new:
             return (
                 self.vlan_new == other.vlan
                 and self.type == other.type
                 and self.vm_uuid == other.vm_uuid
                 and self.mac == other.mac
             )
-        elif other.vlan_new and not other.mac_new:
+        elif other.vlan_new is not None and not other.mac_new:
             return (
                 self.vlan == other.vlan_new
                 and self.type == other.type
                 and self.vm_uuid == other.vm_uuid
                 and self.mac == other.mac
             )
-        elif self.mac_new and not self.vlan_new:
+        elif self.mac_new and self.vlan_new is None:
             return (
                 self.vlan == other.vlan
                 and self.type == other.type
                 and self.vm_uuid == other.vm_uuid
                 and self.mac_new == other.mac
             )
-        elif other.mac_new and not other.vlan_new:
+        elif other.mac_new and other.vlan_new is None:
             return (
                 self.vlan == other.vlan
                 and self.type == other.type
                 and self.vm_uuid == other.vm_uuid
                 and self.mac == other.mac_new
             )
-        elif self.vlan_new and self.mac_new:
+        elif self.vlan_new is not None and self.mac_new:
             return (
                 self.vlan_new == other.vlan
                 and self.type == other.type
                 and self.vm_uuid == other.vm_uuid
                 and self.mac_new == other.mac
             )
-        elif other.vlan_new and other.mac_new:
+        elif other.vlan_new is not None and other.mac_new:
             return (
                 self.vlan == other.vlan_new
                 and self.type == other.type
@@ -85,10 +85,9 @@ class Nic:
             return actual_nic_type
         return nic_type
 
-    # Compare two Network interfaces
-    @classmethod
-    def compare(cls, old_nic, new_nic):
-        return new_nic == old_nic
+    # Compares hc3 nic to ansible nic
+    def is_update_needed(self, ansible_nic):
+        return self == ansible_nic
 
     def data_to_hc3(self):
         nic_dict = {

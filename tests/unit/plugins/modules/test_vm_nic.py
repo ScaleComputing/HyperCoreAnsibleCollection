@@ -29,14 +29,13 @@ class TestNicCompare:
                 "vlan": 1,
             }
         )
-        new_nic = Nic.create_from_hc3(
+        new_nic = Nic.create_from_ansible(
             {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
             }
         )
-        results = Nic.compare(existing_nic, new_nic)
+        results = existing_nic.is_update_needed(new_nic)
         assert results is True
 
     def test_compare_different(self):
@@ -47,14 +46,13 @@ class TestNicCompare:
                 "vlan": 1,
             }
         )
-        new_nic = Nic.create_from_hc3(
+        new_nic = Nic.create_from_ansible(
             {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 2,
             }
         )
-        results = Nic.compare(existing_nic, new_nic)
+        results = existing_nic.is_update_needed(new_nic)
         assert results is False
 
     def test_compare_vlan_new(self):
@@ -67,13 +65,12 @@ class TestNicCompare:
         )
         new_nic = Nic.create_from_ansible(
             {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
                 "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "vlan_new": 2,
             }
         )
-        results = Nic.compare(existing_nic, new_nic)
+        results = existing_nic.is_update_needed(new_nic)
         assert results is False
 
     def test_compare_mac_new(self):
@@ -86,13 +83,12 @@ class TestNicCompare:
         )
         new_nic = Nic.create_from_ansible(
             {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
                 "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "mac_new": "12:34:56:78:AB",
             }
         )
-        results = Nic.compare(existing_nic, new_nic)
+        results = existing_nic.is_update_needed(new_nic)
         assert results is False
 
     def test_compare_mac_new_and_vlan_new(self):
@@ -105,14 +101,12 @@ class TestNicCompare:
         )
         new_nic = Nic.create_from_ansible(
             {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "vlan_new": 2,
                 "mac_new": "12:34:56:78:AB",
             }
         )
-        results = Nic.compare(existing_nic, new_nic)
+        results = existing_nic.is_update_needed(new_nic)
         assert results is False
 
     def test_compare_vlan_new_same(self):
@@ -125,13 +119,12 @@ class TestNicCompare:
         )
         new_nic = Nic.create_from_ansible(
             {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
                 "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "vlan_new": 1,
             }
         )
-        results = Nic.compare(existing_nic, new_nic)
+        results = existing_nic.is_update_needed(new_nic)
         print(results)
         assert results is True
 
@@ -146,13 +139,12 @@ class TestNicCompare:
         )
         new_nic = Nic.create_from_ansible(
             {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
                 "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "mac_new": "12:34:56:78:AB",
             }
         )
-        results = Nic.compare(existing_nic, new_nic)
+        results = existing_nic.is_update_needed(new_nic)
         print(results)
         assert results is True
 
@@ -167,14 +159,13 @@ class TestNicCompare:
         )
         new_nic = Nic.create_from_ansible(
             {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
                 "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "vlan_new": 2,
                 "mac_new": "12:34:56:78:AB",
             }
         )
-        results = Nic.compare(existing_nic, new_nic)
+        results = existing_nic.is_update_needed(new_nic)
         print(results)
         assert results is True
 
@@ -273,7 +264,7 @@ class TestAbsent:
         results = vm_nic.ensure_absent(client, end_point, existing_nic)
 
         print(results)
-        assert results == {"taskTag": "No task tag"}
+        assert results == {}
 
     def test_ensure_absent_nic_is_present(self, client):
         end_point = "/rest/v1/VirDomainNetDevice"
@@ -320,7 +311,7 @@ class TestPresentAndSet:
         new_nic = existing_nic
 
         results = vm_nic.ensure_present_or_set(client, end_point, existing_nic, new_nic)
-        assert results == {"taskTag": "No task tag"}
+        assert results == {}
 
     def test_ensure_present_or_set_when_nic_is_present_nics_are_the_different(
         self, client
@@ -387,8 +378,6 @@ class TestPresentAndSet:
 
         client.request.return_value.json = {"taskTag": "1234"}
         results = vm_nic.ensure_present_or_set(client, end_point, existing_nic, new_nic)
-        print(Nic.compare(existing_nic, new_nic))
-        print(results)
         assert results == {"taskTag": "1234"}
 
 
@@ -504,7 +493,7 @@ class TestCheckStateDecideAction:
         results = vm_nic.check_state_decide_action(
             module, client, module.params["state"]
         )
-        assert results == {"taskTag": "No task tag"}
+        assert results == {}
 
 
 class TestCreateOutput:
@@ -524,4 +513,4 @@ class TestCreateOutput:
         json_response = {}
         results = vm_nic.create_output(json_response)
         print(results)
-        assert results == (True, {"taskTag": "No task tag"})
+        assert results == (True, {})

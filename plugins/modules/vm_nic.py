@@ -139,23 +139,23 @@ def find_vm(
     return virtual_machine
 
 
-def ensure_present_or_set(client, end_point, existing_nic, new_nic):
-    if existing_nic and not Nic.compare(existing_nic, new_nic):
-        json_response = update_nic(client, end_point + "/" + existing_nic.uuid, new_nic)
-    elif not existing_nic:
+def ensure_present_or_set(client, end_point, existing_hc3_nic, new_nic):
+    if existing_hc3_nic and not existing_hc3_nic.is_update_needed(new_nic):
+        json_response = update_nic(client, end_point + "/" + existing_hc3_nic.uuid, new_nic)
+    elif not existing_hc3_nic:
         json_response = create_nic(client, end_point, new_nic)
     else:
-        return {"taskTag": "No task tag"}
+        return {}
     return json_response
 
 
-def ensure_absent(client, end_point, existing_nic):
+def ensure_absent(client, end_point, existing_hc3_nic):
     # TODO check if nic exists other return changed=False and No task tag
     # TODO add integration test for this specific bug
-    if existing_nic:
-        json_response = delete_nic(client, end_point + "/" + existing_nic.uuid)
+    if existing_hc3_nic:
+        json_response = delete_nic(client, end_point + "/" + existing_hc3_nic.uuid)
         return json_response
-    return {"taskTag": "No task tag"}
+    return {}
 
 
 def check_state_decide_action(module, client, state):
@@ -170,19 +170,19 @@ def check_state_decide_action(module, client, state):
             if nic.vlan is not None:
                 # TODO we have vlan_new and mac_new - corner case
                 # TODO integration test to check this corner cases
-                existing_nic = virtual_machine.find_nic(vlan=nic.vlan)
+                existing_hc3_nic = virtual_machine.find_nic(vlan=nic.vlan)
             elif nic.mac:
-                existing_nic = virtual_machine.find_nic(vlan=nic.mac)
+                existing_hc3_nic = virtual_machine.find_nic(vlan=nic.mac)
             else:
                 raise errors.MissingValueAnsible(
                     "VLAN and MAC - vm_nic.py - check_state_decide_action()"
                 )
             if state in [State.present, State.set]:
                 json_response = ensure_present_or_set(
-                    client, end_point, existing_nic, nic
+                    client, end_point, existing_hc3_nic, nic
                 )
             else:
-                json_response = ensure_absent(client, end_point, existing_nic)
+                json_response = ensure_absent(client, end_point, existing_hc3_nic)
             if "taskTag" in json_response.keys():
                 TaskTag.wait_task(client, json_response)
     if state == State.set:
@@ -196,7 +196,7 @@ def check_state_decide_action(module, client, state):
 def create_output(json_response):
     if "taskTag" in json_response.keys():
         return True, {"taskTag": json_response["taskTag"]}
-    return True, {"taskTag": "No task tag"}
+    return True, {}
 
 
 def run(module, client):
