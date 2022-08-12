@@ -3,20 +3,21 @@
 Crete python venv and clone code.
 
 ```
+mkdir -p ansible_collections/scale_computing/
+cd ansible_collections/scale_computing/
+
 python3.10 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install ansible-core  # 2.13.1
 
-mkdir -p ansible_collections/scale_computing/
-cd ansible_collections/scale_computing/
 git clone ssh://git@gitlab.xlab.si:13022/scale-ansible-collection/scale-computing-hc3-ansible-collection.git hypercore
 cd hypercore
 
 # Install community.general collection, since we like to have stdout_callback=community.general.yaml in ansible.cfg
 ansible-galaxy collection install community.general
 # Optional, if you want to run "ansible-test --venv ..."
-# pip install -r test.requirements.txt -r sanity.requirements
+# pip install -r test.requirements -r sanity.requirements
 ```
 
 Included `Makefile` contains shortcuts for common development tasks,
@@ -48,7 +49,7 @@ ansible-galaxy collection build
 ```
 
 Run sample playbook.
-Sample ansible.cfg is there to ensure collection does not need to be inatalled.
+Sample ansible.cfg is there to ensure collection does not need to be installed.
 
 ```yaml
 ansible-playbook -i localhost, sample-playbook.yml -v
