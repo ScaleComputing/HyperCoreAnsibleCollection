@@ -61,7 +61,6 @@ class TestGet:
             "stats": "bla",
             "tags": "XLAB,test",
         }
-        virtual_machine_obj = VM(from_hc3=True, vm_dict=vm_dict)
         rest_client.get_record.return_value = hypercore_data
         results = Replication.get(
             rest_client=rest_client, vm_uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
