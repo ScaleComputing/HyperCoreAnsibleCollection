@@ -15,28 +15,21 @@ from ..module_utils import errors
 
 class TaskTag:
     @classmethod
-    def get_task_by_task_tag(cls, client, task_tag):
-        if task_tag:
-            end_point = "/rest/v1/TaskTag"
-            task = client.request("GET", end_point + "/" + task_tag).json[0]
-            return task
-        else:
-            raise errors.MissingFunctionParameter(
-                "task_tag - task_tag.py - get_task_by_task_tag()"
-            )
-
-    @classmethod
-    def wait_task(cls, client, task):
+    def wait_task(cls, rest_client, task):
         if type(task) != dict:
             raise errors.ScaleComputingError("task should be dictionary.")
         if "taskTag" not in task.keys():
             raise errors.ScaleComputingError("taskTag is not in task dictionary.")
 
-        task_status = TaskTag.get_task_by_task_tag(client, task["taskTag"])
-        while (
-            type(task_status) == dict
-            and "state" in task_status.keys()
-            and task_status["state"] in ["RUNNING", "QUEUED"]
-        ):
+        while True:
+            task_status = rest_client.get_record(
+                "{0}/{1}".format("/rest/v1/TaskTag", task["taskTag"])
+            )
+            if task_status is None:  # No such task_status is found
+                break
+            if task_status.get("state", "") not in (
+                "RUNNING",
+                "QUEUED",
+            ):  # TaskTag has finished
+                break
             sleep(1)
-            task_status = TaskTag.get_task_by_task_tag(client, task["taskTag"])
