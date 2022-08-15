@@ -20,10 +20,12 @@ class TaskTag:
             raise errors.ScaleComputingError("task should be dictionary.")
         if "taskTag" not in task.keys():
             raise errors.ScaleComputingError("taskTag is not in task dictionary.")
+        if not task["taskTag"]:
+            return
 
         while True:
             task_status = rest_client.get_record(
-                "{0}/{1}".format("/rest/v1/TaskTag", task["taskTag"])
+                "{0}/{1}".format("/rest/v1/TaskTag", task["taskTag"]), query={}
             )
             if task_status is None:  # No such task_status is found
                 break
