@@ -58,10 +58,11 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors, arguments
 from ..module_utils.client import Client
+from ..module_utils.rest_client import RestClient
 
 
-def run(module, client):
-    TaskTag.wait_task(client, module.params["task_tag"])
+def run(module, rest_client):
+    TaskTag.wait_task(rest_client, module.params["task_tag"])
     return False, None, None
 
 
@@ -83,7 +84,8 @@ def main():
             username=module.params["cluster_instance"]["username"],
             password=module.params["cluster_instance"]["password"],
         )
-        changed, record, diff = run(module, client)
+        rest_client = RestClient(client)
+        changed, record, diff = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
