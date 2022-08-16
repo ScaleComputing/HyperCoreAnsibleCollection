@@ -27,7 +27,7 @@ options:
       - Virtual machine name
       - Used to identify selected virtual machine by name
     type: str
-    required: True
+    required: False
 """
 
 EXAMPLES = r"""
@@ -44,13 +44,13 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - The replication record.
-  type: dict
+    - The replication records.
+  type: list
   returned: success
   sample:
-    vm_name: demo-vm
-    remote_cluster: PUB4
-    state: enabled
+    - vm_name: demo-vm
+      remote_cluster: PUB4
+      state: enabled
 """
 
 
@@ -98,7 +98,7 @@ def main():
             arguments.get_spec("cluster_instance"),
             vm_name=dict(
                 type="str",
-                required=True,
+                required=False,
             ),
         ),
     )
