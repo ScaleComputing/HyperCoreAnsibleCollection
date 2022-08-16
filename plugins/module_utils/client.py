@@ -79,10 +79,15 @@ class Client:
     def _login_username_password(self):
         return dict(Authorization=basic_auth_header(self.username, self.password))
 
-    def _request(self, method, path, data=None, headers=None):
+    def _request(self, method, path, data=None, headers=None, timeout=None):
         try:
             raw_resp = self._client.open(
-                method, path, data=data, headers=headers, validate_certs=False
+                method,
+                path,
+                data=data,
+                headers=headers,
+                validate_certs=False,
+                timeout=timeout,
             )
         except HTTPError as e:
             # Wrong username/password, or expired access token
@@ -100,7 +105,14 @@ class Client:
         return Response(raw_resp.status, raw_resp.read(), raw_resp.headers)
 
     def request(
-        self, method, path, query=None, data=None, headers=None, binary_data=None
+        self,
+        method,
+        path,
+        query=None,
+        data=None,
+        headers=None,
+        binary_data=None,
+        timeout=None,
     ):
         # Make sure we only have one kind of payload
         if data is not None and binary_data is not None:
@@ -119,33 +131,42 @@ class Client:
             headers["Content-type"] = "application/json"
         elif binary_data is not None:
             data = binary_data
-        return self._request(method, url, data=data, headers=headers)
+        return self._request(method, url, data=data, headers=headers, timeout=timeout)
 
-    def get(self, path, query=None):
-        resp = self.request("GET", path, query=query)
+    def get(self, path, query=None, timeout=None):
+        resp = self.request("GET", path, query=query, timeout=timeout)
         if resp.status in (200, 404):
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
-    def post(self, path, data, query=None):
-        resp = self.request("POST", path, data=data, query=query)
+    def post(self, path, data, query=None, timeout=None):
+        resp = self.request("POST", path, data=data, query=query, timeout=timeout)
         if resp.status == 201 or resp.status == 200:
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
-    def patch(self, path, data, query=None):
-        resp = self.request("PATCH", path, data=data, query=query)
+    def patch(self, path, data, query=None, timeout=None):
+        resp = self.request("PATCH", path, data=data, query=query, timeout=timeout)
         if resp.status == 200:
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
-    def put(self, path, data, query=None):
-        resp = self.request("PUT", path, data=data, query=query)
+    def put(self, path, data, query=None, timeout=None, binary_data=None, headers=None):
+        resp = self.request(
+            "PUT",
+            path,
+            data=data,
+            query=query,
+            timeout=timeout,
+            binary_data=binary_data,
+            headers=headers,
+        )
         if resp.status == 200:
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
-    def delete(self, path, query=None):
-        resp = self.request("DELETE", path, query=query)
-        if resp.status != 204 and resp.status != 200:
-            raise UnexpectedAPIResponse(response=resp)
+    def delete(self, path, query=None, timeout=None):
+        resp = self.request("DELETE", path, query=query, timeout=timeout)
+        if resp.status == 204 or resp.status == 200:
+            return resp
+        raise UnexpectedAPIResponse(response=resp)

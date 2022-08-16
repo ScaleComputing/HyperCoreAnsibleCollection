@@ -23,10 +23,26 @@ def validate_uuid(value):
 def filter_dict(input, *field_names):
     output = {}
     for field_name in field_names:
+        if field_name not in input:
+            continue
         value = input[field_name]
         if value is not None:
             output[field_name] = value
     return output
+
+
+def transform_ansible_to_hypercore_query(ansible_query, ansible_hypercore_map):
+    """
+    Renames columns. Usually used to rename from ansible-native to hypercore-native input
+    :param ansible_query: keys as columns the way they're named in ansible and values of those columns as its values
+    :param ansible_hypercore_map: keys as column names in ansible-native and values as names
+     of those columns in hypercore
+    :return: hypercore query
+    """
+    return {
+        ansible_hypercore_map[key]: ansible_query[key]
+        for key, value in ansible_query.items()
+    }
 
 
 class PayloadMapper:
@@ -74,3 +90,6 @@ class PayloadMapper:
         :return: python object
         """
         pass
+
+    def __str__(self):
+        return str(dict(ansible=self.to_ansible(), hypercore=self.to_hypercore()))
