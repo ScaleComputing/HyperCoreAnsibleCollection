@@ -78,7 +78,7 @@ def find_vm(client, vm_name):
 def find_replication(rest_client, virtual_machine):
     if virtual_machine:
       replication = Replication.get(rest_client=rest_client, vm_uuid=virtual_machine.uuid)
-      if len(replication) > 0:
+      if replication:
           replication = Replication.create_from_hypercore(
               hypercore_data=replication[0], virtual_machine_obj=virtual_machine
           )

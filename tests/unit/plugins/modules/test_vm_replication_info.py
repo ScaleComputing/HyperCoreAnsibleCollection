@@ -80,7 +80,7 @@ class TestFindReplication:
         rest_client.get_record.return_value = None
         virtual_machine_obj = VM(from_hc3=True, vm_dict=vm_dict)
         results = vm_replication_info.find_replication(rest_client, virtual_machine_obj)
-        assert results == {}
+        assert results == [{}]
 
     def test_find_replication_while_replication_exists(self, rest_client, client):
         hypercore_data = {
@@ -101,8 +101,9 @@ class TestFindReplication:
         rest_client.get_record.return_value = hypercore_data
         virtual_machine_obj = VM(from_hc3=True, vm_dict=vm_dict)
         results = vm_replication_info.find_replication(rest_client, virtual_machine_obj)
-        assert results == {
+        print(results)
+        assert results == [{
             "vm_name": "XLAB_test_vm",
             "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
             "state": "disabled",
-        }
+        }]

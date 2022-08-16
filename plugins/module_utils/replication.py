@@ -33,7 +33,7 @@ class Replication(PayloadMapper):
             replication = rest_client.get_record(
                 endpoint, query={"sourceDomainUUID": vm_uuid}, must_exist=False
             )
-            return [replication]
+            return [replication] if replication is not None else None
         else:
             replications = rest_client.list_records(endpoint)
             return replications
