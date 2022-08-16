@@ -231,7 +231,8 @@ class TestNicList:
             )
         )
         end_point = "/rest/v1/VirDomain"
-        virtual_machine = VM(from_hc3=False, vm_dict={})
+        virtual_machine = VM(name="vm-name", memory=-1, vcpu=42)
+
         results = vm_nic.delete_not_used_nics(
             module, client, end_point, virtual_machine
         )
@@ -249,7 +250,12 @@ class TestNicList:
             )
         )
         end_point = "/rest/v1/VirDomain"
-        virtual_machine = VM(from_hc3=False, vm_dict={"nics": [{"vlan": 2}]})
+        virtual_machine = VM(
+            name="vm-name",
+            memory=-1,
+            vcpu=42,
+            nics=[Nic.create_from_ansible(nic_dict=dict(vlan=2))],
+        )
         results = vm_nic.delete_not_used_nics(
             module, client, end_point, virtual_machine
         )
@@ -392,6 +398,7 @@ class TestFindVM:
                 ),
                 vm_name="unit_test_vm",
                 state="present",
+                vm_uuid=None,
                 items=[{"vlan": 1}, {"vlan": 2}],
             )
         )
@@ -417,6 +424,7 @@ class TestFindVM:
                     password="admin",
                 ),
                 vm_uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                vm_name=None,
                 state="present",
                 items=[{"vlan": 1}, {"vlan": 2}],
             )
@@ -428,6 +436,7 @@ class TestFindVM:
                 "netDevs": [],
                 "stats": "bla",
                 "tags": "XLAB,test",
+                "name": "vm-name",
             }
         ]
         virtual_machine = vm_nic.find_vm(module, client)
@@ -447,6 +456,7 @@ class TestCheckStateDecideAction:
                     password="admin",
                 ),
                 vm_name="unit_test_vm",
+                vm_uuid=None,
                 state="set",
                 items=[],
             )
@@ -476,6 +486,7 @@ class TestCheckStateDecideAction:
                     password="admin",
                 ),
                 vm_name="unit_test_vm",
+                vm_uuid=None,
                 state="absent",
                 items=[{"vlan": 1}, {"vlan": 2}],
             )

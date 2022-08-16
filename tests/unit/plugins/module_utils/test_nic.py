@@ -19,18 +19,6 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestNic:
-    # @pytest.mark.parametrize(
-    #     "superset,candidate",
-    #     [
-    #         (dict(), dict()),
-    #         (dict(a=1), dict()),
-    #         (dict(a=1), dict(a=1)),
-    #         (dict(a=1, b=2), dict(b=2)),
-    #     ],
-    # )
-    # def test_valid_superset(self, superset, candidate):
-    #     pass
-
     def test_init_from_ansible_data(self):
         ansible_data = dict(
             # uuid="my-uuid",  # always missing in ansible data?
