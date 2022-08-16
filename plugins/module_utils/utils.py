@@ -56,7 +56,7 @@ class PayloadMapper:
 
     @classmethod
     @abstractmethod
-    def from_ansible(self, ansible_data):
+    def from_ansible(cls, ansible_data):
         """
         Transforms from ansible_data (module.params) to python-object.
         :param ansible_data: Field that is inputed from ansible playbook. Is most likely
@@ -67,7 +67,7 @@ class PayloadMapper:
 
     @classmethod
     @abstractmethod
-    def from_hypercore(self, hypercore_data):
+    def from_hypercore(cls, hypercore_data):
         """
         Transforms from hypercore-native dictionary to python-object.
         :param hypercore_data: Dictionary from hypercore API
