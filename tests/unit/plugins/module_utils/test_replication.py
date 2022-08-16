@@ -57,12 +57,14 @@ class TestGet:
         results = Replication.get(
             rest_client=rest_client, vm_uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         )
-        assert results == {
-            "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "uuid": "8972f2as-179a-67af-66a1-6uiahgf47ffs",
-            "enable": False,
-            "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
-        }
+        assert results == [
+            {
+                "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "uuid": "8972f2as-179a-67af-66a1-6uiahgf47ffs",
+                "enable": False,
+                "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            }
+        ]
 
 
 class TestCreateFromHypercore:
