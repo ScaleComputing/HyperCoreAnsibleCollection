@@ -107,11 +107,11 @@ def ensure_enabled_or_reenabled(module, client, rest_client):
     if existing_replication: # Update existing
         existing_replication_obj = Replication.from_hypercore(hypercore_data=existing_replication[0], virtual_machine_obj=virtual_machine_obj)
         #TODO: remote_cluster_connection_uuid rename after cluster_info is implemented
-        if existing_replication_obj.remote_cluster_connection_uuid == module.params["remote_cluster"] and existing_replication_obj.state != ReplicationState.enabled:
+        if (module.params["remote_cluster"] is None or existing_replication_obj.remote_cluster_connection_uuid == module.params["remote_cluster"]) and existing_replication_obj.state != ReplicationState.enabled:
             existing_replication_obj.state = ReplicationState.enabled
             data = existing_replication_obj.to_hypercore()
             response = rest_client.update_record(endpoint="/rest/v1/VirDomainReplication/"+existing_replication_obj.replication_uuid, payload=data, check_mode=False)
-        elif existing_replication_obj.remote_cluster_connection_uuid != module.params["remote_cluster"]:
+        elif module.params["remote_cluster"] is not None and existing_replication_obj.remote_cluster_connection_uuid != module.params["remote_cluster"]:
             raise errors.ReplicationNotUnique(virtual_machine_obj.name)
     else: # Create replication
         new_replication_obj = Replication.from_ansible(ansible_data=module.params, virtual_machine_obj=virtual_machine_obj)
