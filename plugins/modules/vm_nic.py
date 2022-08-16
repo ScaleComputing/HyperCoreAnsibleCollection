@@ -73,6 +73,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
+from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.vm import VM
 from ..module_utils.nic import Nic
@@ -118,7 +119,7 @@ def delete_not_used_nics(module, client, end_point, virtual_machine):
     for nic in virtual_machine.nic_list:
         if nic.vlan not in nic_uuid_list:
             json_response = delete_nic(client, end_point + "/" + nic.uuid)
-            TaskTag.wait_task(client, json_response)
+            TaskTag.wait_task(RestClient(client), json_response)
 
 
 def find_vm(
@@ -186,7 +187,7 @@ def check_state_decide_action(module, client, state):
             else:
                 json_response = ensure_absent(client, end_point, existing_hc3_nic)
             if "taskTag" in json_response.keys():
-                TaskTag.wait_task(client, json_response)
+                TaskTag.wait_task(RestClient(client), json_response)
     if state == State.set:
         updated_virtual_machine = find_vm(
             module, client

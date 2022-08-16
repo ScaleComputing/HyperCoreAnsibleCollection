@@ -106,6 +106,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
+from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
 from ..module_utils.state import State
 from ..module_utils.task_tag import TaskTag
@@ -181,7 +182,7 @@ def run(module, client):
     else:
         json_response = do_absent(client, existing_virtual_machine, end_point)
     if "taskTag" in json_response.keys():
-        TaskTag.wait_task(client=client, task=json_response)
+        TaskTag.wait_task(rest_client=RestClient(client), task=json_response)
     return create_output(json_response)
 
 
