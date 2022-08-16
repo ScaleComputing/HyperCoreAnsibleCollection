@@ -46,7 +46,7 @@ EXAMPLES = r"""
 
 - name: Retrieve all VMs with specific name
   scale_computing.hypercore.sample_vm_info:
-    name: vm-a
+    vm_name: vm-a
   register: result
 """
 
@@ -57,7 +57,7 @@ vms:
   returned: success
   type: list
   sample:
-    - name: "vm-name"
+    - vm_name: "vm-name"
       uuid: "1234-0001"
       state: "running"
 """
@@ -77,19 +77,18 @@ def check_parameters(module):
 
 def create_vm_object(
     module, client
-):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
+):  # if we decide to use name and vm_uuid across all playbooks we can add this to .get method in VM class
     if module.params["vm_uuid"]:
-        virtual_machine_list = VM.get(client, uuid=module.params["vm_uuid"])
+        virtual_machine_list = VM.get_legacy(client, uuid=module.params["vm_uuid"])
         if not virtual_machine_list:
             raise errors.VMNotFound(module.params["vm_uuid"])
         virtual_machine_dict = virtual_machine_list[0]
     else:
-        virtual_machine_list = VM.get(client, name=module.params["vm_name"])
+        virtual_machine_list = VM.get_legacy(client, name=module.params["vm_name"])
         if not virtual_machine_list:
             raise errors.VMNotFound(module.params["vm_name"])
         virtual_machine_dict = virtual_machine_list[0]
-    virtual_machine = VM(from_hc3=True, vm_dict=virtual_machine_dict, client=client)
-    return virtual_machine
+    return VM.from_hypercore(vm_dict=virtual_machine_dict)
 
 
 def create_output(records):
@@ -135,8 +134,6 @@ def main():
 
         client = Client(host, username, password)
         changed, records = run(module, client)
-        # We do not want to just show complete API response to end user.
-        # Because API response content changes with HC3 version.
         module.exit_json(changed=changed, records=records)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))

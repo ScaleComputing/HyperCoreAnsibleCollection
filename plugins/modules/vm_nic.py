@@ -64,7 +64,7 @@ vms:
   returned: success
   type: list
   sample:
-    - name: "vm-name"
+    - vm_name: "vm-name"
       uuid: "1234-0001"
       state: "running"
 """
@@ -124,32 +124,25 @@ def delete_not_used_nics(module, client, end_point, virtual_machine):
 
 def find_vm(
     module, client
-):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
-    if "vm_uuid" in module.params.keys() and module.params["vm_uuid"]:
-        virtual_machine = VM(
-            from_hc3=True,
-            vm_dict=VM.get(client, uuid=module.params["vm_uuid"])[0],
-            client=client,
+):  # if we decide to use name and vm_uuid across all playbooks we can add this to .get method in VM class
+    if module.params["vm_uuid"]:
+        virtual_machine = VM.from_hypercore(
+            vm_dict=VM.get_legacy(client, uuid=module.params["vm_uuid"])[0],
         )
     else:
-        virtual_machine = VM(
-            from_hc3=True,
-            vm_dict=VM.get(client, name=module.params["vm_name"])[0],
-            client=client,
+        virtual_machine = VM.from_hypercore(
+            vm_dict=VM.get_legacy(client, name=module.params["vm_name"])[0],
         )
     return virtual_machine
 
 
 def ensure_present_or_set(client, end_point, existing_hc3_nic, new_nic):
     if existing_hc3_nic and not existing_hc3_nic.is_update_needed(new_nic):
-        json_response = update_nic(
-            client, end_point + "/" + existing_hc3_nic.uuid, new_nic
-        )
+        return update_nic(client, end_point + "/" + existing_hc3_nic.uuid, new_nic)
     elif not existing_hc3_nic:
-        json_response = create_nic(client, end_point, new_nic)
+        return create_nic(client, end_point, new_nic)
     else:
         return {}
-    return json_response
 
 
 def ensure_absent(client, end_point, existing_hc3_nic):
