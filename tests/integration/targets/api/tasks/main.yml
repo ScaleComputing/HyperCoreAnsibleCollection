@@ -40,13 +40,6 @@
       scale_computing.hypercore.task_wait:
         task_tag: "{{vm_created.record}}"
 
-    - name: Retrieve all VMs after creating a new resource
-      scale_computing.hypercore.api: *retrieve-all-vms
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result.record | length == initial.record | length + 1
-
     - name: Update the VM
       scale_computing.hypercore.api:
         action: patch
