@@ -17,5 +17,5 @@
         username: 'admin'
         password: 'admin'
       vm_name: XLAB-POST-TEST
-      remote_cluster: '07a2a68a-0afa-4718-9c6f-00a39d08b67e'
+      remote_cluster: '891f482a-8f5f-4755-bea4-bbcc338f566f'
       state: reenabled  # choices [enabled|disabled|reenabled]

@@ -61,3 +61,10 @@ class VMNotFound(ScaleComputingError):
     def __init__(self, data):
         self.message = "Virtual machine - {0} - not found".format(data)
         super(VMNotFound, self).__init__(self.message)
+
+
+class ReplicationNotUnique(ScaleComputingError):
+    def __init__(self, data):
+        self.message = "There is already a replication on - {0} - virtual machine".format(data)
+        super(ReplicationNotUnique, self).__init__(self.message)
+
