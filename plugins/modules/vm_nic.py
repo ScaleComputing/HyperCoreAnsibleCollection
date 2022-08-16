@@ -77,7 +77,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.vm import VM
 from ..module_utils.nic import Nic
-from ..module_utils.state import State
+from ..module_utils.state import NicState
 from ..module_utils.utils import validate_uuid
 
 
@@ -180,7 +180,7 @@ def check_state_decide_action(module, client, state):
                 raise errors.MissingValueAnsible(
                     "VLAN and MAC - vm_nic.py - check_state_decide_action()"
                 )
-            if state in [State.present, State.set]:
+            if state in [NicState.present, NicState.set]:
                 json_response = ensure_present_or_set(
                     client, end_point, existing_hc3_nic, nic
                 )
@@ -188,7 +188,7 @@ def check_state_decide_action(module, client, state):
                 json_response = ensure_absent(client, end_point, existing_hc3_nic)
             if "taskTag" in json_response.keys():
                 TaskTag.wait_task(RestClient(client), json_response)
-    if state == State.set:
+    if state == NicState.set:
         updated_virtual_machine = find_vm(
             module, client
         )  # VM was updated, so we need to get the updated data from server
