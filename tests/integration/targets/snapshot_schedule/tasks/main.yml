@@ -1,0 +1,81 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Retrieve all snapshot schedules
+      scale_computing.hypercore.snapshot_schedule_info:
+      register: initial
+    - ansible.builtin.assert:
+        that:
+          - initial.records != []
+
+    - name: Retrieve specific snapshot schedule object by name and verify that query for that name was successful.
+      scale_computing.hypercore.snapshot_schedule_info:
+        name: "{{ initial.records.0.name }}"
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.records.0.name == initial.records.0.name
+
+    - name: Delete snapshot schedule, if it maybe already exists from before
+      scale_computing.hypercore.snapshot_schedule: &delete-schedule
+        name: demo-snap-schedule
+        state: absent
+      register: result
+
+    - name: Setup (create) snapshot schedule
+      scale_computing.hypercore.snapshot_schedule:
+        name: demo-snap-schedule
+        state: present
+        recurrences:
+          - name: weekly-tuesday
+            frequency: "FREQ=WEEKLY;INTERVAL=1;BYDAY=TU"
+            start: "2010-01-01 00:00:00"
+            local_retention: "{{ 10 * 7*24*60*60 }}"
+            remote_retention:
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is changed
+
+    - name: Assert that snapshot schedule has been created
+      scale_computing.hypercore.snapshot_schedule_info: &get-specific-snapshot
+        name: demo-snap-schedule
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.records.0.name == "demo-snap-schedule"
+
+    - name: Update snapshot schedule
+      scale_computing.hypercore.snapshot_schedule:
+        name: demo-snap-schedule
+        state: present
+        recurrences:
+          - name: weekly-friday
+            frequency: "FREQ=WEEKLY;INTERVAL=2;BYDAY=TU"
+            start: "2020-01-01 00:00:00"
+            local_retention: "{{ 20 * 7*24*60*60 }}"
+            remote_retention:
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.record.0.name == "demo-snap-schedule"
+          - result.record.0.recurrences.0.name == "weekly-friday"
+          - result.record.0.recurrences | length == 1
+
+    - name: Delete snapshot schedule
+      scale_computing.hypercore.snapshot_schedule: *delete-schedule
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is changed
+
+    - name: Assert that snapshot schedule was delete successfully
+      scale_computing.hypercore.snapshot_schedule_info: *get-specific-snapshot
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.records == []
