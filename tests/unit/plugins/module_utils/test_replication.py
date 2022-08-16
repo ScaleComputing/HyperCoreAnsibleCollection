@@ -88,9 +88,13 @@ class TestCreateFromHypercore:
         assert replication_obj.vm_uuid == hypercore_data["sourceDomainUUID"]
         assert replication_obj.vm_name == vm_dict["name"]
         assert replication_obj.replication_uuid == hypercore_data["uuid"]
-        assert replication_obj.state == Replication.handle_state(hypercore_data["enable"])
-        assert replication_obj.remote_cluster_connection_uuid == hypercore_data["connectionUUID"]
-        
+        assert replication_obj.state == Replication.handle_state(
+            hypercore_data["enable"]
+        )
+        assert (
+            replication_obj.remote_cluster_connection_uuid
+            == hypercore_data["connectionUUID"]
+        )
 
 
 class TestDataToAnsible:

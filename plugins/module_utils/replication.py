@@ -17,7 +17,7 @@ class Replication(PayloadMapper):
         self.vm_name = None
         self.replication_uuid = None
         self.state = None
-        #TODO: rename after remote_cluster_info is implemented
+        # TODO: rename after remote_cluster_info is implemented
         self.remote_cluster_connection_uuid = None
 
     @classmethod
@@ -57,7 +57,7 @@ class Replication(PayloadMapper):
     def data_to_ansible(self):
         replication_info_dict = {
             "vm_name": self.vm_name,
-            #TODO: When remote_cluster_info is implemented, replace this with cluster name
+            # TODO: When remote_cluster_info is implemented, replace this with cluster name
             "remote_cluster": self.remote_cluster_connection_uuid,
             "state": self.state,
         }

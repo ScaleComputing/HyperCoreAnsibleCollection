@@ -38,19 +38,20 @@ EXAMPLES = r"""
         username: 'username'
         password: 'password'
     vm_name: XLAB-demo-vm-clone
-  register: testout
-
-  register: result
+  register: records
 """
 
 RETURN = r"""
-changed: False
 records:
-  - vm_name: demo-vm
+  description:
+    - The replication record.
+  type: dict
+  returned: success
+  sample:
+    vm_name: demo-vm
     remote_cluster: PUB4
-    state: enabled 
+    state: enabled
 """
-
 
 
 from ansible.module_utils.basic import AnsibleModule
