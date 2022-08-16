@@ -59,6 +59,11 @@ class TestFindVM:
         virtual_machine_obj = VM(from_hc3=True, vm_dict=vm_dict)
         results = vm_replication_info.find_vm(client, vm_name)
         assert results.name == virtual_machine_obj.name
+        assert results.uuid == virtual_machine_obj.uuid
+        assert results.disk_list == virtual_machine_obj.disk_list
+        assert results.nic_list == virtual_machine_obj.nic_list
+        assert results.stats == virtual_machine_obj.stats
+        assert results.tags == virtual_machine_obj.tags
 
 
 class TestFindReplication:

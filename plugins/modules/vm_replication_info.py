@@ -31,27 +31,27 @@ options:
 """
 
 EXAMPLES = r"""
-- name: Retrieve all VMs
-  scale_computing.hypercore.sample_vm_info:
-  register: result
+- name: Module vm_replication_info sample output
+  scale_computing.hypercore.vm_replication_info:
+    cluster_instance:
+        host: 'host address'
+        username: 'username'
+        password: 'password'
+    vm_name: XLAB-demo-vm-clone
+  register: testout
 
-- name: Retrieve all VMs with specific name
-  scale_computing.hypercore.sample_vm_info:
-    name: vm-a
   register: result
 """
 
 RETURN = r"""
-vms:
-  description:
-    - A list of VMs records.
-  returned: success
-  type: list
-  sample:
-    - name: "vm-name"
-      uuid: "1234-0001"
-      state: "running"
+changed: False
+records:
+  - vm_name: demo-vm
+    remote_cluster: PUB4
+    state: enabled 
 """
+
+
 
 from ansible.module_utils.basic import AnsibleModule
 

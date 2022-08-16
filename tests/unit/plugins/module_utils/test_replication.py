@@ -66,7 +66,7 @@ class TestGet:
 
 
 class TestCreateFromHypercore:
-    def test_create_fom_hypercore(self):
+    def test_create_from_hypercore(self):
         hypercore_data = {
             "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "uuid": "8972f2as-179a-67af-66a1-6uiahgf47ffs",
@@ -86,6 +86,11 @@ class TestCreateFromHypercore:
             hypercore_data, virtual_machine_obj
         )
         assert replication_obj.vm_uuid == hypercore_data["sourceDomainUUID"]
+        assert replication_obj.vm_name == vm_dict["name"]
+        assert replication_obj.replication_uuid == hypercore_data["uuid"]
+        assert replication_obj.state == Replication.handle_state(hypercore_data["enable"])
+        assert replication_obj.remote_cluster_connection_uuid == hypercore_data["connectionUUID"]
+        
 
 
 class TestDataToAnsible:

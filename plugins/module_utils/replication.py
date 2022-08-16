@@ -15,13 +15,14 @@ class Replication(PayloadMapper):
     def __init__(self):
         self.vm_uuid = None
         self.vm_name = None
-        self.replicaiton_uuid = None
+        self.replication_uuid = None
         self.state = None
-        self.remote_cluster = None
+        #TODO: rename after remote_cluster_info is implemented
+        self.remote_cluster_connection_uuid = None
 
     @classmethod
     def handle_state(cls, enable):
-        if enable:  # if None or False
+        if enable:
             return "enabled"
         return "disabled"
 
@@ -36,12 +37,12 @@ class Replication(PayloadMapper):
     @classmethod
     def create_from_hypercore(cls, hypercore_data, virtual_machine_obj):
         obj = Replication()
-        obj.replicaiton_uuid = hypercore_data["uuid"]
+        obj.replication_uuid = hypercore_data["uuid"]
         obj.vm_name = virtual_machine_obj.name
         obj.vm_uuid = virtual_machine_obj.uuid
         obj.state = Replication.handle_state(hypercore_data["enable"])
         # TODO: When remote_cluster_info is implemented, replace this with cluster name
-        obj.remote_cluster = hypercore_data["connectionUUID"]
+        obj.remote_cluster_connection_uuid = hypercore_data["connectionUUID"]
         return obj
 
     @classmethod
@@ -56,7 +57,8 @@ class Replication(PayloadMapper):
     def data_to_ansible(self):
         replication_info_dict = {
             "vm_name": self.vm_name,
-            "remote_cluster": self.remote_cluster,
+            #TODO: When remote_cluster_info is implemented, replace this with cluster name
+            "remote_cluster": self.remote_cluster_connection_uuid,
             "state": self.state,
         }
         return replication_info_dict
