@@ -27,12 +27,16 @@ class Replication(PayloadMapper):
         return "disabled"
 
     @classmethod
-    def get(cls, rest_client, vm_uuid):
+    def get(cls, rest_client, vm_uuid=None):
         endpoint = "/rest/v1/VirDomainReplication/"
-        replication = rest_client.get_record(
-            endpoint, query={"sourceDomainUUID": vm_uuid}, must_exist=False
-        )
-        return replication
+        if vm_uuid:
+            replication = rest_client.get_record(
+                endpoint, query={"sourceDomainUUID": vm_uuid}, must_exist=False
+            )
+            return [replication]
+        else:
+            replications = rest_client.list_records(endpoint)
+            return replications
 
     @classmethod
     def create_from_hypercore(cls, hypercore_data, virtual_machine_obj):

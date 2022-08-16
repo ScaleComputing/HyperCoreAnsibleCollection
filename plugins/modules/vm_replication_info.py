@@ -76,17 +76,22 @@ def find_vm(client, vm_name):
 
 
 def find_replication(rest_client, virtual_machine):
-    replication = Replication.get(rest_client=rest_client, vm_uuid=virtual_machine.uuid)
-    if replication:
-        replication = Replication.create_from_hypercore(
-            hypercore_data=replication, virtual_machine_obj=virtual_machine
-        )
-        return replication.data_to_ansible()
-    return {}
+    if virtual_machine:
+      replication = Replication.get(rest_client=rest_client, vm_uuid=virtual_machine.uuid)
+      if len(replication) > 0:
+          replication = Replication.create_from_hypercore(
+              hypercore_data=replication[0], virtual_machine_obj=virtual_machine
+          )
+          return [replication.data_to_ansible()]
+      return [{}]
+    else:
+      return Replication.get(rest_client=rest_client)
 
 
 def run(module, client, rest_client):
-    virtual_machine = find_vm(client, module.params["vm_name"])
+    virtual_machine = None
+    if module.params["vm_name"]:
+      virtual_machine = find_vm(client, module.params["vm_name"])
     records = find_replication(rest_client, virtual_machine)
     return create_output(records)
 

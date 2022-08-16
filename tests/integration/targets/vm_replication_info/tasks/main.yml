@@ -1,8 +1,8 @@
 ---
 - environment:
-    SC_HOST: "{{ sc_host }}"
-    SC_USERNAME: "{{ sc_username }}"
-    SC_PASSWORD: "{{ sc_password }}"
+    SC_HOST: "https://94.130.200.178:8443"
+    SC_USERNAME: "admin"
+    SC_PASSWORD: "admin"
 
   block:
     - name: Delete XLAB-vm_replication_info_CI_test
