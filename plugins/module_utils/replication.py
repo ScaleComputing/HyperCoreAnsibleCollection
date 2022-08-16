@@ -49,7 +49,12 @@ class Replication(PayloadMapper):
     @classmethod
     def from_ansible(cls, ansible_data, virtual_machine_obj):
         # TODO: Implement with vm_replication module
-        return
+        obj = Replication()
+        obj.vm_name = virtual_machine_obj.name
+        obj.vm_uuid = virtual_machine_obj.uuid
+        obj.state = ansible_data["state"]
+        obj.remote_cluster_connection_uuid = ansible_data.get("remote_cluster", None)
+        return obj
 
     def to_hypercore(self):
         # TODO: Implement with vm_replication module
