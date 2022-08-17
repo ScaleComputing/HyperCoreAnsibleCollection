@@ -64,7 +64,7 @@ class TestEnabledOrReenabled:
         rest_client.list_records.side_effect = [[vm_dict], [], [replication_dict]]
         rest_client.create_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
-        assert results == (True, [after], {"before": None, "after": after})
+        assert results == (True, after, {"before": None, "after": after})
 
     def test_ensure_enabled_or_reenabled_when_replication_exists_change_state(
         self, rest_client, create_module
@@ -124,7 +124,7 @@ class TestEnabledOrReenabled:
         ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
-        assert results == (True, [after], {"before": before, "after": after})
+        assert results == (True, after, {"before": before, "after": after})
 
     def test_ensure_enabled_or_reenabled_when_replication_exists_no_changes(
         self, rest_client, create_module
@@ -164,7 +164,7 @@ class TestEnabledOrReenabled:
         rest_client.list_records.side_effect = [[vm_dict], [replication_dict]]
         rest_client.update_record.return_value = {"taskTag": ""}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
-        assert results == (False, [None], {"before": None, "after": None})
+        assert results == (False, None, {"before": None, "after": None})
 
 
 class TestDisabled:
@@ -197,7 +197,7 @@ class TestDisabled:
         )
         rest_client.list_records.side_effect = [[vm_dict], []]
         results = vm_replication.ensure_disabled(module, rest_client)
-        assert results == (False, [None], {"before": None, "after": None})
+        assert results == (False, None, {"before": None, "after": None})
 
     def test_ensure_disabled_replication_exists_state_not_changed(
         self, rest_client, create_module
@@ -236,7 +236,7 @@ class TestDisabled:
         )
         rest_client.list_records.side_effect = [[vm_dict], [replication_dict]]
         results = vm_replication.ensure_disabled(module, rest_client)
-        assert results == (False, [None], {"before": None, "after": None})
+        assert results == (False, None, {"before": None, "after": None})
 
     def test_ensure_disabled_replication_exists_state_changed(
         self, rest_client, create_module
@@ -296,4 +296,4 @@ class TestDisabled:
         ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_disabled(module, rest_client)
-        assert results == (True, [after], {"before": before, "after": after})
+        assert results == (True, after, {"before": before, "after": after})

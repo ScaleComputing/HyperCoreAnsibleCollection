@@ -26,6 +26,9 @@ options:
     description:
       - State defines which operation should plugin do over selected replication
       - enable, disable, reenable
+      - Use enabled for initial replication setup.
+      - Use disabled to pause a configured replication.
+      - Use reenabled to unpause a configured replication (remote_cluster is optional in this case).
     choices: [ enabled, disabled, reenabled ]
     type: str
     required: True
@@ -65,11 +68,11 @@ record:
   description:
     - The created or changed record for replication on a specified virtual machine.
   returned: success
-  type: list
+  type: dict
   sample:
-    - remote_cluster: "07a2a68a-0afa-4718-9c6f-00a39d08b67e" #TODO: change when cluster_info is implemented
-      vm_name: demo-vm
-      state: "enabled"
+    remote_cluster: "07a2a68a-0afa-4718-9c6f-00a39d08b67e" #TODO: change when cluster_info is implemented
+    vm_name: demo-vm
+    state: "enabled"
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -141,7 +144,7 @@ def ensure_enabled_or_reenabled(module, rest_client):
         changed = True
     return (
         changed,
-        [after],
+        after,
         dict(before=before, after=after),
     )
 
@@ -179,7 +182,7 @@ def ensure_disabled(module, rest_client):
             query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
         )[0].to_ansible(virtual_machine_obj_list[0])
         changed = True
-    return (changed, [after], dict(before=before, after=after))
+    return changed, after, dict(before=before, after=after)
 
 
 def run(module, rest_client):
@@ -191,7 +194,7 @@ def run(module, rest_client):
 
 def main():
     module = AnsibleModule(
-        supports_check_mode=True,
+        supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             state=dict(
