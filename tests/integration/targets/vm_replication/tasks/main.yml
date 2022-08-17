@@ -50,17 +50,20 @@
     - ansible.builtin.assert:
         that:
           - cluster_connection_info is succeeded
-          - cluster_connection_info.record | length > 0
+          # To test switching replication to a different cluster,
+          # at least two remote clusters are needed.
+          - cluster_connection_info.record | length > 1
 
     - name: Store remote cluster name (TEMP connection UUID)
       ansible.builtin.set_fact:
-        remote_cluster_name: "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
+        remote_cluster_0_name: "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
+        remote_cluster_1_name: "{{ cluster_connection_info.record.1.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
 
     # -----------------------------------------------------------------------
     - name: Create replication - 1st pass
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
-        remote_cluster: "{{ remote_cluster_name }}"
+        remote_cluster: "{{ remote_cluster_0_name }}"
         state: enabled
       register: replication_created
     - ansible.builtin.assert:
@@ -79,12 +82,12 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'enabled'
-          - replication_info.records[0].remote_cluster == "{{ remote_cluster_name }}"
+          - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
     - name: Create replication - 2nd pass
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
-        remote_cluster: "{{ remote_cluster_name }}"
+        remote_cluster: "{{ remote_cluster_0_name }}"
         state: enabled
       register: replication_created
     - ansible.builtin.assert:
@@ -103,7 +106,7 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'enabled'
-          - replication_info.records[0].remote_cluster == "{{ remote_cluster_name }}"
+          - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
     # -----------------------------------------------------------------------
     - name: Disable replication - 1st pass
@@ -127,7 +130,7 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'disabled'
-          - replication_info.records[0].remote_cluster == "{{ remote_cluster_name }}"
+          - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
     - name: Disable replication - 2nd pass
       scale_computing.hypercore.vm_replication:
@@ -150,7 +153,7 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'disabled'
-          - replication_info.records[0].remote_cluster == "{{ remote_cluster_name }}"
+          - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
     # -----------------------------------------------------------------------
     - name: Reenable replication - 1st pass
@@ -174,7 +177,7 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'enabled'
-          - replication_info.records[0].remote_cluster == "{{ remote_cluster_name }}"
+          - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
     - name: Reenable replication - 2nd pass
       scale_computing.hypercore.vm_replication:
@@ -197,7 +200,7 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'enabled'
-          - replication_info.records[0].remote_cluster == "{{ remote_cluster_name }}"
+          - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
     # -----------------------------------------------------------------------
     - name: Delete XLAB-vm_replication_CI_test
