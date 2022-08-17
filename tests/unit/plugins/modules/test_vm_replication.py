@@ -32,7 +32,7 @@ class TestEnabledOrReenabled:
             "stats": "bla",
             "tags": "XLAB,test",
         }
-        replication_dict = {    
+        replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
             "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "enable": True,
@@ -50,10 +50,11 @@ class TestEnabledOrReenabled:
                 state="enabled",
             )
         )
-        after = {"vm_name": "XLAB_test_vm",
-                  "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
-                  "state": "enabled"
-                  }
+        after = {
+            "vm_name": "XLAB_test_vm",
+            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "state": "enabled",
+        }
         rest_client.list_records.side_effect = [[vm_dict], [], [replication_dict]]
         rest_client.create_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
@@ -82,14 +83,16 @@ class TestEnabledOrReenabled:
             "enable": True,
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
         }
-        after = {"vm_name": "XLAB_test_vm",
-                  "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
-                  "state": "enabled"
-                  }
-        before = {"vm_name": "XLAB_test_vm",
-                  "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
-                  "state": "disabled"
-                  }
+        after = {
+            "vm_name": "XLAB_test_vm",
+            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "state": "enabled",
+        }
+        before = {
+            "vm_name": "XLAB_test_vm",
+            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "state": "disabled",
+        }
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -102,7 +105,11 @@ class TestEnabledOrReenabled:
                 state="enabled",
             )
         )
-        rest_client.list_records.side_effect = [[vm_dict], [replication_dict], [replication_dict_after]]
+        rest_client.list_records.side_effect = [
+            [vm_dict],
+            [replication_dict],
+            [replication_dict_after],
+        ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (True, [after], {"before": before, "after": after})
@@ -224,14 +231,16 @@ class TestDisabled:
             "enable": False,
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
         }
-        after = {"vm_name": "XLAB_test_vm",
-                  "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
-                  "state": "disabled"
-                  }
-        before = {"vm_name": "XLAB_test_vm",
-                  "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
-                  "state": "enabled"
-                  }
+        after = {
+            "vm_name": "XLAB_test_vm",
+            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "state": "disabled",
+        }
+        before = {
+            "vm_name": "XLAB_test_vm",
+            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "state": "enabled",
+        }
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -244,7 +253,11 @@ class TestDisabled:
                 state="disabled",
             )
         )
-        rest_client.list_records.side_effect = [[vm_dict], [replication_dict],[replication_dict_after]]
+        rest_client.list_records.side_effect = [
+            [vm_dict],
+            [replication_dict],
+            [replication_dict_after],
+        ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (True, [after], {"before": before, "after": after})
