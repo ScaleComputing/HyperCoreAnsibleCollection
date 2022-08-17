@@ -66,7 +66,10 @@ class Replication(PayloadMapper):
             "sourceDomainUUID": self.vm_uuid,
             "connectionUUID": self.remote_cluster_connection_uuid,
         }
-        if self.state == ReplicationState.enabled or self.state == ReplicationState.reenabled:
+        if (
+            self.state == ReplicationState.enabled
+            or self.state == ReplicationState.reenabled
+        ):
             replication_dict["enable"] = True
         elif self.state == ReplicationState.disabled:
             replication_dict["enable"] = False

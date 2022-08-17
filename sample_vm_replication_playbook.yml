@@ -16,9 +16,9 @@
         host: 'https://10.5.11.30'
         username: 'admin'
         password: 'admin'
-      vm_name: XLAB-jc1
+      vm_name: XLAB-POST-TEST
       remote_cluster: '891f482a-8f5f-4755-bea4-bbcc338f566f'
-      state: enabled  # choices [enabled|disabled|reenabled]
+      state: disabled  # choices [enabled|disabled|reenabled]
     register: testout
 
   - name: output the HTTP request results

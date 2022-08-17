@@ -154,7 +154,7 @@ def ensure_present(module, client, rest_client):
 
 
 def run(module, client, rest_client):
-    if module.params["state"] == "absent":
+    if module.params["state"] == VMState.absent:
         return ensure_absent(module, client, rest_client)
     return ensure_present(module, client, rest_client)
 

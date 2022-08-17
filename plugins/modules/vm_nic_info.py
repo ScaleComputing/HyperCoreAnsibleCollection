@@ -99,7 +99,9 @@ def run(module, client):
     check_parameters(module)
     if module.params["vlan"]:
         virtual_machine = create_vm_object(module, client)
-        records = [virtual_machine.find_nic(module.params["vlan"]).data_to_ansible()] # Consistency with output []
+        records = [
+            virtual_machine.find_nic(module.params["vlan"]).data_to_ansible()
+        ]  # Consistency with output []
     else:  # No vlan, we output all NICs for specified VM
         virtual_machine = create_vm_object(module, client)
         records = [nic.data_to_ansible() for nic in virtual_machine.nic_list]

@@ -17,6 +17,7 @@ class NicState(str, enum.Enum):
     absent = "absent"
     set = "set"
 
+
 class ReplicationState(str, enum.Enum):
     enabled = "enabled"
     disabled = "disabled"

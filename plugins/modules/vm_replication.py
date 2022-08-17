@@ -13,10 +13,10 @@ module: vm_replication
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Plugin handles actions over network interfaces
+short_description: Plugin handles actions over replications
 description:
-  - Plugin enables actions over network interfaces on a specified virtual machine
-  - Can create, update, delete specified network interfaces
+  - Plugin enables actions over replications on a specified virtual machine
+  - Can start, pause and unpause replication on a specified virtual machine
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -24,9 +24,9 @@ seealso: []
 options:
   state:
     description:
-      - State defines which operation should plugin do over selected network interfaces
-      - present, absent, set
-    choices: [ present, absent, set ]
+      - State defines which operation should plugin do over selected replication
+      - enable, disable, reenable
+    choices: [ enabled, disabled, reenabled ]
     type: str
     required: True
   vm_name:
@@ -34,39 +34,42 @@ options:
       - Virtual machine name
       - Used to identify selected virtual machine by name
     type: str
-  vm_uuid:
+    required: True
+  remote_cluster:
     description:
-      - Virtual machine uniquie identifier
-      - Used to identify selected virtual machine by uuid
+      - remote cluster name
+      - Used to identify selected remote cluster by name
     type: str
-  items:
-    description:
-      - List of network interfaces
-    type: list
-    elements: dict
 """
 
 EXAMPLES = r"""
-- name: Retrieve all VMs
-  scale_computing.hypercore.sample_vm_info:
-  register: result
+- name: Replicate demo-vm VM to DC2
+  scale_computing.hypercore.vm_replication:
+    vm_name: demo-vm
+    remote_cluster: PUB4
+    state: enabled
 
-- name: Retrieve all VMs with specific name
-  scale_computing.hypercore.sample_vm_info:
-    name: vm-a
-  register: result
+- name: Pause replication for demo-vm
+  scale_computing.hypercore.vm_replication:
+    vm_name: demo-vm
+    state: disabled
+
+- name: Reenable replication for demo-vm
+  scale_computing.hypercore.vm_replication:
+    vm_name: demo-vm
+    state: reenabled
 """
 
 RETURN = r"""
-vms:
+record:
   description:
-    - A list of VMs records.
+    - The created or changed record for replication on a specified virtual machine.
   returned: success
   type: list
   sample:
-    - name: "vm-name"
-      uuid: "1234-0001"
-      state: "running"
+    - vm_name: demo-vm
+      state: "enabled
+      remote_cluster: "07a2a68a-0afa-4718-9c6f-00a39d08b67e" #TODO: change when cluster_info is implemented
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -81,44 +84,92 @@ from ..module_utils.vm import VM
 
 def ensure_enabled_or_reenabled(module, rest_client):
     changed = False
-    response = {}
-    virtual_machine_obj_list = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)
+    before = None
+    after = None
+    virtual_machine_obj_list = VM.get(
+        query={"name": module.params["vm_name"]}, rest_client=rest_client
+    )
     if not virtual_machine_obj_list:
-      errors.VMNotFound(module.params["vm_name"])
-    existing_replication_obj_list = Replication.get(rest_client=rest_client, query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid})
-    if existing_replication_obj_list: # Update existing
-        #TODO: remote_cluster_connection_uuid rename after cluster_info is implemented
-        if (module.params["remote_cluster"] is None or existing_replication_obj_list[0].remote_cluster_connection_uuid == module.params["remote_cluster"]) and existing_replication_obj_list[0].state != ReplicationState.enabled:
+        errors.VMNotFound(module.params["vm_name"])
+    existing_replication_obj_list = Replication.get(
+        rest_client=rest_client,
+        query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
+    )
+    if existing_replication_obj_list:  # Update existing
+        # TODO: remote_cluster_connection_uuid rename after cluster_info is implemented
+        if (
+            module.params["remote_cluster"] is None
+            or existing_replication_obj_list[0].remote_cluster_connection_uuid
+            == module.params["remote_cluster"]
+        ) and existing_replication_obj_list[0].state != ReplicationState.enabled:
+            before = existing_replication_obj_list[0].to_ansible(virtual_machine_obj_list[0])
             existing_replication_obj_list[0].state = ReplicationState.enabled
             data = existing_replication_obj_list[0].to_hypercore()
-            response = rest_client.update_record(endpoint="/rest/v1/VirDomainReplication/"+existing_replication_obj_list[0].replication_uuid, payload=data, check_mode=False)
+            rest_client.update_record(
+                endpoint="/rest/v1/VirDomainReplication/"
+                + existing_replication_obj_list[0].replication_uuid,
+                payload=data,
+                check_mode=False,
+            )
+            after = Replication.get(rest_client=rest_client, query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid})[0].to_ansible(virtual_machine_obj_list[0])
             changed = True
-        elif module.params["remote_cluster"] is not None and existing_replication_obj_list[0].remote_cluster_connection_uuid != module.params["remote_cluster"]:
+        elif (
+            module.params["remote_cluster"] is not None
+            and existing_replication_obj_list[0].remote_cluster_connection_uuid
+            != module.params["remote_cluster"]
+        ):
             raise errors.ReplicationNotUnique(virtual_machine_obj_list[0].name)
-    else: # Create replication
-        new_replication_obj = Replication.from_ansible(ansible_data=module.params, virtual_machine_obj=virtual_machine_obj_list[0])
+    else:  # Create replication
+        new_replication_obj = Replication.from_ansible(
+            ansible_data=module.params, virtual_machine_obj=virtual_machine_obj_list[0]
+        )
         data = new_replication_obj.to_hypercore()
-        response = rest_client.create_record(endpoint="/rest/v1/VirDomainReplication", payload=data, check_mode=False)
+        rest_client.create_record(
+            endpoint="/rest/v1/VirDomainReplication", payload=data, check_mode=False
+        )
+        after = Replication.get(rest_client=rest_client, query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid})[0].to_ansible(virtual_machine_obj_list[0])
         changed = True
-    return changed, {"taskTag": response["taskTag"]} if "taskTag" in response.keys() else {}
+    return (
+        changed,
+        [after],
+        dict(before=before, after=after),
+    )
 
 
 def ensure_disabled(module, rest_client):
     changed = False
-    response = {}
-    virtual_machine_obj_list = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)
+    after = None
+    before = None
+    virtual_machine_obj_list = VM.get(
+        query={"name": module.params["vm_name"]}, rest_client=rest_client
+    )
     if not virtual_machine_obj_list:
-      raise errors.VMNotFound(module.params["vm_name"])
-    existing_replication_obj_list = Replication.get(rest_client=rest_client, query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid})
-    if existing_replication_obj_list and existing_replication_obj_list[0].state != ReplicationState.disabled:
-      existing_replication_obj_list[0].state = ReplicationState.disabled
-      data = existing_replication_obj_list[0].to_hypercore()
-      response = rest_client.update_record(endpoint="/rest/v1/VirDomainReplication/"+existing_replication_obj_list[0].replication_uuid, payload=data, check_mode=False)
-      changed = True
-    return changed, {"taskTag": response["taskTag"]} if "taskTag" in response.keys() else {}
+        raise errors.VMNotFound(module.params["vm_name"])
+    existing_replication_obj_list = Replication.get(
+        rest_client=rest_client,
+        query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
+    )
+    if (
+        existing_replication_obj_list
+        and existing_replication_obj_list[0].state != ReplicationState.disabled
+    ):
+        before = existing_replication_obj_list[0].to_ansible(virtual_machine_obj_list[0])
+        existing_replication_obj_list[0].state = ReplicationState.disabled
+        data = existing_replication_obj_list[0].to_hypercore()
+        rest_client.update_record(
+            endpoint="/rest/v1/VirDomainReplication/"
+            + existing_replication_obj_list[0].replication_uuid,
+            payload=data,
+            check_mode=False,
+        )
+        after = Replication.get(rest_client=rest_client, query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid})[0].to_ansible(virtual_machine_obj_list[0])
+        changed = True
+    return (
+        changed,
+        [after], dict(before=before, after=after))
 
 
-def run(module, client, rest_client):
+def run(module, rest_client):
     if module.params["state"] in [ReplicationState.enabled, ReplicationState.reenabled]:
         return ensure_enabled_or_reenabled(module, rest_client)
     else:
@@ -152,8 +203,8 @@ def main():
 
         client = Client(host, username, password)
         rest_client = RestClient(client=client)
-        changed, debug_task_tag = run(module, client, rest_client)
-        module.exit_json(changed=changed, debug_task_tag=debug_task_tag)
+        changed, record, diff = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 
