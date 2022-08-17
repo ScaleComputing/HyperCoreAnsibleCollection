@@ -12,7 +12,19 @@ import enum
 
 
 # Maybe create enums.py or scale_enums.py and move all enum classes there? @Jure @Justin
-class State(str, enum.Enum):
+class NicState(str, enum.Enum):
+    present = "present"
+    absent = "absent"
+    set = "set"
+
+
+class ReplicationState(str, enum.Enum):
+    enabled = "enabled"
+    disabled = "disabled"
+    reenabled = "reenabled"
+
+
+class VMState(str, enum.Enum):
     present = "present"
     absent = "absent"
     set = "set"

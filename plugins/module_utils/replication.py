@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.state import ReplicationState
 
 
 class Replication(PayloadMapper):
@@ -50,13 +51,29 @@ class Replication(PayloadMapper):
         return obj
 
     @classmethod
-    def from_ansible(cls, hypercore_data, virtual_machine_obj):
+    def from_ansible(cls, ansible_data, virtual_machine_obj):
         # TODO: Implement with vm_replication module
-        return
+        obj = Replication()
+        obj.vm_name = virtual_machine_obj.name
+        obj.vm_uuid = virtual_machine_obj.uuid
+        obj.state = ansible_data["state"]
+        obj.remote_cluster_connection_uuid = ansible_data.get("remote_cluster", None)
+        return obj
 
     def to_hypercore(self):
         # TODO: Implement with vm_replication module
-        return
+        replication_dict = {
+            "sourceDomainUUID": self.vm_uuid,
+            "connectionUUID": self.remote_cluster_connection_uuid,
+        }
+        if (
+            self.state == ReplicationState.enabled
+            or self.state == ReplicationState.reenabled
+        ):
+            replication_dict["enable"] = True
+        elif self.state == ReplicationState.disabled:
+            replication_dict["enable"] = False
+        return replication_dict
 
     def to_ansible(self, virtual_machine_obj):
         replication_info_dict = {

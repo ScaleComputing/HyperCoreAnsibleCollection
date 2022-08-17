@@ -110,6 +110,7 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
+from ..module_utils.state import VMState
 from ..module_utils.task_tag import TaskTag
 
 
@@ -144,7 +145,7 @@ def ensure_present(module, rest_client):
 
 
 def run(module, rest_client):
-    if module.params["state"] == "absent":
+    if module.params["state"] == VMState.absent:
         return ensure_absent(module, rest_client)
     return ensure_present(module, rest_client)
 
