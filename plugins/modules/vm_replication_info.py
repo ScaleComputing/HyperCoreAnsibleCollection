@@ -67,32 +67,44 @@ def create_output(records):
     return False, records
 
 
-def find_vm(client, vm_name):
-    virtual_machine_list = VM.get(client=client, name=vm_name)
-    if virtual_machine_list:
-        virtual_machine = VM(from_hc3=True, vm_dict=virtual_machine_list[0])
-        return virtual_machine
-    raise errors.VMNotFound(vm_name)
-
-
-def find_replication(rest_client, virtual_machine):
-    replication = Replication.get(
-        rest_client=rest_client, vm_uuid=virtual_machine.uuid
+def find_replication(rest_client, virtual_machine_obj):
+    replication_obj_list = Replication.get(
+        query={"sourceDomainUUID": virtual_machine_obj.uuid}, rest_client=rest_client
     )
-    if replication:
-        replication = Replication.create_from_hypercore(
-            hypercore_data=replication[0], virtual_machine_obj=virtual_machine
-        )
-        return [replication.data_to_ansible()]
-    return [{}]  # why not 'return []'?
+    if replication_obj_list:
+        return [
+            replication_obj_list[0].data_to_ansible(virtual_machine_obj)
+        ]  # There is only one replication per VM
+    return []
 
 
-def run(module, client, rest_client):
+def run(module, rest_client):
     if not module.params["vm_name"]:
-        records = Replication.get(rest_client=rest_client)
+        records = []
+        replication_obj_list = Replication.get(rest_client=rest_client, query=None)
+        virtual_machine_obj_list = VM.get(query=None, rest_client=rest_client)
+        if not virtual_machine_obj_list:
+            raise errors.VMNotFound("VM list")
+        for (
+            replication_obj
+        ) in (
+            replication_obj_list
+        ):  # this is faster than using get request for every single VM.
+            for virtual_machine_obj in virtual_machine_obj_list:
+                if virtual_machine_obj.uuid == replication_obj.vm_uuid:
+                    records.append(
+                        replication_obj.data_to_ansible(
+                            virtual_machine_obj=virtual_machine_obj
+                        )
+                    )
+                    break
     else:
-        virtual_machine = find_vm(client, module.params["vm_name"])
-        records = find_replication(rest_client, virtual_machine)
+        virtual_machine_obj = VM.get(
+            query={"name": module.params["vm_name"]}, rest_client=rest_client
+        )[0]
+        if not virtual_machine_obj:
+            raise errors.VMNotFound(module.params["vm_name"])
+        records = find_replication(rest_client, virtual_machine_obj)
     return create_output(records)
 
 
@@ -115,7 +127,7 @@ def main():
 
         client = Client(host, username, password)
         rest_client = RestClient(client)
-        changed, records = run(module, client, rest_client)
+        changed, records = run(module, rest_client)
         module.exit_json(changed=changed, records=records)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))

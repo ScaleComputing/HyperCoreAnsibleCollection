@@ -137,7 +137,7 @@
           connectionUUID: "{{ cluster_connection_info.record.0.uuid }}"
           enable: true
           label: "vm2_replication_info test"
-      register: replication_created
+      register: vm2_replication_created
     - ansible.builtin.assert:
         that:
           - vm2_replication_created is succeeded
@@ -156,12 +156,12 @@
           - replication_info_all is succeeded
           - replication_info_all is not changed
           - replication_info_all.records | length >= 2
-          - replication_info.records[0].vm_name
-          - replication_info.records[0].state in ['enabled', 'disabled']
-          - replication_info.records[0].remote_cluster
-          - replication_info.records[1].vm_name
-          - replication_info.records[1].state in ['enabled', 'disabled']
-          - replication_info.records[1].remote_cluster
+          - replication_info_all.records[0].vm_name
+          - replication_info_all.records[0].state in ['enabled', 'disabled']
+          - replication_info_all.records[0].remote_cluster
+          - replication_info_all.records[1].vm_name
+          - replication_info_all.records[1].state in ['enabled', 'disabled']
+          - replication_info_all.records[1].remote_cluster
 
     - name: Delete XLAB-vm_replication_info_CI_test
       scale_computing.hypercore.vm: *delete-XLAB-vm_nic_CI_test

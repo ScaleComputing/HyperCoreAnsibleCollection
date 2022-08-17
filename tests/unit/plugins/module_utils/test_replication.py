@@ -40,11 +40,12 @@ class TestState:
 
 class TestGet:
     def test_get_vm_not_exist(self, rest_client):
-        rest_client.get_record.return_value = None
+        rest_client.list_records.return_value = []
         results = Replication.get(
-            rest_client=rest_client, vm_uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
+            rest_client=rest_client,
+            query={"sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"},
         )
-        assert results is None
+        assert results == []
 
     def test_get_vm_exist(self, rest_client):
         hypercore_data = {
@@ -53,18 +54,18 @@ class TestGet:
             "enable": False,
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
         }
-        rest_client.get_record.return_value = hypercore_data
+        rest_client.list_records.return_value = [hypercore_data]
         results = Replication.get(
-            rest_client=rest_client, vm_uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
+            rest_client=rest_client,
+            query={"sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"},
+        )[0]
+        assert results.replication_uuid == "8972f2as-179a-67af-66a1-6uiahgf47ffs"
+        assert results.state == "disabled"
+        assert (
+            results.remote_cluster_connection_uuid
+            == "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg"
         )
-        assert results == [
-            {
-                "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "uuid": "8972f2as-179a-67af-66a1-6uiahgf47ffs",
-                "enable": False,
-                "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
-            }
-        ]
+        assert results.vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
 
 
 class TestCreateFromHypercore:
@@ -75,20 +76,8 @@ class TestCreateFromHypercore:
             "enable": False,
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
         }
-        vm_dict = {
-            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "name": "XLAB_test_vm",
-            "blockDevs": [],
-            "netDevs": [],
-            "stats": "bla",
-            "tags": "XLAB,test",
-        }
-        virtual_machine_obj = VM(from_hc3=True, vm_dict=vm_dict)
-        replication_obj = Replication.create_from_hypercore(
-            hypercore_data, virtual_machine_obj
-        )
+        replication_obj = Replication.from_hypercore(hypercore_data)
         assert replication_obj.vm_uuid == hypercore_data["sourceDomainUUID"]
-        assert replication_obj.vm_name == vm_dict["name"]
         assert replication_obj.replication_uuid == hypercore_data["uuid"]
         assert replication_obj.state == Replication.handle_state(
             hypercore_data["enable"]
@@ -115,11 +104,11 @@ class TestDataToAnsible:
             "stats": "bla",
             "tags": "XLAB,test",
         }
-        virtual_machine_obj = VM(from_hc3=True, vm_dict=vm_dict)
-        replication_obj = Replication.create_from_hypercore(
-            hypercore_data, virtual_machine_obj
+        virtual_machine_obj = VM.from_hypercore(vm_dict=vm_dict)
+        replication_obj = Replication.from_hypercore(hypercore_data)
+        replication_dict = replication_obj.data_to_ansible(
+            virtual_machine_obj=virtual_machine_obj
         )
-        replication_dict = replication_obj.data_to_ansible()
 
         assert replication_dict == {
             "vm_name": "XLAB_test_vm",
