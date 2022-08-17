@@ -67,9 +67,9 @@ record:
   returned: success
   type: list
   sample:
-    - vm_name: demo-vm
-      state: "enabled
-      remote_cluster: "07a2a68a-0afa-4718-9c6f-00a39d08b67e" #TODO: change when cluster_info is implemented
+    - remote_cluster: "07a2a68a-0afa-4718-9c6f-00a39d08b67e" #TODO: change when cluster_info is implemented
+      vm_name: demo-vm
+      state: "enabled"
 """
 
 from ansible.module_utils.basic import AnsibleModule
