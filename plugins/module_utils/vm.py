@@ -217,14 +217,16 @@ class VM(PayloadMapper):
         )
 
     @classmethod
-    def get(cls, query, rest_client):
-        record = rest_client.get_record(
+    def get(cls, query, rest_client):  # if query is None, return list of all VMs
+        record = rest_client.list_records(
             "/rest/v1/VirDomain",
             query,
         )
         if not record:
             return []
-        return VM.from_hypercore(vm_dict=record)
+        return [
+            VM.from_hypercore(vm_dict=virtual_machine) for virtual_machine in record
+        ]
 
     # TODO (domen): Remove usages of get_legacy method with method get
     @classmethod
