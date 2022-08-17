@@ -54,19 +54,14 @@
   
     - name: Create replication
       scale_computing.hypercore.vm_replication:
-        sourceDomainUUID: "{{ vm_created.record.createdUUID }}"
-        connectionUUID: "{{ cluster_connection_info.record.0.uuid }}"
-        enable: true
-        label: "vm_replication_info test"
+        vm_name: XLAB-vm_replication_CI_test
+        remote_cluster: "{{ cluster_connection_info.record.0.uuid }}" # TODO replace with remoteClusterInfo.clusterName
+        state: enabled
       register: replication_created
     - ansible.builtin.assert:
         that:
           - replication_created is succeeded
           - replication_created is changed
-  
-    - name: Wait for the replication to be created
-      scale_computing.hypercore.task_wait:
-        task_tag: "{{ replication_created.record }}"
   
     - name: Get replication info for VM
       scale_computing.hypercore.vm_replication_info:
