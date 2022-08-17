@@ -100,7 +100,7 @@ def ensure_enabled_or_reenabled(module, rest_client):
         data = new_replication_obj.to_hypercore()
         response = rest_client.create_record(endpoint="/rest/v1/VirDomainReplication", payload=data, check_mode=False)
         changed = True
-    return changed, response["taskTag"] if "taskTag" in response.keys() else ''
+    return changed, {"taskTag": response["taskTag"]} if "taskTag" in response.keys() else {}
 
 
 def ensure_disabled(module, rest_client):
@@ -115,7 +115,7 @@ def ensure_disabled(module, rest_client):
       data = existing_replication_obj_list[0].to_hypercore()
       response = rest_client.update_record(endpoint="/rest/v1/VirDomainReplication/"+existing_replication_obj_list[0].replication_uuid, payload=data, check_mode=False)
       changed = True
-    return changed, response["taskTag"] if "taskTag" in response.keys() else ''
+    return changed, {"taskTag": response["taskTag"]} if "taskTag" in response.keys() else {}
 
 
 def run(module, client, rest_client):

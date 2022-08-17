@@ -1,8 +1,8 @@
 ---
 - environment:
-    SC_HOST: "https://94.130.200.178:8443"
-    SC_USERNAME: "admin"
-    SC_PASSWORD: "admin"
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
 
   block:
     - name: Delete XLAB-vm_replication_CI_test
@@ -62,6 +62,58 @@
         that:
           - replication_created is succeeded
           - replication_created is changed
+  
+    - name: Wait for the replication to be created
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ replication_created.debug_task_tag }}"
+  
+    - name: Get replication info for VM
+      scale_computing.hypercore.vm_replication_info:
+        vm_name: XLAB-vm_replication_CI_test
+      register: replication_info
+    - ansible.builtin.assert:
+        that:
+          - replication_info is succeeded
+          - replication_info is not changed
+          - replication_info.records | length == 1
+          - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
+          - replication_info.records[0].state == 'enabled'
+          - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
+          - replication_info.records[0].remote_cluster  # == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"  # after
+  
+    - name: Disable replication
+      scale_computing.hypercore.vm_replication:
+        vm_name: XLAB-vm_replication_CI_test
+        state: disabled
+      register: replication_disabled
+    - ansible.builtin.assert:
+        that:
+          - replication_disabled is succeeded
+          - replication_disabled is changed
+  
+    - name: Get replication info for VM
+      scale_computing.hypercore.vm_replication_info:
+        vm_name: XLAB-vm_replication_CI_test
+      register: replication_info
+    - ansible.builtin.assert:
+        that:
+          - replication_info is succeeded
+          - replication_info is not changed
+          - replication_info.records | length == 1
+          - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
+          - replication_info.records[0].state == 'disabled'
+          - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
+          - replication_info.records[0].remote_cluster  # == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"  # after
+  
+    - name: Reenable replication
+      scale_computing.hypercore.vm_replication:
+        vm_name: XLAB-vm_replication_CI_test
+        state: reenabled
+      register: replication_reenabled
+    - ansible.builtin.assert:
+        that:
+          - replication_reenabled is succeeded
+          - replication_reenabled is changed
   
     - name: Get replication info for VM
       scale_computing.hypercore.vm_replication_info:
