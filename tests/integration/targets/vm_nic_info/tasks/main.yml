@@ -1,8 +1,8 @@
 ---
 - environment:
-    SC_HOST: "{{ sc_host }}"
-    SC_USERNAME: "{{ sc_username }}"
-    SC_PASSWORD: "{{ sc_password }}"
+    SC_HOST: "https://10.5.11.30"
+    SC_USERNAME: "admin"
+    SC_PASSWORD: "admin"
 
   vars:
     name: XLAB-vm_nic_info_CI_test
@@ -68,8 +68,9 @@
       register: output
     - ansible.builtin.assert:
         that:
-          - output.records.vlan == 2
-          - output.records.type == 'virtio'
+          - output.records | length == 1
+          - output.records.0.vlan == 2
+          - output.records.0.type == 'virtio'
           - output is not changed
 
     - name: Retrieve vlan1 Nic from {{ name }}
@@ -79,8 +80,9 @@
       register: output
     - ansible.builtin.assert:
         that:
-          - output.records.vlan == 1
-          - output.records.type == 'RTL8139'
+          - output.records | length == 1
+          - output.records.0.vlan == 1
+          - output.records.0.type == 'RTL8139'
           - output is not changed
 
     - name: Delete Nic from {{ name }}
