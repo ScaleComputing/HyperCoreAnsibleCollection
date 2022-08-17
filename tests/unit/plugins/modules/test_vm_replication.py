@@ -31,6 +31,12 @@ class TestEnabledOrReenabled:
             "netDevs": [],
             "stats": "bla",
             "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -70,6 +76,12 @@ class TestEnabledOrReenabled:
             "netDevs": [],
             "stats": "bla",
             "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -124,6 +136,12 @@ class TestEnabledOrReenabled:
             "netDevs": [],
             "stats": "bla",
             "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -158,6 +176,12 @@ class TestDisabled:
             "netDevs": [],
             "stats": "bla",
             "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
         }
         module = create_module(
             params=dict(
@@ -185,6 +209,12 @@ class TestDisabled:
             "netDevs": [],
             "stats": "bla",
             "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -218,6 +248,12 @@ class TestDisabled:
             "netDevs": [],
             "stats": "bla",
             "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
