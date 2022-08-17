@@ -16,7 +16,7 @@
       scale_computing.hypercore.vm:
         vm_name: XLAB-vm_nic_CI_test
         description: Demo VM
-        power_state: shutdown
+        power_state: stopped
         state: present
         tags:
           - 'Xlab'

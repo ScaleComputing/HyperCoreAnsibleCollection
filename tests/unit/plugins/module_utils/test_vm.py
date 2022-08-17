@@ -33,7 +33,7 @@ class TestVM:
         vm = VM(
             uuid=None,
             name="VM-name",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
             power_state="running",
@@ -47,14 +47,14 @@ class TestVM:
 
         assert vm == VM.from_ansible(vm_dict)
 
-    def test_vm_from_hypercore(self):
+    def test_vm_from_hypercore_dict_is_not_none(self):
         vm = VM(
             uuid="",  # No uuid when creating object from ansible
             name="VM-name",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -69,7 +69,7 @@ class TestVM:
             tags="XLAB-test-tag1,XLAB-test-tag2",
             description="desc",
             mem=42,
-            state="running",
+            state="RUNNING",
             numVCPU=2,
             netDevs=[],
             blockDevs=[],
@@ -81,14 +81,20 @@ class TestVM:
         vm_from_hypercore = VM.from_hypercore(vm_dict)
         assert vm == vm_from_hypercore
 
+    def test_vm_from_hypercore_dict_is_none(self):
+        vm = None
+        vm_dict = None
+        vm_from_hypercore = VM.from_hypercore(vm_dict)
+        assert vm == vm_from_hypercore
+
     def test_vm_to_hypercore(self):
         vm = VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM-name",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -116,7 +122,7 @@ class TestVM:
         vm = VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM-name",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
             power_state="running",
@@ -156,10 +162,10 @@ class TestVM:
         vm = VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM-name",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -189,10 +195,10 @@ class TestVM:
         vm = VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM-name",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -221,10 +227,10 @@ class TestVM:
         assert VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM-name",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -234,10 +240,10 @@ class TestVM:
         ) == VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM-name",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -250,10 +256,10 @@ class TestVM:
         assert VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM-name",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -263,10 +269,10 @@ class TestVM:
         ) != VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM   NAME    CHANGED !!!!!!",
-            tags="XLAB-test-tag1,XLAB-test-tag2",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -297,7 +303,7 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -307,3 +313,40 @@ class TestVM:
         )
 
         assert VM.compare(ansible_dict, hypercore_dict)
+
+    def test_get_by_name(self, rest_client):
+        ansible_dict = dict(
+            vm_name="vm-name",
+        )
+        rest_client.get_record.return_value = dict(
+            uuid="id",
+            name="VM-name-unique",
+            tags="XLAB-test-tag1,XLAB-test-tag2",
+            description="desc",
+            mem=42,
+            state="RUNNING",
+            numVCPU=2,
+            netDevs=[],
+            blockDevs=[],
+            bootDevices=None,
+            attachGuestToolsISO=False,
+            operatingSystem=None,
+        )
+
+        vm = VM(
+            attach_guest_tools_iso=False,
+            boot_devices=[],
+            description="desc",
+            disks=[],
+            memory=42,
+            name="VM-name-unique",
+            nics=[],
+            vcpu=2,
+            operating_system=None,
+            power_state="started",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
+            uuid="id",
+        )
+
+        vm_by_name = VM.get_by_name(ansible_dict, rest_client)
+        assert vm == vm_by_name

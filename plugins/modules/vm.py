@@ -14,6 +14,7 @@ module: vm
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
+  - Tjaž Eržen (@tjazsch)
 short_description: Create or update virtual machine
 description:
   - Module creates a new virtual machine or updates existing virtual machine.
@@ -45,7 +46,7 @@ options:
   power_state:
     description:
       - Virtual machine power state
-    choices: [ running, blocked, paused, shutdown, shutoff, crashed ]
+    choices: [ started, stopped ]
     type: str
   state:
     description:
@@ -81,7 +82,6 @@ options:
     description:
       - If supported by operating system, create an extra device to attach the Scale Guest OS tools ISO
     type: bool
-    default: false
 """
 
 EXAMPLES = r"""
@@ -110,52 +110,43 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
-from ..module_utils.utils import filter_dict, transform_ansible_to_hypercore_query
 from ..module_utils.task_tag import TaskTag
 
 
-def ensure_absent(module, client, rest_client):
-    ansible_query = filter_dict(module.params, "vm_name")
-    hypercore_query = transform_ansible_to_hypercore_query(
-        ansible_query, dict(vm_name="name")
-    )
-    vm = rest_client.get_record("/rest/v1/VirDomain", hypercore_query, must_exist=False)
+def ensure_absent(module, rest_client):
+    vm = VM.get_by_name(module.params, rest_client)
     if vm:
         task_tag = rest_client.delete_record(
-            "{0}/{1}".format("/rest/v1/VirDomain", vm["uuid"]), module.check_mode
+            "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid), module.check_mode
         )
-        TaskTag.wait_task(RestClient(client), task_tag)
+        TaskTag.wait_task(rest_client, task_tag)
         return True, task_tag
-    return False, dict(TaskTag="No Tag")
+    return False, dict()
 
 
-def ensure_present(module, client, rest_client):
-    new_virtual_machine = VM.from_ansible(vm_dict=module.params)
-    ansible_query = filter_dict(module.params, "vm_name")
-    hypercore_query = transform_ansible_to_hypercore_query(
-        ansible_query, dict(vm_name="name")
-    )
-    before = rest_client.get_record("/rest/v1/VirDomain", hypercore_query)
+def ensure_present(module, rest_client):
+    before = VM.get_by_name(module.params, rest_client)
     if before:  # If the record already exists, update it using PATCH method
         task_tag = rest_client.update_record(
-            "{0}/{1}".format("/rest/v1/VirDomain", before["uuid"]),
-            new_virtual_machine.update_payload_to_hc3(),
+            "{0}/{1}".format("/rest/v1/VirDomain", before.uuid),
+            before.update_payload_to_hc3(),
             module.check_mode,
         )
     else:  # The record doesn't exist; Create it using POST with specified data
+        new_vm = VM.from_ansible(vm_dict=module.params)
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomain",
-            new_virtual_machine.create_payload_to_hc3(),
+            new_vm.create_payload_to_hc3(),
             module.check_mode,
         )
-    TaskTag.wait_task(RestClient(client), task_tag)
+    TaskTag.wait_task(rest_client, task_tag)
     return True, task_tag
 
 
-def run(module, client, rest_client):
+def run(module, rest_client):
     if module.params["state"] == "absent":
-        return ensure_absent(module, client, rest_client)
-    return ensure_present(module, client, rest_client)
+        return ensure_absent(module, rest_client)
+    return ensure_present(module, rest_client)
 
 
 def main():
@@ -181,13 +172,8 @@ def main():
             power_state=dict(
                 type="str",
                 choices=[
-                    # TODO (domen): check those options
-                    "running",
-                    "blocked",
-                    "paused",
-                    "shutdown",
-                    "shutoff",
-                    "crashed",
+                    "started",
+                    "stopped",
                 ],
             ),
             state=dict(
@@ -216,7 +202,6 @@ def main():
             ),
             attach_guest_tools_iso=dict(
                 type="bool",
-                default=False,
             ),
         ),
     )
@@ -225,10 +210,9 @@ def main():
         host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
-
         client = Client(host, username, password)
         rest_client = RestClient(client)
-        changed, debug_task_tag = run(module, client, rest_client)
+        changed, debug_task_tag = run(module, rest_client)
         module.exit_json(changed=changed, debug_task_tag=debug_task_tag)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))

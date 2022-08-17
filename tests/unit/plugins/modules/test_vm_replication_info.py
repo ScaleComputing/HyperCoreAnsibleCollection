@@ -53,6 +53,13 @@ class TestFindReplication:
             "netDevs": [],
             "stats": "bla",
             "tags": "XLAB,test",
+            "description": "",
+            "mem": 42,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "attach_guest_tools_iso": "",
+            "operatingSystem": "os",
         }
         client.get.return_value.json = [vm_dict]
         rest_client.list_records.return_value = []
@@ -74,6 +81,13 @@ class TestFindReplication:
             "netDevs": [],
             "stats": "bla",
             "tags": "XLAB,test",
+            "description": "",
+            "mem": 42,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "attach_guest_tools_iso": "",
+            "operatingSystem": "os",
         }
         client.get.return_value.json = [vm_dict]
         rest_client.list_records.return_value = [hypercore_data]

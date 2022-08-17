@@ -13,18 +13,30 @@ from ..module_utils.nic import Nic
 from ..module_utils.disk import Disk
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
+from ..module_utils.utils import filter_dict, transform_ansible_to_hypercore_query
+
+FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
+    started="RUNNING",
+    stopped="SHUTOFF",
+)
+
+# Inverted dict FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE
+FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE = {
+    v: k for k, v in FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE.items()
+}
 
 
 class VM(PayloadMapper):
     # Fields cloudInitData, desiredDisposition and latestTaskTag are left out and won't be transferred between
     # ansible and hypercore transformations
+    # power_state inside VM holds ansible-native value (meaning, it can take either started or stopped).
     def __init__(
         self,
         name,
         memory,
         vcpu,
         uuid=None,
-        tags=None,
+        tags=None,  # tags are stored internally as list of strings
         description=None,
         power_state=None,
         nics=None,  # nics represents a list of type Nic
@@ -52,10 +64,9 @@ class VM(PayloadMapper):
         return VM(
             uuid=vm_dict.get("uuid", None),  # No uuid when creating object from ansible
             name=vm_dict["vm_name"],
-            tags=",".join(vm_dict["tags"]),
+            tags=vm_dict["tags"],
             description=vm_dict["description"],
             memory=vm_dict["memory"],
-            power_state=vm_dict["power_state"],
             vcpu=vm_dict["vcpu"],
             nics=[
                 Nic.create_from_ansible(nic_dict=nic) for nic in vm_dict["nics"] or []
@@ -63,32 +74,34 @@ class VM(PayloadMapper):
             disks=[
                 Disk(from_hc3=True, disk_dict=disk) for disk in vm_dict["disks"] or []
             ],
-            boot_devices=vm_dict["boot_devices"],
-            attach_guest_tools_iso=vm_dict["attach_guest_tools_iso"],
+            boot_devices=vm_dict.get("boot_devices", []),
+            attach_guest_tools_iso=vm_dict["attach_guest_tools_iso"] or False,
             operating_system=None,
+            power_state=vm_dict.get("power_state", None),
         )
 
     @classmethod
     def from_hypercore(cls, vm_dict):
+        if (
+            vm_dict is None
+        ):  # In case we call RestClient.get_record and there is no results
+            return None
         return VM(
-            uuid=vm_dict.get("uuid", ""),  # No uuid when creating object from ansible
+            uuid=vm_dict["uuid"],  # No uuid when creating object from ansible
             name=vm_dict["name"],
-            tags=vm_dict.get("tags", ""),
-            description=vm_dict.get("description", ""),
-            memory=vm_dict.get("mem", 0),
-            power_state=vm_dict.get("state", "").lower(),
-            vcpu=vm_dict.get("numVCPU", 0),
-            nics=[
-                Nic.create_from_hc3(nic_dict=nic) for nic in vm_dict.get("netDevs", [])
-            ],
+            tags=vm_dict["tags"].split(","),
+            description=vm_dict["description"],
+            memory=vm_dict["mem"],
+            power_state=FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE[vm_dict["state"]],
+            vcpu=vm_dict["numVCPU"],
+            nics=[Nic.create_from_hc3(nic_dict=nic) for nic in vm_dict["netDevs"]],
             disks=[
-                Disk(from_hc3=True, disk_dict=disk)
-                for disk in vm_dict.get("blockDevs", [])
+                Disk(from_hc3=True, disk_dict=disk) for disk in vm_dict["blockDevs"]
             ],
             # TODO: When boot devices get implemented, add transformation here
-            boot_devices=vm_dict.get("bootDevices", []),
-            attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", False),
-            operating_system=vm_dict.get("operatingSystem", ""),
+            boot_devices=vm_dict["bootDevices"],
+            attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", ""),
+            operating_system=vm_dict["operatingSystem"],
         )
 
     def to_hypercore(self):
@@ -101,7 +114,7 @@ class VM(PayloadMapper):
             netDevs=[nic.data_to_hc3() for nic in self.nic_list],
             # TODO: When boot devices get implemented, add transformation here
             bootDevices=self.boot_devices,
-            tags=self.tags,
+            tags=",".join(self.tags),
             uuid=self.uuid,
             attachGuestToolsISO=self.attach_guest_tools_iso,
         )
@@ -109,7 +122,7 @@ class VM(PayloadMapper):
             vm_dict["operatingSystem"] = self.operating_system
         # state attribute is used by HC3 only during VM create.
         if self.power_state:
-            vm_dict["state"] = self.power_state.upper()
+            vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE[self.power_state]
         return vm_dict
 
     def to_ansible(self):
@@ -123,7 +136,7 @@ class VM(PayloadMapper):
             vcpu=self.numVCPU,
             disks=[disk.data_to_ansible() for disk in self.disk_list],
             nics=[nic.data_to_ansible() for nic in self.nic_list],
-            tags=self.tags.split(","),
+            tags=self.tags,
             uuid=self.uuid,
             boot_devices=self.boot_devices,
             attach_guest_tools_iso=self.attach_guest_tools_iso,
@@ -180,11 +193,7 @@ class VM(PayloadMapper):
         return self.disks
 
     def __eq__(self, other):
-        """
-        One VM is equal to another if it has ALL attributes exactly the same.
-        Since uuid is compared too, ISO created from ansible playbook data and
-        ISO created from HC3 API response will never be same.
-        """
+        """One VM is equal to another if it has ALL attributes exactly the same"""
         return all(
             (
                 self.operating_system == other.operating_system,
@@ -255,3 +264,19 @@ class VM(PayloadMapper):
                     return [vm]
             return []
         return all_vms_list
+
+    @classmethod
+    def get_by_name(cls, ansible_dict, rest_client):
+        """
+        With given dict from playbook, finds the existing vm by name from the HyperCore api and constructs object VM if
+        the record exists. If there is no record with such name, None is returned.
+        """
+        ansible_query = filter_dict(ansible_dict, "vm_name")
+        hypercore_query = transform_ansible_to_hypercore_query(
+            ansible_query, dict(vm_name="name")
+        )
+        hypercore_dict = rest_client.get_record(
+            "/rest/v1/VirDomain", hypercore_query, must_exist=False
+        )
+        vm_from_hypercore = VM.from_hypercore(hypercore_dict)
+        return vm_from_hypercore
