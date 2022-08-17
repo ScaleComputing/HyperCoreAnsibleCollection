@@ -32,13 +32,7 @@ def filter_dict(input, *field_names):
 
 
 def transform_ansible_to_hypercore_query(ansible_query, ansible_hypercore_map):
-    """
-    Renames columns. Usually used to rename from ansible-native to hypercore-native input
-    :param ansible_query: keys as columns the way they're named in ansible and values of those columns as its values
-    :param ansible_hypercore_map: keys as column names in ansible-native and values as names
-     of those columns in hypercore
-    :return: hypercore query
-    """
+    """ansible_hypercore_map[key]: ansible_query[key] -> ansible_hypercore_map[key]: value"""
     return {
         ansible_hypercore_map[key]: ansible_query[key]
         for key, value in ansible_query.items()

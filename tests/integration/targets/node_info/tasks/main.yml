@@ -1,0 +1,18 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Retrieve info about the nodes
+      scale_computing.hypercore.node_info:
+      register: initial
+    - ansible.builtin.assert:
+        that:
+          - initial.records != []
+          - "{{ initial.records[0].keys() | sort == ['backplane_ip', 'lan_ip', 'node_uuid', 'peer_id'] }}"
+          - initial.records[0].node_uuid
+          - initial.records[0].backplane_ip
+          - initial.records[0].lan_ip
+          - initial.records[0].peer_id >= 1

@@ -13,6 +13,7 @@ module: vm_info
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
+  - Tjaž Eržen (@tjazsch)
 short_description: Return info about virtual machines
 description:
   - Plugin return information about all or specific virtual machines in a cluster.
@@ -24,7 +25,6 @@ options:
   uuid:
     description:
       - Virtual machine unique identifier.
-      - Used to identify selected virtual machine by uuid.
     type: str
   vm_name:
     description:
