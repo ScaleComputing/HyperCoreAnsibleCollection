@@ -103,6 +103,13 @@ class TestDataToAnsible:
             "netDevs": [],
             "stats": "bla",
             "tags": "XLAB,test",
+            "description": "",
+            "mem": 42,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "attach_guest_tools_iso": "",
+            "operatingSystem": "os",
         }
         virtual_machine_obj = VM.from_hypercore(vm_dict=vm_dict)
         replication_obj = Replication.from_hypercore(hypercore_data)

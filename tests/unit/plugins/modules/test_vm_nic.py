@@ -409,6 +409,14 @@ class TestFindVM:
                 "netDevs": [],
                 "stats": "bla",
                 "tags": "XLAB,test",
+                "uuid": "id",
+                "description": "desc",
+                "mem": "42",
+                "state": "RUNNING",
+                "numVCPU": "2",
+                "bootDevices": [],
+                "attachGuestToolsISO": False,
+                "operatingSystem": "linux",
             }
         ]
         virtual_machine = vm_nic.find_vm(module, client)
@@ -431,14 +439,22 @@ class TestFindVM:
         )
         client.get.return_value.json = [
             {
-                "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "name": "unit_test_vm",
                 "blockDevs": [],
                 "netDevs": [],
                 "stats": "bla",
                 "tags": "XLAB,test",
-                "name": "vm-name",
+                "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "description": "desc",
+                "mem": "42",
+                "state": "RUNNING",
+                "numVCPU": "2",
+                "bootDevices": [],
+                "attachGuestToolsISO": False,
+                "operatingSystem": "linux",
             }
         ]
+
         virtual_machine = vm_nic.find_vm(module, client)
 
         assert virtual_machine.uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
@@ -468,6 +484,14 @@ class TestCheckStateDecideAction:
                 "netDevs": [],
                 "stats": "bla",
                 "tags": "XLAB,test",
+                "uuid": "id",
+                "description": "desc",
+                "mem": "42",
+                "state": "RUNNING",
+                "numVCPU": "2",
+                "bootDevices": [],
+                "attachGuestToolsISO": False,
+                "operatingSystem": "linux",
             }
         ]
         results = vm_nic.check_state_decide_action(
@@ -498,6 +522,14 @@ class TestCheckStateDecideAction:
                 "netDevs": [],
                 "stats": "bla",
                 "tags": "XLAB,test",
+                "uuid": "id",
+                "description": "desc",
+                "mem": "42",
+                "state": "RUNNING",
+                "numVCPU": "2",
+                "bootDevices": [],
+                "attachGuestToolsISO": False,
+                "operatingSystem": "linux",
             }
         ]
         client.request.return_value.json = [1, 2]
