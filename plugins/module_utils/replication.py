@@ -54,11 +54,11 @@ class Replication(PayloadMapper):
         # TODO: Implement with vm_replication module
         return
 
-    def data_to_hypercore(self):
+    def to_hypercore(self):
         # TODO: Implement with vm_replication module
         return
 
-    def data_to_ansible(self, virtual_machine_obj):
+    def to_ansible(self, virtual_machine_obj):
         replication_info_dict = {
             "vm_name": virtual_machine_obj.name,
             # TODO: When remote_cluster_info is implemented, replace this with cluster name
