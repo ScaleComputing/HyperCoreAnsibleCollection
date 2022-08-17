@@ -106,7 +106,7 @@ class TestDataToAnsible:
         }
         virtual_machine_obj = VM.from_hypercore(vm_dict=vm_dict)
         replication_obj = Replication.from_hypercore(hypercore_data)
-        replication_dict = replication_obj.data_to_ansible(
+        replication_dict = replication_obj.to_ansible(
             virtual_machine_obj=virtual_machine_obj
         )
 
