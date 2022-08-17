@@ -111,7 +111,6 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
 from ..module_utils.state import VMState
-from ..module_utils.utils import filter_dict, transform_ansible_to_hypercore_query
 from ..module_utils.task_tag import TaskTag
 
 
