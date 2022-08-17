@@ -44,28 +44,6 @@ class TestCreateOutput:
         )
 
 
-class TestFindVM:
-    def test_find_vm_exists(self, client):
-        vm_dict = {
-            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "name": "XLAB_test_vm",
-            "blockDevs": [],
-            "netDevs": [],
-            "stats": "bla",
-            "tags": "XLAB,test",
-        }
-        vm_name = "XLAB_test_vm"
-        client.get.return_value.json = [vm_dict]
-        virtual_machine_obj = VM(from_hc3=True, vm_dict=vm_dict)
-        results = vm_replication_info.find_vm(client, vm_name)
-        assert results.name == virtual_machine_obj.name
-        assert results.uuid == virtual_machine_obj.uuid
-        assert results.disk_list == virtual_machine_obj.disk_list
-        assert results.nic_list == virtual_machine_obj.nic_list
-        assert results.stats == virtual_machine_obj.stats
-        assert results.tags == virtual_machine_obj.tags
-
-
 class TestFindReplication:
     def test_find_replication_while_replication_not_exists(self, rest_client, client):
         vm_dict = {
@@ -77,10 +55,10 @@ class TestFindReplication:
             "tags": "XLAB,test",
         }
         client.get.return_value.json = [vm_dict]
-        rest_client.get_record.return_value = None
-        virtual_machine_obj = VM(from_hc3=True, vm_dict=vm_dict)
+        rest_client.list_records.return_value = []
+        virtual_machine_obj = VM.from_hypercore(vm_dict=vm_dict)
         results = vm_replication_info.find_replication(rest_client, virtual_machine_obj)
-        assert results == [{}]
+        assert results == []
 
     def test_find_replication_while_replication_exists(self, rest_client, client):
         hypercore_data = {
@@ -98,8 +76,8 @@ class TestFindReplication:
             "tags": "XLAB,test",
         }
         client.get.return_value.json = [vm_dict]
-        rest_client.get_record.return_value = hypercore_data
-        virtual_machine_obj = VM(from_hc3=True, vm_dict=vm_dict)
+        rest_client.list_records.return_value = [hypercore_data]
+        virtual_machine_obj = VM.from_hypercore(vm_dict=vm_dict)
         results = vm_replication_info.find_replication(rest_client, virtual_machine_obj)
         print(results)
         assert results == [

@@ -125,6 +125,7 @@ class TestClientRequest:
             "https://instance.com/api/rest/v1/some/path",
             data=None,
             headers=dict(Accept="application/json", **c.auth_header),
+            timeout=None,
         )
         assert resp == mock_response
 
@@ -147,6 +148,7 @@ class TestClientRequest:
                 "Content-type": "application/json",
                 "Authorization": c.auth_header["Authorization"],
             },
+            timeout=None,
         )
         assert resp == mock_response
 
@@ -247,6 +249,7 @@ class TestClientRequest:
             headers=dict(
                 {"Accept": "image/apng", "Content-type": "text/plain"}, **c.auth_header
             ),
+            timeout=None,
         )
         assert resp == mock_response
 
@@ -289,7 +292,7 @@ class TestClientGet:
         c.get("api/rest/v1/table/incident/1", query=dict(a="1"))
 
         request_mock.assert_called_with(
-            "GET", "api/rest/v1/table/incident/1", query=dict(a="1")
+            "GET", "api/rest/v1/table/incident/1", query=dict(a="1"), timeout=None
         )
 
 
@@ -325,6 +328,7 @@ class TestClientPost:
             "api/rest/v1/table/incident",
             data=dict(some="data"),
             query=dict(b="3"),
+            timeout=None,
         )
 
 
@@ -360,6 +364,7 @@ class TestClientPatch:
             "api/rest/v1/table/incident/1",
             data=dict(some="data"),
             query=dict(g="f"),
+            timeout=None,
         )
 
 
@@ -395,6 +400,9 @@ class TestClientPut:
             "api/rest/v1/table/incident/1",
             data=dict(some="data"),
             query=dict(j="i"),
+            timeout=None,
+            binary_data=None,
+            headers=None,
         )
 
 
@@ -422,5 +430,5 @@ class TestClientDelete:
         c.delete("api/rest/v1/table/resource/1", query=dict(x="y"))
 
         request_mock.assert_called_with(
-            "DELETE", "api/rest/v1/table/resource/1", query=dict(x="y")
+            "DELETE", "api/rest/v1/table/resource/1", query=dict(x="y"), timeout=None
         )

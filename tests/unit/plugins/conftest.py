@@ -8,17 +8,26 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import json
-
 import pytest
 
 from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
+from unittest.mock import MagicMock
+import os
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
     Client,
 )
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.rest_client import (
     RestClient,
+)
+
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import (
+    VM,
+)
+
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag import (
+    TaskTag,
 )
 
 
@@ -29,7 +38,20 @@ def client(mocker):
 
 @pytest.fixture
 def rest_client(mocker):
-    return mocker.Mock(spec=RestClient)
+    return mocker.Mock(spec=RestClient(client=client))
+
+
+@pytest.fixture
+def vm(mocker):
+    # Fixture for object VM. Used in tests, where it isn't really relevant with what the VM is initialized with
+    return mocker.Mock(spec=VM)
+
+
+@pytest.fixture
+def task_wait():
+    task_tag = TaskTag
+    task_tag.wait_task = MagicMock(return_value=None)
+    return task_tag
 
 
 @pytest.fixture
@@ -46,6 +68,11 @@ def create_module(mocker):
         )
 
     return constructor
+
+
+@pytest.fixture
+def os_stat():
+    os.stat = MagicMock(return_value=os.stat_result((0, 0, 0, 0, 0, 0, 0, 0, 0, 0)))
 
 
 # Helpers for testing module invocation (parameter parsing and validation). Adapted from

@@ -35,14 +35,14 @@ class RestClient:
     def __init__(self, client):
         self.client = client
 
-    def list_records(self, endpoint, query=None):
+    def list_records(self, endpoint, query=None, timeout=None):
         """Results are obtained so that first off, all records are obtained and
         then filtered manually"""
-        records = self.client.get(path=endpoint).json
+        records = self.client.get(path=endpoint, timeout=timeout).json
         return filter_results(records, query)
 
-    def get_record(self, endpoint, query=None, must_exist=False):
-        records = self.list_records(endpoint=endpoint, query=query)
+    def get_record(self, endpoint, query=None, must_exist=False, timeout=None):
+        records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)
         if len(records) > 1:
             raise errors.ScaleComputingError(
                 "{0} records from endpoint {1} match the {2} query.".format(
@@ -57,21 +57,46 @@ class RestClient:
             )
         return records[0] if records else None
 
-    def create_record(self, endpoint, payload, check_mode):
+    def create_record(self, endpoint, payload, check_mode, timeout=None):
         if check_mode:
             # Approximate the result using the payload.
             return payload
-        return self.client.post(endpoint, payload, query=_query()).json
+        return self.client.post(endpoint, payload, query=_query(), timeout=timeout).json
 
-    def update_record(self, endpoint, payload, check_mode, record=None):
+    def update_record(self, endpoint, payload, check_mode, record=None, timeout=None):
         # No action is possible when updating a record
         if check_mode:
             # Approximate the result by manually patching the existing state.
             return dict(record or {}, **payload)
-        return self.client.patch(endpoint, payload, query=_query()).json
+        return self.client.patch(
+            endpoint, payload, query=_query(), timeout=timeout
+        ).json
 
-    def delete_record(self, endpoint, check_mode):
+    def delete_record(self, endpoint, check_mode, timeout=None):
         # No action is possible when deleting a record
         if check_mode:
             return
-        self.client.delete(endpoint)
+        return self.client.delete(endpoint, timeout=timeout).json
+
+    def put_record(
+        self,
+        endpoint,
+        payload,
+        check_mode,
+        timeout=None,
+        binary_data=None,
+        headers=None,
+    ):
+        # Method put doesn't support check mode
+        if check_mode:
+            return
+        # Only /rest/v1/ISO/[uuid}/data is using put, which doesn't return anything.
+        # self.client.put on this endpoint returns None.
+        return self.client.put(
+            endpoint,
+            data=payload,
+            query=_query(),
+            timeout=timeout,
+            binary_data=binary_data,
+            headers=headers,
+        )

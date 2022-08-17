@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+
 DOCUMENTATION = r"""
 module: vm
 
@@ -80,6 +81,7 @@ options:
     description:
       - If supported by operating system, create an extra device to attach the Scale Guest OS tools ISO
     type: bool
+    default: false
 """
 
 EXAMPLES = r"""
@@ -109,81 +111,52 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
 from ..module_utils.state import VMState
+from ..module_utils.utils import filter_dict, transform_ansible_to_hypercore_query
 from ..module_utils.task_tag import TaskTag
 
 
-# @Jure / @Justin define how we want to handle boot_device at VM creation
-def parse_boot_device_list_to_str(boot_device_list):
-    return []
-
-
-def vm_create_body(virtual_machine):
-    vm_body = {}
-    optional = {}
-    temp_dict = virtual_machine.data_to_hc3()
-    if "attachGuestToolsISO" in temp_dict.keys():
-        optional["attachGuestToolsISO"] = temp_dict["attachGuestToolsISO"]
-        temp_dict.pop("attachGuestToolsISO")
-    vm_body["dom"] = temp_dict
-    vm_body["options"] = optional
-    return vm_body
-
-
-def vm_update_body(virtual_machine):
-    update_body = virtual_machine.data_to_hc3()
-    if "attachGuestToolsISO" in update_body.keys():
-        update_body.pop("attachGuestToolsISO")
-    return update_body
-
-
-def vm_delete(client, virtual_machine, end_point):
-    return client.request("DELETE", end_point + "/" + virtual_machine.uuid).json
-
-
-def do_absent(client, existing_virtual_machine, end_point):
-    if existing_virtual_machine:
-        return vm_delete(client, existing_virtual_machine, end_point)
-    return {}
-
-
-def do_present_or_set(client, existing_virtual_machine, new_virtual_machine, end_point):
-    if existing_virtual_machine:
-        data = vm_update_body(existing_virtual_machine)
-        json_response = client.request(
-            "PATCH", end_point + "/" + existing_virtual_machine.uuid, data=data
-        ).json
-    else:
-        data = vm_create_body(new_virtual_machine)
-        json_response = client.request("POST", end_point, data=data).json
-    return json_response
-
-
-def create_output(json_response):
-    if "taskTag" in json_response.keys():
-        return True, json_response["taskTag"]
-    return True, {"taskTag": "No task tag"}
-
-
-def run(module, client):
-    end_point = "/rest/v1/VirDomain"
-
-    new_virtual_machine = VM(from_hc3=False, vm_dict=module.params, client=client)
-    existing_virtual_machines = VM.get(client=client, name=new_virtual_machine.name)
-    existing_virtual_machine = []
-    if existing_virtual_machines:
-        existing_virtual_machine = VM(
-            from_hc3=True, vm_dict=existing_virtual_machines[0]
+def ensure_absent(module, client, rest_client):
+    ansible_query = filter_dict(module.params, "vm_name")
+    hypercore_query = transform_ansible_to_hypercore_query(
+        ansible_query, dict(vm_name="name")
+    )
+    vm = rest_client.get_record("/rest/v1/VirDomain", hypercore_query, must_exist=False)
+    if vm:
+        task_tag = rest_client.delete_record(
+            "{0}/{1}".format("/rest/v1/VirDomain", vm["uuid"]), module.check_mode
         )
+        TaskTag.wait_task(RestClient(client), task_tag)
+        return True, task_tag
+    return False, dict(TaskTag="No Tag")
 
-    if module.params["state"] in [VMState.present, VMState.set]:
-        json_response = do_present_or_set(
-            client, existing_virtual_machine, new_virtual_machine, end_point
+
+def ensure_present(module, client, rest_client):
+    new_virtual_machine = VM.from_ansible(vm_dict=module.params)
+    ansible_query = filter_dict(module.params, "vm_name")
+    hypercore_query = transform_ansible_to_hypercore_query(
+        ansible_query, dict(vm_name="name")
+    )
+    before = rest_client.get_record("/rest/v1/VirDomain", hypercore_query)
+    if before:  # If the record already exists, update it using PATCH method
+        task_tag = rest_client.update_record(
+            "{0}/{1}".format("/rest/v1/VirDomain", before["uuid"]),
+            new_virtual_machine.update_payload_to_hc3(),
+            module.check_mode,
         )
-    else:
-        json_response = do_absent(client, existing_virtual_machine, end_point)
-    if "taskTag" in json_response.keys():
-        TaskTag.wait_task(rest_client=RestClient(client), task=json_response)
-    return create_output(json_response)
+    else:  # The record doesn't exist; Create it using POST with specified data
+        task_tag = rest_client.create_record(
+            "/rest/v1/VirDomain",
+            new_virtual_machine.create_payload_to_hc3(),
+            module.check_mode,
+        )
+    TaskTag.wait_task(RestClient(client), task_tag)
+    return True, task_tag
+
+
+def run(module, client, rest_client):
+    if module.params["state"] == "absent":
+        return ensure_absent(module, client, rest_client)
+    return ensure_present(module, client, rest_client)
 
 
 def main():
@@ -209,7 +182,7 @@ def main():
             power_state=dict(
                 type="str",
                 choices=[
-                    # TODO check those options
+                    # TODO (domen): check those options
                     "running",
                     "blocked",
                     "paused",
@@ -244,6 +217,7 @@ def main():
             ),
             attach_guest_tools_iso=dict(
                 type="bool",
+                default=False,
             ),
         ),
     )
@@ -254,7 +228,8 @@ def main():
         password = module.params["cluster_instance"]["password"]
 
         client = Client(host, username, password)
-        changed, debug_task_tag = run(module, client)
+        rest_client = RestClient(client)
+        changed, debug_task_tag = run(module, client, rest_client)
         module.exit_json(changed=changed, debug_task_tag=debug_task_tag)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))

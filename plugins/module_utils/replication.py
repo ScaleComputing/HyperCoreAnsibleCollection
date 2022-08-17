@@ -28,23 +28,23 @@ class Replication(PayloadMapper):
         return "disabled"
 
     @classmethod
-    def get(cls, rest_client, vm_uuid=None):
-        endpoint = "/rest/v1/VirDomainReplication/"
-        if vm_uuid:
-            replication = rest_client.get_record(
-                endpoint, query={"sourceDomainUUID": vm_uuid}, must_exist=False
-            )
-            return [replication] if replication is not None else None
-        else:
-            replications = rest_client.list_records(endpoint)
-            return replications
+    def get(cls, query, rest_client):
+        record = rest_client.list_records(
+            endpoint="/rest/v1/VirDomainReplication/",
+            query=query,
+        )
+        if not record:
+            return []
+        return [
+            Replication.from_hypercore(hypercore_data=replication)
+            for replication in record
+        ]
 
     @classmethod
-    def from_hypercore(cls, hypercore_data, virtual_machine_obj):
+    def from_hypercore(cls, hypercore_data):
         obj = Replication()
         obj.replication_uuid = hypercore_data["uuid"]
-        obj.vm_name = virtual_machine_obj.name
-        obj.vm_uuid = virtual_machine_obj.uuid
+        obj.vm_uuid = hypercore_data["sourceDomainUUID"]
         obj.state = Replication.handle_state(hypercore_data["enable"])
         # TODO: When remote_cluster_info is implemented, replace this with cluster name
         obj.remote_cluster_connection_uuid = hypercore_data["connectionUUID"]
@@ -72,9 +72,9 @@ class Replication(PayloadMapper):
             replication_dict["enable"] = False
         return replication_dict
 
-    def to_ansible(self):
+    def to_ansible(self, virtual_machine_obj):
         replication_info_dict = {
-            "vm_name": self.vm_name,
+            "vm_name": virtual_machine_obj.name,
             # TODO: When remote_cluster_info is implemented, replace this with cluster name
             "remote_cluster": self.remote_cluster_connection_uuid,
             "state": self.state,
