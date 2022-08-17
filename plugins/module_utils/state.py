@@ -21,3 +21,9 @@ class ReplicationState(str, enum.Enum):
     enabled = "enabled"
     disabled = "disabled"
     reenabled = "reenabled"
+
+
+class VMState(str, enum.Enum):
+    present = "present"
+    absent = "absent"
+    set = "set"

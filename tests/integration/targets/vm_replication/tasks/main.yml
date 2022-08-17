@@ -1,0 +1,92 @@
+---
+- environment:
+    SC_HOST: "https://94.130.200.178:8443"
+    SC_USERNAME: "admin"
+    SC_PASSWORD: "admin"
+
+  block:
+    - name: Delete XLAB-vm_replication_CI_test
+      scale_computing.hypercore.vm: &delete-XLAB-vm_replication_CI_test
+        vm_name: XLAB-vm_replication_CI_test
+        state: absent
+        memory: 536870912
+        vcpu: 2
+
+    - name: Create a VM
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/VirDomain
+        data:
+          dom:
+            name: XLAB-vm_replication_CI_test
+            tags: Xlab,CI,test,vm_replication
+            mem: 512100100
+            numVCPU: 2
+            blockDevs:
+              - type: VIRTIO_DISK
+                capacity: 8100100100
+                name: jc1-disk-0
+            netDevs:
+              - type: RTL8139
+                vlan: 0
+                connected: true
+          options:
+            attachGuestToolsISO: true
+      register: vm_created
+    - ansible.builtin.assert:
+        that:
+          - vm_created is succeeded
+          - vm_created is changed
+  
+    - name: Wait for the VM to be created
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ vm_created.record }}"
+  
+    - name: Get available cluster connection
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/RemoteClusterConnection
+      register: cluster_connection_info
+    - ansible.builtin.assert:
+        that:
+          - cluster_connection_info is succeeded
+          - cluster_connection_info.record | length > 0
+  
+    - name: Create replication
+      scale_computing.hypercore.vm_replication:
+        sourceDomainUUID: "{{ vm_created.record.createdUUID }}"
+        connectionUUID: "{{ cluster_connection_info.record.0.uuid }}"
+        enable: true
+        label: "vm_replication_info test"
+      register: replication_created
+    - ansible.builtin.assert:
+        that:
+          - replication_created is succeeded
+          - replication_created is changed
+  
+    - name: Wait for the replication to be created
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ replication_created.record }}"
+  
+    - name: Get replication info for VM
+      scale_computing.hypercore.vm_replication_info:
+        vm_name: XLAB-vm_replication_CI_test
+      register: replication_info
+    - ansible.builtin.assert:
+        that:
+          - replication_info is succeeded
+          - replication_info is not changed
+          - replication_info.records | length == 1
+          - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
+          - replication_info.records[0].state == 'enabled'
+          - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
+          - replication_info.records[0].remote_cluster  # == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"  # after
+
+    - name: Delete XLAB-vm_replication_CI_test
+      scale_computing.hypercore.vm: *delete-XLAB-vm_replication_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is changed
+  

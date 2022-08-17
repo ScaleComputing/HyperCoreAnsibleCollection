@@ -108,7 +108,7 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
-from ..module_utils.state import State
+from ..module_utils.state import VMState
 from ..module_utils.task_tag import TaskTag
 
 
@@ -175,7 +175,7 @@ def run(module, client):
             from_hc3=True, vm_dict=existing_virtual_machines[0]
         )
 
-    if module.params["state"] in [State.present, State.set]:
+    if module.params["state"] in [VMState.present, VMState.set]:
         json_response = do_present_or_set(
             client, existing_virtual_machine, new_virtual_machine, end_point
         )
