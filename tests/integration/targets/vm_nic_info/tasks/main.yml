@@ -1,8 +1,8 @@
 ---
 - environment:
-    SC_HOST: "https://10.5.11.30"
-    SC_USERNAME: "admin"
-    SC_PASSWORD: "admin"
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
 
   vars:
     name: XLAB-vm_nic_info_CI_test
