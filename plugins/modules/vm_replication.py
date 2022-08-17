@@ -210,6 +210,7 @@ def main():
                 type="str",
             ),
         ),
+        required_if=[("state", "enabled", ("remote_cluster",))],
     )
 
     try:
