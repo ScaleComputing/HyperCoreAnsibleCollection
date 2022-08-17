@@ -73,7 +73,7 @@ def find_replication(rest_client, virtual_machine_obj):
     )
     if replication_obj_list:
         return [
-            replication_obj_list[0].data_to_ansible(virtual_machine_obj)
+            replication_obj_list[0].to_ansible(virtual_machine_obj)
         ]  # There is only one replication per VM
     return []
 
@@ -93,7 +93,7 @@ def run(module, rest_client):
             for virtual_machine_obj in virtual_machine_obj_list:
                 if virtual_machine_obj.uuid == replication_obj.vm_uuid:
                     records.append(
-                        replication_obj.data_to_ansible(
+                        replication_obj.to_ansible(
                             virtual_machine_obj=virtual_machine_obj
                         )
                     )
@@ -101,7 +101,7 @@ def run(module, rest_client):
     else:
         virtual_machine_obj_list = VM.get(
             query={"name": module.params["vm_name"]}, rest_client=rest_client
-        )[0]
+        )
         if not virtual_machine_obj_list:
             raise errors.VMNotFound(module.params["vm_name"])
         records = find_replication(rest_client, virtual_machine_obj_list[0])
