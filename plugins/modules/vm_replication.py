@@ -91,7 +91,7 @@ def ensure_enabled_or_reenabled(module, rest_client):
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )
     if not virtual_machine_obj_list:
-        errors.VMNotFound(module.params["vm_name"])
+        raise errors.VMNotFound(module.params["vm_name"])
     existing_replication_obj_list = Replication.get(
         rest_client=rest_client,
         query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
