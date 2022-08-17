@@ -51,11 +51,15 @@
         that:
           - cluster_connection_info is succeeded
           - cluster_connection_info.record | length > 0
-  
+
+    - name: Store remote cluster name (TEMP connection UUID)
+      ansible.builtin.set_fact:
+        remote_cluster_name: "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
+
     - name: Create replication
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
-        remote_cluster: "{{ cluster_connection_info.record.0.uuid }}" # TODO replace with remoteClusterInfo.clusterName
+        remote_cluster: "{{ remote_cluster_name }}"
         state: enabled
       register: replication_created
     - ansible.builtin.assert:
@@ -74,9 +78,8 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'enabled'
-          - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
-          - replication_info.records[0].remote_cluster  # == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"  # after
-  
+          - replication_info.records[0].remote_cluster == "{{ remote_cluster_name }}"
+
     - name: Disable replication
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
@@ -98,8 +101,7 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'disabled'
-          - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
-          - replication_info.records[0].remote_cluster  # == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"  # after
+          - replication_info.records[0].remote_cluster == "{{ remote_cluster_name }}"
   
     - name: Reenable replication
       scale_computing.hypercore.vm_replication:
@@ -122,8 +124,7 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'enabled'
-          - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
-          - replication_info.records[0].remote_cluster  # == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"  # after
+          - replication_info.records[0].remote_cluster == "{{ remote_cluster_name }}"
 
     - name: Delete XLAB-vm_replication_CI_test
       scale_computing.hypercore.vm: *delete-XLAB-vm_replication_CI_test
