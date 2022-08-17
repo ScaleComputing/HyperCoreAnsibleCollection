@@ -99,12 +99,12 @@ def run(module, rest_client):
                     )
                     break
     else:
-        virtual_machine_obj = VM.get(
+        virtual_machine_obj_list = VM.get(
             query={"name": module.params["vm_name"]}, rest_client=rest_client
         )[0]
-        if not virtual_machine_obj:
+        if not virtual_machine_obj_list:
             raise errors.VMNotFound(module.params["vm_name"])
-        records = find_replication(rest_client, virtual_machine_obj)
+        records = find_replication(rest_client, virtual_machine_obj_list[0])
     return create_output(records)
 
 

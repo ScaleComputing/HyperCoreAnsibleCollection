@@ -79,68 +79,50 @@ from ..module_utils.state import ReplicationState
 from ..module_utils.vm import VM
 
 
-def create_output(response):
+def ensure_enabled_or_reenabled(module, rest_client):
     changed = False
-    if "changed" in response.keys():
-      changed = response["changed"]
-    if "taskTag" in response.keys():
-        return changed, {"taskTag": response["taskTag"]}
-    return changed, {}
-
-
-def find_vm(
-    module, client
-):  # if we decide to use vm_name and vm_uuid across all playbooks we can add this to .get method in VM class
-    if module.params["vm_name"]:
-        virtual_machine = VM(
-            from_hc3=True,
-            vm_dict=VM.get(client, name=module.params["vm_name"])[0],
-            client=client,
-        )
-    return virtual_machine
-
-
-def ensure_enabled_or_reenabled(module, client, rest_client):
     response = {}
-    virtual_machine_obj = find_vm(module, client)
-    existing_replication = Replication.get(rest_client=rest_client, vm_uuid=virtual_machine_obj.uuid)
-    if existing_replication: # Update existing
-        existing_replication_obj = Replication.from_hypercore(hypercore_data=existing_replication[0], virtual_machine_obj=virtual_machine_obj)
+    virtual_machine_obj_list = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)
+    if not virtual_machine_obj_list:
+      errors.VMNotFound(module.params["vm_name"])
+    existing_replication_obj_list = Replication.get(rest_client=rest_client, query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid})
+    if existing_replication_obj_list: # Update existing
         #TODO: remote_cluster_connection_uuid rename after cluster_info is implemented
-        if (module.params["remote_cluster"] is None or existing_replication_obj.remote_cluster_connection_uuid == module.params["remote_cluster"]) and existing_replication_obj.state != ReplicationState.enabled:
-            existing_replication_obj.state = ReplicationState.enabled
-            data = existing_replication_obj.to_hypercore()
-            response = rest_client.update_record(endpoint="/rest/v1/VirDomainReplication/"+existing_replication_obj.replication_uuid, payload=data, check_mode=False)
-        elif module.params["remote_cluster"] is not None and existing_replication_obj.remote_cluster_connection_uuid != module.params["remote_cluster"]:
-            raise errors.ReplicationNotUnique(virtual_machine_obj.name)
+        if (module.params["remote_cluster"] is None or existing_replication_obj_list[0].remote_cluster_connection_uuid == module.params["remote_cluster"]) and existing_replication_obj_list[0].state != ReplicationState.enabled:
+            existing_replication_obj_list[0].state = ReplicationState.enabled
+            data = existing_replication_obj_list[0].to_hypercore()
+            response = rest_client.update_record(endpoint="/rest/v1/VirDomainReplication/"+existing_replication_obj_list[0].replication_uuid, payload=data, check_mode=False)
+            changed = True
+        elif module.params["remote_cluster"] is not None and existing_replication_obj_list[0].remote_cluster_connection_uuid != module.params["remote_cluster"]:
+            raise errors.ReplicationNotUnique(virtual_machine_obj_list[0].name)
     else: # Create replication
-        new_replication_obj = Replication.from_ansible(ansible_data=module.params, virtual_machine_obj=virtual_machine_obj)
+        new_replication_obj = Replication.from_ansible(ansible_data=module.params, virtual_machine_obj=virtual_machine_obj_list[0])
         data = new_replication_obj.to_hypercore()
         response = rest_client.create_record(endpoint="/rest/v1/VirDomainReplication", payload=data, check_mode=False)
-    response["changed"] = True
-    return response
+        changed = True
+    return changed, response["taskTag"] if "taskTag" in response.keys() else ''
 
 
-def ensure_disabled(module, client, rest_client):
+def ensure_disabled(module, rest_client):
+    changed = False
     response = {}
-    virtual_machine_obj = find_vm(module, client)
-    existing_replication = Replication.get(rest_client=rest_client, vm_uuid=virtual_machine_obj.uuid)
-    if existing_replication:
-      existing_replication_obj = Replication.from_hypercore(hypercore_data=existing_replication[0], virtual_machine_obj=virtual_machine_obj)
-      existing_replication_obj.state = ReplicationState.disabled
-      data = existing_replication_obj.to_hypercore()
-      response = rest_client.update_record(endpoint="/rest/v1/VirDomainReplication/"+existing_replication_obj.replication_uuid, payload=data, check_mode=False)
-      response["changed"] = True
-    return response
+    virtual_machine_obj_list = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)
+    if not virtual_machine_obj_list:
+      raise errors.VMNotFound(module.params["vm_name"])
+    existing_replication_obj_list = Replication.get(rest_client=rest_client, query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid})
+    if existing_replication_obj_list and existing_replication_obj_list[0].state != ReplicationState.disabled:
+      existing_replication_obj_list[0].state = ReplicationState.disabled
+      data = existing_replication_obj_list[0].to_hypercore()
+      response = rest_client.update_record(endpoint="/rest/v1/VirDomainReplication/"+existing_replication_obj_list[0].replication_uuid, payload=data, check_mode=False)
+      changed = True
+    return changed, response["taskTag"] if "taskTag" in response.keys() else ''
 
 
 def run(module, client, rest_client):
     if module.params["state"] in [ReplicationState.enabled, ReplicationState.reenabled]:
-        response = ensure_enabled_or_reenabled(module, client, rest_client)
+        return ensure_enabled_or_reenabled(module, rest_client)
     else:
-        response = ensure_disabled(module, client, rest_client)
-
-    return create_output(response)
+        return ensure_disabled(module, rest_client)
 
 
 def main():
