@@ -1,6 +1,6 @@
 # Prepare development environment
 
-Crete python venv and clone code.
+Create python venv and clone code.
 
 ```
 mkdir -p ansible_collections/scale_computing/
@@ -18,6 +18,21 @@ cd hypercore
 ansible-galaxy collection install community.general
 # Optional, if you want to run "ansible-test --venv ..."
 # pip install -r test.requirements -r sanity.requirements
+```
+
+For integration tests we need to configure access to test cluster.
+Copy template and edit it:
+
+
+```shell script
+cp tests/integration/integration_config.yml.template tests/integration/integration_config.yml
+nano tests/integration/integration_config.yml
+
+# sample content
+cat tests/integration/integration_config.yml
+sc_host: https://1.2.3.4
+sc_username: admin
+sc_password: admin_pass
 ```
 
 Included `Makefile` contains shortcuts for common development tasks,
