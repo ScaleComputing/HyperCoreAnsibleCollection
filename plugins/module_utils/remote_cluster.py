@@ -18,7 +18,7 @@ class RemoteCluster(PayloadMapper):
         connection_status,
         replication_ok,
         remote_node_ips,
-        remote_node_uuids
+        remote_node_uuids,
     ):
         self.name = name
         self.connection_status = connection_status
@@ -32,7 +32,7 @@ class RemoteCluster(PayloadMapper):
 
     @classmethod
     def from_hypercore(cls, remote_cluster_dict):
-        if not remote_cluster_dict:  # In case for get_record, return None if no result is found
+        if not remote_cluster_dict:
             return None
         return RemoteCluster(
             name=remote_cluster_dict["remoteClusterInfo"]["clusterName"],

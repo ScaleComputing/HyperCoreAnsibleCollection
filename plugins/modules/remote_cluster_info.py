@@ -67,7 +67,9 @@ def run(module, rest_client):
     query = filter_dict(module.params, "name")
     records = [
         RemoteCluster.from_hypercore(remote_cluster_dict=hypercore_dict).to_ansible()
-        for hypercore_dict in rest_client.list_records("/rest/v1/RemoteClusterConnection")
+        for hypercore_dict in rest_client.list_records(
+            "/rest/v1/RemoteClusterConnection"
+        )
     ]
     filtered_records = filter_results(records, query)
     return filtered_records
@@ -77,12 +79,12 @@ def main():
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(
-          arguments.get_spec("cluster_instance"),
-          name=dict(
+            arguments.get_spec("cluster_instance"),
+            name=dict(
                 type="str",
                 required=False,
             ),
-          ),
+        ),
     )
 
     try:
