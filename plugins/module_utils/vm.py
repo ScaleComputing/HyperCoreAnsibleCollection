@@ -13,7 +13,7 @@ from ..module_utils.nic import Nic
 from ..module_utils.disk import Disk
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
-from ..module_utils.utils import filter_dict, transform_ansible_to_hypercore_query
+from ..module_utils.utils import get_query
 
 FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     started="RUNNING",
@@ -271,12 +271,9 @@ class VM(PayloadMapper):
         With given dict from playbook, finds the existing vm by name from the HyperCore api and constructs object VM if
         the record exists. If there is no record with such name, None is returned.
         """
-        ansible_query = filter_dict(ansible_dict, "vm_name")
-        hypercore_query = transform_ansible_to_hypercore_query(
-            ansible_query, dict(vm_name="name")
+        query = get_query(
+            ansible_dict, "vm_name", ansible_hypercore_map=dict(vm_name="name")
         )
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/VirDomain", hypercore_query, must_exist=False
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/VirDomain", query)
         vm_from_hypercore = VM.from_hypercore(hypercore_dict)
         return vm_from_hypercore

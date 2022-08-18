@@ -87,12 +87,17 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.vm import VM
-from ..module_utils.utils import filter_dict
+from ..module_utils.utils import get_query
 from ..module_utils.rest_client import RestClient
 
 
 def run(module, rest_client):
-    query = filter_dict(module.params, "uuid", "vm_name")
+    query = get_query(
+        module.params,
+        "uuid",
+        "vm_name",
+        ansible_hypercore_map=dict(uuid="uuid", vm_name="name"),
+    )
     return [
         VM.from_hypercore(vm_dict=vm_dict).to_ansible()
         for vm_dict in rest_client.list_records("/rest/v1/VirDomain", query)

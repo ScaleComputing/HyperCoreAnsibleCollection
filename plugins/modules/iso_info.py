@@ -67,12 +67,12 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.utils import filter_dict
+from ..module_utils.utils import get_query
 from ..module_utils.iso import ISO
 
 
 def run(module, rest_client):
-    query = filter_dict(module.params, "name")
+    query = get_query(module.params, "name", ansible_hypercore_map=dict(name="name"))
     return [
         ISO.from_hypercore(vm_dict=hypercore_dict).to_ansible()
         for hypercore_dict in rest_client.list_records("/rest/v1/ISO", query)
