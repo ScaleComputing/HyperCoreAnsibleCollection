@@ -14,7 +14,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestRun:
-    def test_run_records_absent(self, create_module, rest_client):
+    def test_run_records_present(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -29,8 +29,8 @@ class TestRun:
 
         rest_client.list_records.return_value = [
             dict(
-                uuid=None,
-                name="VM-name",
+                uuid="id",
+                name="VM-unique-name",
                 tags="XLAB-test-tag1,XLAB-test-tag2",
                 description="desc",
                 mem=42,
@@ -51,8 +51,8 @@ class TestRun:
 
         assert result == [
             dict(
-                uuid=None,  # No uuid when creating object from ansible
-                vm_name="VM-name",
+                uuid="id",  # No uuid when creating object from ansible
+                vm_name="VM-unique-name",
                 tags=["XLAB-test-tag1", "XLAB-test-tag2"],
                 description="desc",
                 memory=42,
@@ -66,7 +66,7 @@ class TestRun:
             )
         ]
 
-    def test_run_records_present(self, create_module, rest_client):
+    def test_run_records_absent(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

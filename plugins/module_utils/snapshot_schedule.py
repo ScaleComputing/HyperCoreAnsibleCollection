@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
-from ..module_utils.utils import filter_dict
+from ..module_utils.utils import get_query
 
 
 class SnapshotSchedule(PayloadMapper):
@@ -76,7 +76,7 @@ class SnapshotSchedule(PayloadMapper):
         With given dict from playbook, finds the existing SnapshotSchedule by name from the HyperCore api and constructs
         object SnapshotSchedule if the record exists. If there is no record with such name, None is returned.
         """
-        query = filter_dict(ansible_dict, "name")
+        query = get_query(ansible_dict, "name", ansible_hypercore_map=dict(name="name"))
         hypercore_dict = rest_client.get_record(
             "/rest/v1/VirDomainSnapshotSchedule", query, must_exist=False
         )

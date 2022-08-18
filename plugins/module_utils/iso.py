@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
-from ..module_utils.utils import filter_dict
+from ..module_utils.utils import get_query
 
 
 class ISO(PayloadMapper):
@@ -105,7 +105,7 @@ class ISO(PayloadMapper):
         With given dict from playbook, finds the existing iso by name from the HyperCore api and constructs object ISO if
         the record exists. If there is no record with such name, None is returned.
         """
-        query = filter_dict(ansible_dict, "name")
+        query = get_query(ansible_dict, "name", ansible_hypercore_map=dict(name="name"))
         hypercore_dict = rest_client.get_record("/rest/v1/ISO", query, must_exist=False)
         iso_from_hypercore = ISO.from_hypercore(hypercore_dict)
         return iso_from_hypercore
