@@ -5,6 +5,13 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   block:
+    - name: Delete XLAB-jc1
+      scale_computing.hypercore.vm: &delete-XLAB-jc1
+        vm_name: XLAB-jc1
+        state: absent
+        memory: 536870912
+        vcpu: 2
+  
     - name: Retrieve all VMs
       scale_computing.hypercore.api: &retrieve-all-vms
         action: get
@@ -65,3 +72,4 @@
     - ansible.builtin.assert:
         that:
           - not result.record
+  
