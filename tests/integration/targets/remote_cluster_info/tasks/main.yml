@@ -1,0 +1,21 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Retrieve list of remote clusters
+      scale_computing.hypercore.remote_cluster_info:
+      register: initial
+  - ansible.builtin.assert:
+      that:
+        - initial.records != []
+        - "{{ initial.records[0].keys() | sort == ['connection_status', 'name', 'remote_node_ips', 'remote_node_uuids', 'replication_ok'] }}"
+        - initial.records[0].name
+        - initial.records[0].connection_status
+        - initial.records[0].replication_ok
+        - initial.records[0].remote_node_ips
+        - initial.records[0].remote_node_uuids
+
+  # After put method is implemented add also test with option included

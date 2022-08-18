@@ -20,7 +20,7 @@ version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 options:
-  remote_cluster: # CHANGE TO NAME?
+  name:
     type: str
     description:
       - Remote cluster's name.
@@ -31,7 +31,7 @@ options:
 EXAMPLES = r"""
 - name: Get info about specific remote cluster
   scale_computing.hypercore.remote_cluster_info:
-    remote_cluster: PUB4 # CHANGE TO NAME?
+    name: PUB4
 
 - name: Get info about all remote clusters
   scale_computing.hypercore.remote_cluster_info:
@@ -64,13 +64,11 @@ from ..module_utils.remote_cluster import RemoteCluster
 
 
 def run(module, rest_client):
-    # query in list_records doesn't work because remoteClusterInfo.clusterName
     query = filter_dict(module.params, "name")
     records = [
         RemoteCluster.from_hypercore(remote_cluster_dict=hypercore_dict).to_ansible()
         for hypercore_dict in rest_client.list_records("/rest/v1/RemoteClusterConnection")
     ]
-    # this works
     filtered_records = filter_results(records, query)
     return filtered_records
 
