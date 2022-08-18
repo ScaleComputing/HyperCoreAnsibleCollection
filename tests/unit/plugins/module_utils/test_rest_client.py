@@ -24,30 +24,6 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-class TestIsSuperset:
-    @pytest.mark.parametrize(
-        "superset,candidate",
-        [
-            (dict(), dict()),
-            (dict(a=1), dict()),
-            (dict(a=1), dict(a=1)),
-            (dict(a=1, b=2), dict(b=2)),
-        ],
-    )
-    def test_valid_superset(self, superset, candidate):
-        assert rest_client.is_superset(superset, candidate) is True
-
-    @pytest.mark.parametrize(
-        "superset,candidate",
-        [
-            (dict(), dict(a=1)),  # superset is missing a key
-            (dict(a=1), dict(a=2)),  # key value is different
-        ],
-    )
-    def test_not_a_superset(self, superset, candidate):
-        assert rest_client.is_superset(superset, candidate) is False
-
-
 class TestTableListRecords:
     def test_empty_response(self, client):
         client.get.return_value = Response(

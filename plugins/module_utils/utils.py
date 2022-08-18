@@ -99,3 +99,17 @@ class PayloadMapper:
 
     def __str__(self):
         return str(dict(ansible=self.to_ansible(), hypercore=self.to_hypercore()))
+
+
+def is_superset(superset, candidate):
+    if not candidate:
+        return True
+    for k, v in candidate.items():
+        if k in superset and superset[k] == v:
+            continue
+        return False
+    return True
+
+
+def filter_results(results, filter_data):
+    return [element for element in results if is_superset(element, filter_data)]

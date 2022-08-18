@@ -5,24 +5,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-# import errors
 from . import errors
+from . import utils
 
 __metaclass__ = type
-
-
-def is_superset(superset, candidate):
-    if not candidate:
-        return True
-    for k, v in candidate.items():
-        if k in superset and superset[k] == v:
-            continue
-        return False
-    return True
-
-
-def filter_results(results, filter_data):
-    return [element for element in results if is_superset(element, filter_data)]
 
 
 def _query(original=None):
@@ -39,7 +25,7 @@ class RestClient:
         """Results are obtained so that first off, all records are obtained and
         then filtered manually"""
         records = self.client.get(path=endpoint, timeout=timeout).json
-        return filter_results(records, query)
+        return utils.filter_results(records, query)
 
     def get_record(self, endpoint, query=None, must_exist=False, timeout=None):
         records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)

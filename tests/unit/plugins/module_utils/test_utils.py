@@ -62,3 +62,34 @@ class TestGetQuery:
             "vm_name",
             ansible_hypercore_map=dict(vm_name="name"),
         )
+
+
+class TestIsSuperset:
+    @pytest.mark.parametrize(
+        "superset,candidate",
+        [
+            (dict(), dict()),
+            (dict(a=1), dict()),
+            (dict(a=1), dict(a=1)),
+            (dict(a=1, b=2), dict(b=2)),
+        ],
+    )
+    def test_valid_superset(self, superset, candidate):
+        assert utils.is_superset(superset, candidate) is True
+
+    @pytest.mark.parametrize(
+        "superset,candidate",
+        [
+            (dict(), dict(a=1)),  # superset is missing a key
+            (dict(a=1), dict(a=2)),  # key value is different
+        ],
+    )
+    def test_not_a_superset(self, superset, candidate):
+        assert utils.is_superset(superset, candidate) is False
+
+
+class TestFilterResults:
+    def test_filter_results(self):
+        assert utils.filter_results(
+            [dict(a=1), dict(b=1), dict(a=1, b=2)], dict(a=1)
+        ) == [dict(a=1), dict(a=1, b=2)]
