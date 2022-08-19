@@ -57,3 +57,39 @@ class TestRemoteCluster:
         )
 
         assert remote_cluster.to_ansible() == ansible_dict
+
+    def test_equal_true(self):
+        remote_cluster1 = RemoteCluster(
+            name="PUB4",
+            connection_status="ESTABLISHED",
+            replication_ok=True,
+            remote_node_ips=["10.5.11.11"],
+            remote_node_uuids=["895033ed-b863-4a42-8215-477a1a4ef812"],
+        )
+        remote_cluster2 = RemoteCluster(
+            name="PUB4",
+            connection_status="ESTABLISHED",
+            replication_ok=True,
+            remote_node_ips=["10.5.11.11"],
+            remote_node_uuids=["895033ed-b863-4a42-8215-477a1a4ef812"],
+        )
+
+        assert remote_cluster1 == remote_cluster2
+
+    def test_equal_false(self):
+        remote_cluster1 = RemoteCluster(
+            name="PUB4",
+            connection_status="ESTABLISHED",
+            replication_ok=True,
+            remote_node_ips=["10.5.11.11"],
+            remote_node_uuids=["895033ed-b863-4a42-8215-477a1a4ef812"],
+        )
+        remote_cluster2 = RemoteCluster(
+            name="PUB3",
+            connection_status="ESTABLISHED",
+            replication_ok=True,
+            remote_node_ips=["10.5.11.11"],
+            remote_node_uuids=["895033ed-b863-4a42-8215-477a1a4ef812"],
+        )
+
+        assert remote_cluster1 != remote_cluster2

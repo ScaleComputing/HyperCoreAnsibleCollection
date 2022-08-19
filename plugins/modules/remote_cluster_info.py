@@ -32,9 +32,11 @@ EXAMPLES = r"""
 - name: Get info about specific remote cluster
   scale_computing.hypercore.remote_cluster_info:
     name: PUB4
+  register: result
 
 - name: Get info about all remote clusters
   scale_computing.hypercore.remote_cluster_info:
+  register: result
 """
 
 RETURN = r"""
@@ -57,7 +59,7 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.rest_client import RestClient
-from ..module_utils.rest_client import filter_results
+from ..module_utils.utils import filter_results
 from ..module_utils.client import Client
 from ..module_utils.utils import filter_dict
 from ..module_utils.remote_cluster import RemoteCluster
@@ -70,6 +72,8 @@ def run(module, rest_client):
             "/rest/v1/RemoteClusterConnection"
         )
     ]
+    # Since get_query doesn't work for nested parameters (name -> remoteClusterInfo.clusterName) we have this workaround
+    # In case of additional modules needing this functionality, get_query (and is_superset()) will have to be updated
     ansible_query = filter_dict(module.params, "name")
     return filter_results(records, ansible_query)
 
