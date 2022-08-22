@@ -122,3 +122,37 @@ class TestDataToAnsible:
             "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
             "state": "disabled",
         }
+
+
+class TestToHypercore:
+    def test_to_hypercore_when_enable_false(self):
+        hypercore_data = {
+            "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "uuid": "8972f2as-179a-67af-66a1-6uiahgf47ffs",
+            "enable": False,
+            "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+        }
+        replication_obj = Replication.from_hypercore(hypercore_data)
+        results = replication_obj.to_hypercore()
+        print(results)
+        assert results == {
+            "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "enable": False,
+        }
+
+    def test_to_hypercore_when_enable_true(self):
+        hypercore_data = {
+            "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "uuid": "8972f2as-179a-67af-66a1-6uiahgf47ffs",
+            "enable": True,
+            "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+        }
+        replication_obj = Replication.from_hypercore(hypercore_data)
+        results = replication_obj.to_hypercore()
+        print(results)
+        assert results == {
+            "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "enable": True,
+        }

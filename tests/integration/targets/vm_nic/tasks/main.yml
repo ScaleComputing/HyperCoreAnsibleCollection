@@ -43,7 +43,7 @@
         that:
           - output is changed
 
-    - name: Retrieve all Nics on demo-vm
+    - name: Retrieve all Nics on XLAB-vm_nic_CI_test
       scale_computing.hypercore.vm_nic_info: &Retrieve-all-Nics-on-demo-vm
         vm_name: XLAB-vm_nic_CI_test
       register: output
@@ -133,6 +133,27 @@
     - ansible.builtin.assert:
         that:
           - output.records | length == 0
+          - output is not changed
+  
+    - name: Create Nic on vlan default 0, without specifying vlan in XLAB-vm_nic_CI_test
+      scale_computing.hypercore.vm_nic:
+        vm_name: XLAB-vm_nic_CI_test
+        items:
+          - type: virtio
+        state: present        
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+  
+    - name: Retrieve all Nics on demo-vm
+      scale_computing.hypercore.vm_nic_info: *Retrieve-all-Nics-on-demo-vm
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records | length == 1
+          - output.records.0.vlan == 0
+          - output.records.0.type == 'virtio'
           - output is not changed
 
     - name: Delete XLAB-vm_nic_CI_test

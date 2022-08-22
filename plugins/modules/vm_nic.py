@@ -34,11 +34,7 @@ options:
       - Virtual machine name
       - Used to identify selected virtual machine by name
     type: str
-  vm_uuid:
-    description:
-      - Virtual machine uniquie identifier
-      - Used to identify selected virtual machine by uuid
-    type: str
+    required: true
   items:
     description:
       - List of network interfaces
@@ -47,26 +43,79 @@ options:
 """
 
 EXAMPLES = r"""
-- name: Retrieve all VMs
-  scale_computing.hypercore.sample_vm_info:
-  register: result
+- name: Set NIC interface
+  scale_computing.hypercore.vm_nic:
+    vm_name: XLAB-demo-vm
+    items:
+      - vlan: 0
+        type: RTL8139
+    state: set
+- name: Remove all nic interfces
+  scale_computing.hypercore.vm_nic:
+    vm_name: XLAB-demo-vm
+    items:
+    state: set
 
-- name: Retrieve all VMs with specific name
-  scale_computing.hypercore.sample_vm_info:
-    name: vm-a
-  register: result
+- name: Add/Update NICs interface
+  scale_computing.hypercore.vm_nic:
+    vm_name: XLAB-demo-vm
+    items:
+      - vlan: 1
+        type: virtio
+      - vlan: 2
+        type: RTL8139
+    state: present
+
+- name: Remove one NIC interface
+  scale_computing.hypercore.vm_nic:
+    vm_name: XLAB-demo-vm
+    items:
+      - vlan: 1
+        type: virtio
+    state: absent
+
+- name: Change VLAN on NIC
+  scale_computing.hypercore.vm_nic:
+    vm_name: XLAB-demo-vm
+    items:
+      - vlan: 1
+        vlan_new: 10
+    state: set
+
+- name: Set NIC interfaces on multiple virtual machines
+  scale_computing.hypercore.vm_nic:
+    vm_name: "{{ item }}"
+    items:
+      - vlan: 0
+        type: RTL8139
+    state: present
+  loop:
+  - XLAB-demo-vm
+  - XLAB-POST-TEST
+  - XLAB-us11-example6
+
+- name: Change mac on NIC
+  scale_computing.hypercore.vm_nic:
+    vm_name: XLAB-demo-vm
+    items:
+      - vlan: 1
+        mac_new: 01:23:45:67:89:AB
+    state: set
 """
 
 RETURN = r"""
-vms:
+records:
   description:
-    - A list of VMs records.
+    - The created or changed record for nic on a specified virtual machine.
   returned: success
   type: list
   sample:
-    - vm_name: "vm-name"
-      uuid: "1234-0001"
-      state: "running"
+    - uuid: 07a2a68a-0afa-4718-9c6f-00a39d08b67e
+      vlan: 15
+      type: virtio
+      mac: 12-34-56-78-AB
+      connected: true
+      ipv4_addresses: []
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -74,133 +123,92 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.task_tag import TaskTag
 from ..module_utils.vm import VM
 from ..module_utils.nic import Nic
 from ..module_utils.state import NicState
-from ..module_utils.utils import validate_uuid
 
 
-def check_parameters(module):
-    if module.params["vm_uuid"]:
-        validate_uuid(module.params["vm_uuid"])
-
-
-def create_nic(client, end_point, nic):
-    request_body = nic.data_to_hc3()
-    json_response = client.request("POST", end_point, data=request_body).json
-    return json_response
-
-
-def update_nic(client, end_point, new_nic):
-    request_body = new_nic.data_to_hc3()
-    json_response = client.request("PATCH", end_point, data=request_body).json
-    return json_response
-
-
-def delete_nic(client, end_point):
-    json_response = client.request("DELETE", end_point).json
-    return json_response
-
-
-def create_nic_uuid_list(module):
-    new_nic_uuid_list = []
+def ensure_present_or_set(module, rest_client):
+    before = []
+    after = []
+    changed = False
+    virtual_machine_obj_list = VM.get_or_fail(
+        query={"name": module.params["vm_name"]}, rest_client=rest_client
+    )
     if module.params["items"]:
         for nic in module.params["items"]:
-            if "vlan_new" in nic.keys():
-                new_nic_uuid_list.append(nic["vlan_new"])
-            else:
-                new_nic_uuid_list.append(nic["vlan"])
-    return new_nic_uuid_list
+            nic["vm_uuid"] = virtual_machine_obj_list[0].uuid
+            nic = Nic.from_ansible(ansible_data=nic)
+            existing_hc3_nic, existing_hc3_nic_with_new = virtual_machine_obj_list[
+                0
+            ].find_nic(
+                vlan=nic.vlan, mac=nic.mac, vlan_new=nic.vlan_new, mac_new=nic.mac_new
+            )
+            if (
+                existing_hc3_nic_with_new
+                and existing_hc3_nic_with_new.is_update_needed(nic)
+            ):  # Update existing with vlan_new or mac_new - corner case
+                changed, before, after = Nic.send_update_nic_request_to_hypercore(
+                    rest_client, nic, existing_hc3_nic_with_new, before, after
+                )
+            elif (
+                existing_hc3_nic
+                and not existing_hc3_nic_with_new
+                and existing_hc3_nic.is_update_needed(nic)
+            ):  # Update existing
+                changed, before, after = Nic.send_update_nic_request_to_hypercore(
+                    rest_client, nic, existing_hc3_nic, before, after
+                )
+            else:  # Create new
+                changed, before, after = Nic.send_create_nic_request_to_hypercore(
+                    rest_client=rest_client, new_nic=nic, before=before, after=after
+                )
+    else:  # empty set in ansible, delete all
+        for nic in virtual_machine_obj_list[0].nic_list:
+            before.append(nic.to_ansible())
+    updated_virtual_machine = VM.get(
+        query={"name": module.params["vm_name"]}, rest_client=rest_client
+    )[0]
+    if module.params["state"] == NicState.set:
+        # Check if any nics need to be deleted from the vm
+        if updated_virtual_machine.delete_unused_nics_to_hypercore_vm(
+            module.params, rest_client
+        ):
+            changed = True
+    return changed, after, dict(before=before, after=after)
 
 
-def delete_not_used_nics(module, client, end_point, virtual_machine):
-    nic_uuid_list = create_nic_uuid_list(module)
-    for nic in virtual_machine.nic_list:
-        if nic.vlan not in nic_uuid_list:
-            json_response = delete_nic(client, end_point + "/" + nic.uuid)
-            TaskTag.wait_task(RestClient(client), json_response)
-
-
-def find_vm(
-    module, client
-):  # if we decide to use name and vm_uuid across all playbooks we can add this to .get method in VM class
-    if module.params["vm_uuid"]:
-        virtual_machine = VM.from_hypercore(
-            vm_dict=VM.get_legacy(client, uuid=module.params["vm_uuid"])[0],
-        )
-    else:
-        virtual_machine = VM.from_hypercore(
-            vm_dict=VM.get_legacy(client, name=module.params["vm_name"])[0],
-        )
-    return virtual_machine
-
-
-def ensure_present_or_set(client, end_point, existing_hc3_nic, new_nic):
-    if existing_hc3_nic and not existing_hc3_nic.is_update_needed(new_nic):
-        return update_nic(client, end_point + "/" + existing_hc3_nic.uuid, new_nic)
-    elif not existing_hc3_nic:
-        return create_nic(client, end_point, new_nic)
-    else:
-        return {}
-
-
-def ensure_absent(client, end_point, existing_hc3_nic):
-    # TODO check if nic exists other return changed=False and No task tag
-    # TODO add integration test for this specific bug
-    if existing_hc3_nic:
-        json_response = delete_nic(client, end_point + "/" + existing_hc3_nic.uuid)
-        return json_response
-    return {}
-
-
-def check_state_decide_action(module, client, state):
-    end_point = "/rest/v1/VirDomainNetDevice"
-    json_response = {}
-    virtual_machine = find_vm(module, client)
-
+def ensure_absent(module, rest_client):
+    before = []
+    after = []
+    changed = False
+    virtual_machine_obj_list = VM.get_or_fail(
+        query={"name": module.params["vm_name"]}, rest_client=rest_client
+    )
     if module.params["items"]:
         for nic in module.params["items"]:
-            nic["vm_uuid"] = virtual_machine.uuid
-            nic = Nic.create_from_ansible(nic_dict=nic)
-            if nic.vlan is not None:
-                # TODO we have vlan_new and mac_new - corner case
-                # TODO integration test to check this corner cases
-                existing_hc3_nic = virtual_machine.find_nic(vlan=nic.vlan)
-            elif nic.mac:
-                existing_hc3_nic = virtual_machine.find_nic(vlan=nic.mac)
-            else:
-                raise errors.MissingValueAnsible(
-                    "VLAN and MAC - vm_nic.py - check_state_decide_action()"
+            nic["vm_uuid"] = virtual_machine_obj_list[0].uuid
+            nic = Nic.from_ansible(ansible_data=nic)
+            existing_hc3_nic, existing_hc3_nic_with_new = virtual_machine_obj_list[
+                0
+            ].find_nic(
+                vlan=nic.vlan, mac=nic.mac, vlan_new=nic.vlan_new, mac_new=nic.mac_new
+            )
+            if existing_hc3_nic:  # Delete nic
+                changed, before, after = Nic.send_delete_nic_request_to_hypercore(
+                    rest_client=rest_client,
+                    nic_to_delete=existing_hc3_nic,
+                    before=before,
+                    after=after,
                 )
-            if state in [NicState.present, NicState.set]:
-                json_response = ensure_present_or_set(
-                    client, end_point, existing_hc3_nic, nic
-                )
-            else:
-                json_response = ensure_absent(client, end_point, existing_hc3_nic)
-            if "taskTag" in json_response.keys():
-                TaskTag.wait_task(RestClient(client), json_response)
-    if state == NicState.set:
-        updated_virtual_machine = find_vm(
-            module, client
-        )  # VM was updated, so we need to get the updated data from server
-        delete_not_used_nics(module, client, end_point, updated_virtual_machine)
-    return json_response
+    return changed, after, dict(before=before, after=after)
 
 
-def create_output(json_response):
-    if "taskTag" in json_response.keys():
-        return True, {"taskTag": json_response["taskTag"]}
-    return True, {}
-
-
-def run(module, client):
-    check_parameters(module)
-
-    json_response = check_state_decide_action(module, client, module.params["state"])
-
-    return create_output(json_response)
+def run(module, rest_client):
+    if module.params["state"] in [NicState.present, NicState.set]:
+        return ensure_present_or_set(module, rest_client)
+    else:
+        return ensure_absent(module, rest_client)
 
 
 def main():
@@ -213,21 +221,15 @@ def main():
                 required=True,
                 choices=["present", "absent", "set"],
             ),
-            vm_uuid=dict(
-                type="str",
-            ),
             vm_name=dict(
                 type="str",
+                required=True,
             ),
             items=dict(
                 type="list",
                 elements="dict",
             ),
         ),
-        mutually_exclusive=[
-            ("vm_name", "vm_uuid"),
-        ],
-        required_one_of=[("vm_name", "vm_uuid")],
     )
 
     try:
@@ -236,8 +238,9 @@ def main():
         password = module.params["cluster_instance"]["password"]
 
         client = Client(host, username, password)
-        changed, debug_task_tag = run(module, client)
-        module.exit_json(changed=changed, debug_task_tag=debug_task_tag)
+        rest_client = RestClient(client=client)
+        changed, records, diff = run(module, rest_client)
+        module.exit_json(changed=changed, records=records, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

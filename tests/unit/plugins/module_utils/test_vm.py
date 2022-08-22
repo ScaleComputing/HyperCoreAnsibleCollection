@@ -7,6 +7,7 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
+from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -148,10 +149,6 @@ class TestVM:
             attach_guest_tools_iso=False,
             operating_system="os_windows_server_2012",
         )
-
-    def test_find_nic(self):
-        # TODO (domen): Write tests for find_nic, if necessary
-        pass
 
     def test_find_disk(self):
         # TODO (domen): Write tests for find_disk, if necessary
@@ -350,3 +347,271 @@ class TestVM:
 
         vm_by_name = VM.get_by_name(ansible_dict, rest_client)
         assert vm == vm_by_name
+
+    def test_get_or_fail_when_get(self, rest_client):
+        rest_client.list_records.return_value = [
+            {
+                "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "name": "XLAB_test_vm",
+                "blockDevs": [],
+                "netDevs": [],
+                "stats": "bla",
+                "tags": "XLAB,test",
+                "description": "test vm",
+                "mem": 23424234,
+                "state": "RUNNING",
+                "numVCPU": 2,
+                "bootDevices": [],
+                "operatingSystem": "windows",
+            }
+        ]
+        actual = VM.from_hypercore(
+            vm_dict=rest_client.list_records.return_value[0]
+        ).to_hypercore()
+        results = VM.get_or_fail(
+            query={"name": "XLAB_test_vm"}, rest_client=rest_client
+        )[0].to_hypercore()
+        assert results == actual
+
+    def test_get_or_fail_when_fail(self, rest_client):
+        rest_client.list_records.return_value = []
+        with pytest.raises(
+            errors.VMNotFound,
+            match="Virtual machine - {'name': 'XLAB-test-vm'} - not found",
+        ):
+            VM.get_or_fail(query={"name": "XLAB-test-vm"}, rest_client=rest_client)
+
+
+class TestNic:
+    @classmethod
+    def _get_test_vm(cls):
+        nic_dict_1 = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "virtio",
+            "macAddress": "12-34-56-78-AB",
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "connected": True,
+        }
+        nic_dict_2 = {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "RTL8139",
+            "vlan_new": 1,
+            "macAddress": "12-34-56-78-CD",
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "connected": True,
+        }
+        return VM.from_hypercore(
+            {
+                "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "name": "XLAB_test_vm",
+                "blockDevs": [],
+                "netDevs": [nic_dict_1, nic_dict_2],
+                "stats": "bla",
+                "tags": "XLAB,test",
+                "description": "test vm",
+                "mem": 23424234,
+                "state": "RUNNING",
+                "numVCPU": 2,
+                "bootDevices": [],
+                "operatingSystem": "windows",
+            }
+        )
+
+    def test_delete_unused_nics_to_hypercore_vm_when_no_delete(
+        self, create_module, rest_client
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+            )
+        )
+        vm_dict = {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
+        rest_client.list_records.return_value = [vm_dict]
+        virtual_machine = VM.get(
+            query={"name": module.params["vm_name"]}, rest_client=rest_client
+        )[0]
+        results = virtual_machine.delete_unused_nics_to_hypercore_vm(
+            module.params, rest_client
+        )
+        assert results is False
+
+    def test_delete_unused_nics_to_hypercore_vm_when_one_nic_deleted(
+        self, create_module, rest_client
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+            )
+        )
+        nic_dict = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "virtio",
+            "macAddress": "12-34-56-78-CD",
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "connected": True,
+        }
+        vm_dict = {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [nic_dict],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
+        rest_client.list_records.return_value = [vm_dict]
+        rest_client.delete_record.return_value = {"taskTag": "1234"}
+        virtual_machine = VM.get(
+            query={"name": module.params["vm_name"]}, rest_client=rest_client
+        )[0]
+        results = virtual_machine.delete_unused_nics_to_hypercore_vm(
+            module.params, rest_client
+        )
+        assert results is True
+
+    def test_delete_unused_nics_to_hypercore_vm_when_multiple_nic_deleted(
+        self, create_module, rest_client
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+            )
+        )
+        nic_dict_1 = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "virtio",
+            "macAddress": "00-00-00-00-00",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+        nic_dict_2 = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "virtio",
+            "macAddress": "00-00-00-00-00",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+        vm_dict = {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [nic_dict_1, nic_dict_2],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
+        rest_client.list_records.return_value = [vm_dict]
+        rest_client.delete_record.side_effect = [
+            {"taskTag": "1234"},
+            {"taskTag": "5678"},
+        ]
+        virtual_machine = VM.get(
+            query={"name": module.params["vm_name"]}, rest_client=rest_client
+        )[0]
+        results = virtual_machine.delete_unused_nics_to_hypercore_vm(
+            module.params, rest_client
+        )
+        assert results is True
+
+    def test_find_nic_vlan(self):
+        virtual_machine = self._get_test_vm()
+        results = virtual_machine.find_nic(vlan=1)
+        assert results[1] is (None)
+        assert results[0].vlan == 1
+        assert results[0].mac == "12-34-56-78-AB"
+        assert results[0].uuid == "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"
+        assert results[0].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
+        assert results[0].connected is True
+
+    def test_find_nic_vlan_and_vlan_new(self):
+        virtual_machine = self._get_test_vm()
+        results = virtual_machine.find_nic(vlan=2, vlan_new=1)
+        print(results)
+        assert results[0].vlan == 2
+        assert results[0].mac == "12-34-56-78-CD"
+        assert results[0].uuid == "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"
+        assert results[0].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
+        assert results[0].connected is True
+        assert results[1].vlan == 1
+        assert results[1].mac == "12-34-56-78-AB"
+        assert results[1].uuid == "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"
+        assert results[1].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
+        assert results[1].connected is True
+
+    def test_find_nic_mac(self):
+        virtual_machine = self._get_test_vm()
+        results = virtual_machine.find_nic(mac="12-34-56-78-CD")
+        print(results)
+        assert results[0].vlan == 2
+        assert results[0].mac == "12-34-56-78-CD"
+        assert results[0].uuid == "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"
+        assert results[0].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
+        assert results[0].connected is True
+
+    def test_find_nic_mac_and_mac_new(self):
+        virtual_machine = self._get_test_vm()
+        results = virtual_machine.find_nic(
+            mac="12-34-56-78-CD", mac_new="12-34-56-78-AB"
+        )
+        print(results)
+        assert results[0].vlan == 2
+        assert results[0].mac == "12-34-56-78-CD"
+        assert results[0].uuid == "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"
+        assert results[0].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
+        assert results[0].connected is True
+        assert results[1].vlan == 1
+        assert results[1].mac == "12-34-56-78-AB"
+        assert results[1].uuid == "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"
+        assert results[1].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
+        assert results[1].connected is True
