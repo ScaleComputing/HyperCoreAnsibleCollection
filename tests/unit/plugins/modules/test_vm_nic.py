@@ -12,457 +12,198 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_nic
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
 )
 
 
-class TestNicCompare:
-    def test_compare_same(self):
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        results = existing_nic.is_update_needed(new_nic)
-        assert results is True
+class TestEnsurePresentOrSet:
+    @classmethod
+    def _get_empty_test_vm(cls):
+        return {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
 
-    def test_compare_different(self):
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 2,
-            }
-        )
-        results = existing_nic.is_update_needed(new_nic)
-        assert results is False
+    @classmethod
+    def _get_test_vm(cls):
+        nic_dict_1 = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "virtio",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        nic_dict_2 = {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "RTL8139",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        return {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [nic_dict_1, nic_dict_2],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
 
-    def test_compare_vlan_new(self):
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-                "vlan_new": 2,
-            }
-        )
-        results = existing_nic.is_update_needed(new_nic)
-        assert results is False
+    @classmethod
+    def _get_test_vm_updated(cls):
+        nic_dict_1 = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 3,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        nic_dict_2 = {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 4,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        return {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [nic_dict_1, nic_dict_2],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
 
-    def test_compare_mac_new(self):
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-                "mac_new": "12:34:56:78:AB",
-            }
-        )
-        results = existing_nic.is_update_needed(new_nic)
-        assert results is False
+    @classmethod
+    def _get_nic_1(cls):
+        return {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "virtio",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
 
-    def test_compare_mac_new_and_vlan_new(self):
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "vlan": 1,
-                "vlan_new": 2,
-                "mac_new": "12:34:56:78:AB",
-            }
-        )
-        results = existing_nic.is_update_needed(new_nic)
-        assert results is False
+    @classmethod
+    def _get_nic_1_updated(cls):
+        return {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
 
-    def test_compare_vlan_new_same(self):
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-                "vlan_new": 1,
-            }
-        )
-        results = existing_nic.is_update_needed(new_nic)
-        print(results)
-        assert results is True
+    @classmethod
+    def _get_nic_2_updated(cls):
+        return {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
 
-    def test_compare_mac_new_same(self):
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-                "macAddress": "12:34:56:78:AB",
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-                "mac_new": "12:34:56:78:AB",
-            }
-        )
-        results = existing_nic.is_update_needed(new_nic)
-        print(results)
-        assert results is True
+    @classmethod
+    def _get_nic_2(cls):
+        return {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "RTL8139",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
 
-    def test_compare_mac_new_and_vlan_new_same(self):
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 2,
-                "macAddress": "12:34:56:78:AB",
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-                "vlan_new": 2,
-                "mac_new": "12:34:56:78:AB",
-            }
-        )
-        results = existing_nic.is_update_needed(new_nic)
-        print(results)
-        assert results is True
+    @classmethod
+    def _get_nic_1_updated_vlan(cls):
+        return {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 3,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
 
+    @classmethod
+    def _get_nic_2_updated_vlan(cls):
+        return {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 4,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
 
-class TestNicList:
-    def test_create_nic_uuid_list_with_two_nics(self, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_name="unit_test_vm",
-                state="present",
-                items=[{"vlan": 1}, {"vlan": 2}],
-            )
-        )
+    @classmethod
+    def _get_nic_1_updated_mac(cls):
+        return {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "INTEL_E1000",
+            "macAddress": "12-34-56-78-AB",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
 
-        results = vm_nic.create_nic_uuid_list(module)
-        assert results == [1, 2]
+    @classmethod
+    def _get_nic_2_updated_mac(cls):
+        return {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "INTEL_E1000",
+            "macAddress": "AB-CD-EF-GH-12",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
 
-    def test_create_nic_uuid_list_with_two_nics_and_vla_new(self, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_name="unit_test_vm",
-                state="present",
-                items=[{"vlan": 1, "vlan_new": 3}, {"vlan": 2}],
-            )
-        )
-
-        results = vm_nic.create_nic_uuid_list(module)
-        assert results == [3, 2]
-
-    def test_check_parameters_with_vm_uuid(self, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_uuid="9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-            )
-        )
-        results = vm_nic.check_parameters(module)
-        assert results is None
-
-    def test_delete_not_used_nics_all_nics_are_in_use(self, client, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                items=[{"vlan": 1}, {"vlan": 2}],
-            )
-        )
-        end_point = "/rest/v1/VirDomain"
-        virtual_machine = VM(name="vm-name", memory=-1, vcpu=42)
-
-        results = vm_nic.delete_not_used_nics(
-            module, client, end_point, virtual_machine
-        )
-        assert results is None
-
-    def test_delete_not_used_nics_vlan1_deleted(self, client, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                items=[{"vlan": 1}, {"vlan": 2}],
-            )
-        )
-        end_point = "/rest/v1/VirDomain"
-        virtual_machine = VM(
-            name="vm-name",
-            memory=-1,
-            vcpu=42,
-            nics=[Nic.create_from_ansible(nic_dict=dict(vlan=2))],
-        )
-        results = vm_nic.delete_not_used_nics(
-            module, client, end_point, virtual_machine
-        )
-        assert results is None
-
-
-class TestAbsent:
-    def test_ensure_absent_nic_already_absent(self, client):
-        end_point = "/rest/v1/VirDomainNetDevice"
-        existing_nic = None
-
-        results = vm_nic.ensure_absent(client, end_point, existing_nic)
-
-        print(results)
-        assert results == {}
-
-    def test_ensure_absent_nic_is_present(self, client):
-        end_point = "/rest/v1/VirDomainNetDevice"
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        client.request.return_value.json = {"taskTag": "1567"}
-
-        results = vm_nic.ensure_absent(client, end_point, existing_nic)
-
-        print(results)
-        assert results == {"taskTag": "1567"}
-
-
-class TestPresentAndSet:
-    def test_ensure_present_or_set_when_nic_is_absent(self, client):
-        end_point = "/rest/v1/VirDomainNetDevice"
-        existing_nic = None
-        new_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-
-        client.request.return_value.json = {"taskTag": "1234"}
-        results = vm_nic.ensure_present_or_set(client, end_point, existing_nic, new_nic)
-        assert results == {"taskTag": "1234"}
-
-    def test_ensure_present_or_set_when_nic_is_present_nics_are_the_same(self, client):
-        end_point = "/rest/v1/VirDomainNetDevice"
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = existing_nic
-
-        results = vm_nic.ensure_present_or_set(client, end_point, existing_nic, new_nic)
-        assert results == {}
-
-    def test_ensure_present_or_set_when_nic_is_present_nics_are_the_different(
-        self, client
-    ):
-        end_point = "/rest/v1/VirDomainNetDevice"
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 2,
-            }
-        )
-
-        client.request.return_value.json = {"taskTag": "1234"}
-        results = vm_nic.ensure_present_or_set(client, end_point, existing_nic, new_nic)
-        assert results == {"taskTag": "1234"}
-
-    def test_ensure_present_or_set_when_nic_is_present_vlan_new(self, client):
-        end_point = "/rest/v1/VirDomainNetDevice"
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-                "vlan_new": 3,
-            }
-        )
-
-        client.request.return_value.json = {"taskTag": "1234"}
-        results = vm_nic.ensure_present_or_set(client, end_point, existing_nic, new_nic)
-        assert results == {"taskTag": "1234"}
-
-    def test_ensure_present_or_set_when_nic_is_present_mac_new(self, client):
-        end_point = "/rest/v1/VirDomainNetDevice"
-        existing_nic = Nic.create_from_hc3(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-            }
-        )
-        new_nic = Nic.create_from_ansible(
-            {
-                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
-                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "vlan": 1,
-                "mac_new": "12:34:56:78:AB",
-            }
-        )
-
-        client.request.return_value.json = {"taskTag": "1234"}
-        results = vm_nic.ensure_present_or_set(client, end_point, existing_nic, new_nic)
-        assert results == {"taskTag": "1234"}
-
-
-class TestFindVM:
-    def test_find_vm_with_name(self, client, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_name="unit_test_vm",
-                state="present",
-                vm_uuid=None,
-                items=[{"vlan": 1}, {"vlan": 2}],
-            )
-        )
-        client.get.return_value.json = [
-            {
-                "name": "unit_test_vm",
-                "blockDevs": [],
-                "netDevs": [],
-                "stats": "bla",
-                "tags": "XLAB,test",
-                "uuid": "id",
-                "description": "desc",
-                "mem": "42",
-                "state": "RUNNING",
-                "numVCPU": "2",
-                "bootDevices": [],
-                "attachGuestToolsISO": False,
-                "operatingSystem": "linux",
-            }
-        ]
-        virtual_machine = vm_nic.find_vm(module, client)
-
-        assert virtual_machine.name == "unit_test_vm"
-
-    def test_find_vm_with_uuid(self, client, create_module):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                vm_name=None,
-                state="present",
-                items=[{"vlan": 1}, {"vlan": 2}],
-            )
-        )
-        client.get.return_value.json = [
-            {
-                "name": "unit_test_vm",
-                "blockDevs": [],
-                "netDevs": [],
-                "stats": "bla",
-                "tags": "XLAB,test",
-                "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "description": "desc",
-                "mem": "42",
-                "state": "RUNNING",
-                "numVCPU": "2",
-                "bootDevices": [],
-                "attachGuestToolsISO": False,
-                "operatingSystem": "linux",
-            }
-        ]
-
-        virtual_machine = vm_nic.find_vm(module, client)
-
-        assert virtual_machine.uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
-
-
-class TestCheckStateDecideAction:
-    def test_check_state_decide_action_no_nics_from_ansible_state_is_set(
-        self, client, create_module
+    def test_ensure_present_or_set_when_no_change_and_state_set(
+        self, rest_client, create_module
     ):
         module = create_module(
             params=dict(
@@ -471,36 +212,18 @@ class TestCheckStateDecideAction:
                     username="admin",
                     password="admin",
                 ),
-                vm_name="unit_test_vm",
-                vm_uuid=None,
-                state="set",
+                vm_name="XLAB_test_vm",
                 items=[],
+                state="set",
             )
         )
-        client.get.return_value.json = [
-            {
-                "name": "unit_test_vm",
-                "blockDevs": [],
-                "netDevs": [],
-                "stats": "bla",
-                "tags": "XLAB,test",
-                "uuid": "id",
-                "description": "desc",
-                "mem": "42",
-                "state": "RUNNING",
-                "numVCPU": "2",
-                "bootDevices": [],
-                "attachGuestToolsISO": False,
-                "operatingSystem": "linux",
-            }
-        ]
-        results = vm_nic.check_state_decide_action(
-            module, client, module.params["state"]
-        )
-        assert results == {}
+        rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (False, [], {"before": [], "after": []})
 
-    def test_check_state_decide_action_state_absent_no_existing_nic(
-        self, client, create_module
+    def test_ensure_present_or_set_when_no_change_and_state_present(
+        self, rest_client, create_module
     ):
         module = create_module(
             params=dict(
@@ -509,51 +232,869 @@ class TestCheckStateDecideAction:
                     username="admin",
                     password="admin",
                 ),
-                vm_name="unit_test_vm",
-                vm_uuid=None,
-                state="absent",
-                items=[{"vlan": 1}, {"vlan": 2}],
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="present",
             )
         )
-        client.get.return_value.json = [
-            {
-                "name": "unit_test_vm",
-                "blockDevs": [],
-                "netDevs": [],
-                "stats": "bla",
-                "tags": "XLAB,test",
-                "uuid": "id",
-                "description": "desc",
-                "mem": "42",
-                "state": "RUNNING",
-                "numVCPU": "2",
-                "bootDevices": [],
-                "attachGuestToolsISO": False,
-                "operatingSystem": "linux",
-            }
-        ]
-        client.request.return_value.json = [1, 2]
-        results = vm_nic.check_state_decide_action(
-            module, client, module.params["state"]
+        rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (False, [], {"before": [], "after": []})
+
+    def test_ensure_present_or_set_when_changed_create_nics_and_state_set(
+        self, rest_client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[{"vlan": 1, "type": "virtio"}, {"vlan": 2, "type": "RTL8139"}],
+                state="set",
+            )
         )
-        assert results == {}
-
-
-class TestCreateOutput:
-    def test_create_output_with_task_tag(self):
-        json_response = {"taskTag": "1234"}
-        results = vm_nic.create_output(json_response)
+        rest_client.create_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        rest_client.get_record.side_effect = [
+            self._get_nic_1(),
+            {"state": ""},
+            self._get_nic_2(),
+            {"state": ""},
+        ]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
         print(results)
-        assert results == (True, {"taskTag": "1234"})
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "virtio",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "RTL8139",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [None, None],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+        )
 
-    def test_create_output_with_task_tag_no_task_tag(self):
-        json_response = {"taskTag": "No task tag"}
-        results = vm_nic.create_output(json_response)
+    def test_ensure_present_or_set_when_changed_create_nics_and_state_present(
+        self, rest_client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[{"vlan": 1, "type": "virtio"}, {"vlan": 2, "type": "RTL8139"}],
+                state="present",
+            )
+        )
+        rest_client.create_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        rest_client.get_record.side_effect = [
+            self._get_nic_1(),
+            {"state": ""},
+            self._get_nic_2(),
+            {"state": ""},
+        ]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
         print(results)
-        assert results == (True, {"taskTag": "No task tag"})
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "virtio",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "RTL8139",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [None, None],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+        )
 
-    def test_create_output_with_empty_json_response(self):
-        json_response = {}
-        results = vm_nic.create_output(json_response)
+    def test_ensure_present_or_set_when_changed_delete_all_and_state_set(
+        self, rest_client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="set",
+            )
+        )
+        rest_client.delete_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
         print(results)
-        assert results == (True, {})
+        assert results == (
+            True,
+            [],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+                "after": [],
+            },
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_type_and_state_present(
+        self, rest_client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000"},
+                    {"vlan": 2, "type": "INTEL_E1000"},
+                ],
+                state="present",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.get_record.side_effect = [
+            self._get_nic_1_updated(),
+            {"state": ""},
+            self._get_nic_2_updated(),
+            {"state": ""},
+        ]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "INTEL_E1000",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "INTEL_E1000",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "INTEL_E1000",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "INTEL_E1000",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_type_and_state_set(
+        self, rest_client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000"},
+                    {"vlan": 2, "type": "INTEL_E1000"},
+                ],
+                state="set",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.get_record.side_effect = [
+            self._get_nic_1_updated(),
+            {"state": ""},
+            self._get_nic_2_updated(),
+            {"state": ""},
+        ]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "INTEL_E1000",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "INTEL_E1000",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "INTEL_E1000",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "INTEL_E1000",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_vlan_and_state_present(
+        self, rest_client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000", "vlan_new": 3},
+                    {"vlan": 2, "type": "INTEL_E1000", "vlan_new": 4},
+                ],
+                state="present",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.get_record.side_effect = [
+            self._get_nic_1_updated_vlan(),
+            {"state": ""},
+            self._get_nic_2_updated_vlan(),
+            {"state": ""},
+        ]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 3,
+                    "type": "INTEL_E1000",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    "mac": "00-00-00-00-00",
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 4,
+                    "type": "INTEL_E1000",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    "mac": "00-00-00-00-00",
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 3,
+                        "type": "INTEL_E1000",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 4,
+                        "type": "INTEL_E1000",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+            },
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_vlan_and_state_set(
+        self, rest_client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000", "vlan_new": 3},
+                    {"vlan": 2, "type": "INTEL_E1000", "vlan_new": 4},
+                ],
+                state="set",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.side_effect = [
+            [self._get_test_vm()],
+            [self._get_test_vm_updated()],
+        ]
+        rest_client.get_record.side_effect = [
+            self._get_nic_1_updated_vlan(),
+            {"state": ""},
+            self._get_nic_2_updated_vlan(),
+            {"state": ""},
+        ]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 3,
+                    "type": "INTEL_E1000",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    "mac": "00-00-00-00-00",
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 4,
+                    "type": "INTEL_E1000",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    "mac": "00-00-00-00-00",
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 3,
+                        "type": "INTEL_E1000",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 4,
+                        "type": "INTEL_E1000",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+            },
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_mac_and_state_present(
+        self, rest_client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000", "mac_new": "12-34-56-78-AB"},
+                    {"vlan": 2, "type": "INTEL_E1000", "mac_new": "AB-CD-EF-GH-12"},
+                ],
+                state="present",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.get_record.side_effect = [
+            self._get_nic_1_updated_mac(),
+            {"state": ""},
+            self._get_nic_2_updated_mac(),
+            {"state": ""},
+        ]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "INTEL_E1000",
+                    "mac": "12-34-56-78-AB",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "INTEL_E1000",
+                    "mac": "AB-CD-EF-GH-12",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "INTEL_E1000",
+                        "mac": "12-34-56-78-AB",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "INTEL_E1000",
+                        "mac": "AB-CD-EF-GH-12",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_mac_and_state_set(
+        self, rest_client, create_module
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000", "mac_new": "12-34-56-78-AB"},
+                    {"vlan": 2, "type": "INTEL_E1000", "mac_new": "AB-CD-EF-GH-12"},
+                ],
+                state="set",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.get_record.side_effect = [
+            self._get_nic_1_updated_mac(),
+            {"state": ""},
+            self._get_nic_2_updated_mac(),
+            {"state": ""},
+        ]
+        results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "INTEL_E1000",
+                    "mac": "12-34-56-78-AB",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "INTEL_E1000",
+                    "mac": "AB-CD-EF-GH-12",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "INTEL_E1000",
+                        "mac": "12-34-56-78-AB",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "INTEL_E1000",
+                        "mac": "AB-CD-EF-GH-12",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+        )
+
+
+class TestEnsureAbsent:
+    @classmethod
+    def _get_empty_test_vm(cls):
+        return {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
+
+    @classmethod
+    def _get_test_vm(cls):
+        nic_dict_1 = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "virtio",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        nic_dict_2 = {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "RTL8139",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        return {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [nic_dict_1, nic_dict_2],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
+
+    def test_ensure_absent_when_no_change(self, create_module, rest_client):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="absent",
+            )
+        )
+        rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        results = vm_nic.ensure_absent(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (False, [], {"before": [], "after": []})
+
+    def test_ensure_absent_when_change(self, create_module, rest_client):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[{"vlan": 1}, {"vlan": 2}],
+                state="absent",
+            )
+        )
+        rest_client.delete_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        results = vm_nic.ensure_absent(module=module, rest_client=rest_client)
+        print(results)
+        assert results == (
+            True,
+            [None, None],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+                "after": [None, None],
+            },
+        )

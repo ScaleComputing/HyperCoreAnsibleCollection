@@ -45,10 +45,10 @@ class MissingValueAnsible(ScaleComputingError):
 
 
 # In-case argument spec doesn't catch exception
-class MissingValueHC3(ScaleComputingError):
+class MissingValueHypercore(ScaleComputingError):
     def __init__(self, data):
-        self.message = "Missing value - {0}".format(data)
-        super(MissingValueHC3, self).__init__(self.message)
+        self.message = "Missing values from hypercore API - {0}".format(data)
+        super(MissingValueHypercore, self).__init__(self.message)
 
 
 class DeviceNotUnique(ScaleComputingError):

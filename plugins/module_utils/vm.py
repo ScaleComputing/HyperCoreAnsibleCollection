@@ -13,7 +13,11 @@ from ..module_utils.nic import Nic
 from ..module_utils.disk import Disk
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
-from ..module_utils.utils import get_query
+from ..module_utils.utils import (
+    get_query,
+)
+from ..module_utils.task_tag import TaskTag
+from ..module_utils import errors
 
 FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     started="RUNNING",
@@ -59,6 +63,14 @@ class VM(PayloadMapper):
         self.boot_devices = boot_devices or []
         self.attach_guest_tools_iso = attach_guest_tools_iso
 
+    @property
+    def nic_list(self):
+        return self.nics
+
+    @property
+    def disk_list(self):
+        return self.disks
+
     @classmethod
     def from_ansible(cls, vm_dict):
         return VM(
@@ -68,9 +80,7 @@ class VM(PayloadMapper):
             description=vm_dict["description"],
             memory=vm_dict["memory"],
             vcpu=vm_dict["vcpu"],
-            nics=[
-                Nic.create_from_ansible(nic_dict=nic) for nic in vm_dict["nics"] or []
-            ],
+            nics=[Nic.from_ansible(ansible_data=nic) for nic in vm_dict["nics"] or []],
             disks=[
                 Disk(from_hc3=True, disk_dict=disk) for disk in vm_dict["disks"] or []
             ],
@@ -94,7 +104,7 @@ class VM(PayloadMapper):
             memory=vm_dict["mem"],
             power_state=FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE[vm_dict["state"]],
             vcpu=vm_dict["numVCPU"],
-            nics=[Nic.create_from_hc3(nic_dict=nic) for nic in vm_dict["netDevs"]],
+            nics=[Nic.from_hypercore(hypercore_data=nic) for nic in vm_dict["netDevs"]],
             disks=[
                 Disk(from_hc3=True, disk_dict=disk) for disk in vm_dict["blockDevs"]
             ],
@@ -103,116 +113,6 @@ class VM(PayloadMapper):
             attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", ""),
             operating_system=vm_dict["operatingSystem"],
         )
-
-    def to_hypercore(self):
-        vm_dict = dict(
-            name=self.name,
-            description=self.description,
-            mem=self.mem,
-            numVCPU=self.numVCPU,
-            blockDevs=[disk.data_to_hc3() for disk in self.disk_list],
-            netDevs=[nic.data_to_hc3() for nic in self.nic_list],
-            # TODO: When boot devices get implemented, add transformation here
-            bootDevices=self.boot_devices,
-            tags=",".join(self.tags),
-            uuid=self.uuid,
-            attachGuestToolsISO=self.attach_guest_tools_iso,
-        )
-        if self.operating_system:
-            vm_dict["operatingSystem"] = self.operating_system
-        # state attribute is used by HC3 only during VM create.
-        if self.power_state:
-            vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE[self.power_state]
-        return vm_dict
-
-    def to_ansible(self):
-        # state attribute is used by HC3 only during VM create.
-        return dict(
-            vm_name=self.name,
-            description=self.description,
-            operating_system=self.operating_system,
-            power_state=self.power_state,
-            memory=self.mem,
-            vcpu=self.numVCPU,
-            disks=[disk.data_to_ansible() for disk in self.disk_list],
-            nics=[nic.data_to_ansible() for nic in self.nic_list],
-            tags=self.tags,
-            uuid=self.uuid,
-            boot_devices=self.boot_devices,
-            attach_guest_tools_iso=self.attach_guest_tools_iso,
-        )
-
-    # search by vlan or mac as specified in US-11:
-    # (https://gitlab.xlab.si/scale-ansible-collection/scale-ansible-collection-docs/-/blob/develop/docs/user-stories/us11-manage-vnics.md)
-    def find_nic(self, vlan=None, mac=None):
-        if vlan:
-            all_vlans = [nic.vlan for nic in self.nic_list]
-            # TODO raise specific exception
-            if all_vlans.count(vlan) > 1:
-                raise DeviceNotUnique("nic - vm.py - find_nic()")
-            for nic in self.nic_list:
-                if nic.vlan == vlan:
-                    return nic
-            return None
-        all_macs = [nic.mac for nic in self.nic_list]
-        # TODO raise specific exception
-        if all_macs.count(mac) > 1:
-            raise DeviceNotUnique("nic - vm.py - find_nic()")
-        for nic in self.nic_list:
-            if nic.mac == mac:
-                return nic
-
-    def find_disk(self, slot):
-        # TODO we need to find by (name, disk_type, disk_slot).
-        all_slots = [disk.slot for disk in self.disk_list]
-        if all_slots.count(slot) > 1:
-            raise DeviceNotUnique("disk - vm.py - find_disk()")
-        for disk in self.disk_list:
-            if disk.slot == slot:
-                return disk
-
-    def create_payload_to_hc3(self):
-        dom = self.to_hypercore()
-        del dom["uuid"]  # No uuid is used when creating payload
-        return dict(
-            options=dict(attachGuestToolsISO=dom.pop("attachGuestToolsISO")),
-            dom=dom,
-        )
-
-    def update_payload_to_hc3(self):
-        update_body = self.to_hypercore()
-        update_body.pop("attachGuestToolsISO")
-        return update_body
-
-    @property
-    def nic_list(self):
-        return self.nics
-
-    @property
-    def disk_list(self):
-        return self.disks
-
-    def __eq__(self, other):
-        """One VM is equal to another if it has ALL attributes exactly the same"""
-        return all(
-            (
-                self.operating_system == other.operating_system,
-                self.uuid == other.uuid,
-                self.name == other.name,
-                self.tags == other.tags,
-                self.description == other.description,
-                self.mem == other.mem,
-                self.power_state == other.power_state,
-                self.numVCPU == other.numVCPU,
-                self.nics == other.nics,
-                self.disks == other.disks,
-                self.boot_devices == other.boot_devices,
-                self.attach_guest_tools_iso == other.attach_guest_tools_iso,
-            )
-        )
-
-    def __str__(self):
-        return super().__str__()
 
     @classmethod
     def compare(cls, ansible_dict, hypercore_dict):
@@ -233,6 +133,18 @@ class VM(PayloadMapper):
         )
         if not record:
             return []
+        return [
+            VM.from_hypercore(vm_dict=virtual_machine) for virtual_machine in record
+        ]
+
+    @classmethod
+    def get_or_fail(cls, query, rest_client):  # if vm is not found, raise exception
+        record = rest_client.list_records(
+            "/rest/v1/VirDomain",
+            query,
+        )
+        if not record:
+            raise errors.VMNotFound(query)
         return [
             VM.from_hypercore(vm_dict=virtual_machine) for virtual_machine in record
         ]
@@ -277,3 +189,125 @@ class VM(PayloadMapper):
         hypercore_dict = rest_client.get_record("/rest/v1/VirDomain", query)
         vm_from_hypercore = VM.from_hypercore(hypercore_dict)
         return vm_from_hypercore
+
+    def to_hypercore(self):
+        vm_dict = dict(
+            name=self.name,
+            description=self.description,
+            mem=self.mem,
+            numVCPU=self.numVCPU,
+            blockDevs=[disk.data_to_hc3() for disk in self.disk_list],
+            netDevs=[nic.to_hypercore() for nic in self.nic_list],
+            # TODO: When boot devices get implemented, add transformation here
+            bootDevices=self.boot_devices,
+            tags=",".join(self.tags),
+            uuid=self.uuid,
+            attachGuestToolsISO=self.attach_guest_tools_iso,
+        )
+        if self.operating_system:
+            vm_dict["operatingSystem"] = self.operating_system
+        # state attribute is used by HC3 only during VM create.
+        if self.power_state:
+            vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE[self.power_state]
+        return vm_dict
+
+    def to_ansible(self):
+        # state attribute is used by HC3 only during VM create.
+        return dict(
+            vm_name=self.name,
+            description=self.description,
+            operating_system=self.operating_system,
+            power_state=self.power_state,
+            memory=self.mem,
+            vcpu=self.numVCPU,
+            disks=[disk.data_to_ansible() for disk in self.disk_list],
+            nics=[nic.to_ansible() for nic in self.nic_list],
+            tags=self.tags,
+            uuid=self.uuid,
+            boot_devices=self.boot_devices,
+            attach_guest_tools_iso=self.attach_guest_tools_iso,
+        )
+
+    # search by vlan or mac as specified in US-11:
+    # (https://gitlab.xlab.si/scale-ansible-collection/scale-ansible-collection-docs/-/blob/develop/docs/user-stories/us11-manage-vnics.md)
+    def find_nic(self, vlan=None, mac=None, vlan_new=None, mac_new=None):
+        existing_hypercore_nic_with_new = None
+        existing_hypercore_nic = None
+        if vlan is not None:
+            all_vlans = [nic.vlan for nic in self.nic_list]
+            if all_vlans.count(vlan) > 1:
+                raise DeviceNotUnique("nic - vm.py - find_nic()")
+            for nic in self.nic_list:
+                if nic.vlan == vlan:
+                    existing_hypercore_nic = nic
+                elif vlan_new is not None and nic.vlan == vlan_new:
+                    existing_hypercore_nic_with_new = nic
+        else:
+            all_macs = [nic.mac for nic in self.nic_list]
+            if all_macs.count(mac) > 1:
+                raise DeviceNotUnique("nic - vm.py - find_nic()")
+            for nic in self.nic_list:
+                if nic.mac == mac:
+                    existing_hypercore_nic = nic
+                elif mac_new is not None and nic.mac == mac_new:
+                    existing_hypercore_nic_with_new = nic
+        return existing_hypercore_nic, existing_hypercore_nic_with_new
+
+    def find_disk(self, slot):
+        # TODO we need to find by (name, disk_type, disk_slot).
+        all_slots = [disk.slot for disk in self.disk_list]
+        if all_slots.count(slot) > 1:
+            raise DeviceNotUnique("disk - vm.py - find_disk()")
+        for disk in self.disk_list:
+            if disk.slot == slot:
+                return disk
+
+    def create_payload_to_hc3(self):
+        dom = self.to_hypercore()
+        del dom["uuid"]  # No uuid is used when creating payload
+        return dict(
+            options=dict(attachGuestToolsISO=dom.pop("attachGuestToolsISO")),
+            dom=dom,
+        )
+
+    def update_payload_to_hc3(self):
+        update_body = self.to_hypercore()
+        update_body.pop("attachGuestToolsISO")
+        return update_body
+
+    def delete_unused_nics_to_hypercore_vm(self, ansible_dict, rest_client):
+        changed = False
+        ansible_nic_uuid_list = [
+            nic["vlan_new"] if "vlan_new" in nic.keys() else nic["vlan"]
+            for nic in ansible_dict["items"] or []
+        ]
+        for nic in self.nic_list:
+            if nic.vlan not in ansible_nic_uuid_list:
+                response = rest_client.delete_record(
+                    endpoint="/rest/v1/VirDomainNetDevice/" + nic.uuid, check_mode=False
+                )
+                TaskTag.wait_task(rest_client, response)
+                changed = True
+        return changed
+
+    def __eq__(self, other):
+        """One VM is equal to another if it has ALL attributes exactly the same"""
+        return all(
+            (
+                self.operating_system == other.operating_system,
+                self.uuid == other.uuid,
+                self.name == other.name,
+                self.tags == other.tags,
+                self.description == other.description,
+                self.mem == other.mem,
+                self.power_state == other.power_state,
+                self.numVCPU == other.numVCPU,
+                self.nics == other.nics,
+                self.disks == other.disks,
+                self.boot_devices == other.boot_devices,
+                self.attach_guest_tools_iso == other.attach_guest_tools_iso,
+            )
+        )
+
+    def __str__(self):
+        return super().__str__()

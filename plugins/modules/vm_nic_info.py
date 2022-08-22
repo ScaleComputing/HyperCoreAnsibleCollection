@@ -26,11 +26,7 @@ options:
       - Virtual machine name
       - Used to identify selected virtual machine by name
     type: str
-  vm_uuid:
-    description:
-      - Virtual machine uniquie identifier
-      - Used to identify selected virtual machine by uuid
-    type: str
+    required: true
   vlan:
     description:
       - Vlan on which network interface is operating on
@@ -40,26 +36,31 @@ options:
 """
 
 EXAMPLES = r"""
-- name: Retrieve all VMs
-  scale_computing.hypercore.sample_vm_info:
-  register: result
+- name: Retrieve nic info on vlan 15
+  scale_computing.hypercore.vm_nic_info:
+    vm_name: 'XLAB-demo-vm'
+    vlan: 15
+  register: testout
 
-- name: Retrieve all VMs with specific name
-  scale_computing.hypercore.sample_vm_info:
-    vm_name: vm-a
-  register: result
+- name: Retrieve nic info on all vlans
+  scale_computing.hypercore.vm_nic_info:
+    vm_name: 'XLAB-demo-vm'
+  register: testout
 """
 
 RETURN = r"""
-vms:
+records:
   description:
-    - A list of VMs records.
+    - A list of nics records.
   returned: success
   type: list
   sample:
-    - vm_name: "vm-name"
-      uuid: "1234-0001"
-      state: "running"
+    - uuid: 07a2a68a-0afa-4718-9c6f-00a39d08b67e
+      vlan: 15
+      type: virtio
+      mac: 12-34-56-78-AB
+      connected: true
+      ipv4_addresses: []
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -67,45 +68,16 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.vm import VM
-from ..module_utils.utils import validate_uuid
+from ..module_utils.rest_client import RestClient
 
 
-def check_parameters(module):
-    if module.params["vm_uuid"]:
-        validate_uuid(module.params["vm_uuid"])
-
-
-def create_vm_object(
-    module, client
-):  # if we decide to use name and vm_uuid across all playbooks we can add this to .get method in VM class
-    if module.params["vm_uuid"]:
-        virtual_machine_list = VM.get_legacy(client, uuid=module.params["vm_uuid"])
-        if not virtual_machine_list:
-            raise errors.VMNotFound(module.params["vm_uuid"])
-        virtual_machine_dict = virtual_machine_list[0]
-    else:
-        virtual_machine_list = VM.get_legacy(client, name=module.params["vm_name"])
-        if not virtual_machine_list:
-            raise errors.VMNotFound(module.params["vm_name"])
-        virtual_machine_dict = virtual_machine_list[0]
-    return VM.from_hypercore(vm_dict=virtual_machine_dict)
-
-
-def create_output(records):
-    return False, records
-
-
-def run(module, client):
-    check_parameters(module)
-    if module.params["vlan"]:
-        virtual_machine = create_vm_object(module, client)
-        records = [
-            virtual_machine.find_nic(module.params["vlan"]).data_to_ansible()
-        ]  # Consistency with output []
-    else:  # No vlan, we output all NICs for specified VM
-        virtual_machine = create_vm_object(module, client)
-        records = [nic.data_to_ansible() for nic in virtual_machine.nic_list]
-    return create_output(records)
+def run(module, rest_client):
+    virtual_machine = VM.get_or_fail(
+        query={"name": module.params["vm_name"]}, rest_client=rest_client
+    )[0]
+    if not module.params["vlan"]:
+        return False, [nic.to_ansible() for nic in virtual_machine.nic_list]
+    return False, [virtual_machine.find_nic(module.params["vlan"])[0].to_ansible()]
 
 
 def main():
@@ -115,18 +87,12 @@ def main():
             arguments.get_spec("cluster_instance"),
             vm_name=dict(
                 type="str",
-            ),
-            vm_uuid=dict(
-                type="str",
+                required=True,
             ),
             vlan=dict(
                 type="int",
             ),
         ),
-        mutually_exclusive=[
-            ("vm_name", "vm_uuid"),
-        ],
-        required_one_of=[("vm_name", "vm_uuid")],
     )
 
     try:
@@ -135,7 +101,8 @@ def main():
         password = module.params["cluster_instance"]["password"]
 
         client = Client(host, username, password)
-        changed, records = run(module, client)
+        rest_client = RestClient(client)
+        changed, records = run(module, rest_client)
         module.exit_json(changed=changed, records=records)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
