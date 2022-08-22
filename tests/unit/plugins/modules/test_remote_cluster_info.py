@@ -29,7 +29,7 @@ class TestRun:
                     username="admin",
                     password="admin",
                 ),
-                name="PUB4",
+                remote_cluster="PUB4",
             ),
         )
 
@@ -64,7 +64,7 @@ class TestRun:
                     username="admin",
                     password="admin",
                 ),
-                name="PUB3",
+                remote_cluster="PUB3",
             ),
         )
 
@@ -89,7 +89,7 @@ class TestRun:
                     username="admin",
                     password="admin",
                 ),
-                name=None,
+                remote_cluster=None,
             ),
         )
 
@@ -122,7 +122,7 @@ class TestRun:
                     username="admin",
                     password="admin",
                 ),
-                name="PUB4",
+                remote_cluster="PUB4",
             ),
         )
 

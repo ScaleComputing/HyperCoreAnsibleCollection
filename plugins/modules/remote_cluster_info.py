@@ -20,7 +20,7 @@ version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 options:
-  name:
+  remote_cluster:
     type: str
     description:
       - Remote cluster's name.
@@ -31,7 +31,7 @@ options:
 EXAMPLES = r"""
 - name: Get info about specific remote cluster
   scale_computing.hypercore.remote_cluster_info:
-    name: PUB4
+    remote_cluster: PUB4
   register: result
 
 - name: Get info about all remote clusters
@@ -61,7 +61,6 @@ from ..module_utils import arguments, errors
 from ..module_utils.rest_client import RestClient
 from ..module_utils.utils import filter_results
 from ..module_utils.client import Client
-from ..module_utils.utils import filter_dict
 from ..module_utils.remote_cluster import RemoteCluster
 
 
@@ -74,7 +73,10 @@ def run(module, rest_client):
     ]
     # Since get_query doesn't work for nested parameters (name -> remoteClusterInfo.clusterName) we have this workaround
     # In case of additional modules needing this functionality, get_query (and is_superset()) will have to be updated
-    ansible_query = filter_dict(module.params, "name")
+    if module.params["remote_cluster"]:
+        ansible_query = dict(name=module.params["remote_cluster"])
+    else:
+        ansible_query = {}
     return filter_results(records, ansible_query)
 
 
@@ -83,7 +85,7 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            name=dict(
+            remote_cluster=dict(
                 type="str",
                 required=False,
             ),
