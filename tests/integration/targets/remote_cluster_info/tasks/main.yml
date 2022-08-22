@@ -18,4 +18,18 @@
           - initial.records[0].remote_node_ips
           - initial.records[0].remote_node_uuids
 
-  # After put method is implemented add also test with option included
+    - name: Retrieve remote cluster by name
+      scale_computing.hypercore.remote_cluster_info:
+        remote_cluster: "{{ initial.records[0].name }}"
+      register: results
+    - ansible.builtin.assert:
+        that:
+          - results.records[0].name == initial.records[0].name
+    
+    - name: Retrieve nonexisting remote cluster
+      scale_computing.hypercore.remote_cluster_info:
+        remote_cluster: "DOES NOT EXIST"
+      register: results
+    - ansible.builtin.assert:
+        that:
+          - results.records == []
