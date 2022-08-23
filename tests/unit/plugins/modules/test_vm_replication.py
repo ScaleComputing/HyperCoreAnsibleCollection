@@ -43,7 +43,16 @@ class TestEnabledOrReenabled:
             "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "enable": True,
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "remote_cluster": "remote-cluster-name",
         }
+        remote_cluster_dict = {
+            "remoteClusterInfo": {"clusterName": "remote-cluster-name"},
+            "connectionStatus": "status",
+            "replicationOK": "ok",
+            "remoteNodeIPs": [],
+            "remoteNodeUUIDs": [],
+        }
+        connection_dict = {"uuid": "connection-uuid"}
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -52,16 +61,23 @@ class TestEnabledOrReenabled:
                     password="admin",
                 ),
                 vm_name="XLAB_test_vm",
-                remote_cluster="7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",  # TODO: change to cluster_name when cluster_info is implemented
+                remote_cluster="remote-cluster-name",
                 state="enabled",
             )
         )
         after = {
             "vm_name": "XLAB_test_vm",
-            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "remote_cluster": "remote-cluster-name",
             "state": "enabled",
         }
-        rest_client.list_records.side_effect = [[vm_dict], [], [replication_dict]]
+        rest_client.list_records.side_effect = [
+            [vm_dict],
+            [],
+            [connection_dict],
+            [replication_dict],
+            [vm_dict],
+            [remote_cluster_dict],
+        ]
         rest_client.create_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (True, after, {"before": None, "after": after})
@@ -95,14 +111,21 @@ class TestEnabledOrReenabled:
             "enable": True,
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
         }
+        remote_cluster_dict = {
+            "remoteClusterInfo": {"clusterName": "remote-cluster-name"},
+            "connectionStatus": "status",
+            "replicationOK": "ok",
+            "remoteNodeIPs": [],
+            "remoteNodeUUIDs": [],
+        }
         after = {
             "vm_name": "XLAB_test_vm",
-            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "remote_cluster": "remote-cluster-name",
             "state": "enabled",
         }
         before = {
             "vm_name": "XLAB_test_vm",
-            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "remote_cluster": "remote-cluster-name",
             "state": "disabled",
         }
         module = create_module(
@@ -113,14 +136,18 @@ class TestEnabledOrReenabled:
                     password="admin",
                 ),
                 vm_name="XLAB_test_vm",
-                remote_cluster="7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",  # TODO: change to cluster_name when cluster_info is implemented
+                remote_cluster="remote-cluster-name",
                 state="enabled",
             )
         )
         rest_client.list_records.side_effect = [
             [vm_dict],
             [replication_dict],
+            [vm_dict],
+            [remote_cluster_dict],
             [replication_dict_after],
+            [vm_dict],
+            [remote_cluster_dict],
         ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
@@ -149,6 +176,13 @@ class TestEnabledOrReenabled:
             "enable": True,
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
         }
+        remote_cluster_dict = {
+            "remoteClusterInfo": {"clusterName": "remote-cluster-name"},
+            "connectionStatus": "status",
+            "replicationOK": "ok",
+            "remoteNodeIPs": [],
+            "remoteNodeUUIDs": [],
+        }
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -157,11 +191,16 @@ class TestEnabledOrReenabled:
                     password="admin",
                 ),
                 vm_name="XLAB_test_vm",
-                remote_cluster="7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",  # TODO: change to cluster_name when cluster_info is implemented
+                remote_cluster="remote-cluster-name",
                 state="enabled",
             )
         )
-        rest_client.list_records.side_effect = [[vm_dict], [replication_dict]]
+        rest_client.list_records.side_effect = [
+            [vm_dict],
+            [replication_dict],
+            [vm_dict],
+            [remote_cluster_dict],
+        ]
         rest_client.update_record.return_value = {"taskTag": ""}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
@@ -216,12 +255,6 @@ class TestDisabled:
             "bootDevices": [],
             "operatingSystem": "windows",
         }
-        replication_dict = {
-            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
-            "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "enable": False,
-            "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
-        }
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -234,7 +267,7 @@ class TestDisabled:
                 state="disabled",
             )
         )
-        rest_client.list_records.side_effect = [[vm_dict], [replication_dict]]
+        rest_client.list_records.side_effect = [[vm_dict], []]
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
 
@@ -269,13 +302,20 @@ class TestDisabled:
         }
         after = {
             "vm_name": "XLAB_test_vm",
-            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "remote_cluster": "remote-cluster-name",
             "state": "disabled",
         }
         before = {
             "vm_name": "XLAB_test_vm",
-            "remote_cluster": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
+            "remote_cluster": "remote-cluster-name",
             "state": "enabled",
+        }
+        remote_cluster_dict = {
+            "remoteClusterInfo": {"clusterName": "remote-cluster-name"},
+            "connectionStatus": "status",
+            "replicationOK": "ok",
+            "remoteNodeIPs": [],
+            "remoteNodeUUIDs": [],
         }
         module = create_module(
             params=dict(
@@ -285,15 +325,30 @@ class TestDisabled:
                     password="admin",
                 ),
                 vm_name="XLAB_test_vm",
-                remote_cluster="7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",  # TODO: change to cluster_name when cluster_info is implemented
+                remote_cluster="remote-cluster-name",
                 state="disabled",
             )
         )
         rest_client.list_records.side_effect = [
             [vm_dict],
             [replication_dict],
+            [vm_dict],
+            [remote_cluster_dict],
             [replication_dict_after],
+            [vm_dict],
+            [remote_cluster_dict],
         ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (True, after, {"before": before, "after": after})
+
+
+class TestMain:
+    def test_minimal_set_of_params(self, run_main):
+        params = dict(
+            instance=dict(
+                host="https://my.host.name", username="user", password="pass"
+            ),
+        )
+        changed, records = run_main(vm_replication, params)
+        assert changed is False

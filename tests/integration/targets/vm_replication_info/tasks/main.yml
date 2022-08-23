@@ -124,8 +124,7 @@
           - replication_info.records | length == 1
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_info_CI_test'
           - replication_info.records[0].state == 'enabled'
-          - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
-          - replication_info.records[0].remote_cluster  # == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"  # after
+          - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"
 
 # -------------------------------------------------------------------------
     - name: Create replication for VM2

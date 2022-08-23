@@ -63,49 +63,22 @@ from ..module_utils.vm import VM
 from ..module_utils.replication import Replication
 
 
-def create_output(records):
-    return False, records
-
-
-def find_replication(rest_client, virtual_machine_obj):
-    replication_obj_list = Replication.get(
-        query={"sourceDomainUUID": virtual_machine_obj.uuid}, rest_client=rest_client
-    )
-    if replication_obj_list:
-        return [
-            replication_obj_list[0].to_ansible(virtual_machine_obj)
-        ]  # There is only one replication per VM
-    return []
-
-
 def run(module, rest_client):
     if not module.params["vm_name"]:
-        records = []
-        replication_obj_list = Replication.get(rest_client=rest_client, query=None)
-        virtual_machine_obj_list = VM.get(query=None, rest_client=rest_client)
-        if not virtual_machine_obj_list:
-            raise errors.VMNotFound("VM list")
-        for (
-            replication_obj
-        ) in (
-            replication_obj_list
-        ):  # this is faster than using get request for every single VM.
-            for virtual_machine_obj in virtual_machine_obj_list:
-                if virtual_machine_obj.uuid == replication_obj.vm_uuid:
-                    records.append(
-                        replication_obj.to_ansible(
-                            virtual_machine_obj=virtual_machine_obj
-                        )
-                    )
-                    break
+        records = [
+            replication_obj.to_ansible()
+            for replication_obj in Replication.get(rest_client=rest_client, query=None)
+        ]
     else:
-        virtual_machine_obj_list = VM.get(
+        virtual_machine_obj_list = VM.get_or_fail(
             query={"name": module.params["vm_name"]}, rest_client=rest_client
         )
-        if not virtual_machine_obj_list:
-            raise errors.VMNotFound(module.params["vm_name"])
-        records = find_replication(rest_client, virtual_machine_obj_list[0])
-    return create_output(records)
+        replication = Replication.get(
+            query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
+            rest_client=rest_client,
+        )[0]
+        records = [replication.to_ansible()]
+    return False, records
 
 
 def main():
