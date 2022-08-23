@@ -34,7 +34,7 @@ class RemoteCluster(PayloadMapper):
     def from_hypercore(cls, remote_cluster_dict):
         if not remote_cluster_dict:
             return None
-        return RemoteCluster(
+        return cls(
             name=remote_cluster_dict["remoteClusterInfo"]["clusterName"],
             connection_status=remote_cluster_dict["connectionStatus"],
             replication_ok=remote_cluster_dict["replicationOK"],
@@ -74,9 +74,7 @@ class RemoteCluster(PayloadMapper):
         cls, rest_client, connection_uuid
     ):
         records = [
-            RemoteCluster.from_hypercore(
-                remote_cluster_dict=hypercore_dict
-            ).to_ansible()
+            cls.from_hypercore(remote_cluster_dict=hypercore_dict).to_ansible()
             for hypercore_dict in rest_client.list_records(
                 "/rest/v1/RemoteClusterConnection", {"uuid": connection_uuid}
             )

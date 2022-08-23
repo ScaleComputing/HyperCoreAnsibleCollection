@@ -26,7 +26,7 @@ class Node(PayloadMapper):
     def from_hypercore(cls, node_dict):
         if not node_dict:  # In case for get_record, return None if no result is found
             return None
-        return Node(
+        return cls(
             node_uuid=node_dict["uuid"],
             backplane_ip=node_dict["backplaneIP"],
             lan_ip=node_dict["lanIP"],
