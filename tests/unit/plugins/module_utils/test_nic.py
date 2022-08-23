@@ -240,7 +240,7 @@ class TestNicCompare:
         results = existing_nic.is_update_needed(new_nic)
         assert results is True
 
-    def test_compare_vlan_new(self):
+    def test_compare_vlan_new_other(self):
         existing_nic = Nic.from_hypercore(
             {
                 "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
@@ -261,6 +261,31 @@ class TestNicCompare:
             }
         )
         results = existing_nic.is_update_needed(new_nic)
+        assert results is True
+        results = new_nic.is_update_needed(existing_nic)
+        assert results is True
+
+    def test_compare_vlan_new_self(self):
+        existing_nic = Nic.from_hypercore(
+            {
+                "uuid": "9132f2ff-4f9b-43eb-8a91-6ce5bcf47ece",
+                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "vlan": 1,
+                "connected": True,
+                "type": "virtio",
+                "macAddress": "00-00-00-00-00",
+                "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            }
+        )
+        new_nic = Nic.from_ansible(
+            {
+                "vm_uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "vlan": 1,
+                "vlan_new": 2,
+                "type": "virtio",
+            }
+        )
+        results = new_nic.is_update_needed(existing_nic)
         assert results is True
 
     def test_compare_mac_new(self):
@@ -284,6 +309,8 @@ class TestNicCompare:
             }
         )
         results = existing_nic.is_update_needed(new_nic)
+        assert results is True
+        results = new_nic.is_update_needed(existing_nic)
         assert results is True
 
     def test_compare_mac_new_and_vlan_new(self):
@@ -309,6 +336,8 @@ class TestNicCompare:
         )
         results = existing_nic.is_update_needed(new_nic)
         assert results is True
+        results = new_nic.is_update_needed(existing_nic)
+        assert results is True
 
     def test_compare_vlan_new_same(self):
         existing_nic = Nic.from_hypercore(
@@ -331,6 +360,8 @@ class TestNicCompare:
             }
         )
         results = existing_nic.is_update_needed(new_nic)
+        assert results is False
+        results = new_nic.is_update_needed(existing_nic)
         assert results is False
 
     def test_compare_mac_new_same(self):
@@ -355,6 +386,8 @@ class TestNicCompare:
         )
         results = existing_nic.is_update_needed(new_nic)
         assert results is False
+        results = new_nic.is_update_needed(existing_nic)
+        assert results is False
 
     def test_compare_mac_new_and_vlan_new_same(self):
         existing_nic = Nic.from_hypercore(
@@ -378,6 +411,8 @@ class TestNicCompare:
             }
         )
         results = existing_nic.is_update_needed(new_nic)
+        assert results is False
+        results = new_nic.is_update_needed(existing_nic)
         assert results is False
 
 

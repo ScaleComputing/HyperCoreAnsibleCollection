@@ -346,9 +346,24 @@ class TestDisabled:
 class TestMain:
     def test_minimal_set_of_params(self, run_main):
         params = dict(
-            instance=dict(
+            cluster_instance=dict(
                 host="https://my.host.name", username="user", password="pass"
             ),
+            state="enabled",
+            vm_name=dict(
+                type="str",
+                required=True,
+            ),
+            remote_cluster=dict(
+                type="str",
+            ),
         )
-        changed, records = run_main(vm_replication, params)
-        assert changed is False
+        success, results = run_main(vm_replication, params)
+        print(success)
+        print(results)
+        assert success is True
+        assert results == {
+            "changed": False,
+            "record": {},
+            "diff": {"before": {}, "after": {}},
+        }
