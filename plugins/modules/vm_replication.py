@@ -90,25 +90,20 @@ def ensure_enabled_or_reenabled(module, rest_client):
     changed = False
     before = None
     after = None
-    virtual_machine_obj_list = VM.get(
+    virtual_machine_obj_list = VM.get_or_fail(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )
-    if not virtual_machine_obj_list:
-        raise errors.VMNotFound(module.params["vm_name"])
     existing_replication_obj_list = Replication.get(
         rest_client=rest_client,
         query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
     )
     if existing_replication_obj_list:  # Update existing
-        # TODO: remote_cluster_connection_uuid rename after cluster_info is implemented
         if (
             module.params["remote_cluster"] is None
-            or existing_replication_obj_list[0].remote_cluster_connection_uuid
+            or existing_replication_obj_list[0].remote_cluster
             == module.params["remote_cluster"]
         ) and existing_replication_obj_list[0].state != ReplicationState.enabled:
-            before = existing_replication_obj_list[0].to_ansible(
-                virtual_machine_obj_list[0]
-            )
+            before = existing_replication_obj_list[0].to_ansible()
             existing_replication_obj_list[0].state = ReplicationState.enabled
             data = existing_replication_obj_list[0].to_hypercore()
             rest_client.update_record(
@@ -120,17 +115,22 @@ def ensure_enabled_or_reenabled(module, rest_client):
             after = Replication.get(
                 rest_client=rest_client,
                 query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
-            )[0].to_ansible(virtual_machine_obj_list[0])
+            )[0].to_ansible()
             changed = True
         elif (
             module.params["remote_cluster"] is not None
-            and existing_replication_obj_list[0].remote_cluster_connection_uuid
+            and existing_replication_obj_list[0].remote_cluster
             != module.params["remote_cluster"]
         ):
             raise errors.ReplicationNotUnique(virtual_machine_obj_list[0].name)
     else:  # Create replication
+        cluster_connection = Replication.find_available_cluster_connection_or_fail(
+            rest_client
+        )
         new_replication_obj = Replication.from_ansible(
-            ansible_data=module.params, virtual_machine_obj=virtual_machine_obj_list[0]
+            ansible_data=module.params,
+            virtual_machine_obj=virtual_machine_obj_list[0],
+            cluster_connection=cluster_connection,
         )
         data = new_replication_obj.to_hypercore()
         response = rest_client.create_record(
@@ -140,7 +140,7 @@ def ensure_enabled_or_reenabled(module, rest_client):
         after = Replication.get(
             rest_client=rest_client,
             query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
-        )[0].to_ansible(virtual_machine_obj_list[0])
+        )[0].to_ansible()
         changed = True
     return (
         changed,
@@ -153,11 +153,9 @@ def ensure_disabled(module, rest_client):
     changed = False
     after = None
     before = None
-    virtual_machine_obj_list = VM.get(
+    virtual_machine_obj_list = VM.get_or_fail(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )
-    if not virtual_machine_obj_list:
-        raise errors.VMNotFound(module.params["vm_name"])
     existing_replication_obj_list = Replication.get(
         rest_client=rest_client,
         query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
@@ -166,9 +164,7 @@ def ensure_disabled(module, rest_client):
         existing_replication_obj_list
         and existing_replication_obj_list[0].state != ReplicationState.disabled
     ):
-        before = existing_replication_obj_list[0].to_ansible(
-            virtual_machine_obj_list[0]
-        )
+        before = existing_replication_obj_list[0].to_ansible()
         existing_replication_obj_list[0].state = ReplicationState.disabled
         data = existing_replication_obj_list[0].to_hypercore()
         rest_client.update_record(
@@ -180,7 +176,7 @@ def ensure_disabled(module, rest_client):
         after = Replication.get(
             rest_client=rest_client,
             query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
-        )[0].to_ansible(virtual_machine_obj_list[0])
+        )[0].to_ansible()
         changed = True
     return changed, after, dict(before=before, after=after)
 

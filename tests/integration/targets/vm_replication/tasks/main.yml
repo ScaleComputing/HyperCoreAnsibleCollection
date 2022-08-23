@@ -56,8 +56,8 @@
 
     - name: Store remote cluster name (TEMP connection UUID)
       ansible.builtin.set_fact:
-        remote_cluster_0_name: "{{ cluster_connection_info.record.0.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
-        remote_cluster_1_name: "{{ cluster_connection_info.record.1.uuid }}"  # TODO replace with remoteClusterInfo.clusterName
+        remote_cluster_0_name: "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName}}"
+        remote_cluster_1_name: "{{ cluster_connection_info.record.1.remoteClusterInfo.clusterName }}"
 
     # -----------------------------------------------------------------------
     - name: Create replication - 1st pass

@@ -69,3 +69,9 @@ class ReplicationNotUnique(ScaleComputingError):
             "There is already a replication on - {0} - virtual machine".format(data)
         )
         super(ReplicationNotUnique, self).__init__(self.message)
+
+
+class ClusterConnectionNotFound(ScaleComputingError):
+    def __init__(self, data):
+        self.message = "No cluster connection found - {0}".format(data)
+        super(ClusterConnectionNotFound, self).__init__(self.message)
