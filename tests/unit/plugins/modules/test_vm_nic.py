@@ -1098,3 +1098,27 @@ class TestEnsureAbsent:
                 "after": [None, None],
             },
         )
+
+
+class TestMain:
+    def test_minimal_set_of_params(self, run_main):
+        params = dict(
+            cluster_instance=dict(
+                host="https://my.host.name", username="user", password="pass"
+            ),
+            state="present",
+            vm_name=dict(
+                type="str",
+                required=True,
+            ),
+            items=[],
+        )
+        success, results = run_main(vm_nic, params)
+        print(success)
+        print(results)
+        assert success is True
+        assert results == {
+            "changed": False,
+            "records": {},
+            "diff": {"before": {}, "after": {}},
+        }

@@ -101,6 +101,10 @@ def run_mock(module, client, another_client=None):
     return False, {}, dict(before={}, after={})
 
 
+def run_mock_info(module, client, another_client=None):
+    return False, []
+
+
 @pytest.fixture
 def run_main(mocker):
     def runner(module, params=None):
@@ -116,6 +120,34 @@ def run_main(mocker):
         # We can mock the run function because we enforce module structure in our
         # development guidelines.
         mocker.patch.object(module, "run", run_mock)
+
+        try:
+            module.main()
+        except AnsibleRunEnd as e:
+            return e.success, e.result
+        assert False, "Module is not calling exit_json or fail_json."
+
+    mocker.patch.multiple(
+        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
+    )
+    return runner
+
+
+@pytest.fixture
+def run_main_info(mocker):
+    def runner(module, params=None):
+        args = dict(
+            ANSIBLE_MODULE_ARGS=dict(
+                _ansible_remote_tmp="/tmp",
+                _ansible_keep_remote_files=False,
+            ),
+        )
+        args["ANSIBLE_MODULE_ARGS"].update(params or {})
+        mocker.patch.object(basic, "_ANSIBLE_ARGS", to_bytes(json.dumps(args)))
+
+        # We can mock the run function because we enforce module structure in our
+        # development guidelines.
+        mocker.patch.object(module, "run", run_mock_info)
 
         try:
             module.main()
