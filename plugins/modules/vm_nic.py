@@ -13,10 +13,10 @@ module: vm_nic
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Plugin handles actions over network interfaces
+short_description: Plugin handles actions over network interfaces.
 description:
-  - Plugin enables actions over network interfaces on a specified virtual machine
-  - Can create, update, delete specified network interfaces
+  - Plugin enables actions over network interfaces on a specified virtual machine.
+  - Can create, update, delete specified network interfaces.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -24,22 +24,51 @@ seealso: []
 options:
   state:
     description:
-      - State defines which operation should plugin do over selected network interfaces
-      - present, absent, set
+      - State defines which operation should plugin do over selected network interfaces.
+      - present, absent, set.
     choices: [ present, absent, set ]
     type: str
     required: True
   vm_name:
     description:
-      - Virtual machine name
-      - Used to identify selected virtual machine by name
+      - Virtual machine name.
+      - Used to identify selected virtual machine by name.
     type: str
     required: true
   items:
     description:
-      - List of network interfaces
+      - List of network interfaces.
     type: list
     elements: dict
+    suboptions:
+      vlan:
+        type: int
+        default: 0
+        description:
+          - Network interface virtual LAN.
+      vlan_new:
+        type: int
+        description:
+          - Used to swap network interface to a different virtual LAN.
+      mac:
+        type: str
+        description:
+          - Mac address of the network interface.
+      mac_new:
+        type: str
+        description:
+          - Used to change mac address on the network interface.
+      type:
+        type: str
+        default: virtio
+        description:
+          - Defines type of the network interface.
+        choices: [ virtio, RTL8139, INTEL_E1000 ]
+      connected:
+        type: bool
+        default: true
+        description:
+          - Is network interface connected or not.
 """
 
 EXAMPLES = r"""
@@ -163,9 +192,13 @@ def ensure_present_or_set(module, rest_client):
                 changed, before, after = Nic.send_create_nic_request_to_hypercore(
                     rest_client=rest_client, new_nic=nic, before=before, after=after
                 )
-    else:  # empty set in ansible, delete all
+    elif module.params["items"] == []:  # empty set in ansible, delete all
         for nic in virtual_machine_obj_list[0].nic_list:
             before.append(nic.to_ansible())
+    else:
+        raise errors.MissingValueAnsible(
+            "items, cannot be null, empty must be set to []"
+        )
     updated_virtual_machine = VM.get(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )[0]
@@ -228,6 +261,36 @@ def main():
             items=dict(
                 type="list",
                 elements="dict",
+                default=[],
+                options=dict(
+                    vlan=dict(
+                        type="int",
+                        default=0,
+                    ),
+                    vlan_new=dict(
+                        type="int",
+                    ),
+                    connected=dict(
+                        type="bool",
+                        default=True,
+                    ),
+                    type=dict(
+                        type="str",
+                        choices=[
+                            "virtio",
+                            "RTL8139",
+                            "INTEL_E1000",
+                        ],
+                        required=False,
+                        default="virtio",
+                    ),
+                    mac=dict(
+                        type="str",
+                    ),
+                    mac_new=dict(
+                        type="str",
+                    ),
+                ),
             ),
         ),
     )
