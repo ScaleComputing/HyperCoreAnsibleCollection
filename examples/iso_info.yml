@@ -1,5 +1,6 @@
 - name: Example iso_info module
   hosts: localhost
+  # connection: local  # partial solution to use SC_HOST from bash environ
   gather_facts: False
   environment:
     - SC_HOST: https://1.2.3.4
