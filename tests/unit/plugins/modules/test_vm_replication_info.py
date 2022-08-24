@@ -80,11 +80,11 @@ class TestRun:
             "remoteNodeUUIDs": [],
         }
         vm_dict = self._get_empty_test_vm_1()
+        rest_client.get_record.return_value = cluster_dict
         rest_client.list_records.side_effect = [
             [vm_dict],
             [vm_replication],
             [vm_dict],
-            [cluster_dict],
         ]
         results = vm_replication_info.run(module, rest_client)
         print(results)
@@ -131,12 +131,11 @@ class TestRun:
         }
         vm_dict_1 = self._get_empty_test_vm_1()
         vm_dict_2 = self._get_empty_test_vm_2()
+        rest_client.get_record.return_value = cluster_dict
         rest_client.list_records.side_effect = [
             [vm_replication_1, vm_replication_2],
             [vm_dict_1],
-            [cluster_dict],
             [vm_dict_2],
-            [cluster_dict],
         ]
         results = vm_replication_info.run(module, rest_client)
         print(results)
