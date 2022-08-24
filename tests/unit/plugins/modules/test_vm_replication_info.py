@@ -25,6 +25,7 @@ class TestRun:
     def _get_empty_test_vm_1(cls):
         return {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [],
@@ -42,6 +43,7 @@ class TestRun:
     def _get_empty_test_vm_2(cls):
         return {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ffs",
+            "nodeUUID": "",
             "name": "XLAB_test_vm_2",
             "blockDevs": [],
             "netDevs": [],
