@@ -9,7 +9,9 @@ cd ansible_collections/scale_computing/
 python3.10 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install ansible-core  # 2.13.1
+# ansible-core==2.13.1 was used during development and testing,
+# but version from 2.9.x up should work
+pip install ansible-core
 
 git clone ssh://git@gitlab.xlab.si:13022/scale-ansible-collection/scale-computing-hc3-ansible-collection.git hypercore
 cd hypercore
@@ -23,7 +25,6 @@ ansible-galaxy collection install community.general
 For integration tests we need to configure access to test cluster.
 Copy template and edit it:
 
-
 ```shell script
 cp tests/integration/integration_config.yml.template tests/integration/integration_config.yml
 nano tests/integration/integration_config.yml
@@ -33,6 +34,15 @@ cat tests/integration/integration_config.yml
 sc_host: https://1.2.3.4
 sc_username: admin
 sc_password: admin_pass
+```
+
+Normally those values are passed to playbooks via environ variables.
+To be able to run example playbooks execute in shell:
+
+```bash
+export SC_HOST=https://1.2.3.4
+export SC_USERNAME=admin
+export SC_PASSWORD=admin_pass
 ```
 
 Included `Makefile` contains shortcuts for common development tasks,
@@ -67,5 +77,5 @@ Run sample playbook.
 Sample ansible.cfg is there to ensure collection does not need to be installed.
 
 ```yaml
-ansible-playbook -i localhost, sample-playbook.yml -v
+ansible-playbook -i localhost, examples/iso_info.yml -v
 ```

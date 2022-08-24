@@ -1,0 +1,37 @@
+- name: Example iso_info module
+  hosts: localhost
+  gather_facts: False
+  environment:
+    - SC_HOST: https://1.2.3.4
+    - SC_USERNAME: admin
+    - SC_PASSWORD: todo
+
+  tasks:
+  # ------------------------------------------------------
+  - name: List all ISOs
+    scale_computing.hypercore.iso_info:
+    register: iso_results
+
+  - name: Show all ISOs
+    debug:
+      var: iso_results
+
+  # ------------------------------------------------------
+  - name: Get info about specific ISO image - scale-guest-tools
+    scale_computing.hypercore.iso_info:
+      name: scale-guest-tools-3.0.iso
+    register: iso_results
+
+  - name: Show info about single ISO
+    debug:
+      var: iso_results
+
+  # ------------------------------------------------------
+  - name: Get info about not present ISO image
+    scale_computing.hypercore.iso_info:
+      name: no-such-iso-image-p29bvao8w6f4evo.iso
+    register: iso_results
+
+  - name: Show info about not present ISO
+    debug:
+      var: iso_results
