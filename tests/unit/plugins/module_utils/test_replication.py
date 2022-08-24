@@ -76,10 +76,10 @@ class TestGet:
             "bootDevices": [],
             "operatingSystem": "windows",
         }
+        rest_client.get_record.return_value = remote_cluster_dict
         rest_client.list_records.side_effect = [
             [hypercore_data],
             [vm_dict],
-            [remote_cluster_dict],
         ]
         results = Replication.get(
             rest_client=rest_client,

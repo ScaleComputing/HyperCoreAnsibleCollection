@@ -70,13 +70,13 @@ class TestEnabledOrReenabled:
             "remote_cluster": "remote-cluster-name",
             "state": "enabled",
         }
+        rest_client.get_record.return_value = remote_cluster_dict
         rest_client.list_records.side_effect = [
             [vm_dict],
             [],
             [connection_dict],
             [replication_dict],
             [vm_dict],
-            [remote_cluster_dict],
         ]
         rest_client.create_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
@@ -140,14 +140,13 @@ class TestEnabledOrReenabled:
                 state="enabled",
             )
         )
+        rest_client.get_record.return_value = remote_cluster_dict
         rest_client.list_records.side_effect = [
             [vm_dict],
             [replication_dict],
             [vm_dict],
-            [remote_cluster_dict],
             [replication_dict_after],
             [vm_dict],
-            [remote_cluster_dict],
         ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
@@ -195,11 +194,11 @@ class TestEnabledOrReenabled:
                 state="enabled",
             )
         )
+        rest_client.get_record.return_value = remote_cluster_dict
         rest_client.list_records.side_effect = [
             [vm_dict],
             [replication_dict],
             [vm_dict],
-            [remote_cluster_dict],
         ]
         rest_client.update_record.return_value = {"taskTag": ""}
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
@@ -329,14 +328,13 @@ class TestDisabled:
                 state="disabled",
             )
         )
+        rest_client.get_record.return_value = remote_cluster_dict
         rest_client.list_records.side_effect = [
             [vm_dict],
             [replication_dict],
             [vm_dict],
-            [remote_cluster_dict],
             [replication_dict_after],
             [vm_dict],
-            [remote_cluster_dict],
         ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
         results = vm_replication.ensure_disabled(module, rest_client)

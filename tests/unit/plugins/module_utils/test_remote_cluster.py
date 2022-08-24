@@ -95,15 +95,13 @@ class TestRemoteCluster:
         assert remote_cluster1 != remote_cluster2
 
     def test_get_cluster_name_from_replication_connection_uuid(self, rest_client):
-        rest_client.list_records.return_value = [
-            dict(
-                remoteClusterInfo={"clusterName": "PUB4"},
-                connectionStatus="ESTABLISHED",
-                replicationOK=True,
-                remoteNodeIPs=["10.5.11.11"],
-                remoteNodeUUIDs=["895033ed-b863-4a42-8215-477a1a4ef812"],
-            )
-        ]
+        rest_client.get_record.return_value = dict(
+            remoteClusterInfo={"clusterName": "PUB4"},
+            connectionStatus="ESTABLISHED",
+            replicationOK=True,
+            remoteNodeIPs=["10.5.11.11"],
+            remoteNodeUUIDs=["895033ed-b863-4a42-8215-477a1a4ef812"],
+        )
 
         remote_cluster_name = (
             RemoteCluster.get_cluster_name_from_replication_connection_uuid(
@@ -112,3 +110,15 @@ class TestRemoteCluster:
         )
 
         assert remote_cluster_name == "PUB4"
+
+    def test_get_cluster_name_from_replication_connection_uuid_record_missing(
+        self, rest_client
+    ):
+        rest_client.get_record.return_value = None
+        remote_cluster_name = (
+            RemoteCluster.get_cluster_name_from_replication_connection_uuid(
+                rest_client, "891f482a-8f5f-4755-bea4-bbcc338f566f"
+            )
+        )
+
+        assert remote_cluster_name is None
