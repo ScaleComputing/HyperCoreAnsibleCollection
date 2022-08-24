@@ -117,14 +117,15 @@
           - output.records.1.type == 'virtio'
           - output is not changed
 
-    - name: Delete all Nics in XLAB-vm_nic_CI_test
+    - name: Delete all Nics in XLAB-vm_nic_CI_test successful
       scale_computing.hypercore.vm_nic:
         vm_name: XLAB-vm_nic_CI_test
-        items:
+        items: []
         state: set        
       register: output
     - ansible.builtin.assert:
         that:
+          - output is succeeded
           - output is changed
 
     - name: Retrieve all Nics on demo-vm

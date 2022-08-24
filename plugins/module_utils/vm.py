@@ -278,7 +278,9 @@ class VM(PayloadMapper):
     def delete_unused_nics_to_hypercore_vm(self, ansible_dict, rest_client):
         changed = False
         ansible_nic_uuid_list = [
-            nic["vlan_new"] if "vlan_new" in nic.keys() else nic["vlan"]
+            nic["vlan_new"]
+            if ("vlan_new" in nic.keys() and nic["vlan_new"])
+            else nic["vlan"]
             for nic in ansible_dict["items"] or []
         ]
         for nic in self.nic_list:
