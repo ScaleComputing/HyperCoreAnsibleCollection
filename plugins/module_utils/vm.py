@@ -40,6 +40,7 @@ class VM(PayloadMapper):
         memory,
         vcpu,
         uuid=None,
+        node_uuid=None,
         tags=None,  # tags are stored internally as list of strings
         description=None,
         power_state=None,
@@ -52,6 +53,7 @@ class VM(PayloadMapper):
 
         self.operating_system = operating_system
         self.uuid = uuid
+        self.node_uuid = node_uuid
         self.name = name
         self.tags = tags
         self.description = description
@@ -98,6 +100,7 @@ class VM(PayloadMapper):
             return None
         return VM(
             uuid=vm_dict["uuid"],  # No uuid when creating object from ansible
+            node_uuid=vm_dict["nodeUUID"],  # Needed in vm_node_affinity
             name=vm_dict["name"],
             tags=vm_dict["tags"].split(","),
             description=vm_dict["description"],
@@ -298,6 +301,7 @@ class VM(PayloadMapper):
             (
                 self.operating_system == other.operating_system,
                 self.uuid == other.uuid,
+                self.node_uuid == other.node_uuid,
                 self.name == other.name,
                 self.tags == other.tags,
                 self.description == other.description,

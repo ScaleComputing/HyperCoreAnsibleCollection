@@ -51,6 +51,7 @@ class TestVM:
     def test_vm_from_hypercore_dict_is_not_none(self):
         vm = VM(
             uuid="",  # No uuid when creating object from ansible
+            node_uuid="412a3e85-8c21-4138-a36e-789eae3548a3",
             name="VM-name",
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
@@ -66,6 +67,7 @@ class TestVM:
 
         vm_dict = dict(
             uuid="",
+            nodeUUID="412a3e85-8c21-4138-a36e-789eae3548a3",
             name="VM-name",
             tags="XLAB-test-tag1,XLAB-test-tag2",
             description="desc",
@@ -223,6 +225,7 @@ class TestVM:
     def test_equal_true(self):
         assert VM(
             uuid=None,  # No uuid when creating object from ansible
+            node_uuid="412a3e85-8c21-4138-a36e-789eae3548a3",
             name="VM-name",
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
@@ -236,6 +239,7 @@ class TestVM:
             operating_system="os_windows_server_2012",
         ) == VM(
             uuid=None,  # No uuid when creating object from ansible
+            node_uuid="412a3e85-8c21-4138-a36e-789eae3548a3",
             name="VM-name",
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
@@ -253,6 +257,7 @@ class TestVM:
         assert VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM-name",
+            node_uuid="412a3e85-8c21-4138-a36e-789eae3548a3",
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
@@ -266,6 +271,7 @@ class TestVM:
         ) != VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM   NAME    CHANGED !!!!!!",
+            node_uuid="412a3e85-8c21-4138-a36e-789eae3548a3",
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
@@ -282,6 +288,7 @@ class TestVM:
         hypercore_dict = dict(
             uuid=None,
             name="VM-name",
+            nodeUUID=None,
             tags="XLAB-test-tag1,XLAB-test-tag2",
             description="desc",
             mem=42,
@@ -317,6 +324,7 @@ class TestVM:
         )
         rest_client.get_record.return_value = dict(
             uuid="id",
+            nodeUUID="node_id",
             name="VM-name-unique",
             tags="XLAB-test-tag1,XLAB-test-tag2",
             description="desc",
@@ -343,6 +351,7 @@ class TestVM:
             power_state="started",
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             uuid="id",
+            node_uuid="node_id",
         )
 
         vm_by_name = VM.get_by_name(ansible_dict, rest_client)
@@ -352,6 +361,7 @@ class TestVM:
         rest_client.list_records.return_value = [
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "nodeUUID": "",
                 "name": "XLAB_test_vm",
                 "blockDevs": [],
                 "netDevs": [],
@@ -407,6 +417,7 @@ class TestNic:
         return VM.from_hypercore(
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "nodeUUID": "",
                 "name": "XLAB_test_vm",
                 "blockDevs": [],
                 "netDevs": [nic_dict_1, nic_dict_2],
@@ -437,6 +448,7 @@ class TestNic:
         )
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [],
@@ -483,6 +495,7 @@ class TestNic:
         }
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [nic_dict],
@@ -539,6 +552,7 @@ class TestNic:
         }
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [nic_dict_1, nic_dict_2],
