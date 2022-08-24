@@ -30,6 +30,7 @@ class TestRun:
         rest_client.list_records.return_value = [
             dict(
                 uuid="id",
+                nodeUUID="node_id",
                 name="VM-unique-name",
                 tags="XLAB-test-tag1,XLAB-test-tag2",
                 description="desc",

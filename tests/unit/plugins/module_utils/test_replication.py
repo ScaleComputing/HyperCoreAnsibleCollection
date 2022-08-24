@@ -64,6 +64,7 @@ class TestGet:
         }
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [],

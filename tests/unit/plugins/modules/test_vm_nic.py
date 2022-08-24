@@ -23,6 +23,7 @@ class TestEnsurePresentOrSet:
     def _get_empty_test_vm(cls):
         return {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [],
@@ -58,6 +59,7 @@ class TestEnsurePresentOrSet:
         }
         return {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [nic_dict_1, nic_dict_2],
@@ -93,6 +95,7 @@ class TestEnsurePresentOrSet:
         }
         return {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [nic_dict_1, nic_dict_2],
@@ -987,6 +990,7 @@ class TestEnsureAbsent:
     def _get_empty_test_vm(cls):
         return {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [],
@@ -1022,6 +1026,7 @@ class TestEnsureAbsent:
         }
         return {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
             "name": "XLAB_test_vm",
             "blockDevs": [],
             "netDevs": [nic_dict_1, nic_dict_2],
