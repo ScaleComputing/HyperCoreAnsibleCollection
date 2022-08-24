@@ -39,6 +39,7 @@ class TestEnsureAbsent:
 
         rest_client.get_record.return_value = dict(
             uuid="id",
+            nodeUUID="",
             name="VM-name-unique",
             tags="XLAB-test-tag1,XLAB-test-tag2",
             description="desc",
@@ -116,6 +117,7 @@ class TestEnsurePresent:
 
         rest_client.get_record.return_value = dict(
             uuid="id",
+            nodeUUID="",
             name="VM-name-unique",
             tags="XLAB-test-tag1,XLAB-test-tag2",
             description="desc",
