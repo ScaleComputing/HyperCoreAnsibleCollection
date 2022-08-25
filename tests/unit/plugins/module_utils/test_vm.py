@@ -850,3 +850,16 @@ class TestNic:
         assert results[1].uuid == "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"
         assert results[1].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         assert results[1].connected is True
+
+class TestVMExport:
+    def test_get_smb_server_ip(self):
+        # TODO: Write test
+        pass
+
+    def test_create_export_vm_payload(self):
+        # TODO: Write tests
+        pass
+
+    def test_export_vm(self):
+        # TODO: Write tests
+        pass
