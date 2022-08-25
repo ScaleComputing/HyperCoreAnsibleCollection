@@ -136,6 +136,16 @@ class VM(PayloadMapper):
         )
 
     @classmethod
+    def get_smb_server_ip(cls, rest_client, server_name):
+        smb_server = VM.get_or_fail(
+            query={"name": server_name}, rest_client=rest_client
+        )[0]
+        for nic in smb_server.nics:
+            if nic.ipv4Addresses:
+                return nic.ipv4Addresses[0]  # First available IP address
+        raise errors.SMBServerNotFound(server_name)
+
+    @classmethod
     def get(cls, query, rest_client):  # if query is None, return list of all VMs
         record = rest_client.list_records(
             "/rest/v1/VirDomain",
@@ -276,6 +286,40 @@ class VM(PayloadMapper):
                 TaskTag.wait_task(rest_client, response)
                 changed = True
         return changed
+
+    def create_export_vm_payload(self, smb_server_ip, path, username, password):
+        # "smb://username:password@10.5.11.179/users/VM-NAME/"
+        return dict(
+            target=dict(
+                pathURI="smb://"
+                + username
+                + ":"
+                + password
+                + "@"
+                + smb_server_ip
+                + "/"
+                + path
+            )
+        )
+
+    def export_vm(self, rest_client, ansible_dict):
+        smb_server_ip = VM.get_smb_server_ip(rest_client, ansible_dict["smb"]["server"])
+        data = self.create_export_vm_payload(
+            smb_server_ip,
+            ansible_dict["smb"]["path"],
+            ansible_dict["smb"]["username"],
+            ansible_dict["smb"]["password"],
+        )
+        return rest_client.create_record(
+            endpoint="/rest/v1/VirDomain/" + self.uuid + "/export",
+            payload=data,
+            check_mode=False,
+            timeout=None,
+        )
+
+    def import_vm(self, ansible_dict):
+        # TODO: implement with vm_import module
+        pass
 
     def __eq__(self, other):
         """One VM is equal to another if it has ALL attributes exactly the same"""
