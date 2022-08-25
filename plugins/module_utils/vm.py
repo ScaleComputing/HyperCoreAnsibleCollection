@@ -146,6 +146,21 @@ class VM(PayloadMapper):
         raise errors.SMBServerNotFound(server_name)
 
     @classmethod
+    def create_export_vm_payload(cls, smb_server_ip, path, username, password):
+        return dict(
+            target=dict(
+                pathURI="smb://"
+                + username
+                + ":"
+                + password
+                + "@"
+                + smb_server_ip
+                + "/"
+                + path
+            )
+        )
+
+    @classmethod
     def get(cls, query, rest_client):  # if query is None, return list of all VMs
         record = rest_client.list_records(
             "/rest/v1/VirDomain",
@@ -287,24 +302,9 @@ class VM(PayloadMapper):
                 changed = True
         return changed
 
-    def create_export_vm_payload(self, smb_server_ip, path, username, password):
-        # "smb://username:password@10.5.11.179/users/VM-NAME/"
-        return dict(
-            target=dict(
-                pathURI="smb://"
-                + username
-                + ":"
-                + password
-                + "@"
-                + smb_server_ip
-                + "/"
-                + path
-            )
-        )
-
     def export_vm(self, rest_client, ansible_dict):
         smb_server_ip = VM.get_smb_server_ip(rest_client, ansible_dict["smb"]["server"])
-        data = self.create_export_vm_payload(
+        data = VM.create_export_vm_payload(
             smb_server_ip,
             ansible_dict["smb"]["path"],
             ansible_dict["smb"]["username"],

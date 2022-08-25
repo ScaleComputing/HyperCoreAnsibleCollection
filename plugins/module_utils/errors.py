@@ -79,7 +79,7 @@ class ClusterConnectionNotFound(ScaleComputingError):
 
 class SMBServerNotFound(ScaleComputingError):
     def __init__(self, data):
-        self.message = (
-            "SMB server is either not connected or does not exist - {0}".format(data)
+        self.message = "SMB server is either not connected or not in the same network - {0}".format(
+            data
         )
         super(SMBServerNotFound, self).__init__(self.message)

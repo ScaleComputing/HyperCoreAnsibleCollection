@@ -851,15 +851,125 @@ class TestNic:
         assert results[1].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         assert results[1].connected is True
 
+
 class TestVMExport:
-    def test_get_smb_server_ip(self):
-        # TODO: Write test
-        pass
+    def test_get_smb_server_ip_when_server_not_found(self, rest_client):
+        server_name = "SMB-TEST-VM"
+        rest_client.list_records.return_value = []
+        with pytest.raises(
+            errors.VMNotFound,
+            match="Virtual machine - {'name': 'SMB-TEST-VM'} - not found",
+        ):
+            VM.get_smb_server_ip(rest_client, server_name)
+
+    def test_get_smb_server_ip_when_ip_not_found(self, rest_client):
+        vm_dict = {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "SMB-TEST-VM",
+            "blockDevs": [],
+            "netDevs": [],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
+        server_name = "SMB-TEST-VM"
+        rest_client.list_records.return_value = [vm_dict]
+        with pytest.raises(
+            errors.SMBServerNotFound,
+            match="SMB server is either not connected or not in the same network - SMB-TEST-VM",
+        ):
+            VM.get_smb_server_ip(rest_client, server_name)
+
+    def test_get_smb_server_ip_when_ip_found(self, rest_client):
+        smb_dict = {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "SMB-TEST-VM",
+            "blockDevs": [],
+            "netDevs": [
+                {
+                    "vlan": 1,
+                    "type": "VIRTIO",
+                    "ipv4Addresses": ["10.5.11.170"],
+                    "virDomainUUID": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                    "macAddress": "",
+                    "connected": True,
+                    "uuid": "nic-uuid",
+                }
+            ],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
+        server_name = "SMB-TEST-VM"
+        rest_client.list_records.return_value = [smb_dict]
+        results = VM.get_smb_server_ip(rest_client, server_name)
+        assert results == "10.5.11.170"
 
     def test_create_export_vm_payload(self):
-        # TODO: Write tests
-        pass
+        results = VM.create_export_vm_payload(
+            "10.5.11.170", "/user", "username", "password"
+        )
+        assert results == dict(
+            target=dict(
+                pathURI="smb://"
+                + "username"
+                + ":"
+                + "password"
+                + "@"
+                + "10.5.11.170"
+                + "/"
+                + "/user"
+            )
+        )
 
-    def test_export_vm(self):
-        # TODO: Write tests
-        pass
+    def test_export_vm(self, rest_client):
+        ansible_dict = {
+            "smb": {
+                "server": "smb-server",
+                "path": "/somewhere",
+                "username": "user",
+                "password": "pass",
+            }
+        }
+        smb_dict = {
+            "uuid": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "XLAB_test_smb",
+            "blockDevs": [],
+            "netDevs": [
+                {
+                    "vlan": 1,
+                    "type": "VIRTIO",
+                    "ipv4Addresses": ["10.5.11.170"],
+                    "virDomainUUID": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                    "macAddress": "",
+                    "connected": True,
+                    "uuid": "nic-uuid",
+                }
+            ],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
+        virtual_machine = VM.from_hypercore(smb_dict)
+        rest_client.list_records.return_value = [smb_dict]
+        rest_client.create_record.return_value = {"taskTag": "12345"}
+        results = virtual_machine.export_vm(rest_client, ansible_dict)
+        assert results == {"taskTag": "12345"}
