@@ -1,0 +1,39 @@
+- name: Upload ISO image from http link to HyperCore
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    iso_url: http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso
+    iso_filename: "{{ iso_url | split('/') | last }}"
+    iso_remove_old_image: False
+
+  tasks:
+    # ------------------------------------------------------
+    - name: Download ISO {{ iso_filename }} from URL
+      ansible.builtin.get_url:
+        url: "{{ iso_url }}"
+        dest: /tmp/{{ iso_filename }}
+
+    - name: (Optionally) remove existing ISO {{ iso_filename }} from HyperCore
+      scale_computing.hypercore.iso:
+        name: "{{ iso_filename }}"
+        source: /tmp/{{ iso_filename }}
+        state: absent
+      when: iso_remove_old_image
+
+    # ------------------------------------------------------
+    - name: Upload ISO {{ iso_filename }} to HyperCore
+      scale_computing.hypercore.iso:
+        name: "{{ iso_filename }}"
+        source: /tmp/{{ iso_filename }}
+        state: present
+
+    # ------------------------------------------------------
+    - name: Get info about specific ISO image - {{ iso_filename }}
+      scale_computing.hypercore.iso_info:
+        name: "{{ iso_filename }}"
+      register: iso_results
+
+    - name: Show info about {{ iso_filename }} ISO
+      debug:
+        var: iso_results.records[0]

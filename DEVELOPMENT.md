@@ -22,6 +22,18 @@ ansible-galaxy collection install community.general
 # pip install -r test.requirements -r sanity.requirements
 ```
 
+The collection needs to know how to assess the destination HyperCore cluster.
+Normally this is to playbooks via environ variables.
+To be able to run example playbooks execute in shell:
+
+```bash
+export SC_HOST=https://1.2.3.4
+export SC_USERNAME=admin
+export SC_PASSWORD=admin_pass
+```
+
+# Integration tests configuration
+
 For integration tests we need to configure access to test cluster.
 Copy template and edit it:
 
@@ -36,14 +48,7 @@ sc_username: admin
 sc_password: admin_pass
 ```
 
-Normally those values are passed to playbooks via environ variables.
-To be able to run example playbooks execute in shell:
-
-```bash
-export SC_HOST=https://1.2.3.4
-export SC_USERNAME=admin
-export SC_PASSWORD=admin_pass
-```
+# Development
 
 Included `Makefile` contains shortcuts for common development tasks,
 running tests, linter, code formatting, source directory cleanup etc.
