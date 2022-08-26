@@ -31,3 +31,10 @@ ansible-playbook -i localhost, examples/iso.yml
 # Remove old TinyCore-current.iso if present, to force re-upload
 ansible-playbook -i localhost, -e iso_remove_old_image=True examples/iso.yml
 ```
+
+## Module api
+
+```shell script
+# Get cluster info
+ansible-playbook -i localhost, examples/api_get_cluster_info.yml
+```
