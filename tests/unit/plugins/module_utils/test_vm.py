@@ -974,3 +974,65 @@ class TestVMExport:
         rest_client.create_record.return_value = {"taskTag": "12345"}
         results = virtual_machine.export_vm(rest_client, ansible_dict)
         assert results == {"taskTag": "12345"}
+
+
+class TestVMImport:
+    def test_create_export_or_import_vm_payload_when_import(self):
+        results = VM.create_export_or_import_vm_payload(
+            "10.5.11.170", "/user", "username", "password", "this-vm-name", False
+        )
+        print(results)
+        assert results == dict(
+            source=dict(
+                pathURI="smb://"
+                + "username"
+                + ":"
+                + "password"
+                + "@"
+                + "10.5.11.170"
+                + "/"
+                + "/user"
+            ),
+            template=dict(name="this-vm-name"),
+        )
+
+    def test_import_vm(self, rest_client):
+        ansible_dict = {
+            "vm_name": "this-vm",
+            "smb": {
+                "server": "smb-server",
+                "path": "/somewhere",
+                "username": "user",
+                "password": "pass",
+            },
+        }
+        smb_dict = {
+            "uuid": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "XLAB_test_smb",
+            "blockDevs": [],
+            "netDevs": [
+                {
+                    "vlan": 1,
+                    "type": "VIRTIO",
+                    "ipv4Addresses": ["10.5.11.170"],
+                    "virDomainUUID": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                    "macAddress": "",
+                    "connected": True,
+                    "uuid": "nic-uuid",
+                }
+            ],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+        }
+        virtual_machine = VM.from_hypercore(smb_dict)
+        rest_client.list_records.return_value = [smb_dict]
+        rest_client.create_record.return_value = {"taskTag": "12345"}
+        results = virtual_machine.import_vm(rest_client, ansible_dict)
+        assert results == {"taskTag": "12345"}
