@@ -917,9 +917,9 @@ class TestVMExport:
         results = VM.get_smb_server_ip(rest_client, server_name)
         assert results == "10.5.11.170"
 
-    def test_create_export_vm_payload(self):
-        results = VM.create_export_vm_payload(
-            "10.5.11.170", "/user", "username", "password"
+    def test_create_export_or_import_vm_payload_when_export(self):
+        results = VM.create_export_or_import_vm_payload(
+            "10.5.11.170", "/user", "username", "password", "this-vm-name", True
         )
         assert results == dict(
             target=dict(
@@ -936,12 +936,13 @@ class TestVMExport:
 
     def test_export_vm(self, rest_client):
         ansible_dict = {
+            "vm_name": "this-vm",
             "smb": {
                 "server": "smb-server",
                 "path": "/somewhere",
                 "username": "user",
                 "password": "pass",
-            }
+            },
         }
         smb_dict = {
             "uuid": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
