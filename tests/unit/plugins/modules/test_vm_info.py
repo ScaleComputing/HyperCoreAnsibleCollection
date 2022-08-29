@@ -45,6 +45,11 @@ class TestRun:
                 operatingSystem=None,
                 latestTaskTag=None,
                 desiredDisposition=None,
+                affinityStrategy={
+                    "strictAffinity": False,
+                    "preferredNodeUUID": "",
+                    "backupNodeUUID": "",
+                },
             ),
         ]
 
@@ -64,7 +69,22 @@ class TestRun:
                 boot_devices=[],
                 attach_guest_tools_iso=False,
                 operating_system=None,
-            )
+                node_affinity={
+                    "strict_affinity": False,
+                    "preferred_node": {
+                        "node_uuid": "",
+                        "backplane_ip": "",
+                        "lan_ip": "",
+                        "peer_id": "",
+                    },
+                    "backup_node": {
+                        "node_uuid": "",
+                        "backplane_ip": "",
+                        "lan_ip": "",
+                        "peer_id": "",
+                    },
+                },
+            ),
         ]
 
     def test_run_records_absent(self, create_module, rest_client):

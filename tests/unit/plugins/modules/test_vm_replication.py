@@ -38,6 +38,11 @@ class TestEnabledOrReenabled:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -100,6 +105,11 @@ class TestEnabledOrReenabled:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -171,6 +181,11 @@ class TestEnabledOrReenabled:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -224,6 +239,11 @@ class TestDisabled:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         module = create_module(
             params=dict(
@@ -258,6 +278,11 @@ class TestDisabled:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         module = create_module(
             params=dict(
@@ -292,6 +317,11 @@ class TestDisabled:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",

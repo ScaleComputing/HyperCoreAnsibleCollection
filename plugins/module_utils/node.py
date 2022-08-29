@@ -57,3 +57,15 @@ class Node(PayloadMapper):
                 self.peer_id == other.peer_id,
             )
         )
+
+    @classmethod
+    def get_by_uuid(cls, node_uuid, rest_client):
+        """
+        From node_uuid in VM's affinity strategy, find and return Node. If there is no record with such uuid, None is returned.
+        """
+        if node_uuid == "":
+            return None
+        query = {"uuid": node_uuid}
+        hypercore_dict = rest_client.get_record("/rest/v1/Node", query)
+        node_from_hypercore = cls.from_hypercore(hypercore_dict)
+        return node_from_hypercore

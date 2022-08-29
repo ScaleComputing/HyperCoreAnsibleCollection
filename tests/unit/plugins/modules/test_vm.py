@@ -51,6 +51,11 @@ class TestEnsureAbsent:
             bootDevices=None,
             attachGuestToolsISO=False,
             operatingSystem=None,
+            affinityStrategy={
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         )
 
         rest_client.delete_record.return_value = None
@@ -129,6 +134,11 @@ class TestEnsurePresent:
             bootDevices=None,
             attachGuestToolsISO=False,
             operatingSystem=None,
+            affinityStrategy={
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         )
 
         rest_client.update_record.return_value = dict(
