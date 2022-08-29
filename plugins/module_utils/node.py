@@ -61,7 +61,7 @@ class Node(PayloadMapper):
     @classmethod
     def get_by_uuid(cls, node_uuid, rest_client):
         """
-        From node_uuid in VM's affinity strategy, find and return Node. If there is no record with such uuid, None is returned.
+        From node_uuid in VM's affinity strategy, find and return Node.
         """
         if node_uuid == "":
             return None

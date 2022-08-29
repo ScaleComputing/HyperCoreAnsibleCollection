@@ -52,7 +52,7 @@ class TestNode:
 
         assert node.to_ansible() == ansible_dict
 
-    def test_get_from_uuid(self, rest_client):
+    def test_get_by_uuid(self, rest_client):
         node_uuid = "51e6d073-7566-4273-9196-58720117bd7f"
         rest_client.get_record.return_value = dict(
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
@@ -69,9 +69,15 @@ class TestNode:
             peer_id=1,
         )
 
-    def test_get_from_uuid_no_record(self, rest_client):
+    def test_get_by_uuid_no_record(self, rest_client):
         node_uuid = "51e6d073-7566-4273-9196-58720117bd7f"
         rest_client.get_record.return_value = None
+        node_from_hypercore = Node.get_by_uuid(node_uuid, rest_client)
+
+        assert node_from_hypercore is None
+
+    def test_get_by_uuid_no_uuid(self, rest_client):
+        node_uuid = ""
         node_from_hypercore = Node.get_by_uuid(node_uuid, rest_client)
 
         assert node_from_hypercore is None
