@@ -38,6 +38,7 @@ class TestISO:
                 dict(vm_name="vm-name-2", vm_uuid="vm-uuid-2"),
             ],
             ready_for_insert=False,
+            path="scribe",
         )
 
         hypercore_dict = dict(
@@ -49,6 +50,7 @@ class TestISO:
                 dict(vmName="vm-name-2", vmUUID="vm-uuid-2"),
             ],
             readyForInsert=False,
+            path="scribe",
         )
 
         iso_from_hypercore = ISO.from_hypercore(hypercore_dict)
@@ -63,6 +65,7 @@ class TestISO:
             name="ISO-test-name",
             size=8000,
             ready_for_insert=False,
+            path="scribe",
         )
 
         hypercore_dict = dict(
@@ -70,6 +73,7 @@ class TestISO:
             name="ISO-test-name",
             size=8000,
             readyForInsert=False,
+            path="scribe",
         )
 
         assert iso.to_hypercore() == hypercore_dict
@@ -95,6 +99,7 @@ class TestISO:
                 dict(vm_name="vm-name-2", vm_uuid="vm-uuid-2"),
             ],
             ready_for_insert=False,
+            path=None,
         )
 
         assert iso.to_ansible() == ansible_dict
@@ -150,6 +155,7 @@ class TestISO:
             uuid="id",
             size=1234,
             mounts=[],
+            path="scribe",
         )
 
         iso_image = ISO(
@@ -158,6 +164,7 @@ class TestISO:
             uuid="id",
             size=1234,
             mounts=[],
+            path="scribe",
         )
 
         assert ISO.get_by_name(ansible_dict, rest_client) == iso_image

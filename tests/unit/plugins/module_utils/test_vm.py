@@ -7,6 +7,7 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.disk import Disk
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 
 pytestmark = pytest.mark.skipif(
@@ -424,6 +425,152 @@ class TestVM:
 
         vm_by_name = VM.get_by_name(ansible_dict, rest_client)
         assert vm == vm_by_name
+
+    def test_get_specific_disk_result_not_empty(self):
+        vm = VM(
+            attach_guest_tools_iso=False,
+            boot_devices=[],
+            description="desc",
+            disks=[
+                Disk(
+                    type="virtio_disk",
+                    slot=0,
+                    cache_mode="none",
+                    size=4200,
+                    uuid="id",
+                    name="jc1-disk-0",
+                    disable_snapshotting=False,
+                    tiering_priority_factor=8,
+                    mount_points=[],
+                    read_only=False,
+                ),
+                Disk(
+                    type="ide_cdrom",
+                    slot=1,
+                    cache_mode="none",
+                    size=4200,
+                    uuid="id",
+                    name="jc1-disk-0",
+                    disable_snapshotting=False,
+                    tiering_priority_factor=8,
+                    mount_points=[],
+                    read_only=False,
+                ),
+            ],
+            memory=42,
+            name="VM-name-unique",
+            nics=[],
+            vcpu=2,
+            operating_system=None,
+            power_state="started",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
+            uuid="id",
+        )
+
+        disk_query = dict(type="virtio_disk", disk_slot=0)
+        specific_disk = vm.get_specific_disk(disk_query)
+        assert specific_disk == dict(
+            type="virtio_disk",
+            disk_slot=0,
+            size=4200,
+            uuid="id",
+            vm_uuid=None,
+            cache_mode="none",
+            name="jc1-disk-0",
+            disable_snapshotting=False,
+            tiering_priority_factor=8,
+            mount_points=[],
+            read_only=False,
+        )
+
+    def test_get_specific_disk_result_empty(self):
+        vm = VM(
+            attach_guest_tools_iso=False,
+            boot_devices=[],
+            description="desc",
+            disks=[
+                Disk(
+                    type="virtio_disk",
+                    slot=1,
+                    cache_mode="none",
+                    size=4200,
+                    uuid="id",
+                    name="jc1-disk-0",
+                    disable_snapshotting=False,
+                    tiering_priority_factor=8,
+                    mount_points=[],
+                    read_only=False,
+                ),
+                Disk(
+                    type="ide_cdrom",
+                    slot=1,
+                    cache_mode="none",
+                    size=4200,
+                    uuid="id",
+                    name="jc1-disk-0",
+                    disable_snapshotting=False,
+                    tiering_priority_factor=8,
+                    mount_points=[],
+                    read_only=False,
+                ),
+            ],
+            memory=42,
+            name="VM-name-unique",
+            nics=[],
+            vcpu=2,
+            operating_system=None,
+            power_state="started",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
+            uuid="id",
+        )
+
+        disk_query = dict(type="virtio_disk", disk_slot=0)
+        assert vm.get_specific_disk(disk_query) is None
+
+    def test_get_specific_disk_multiple_results(self):
+        vm = VM(
+            attach_guest_tools_iso=False,
+            boot_devices=[],
+            description="desc",
+            disks=[
+                Disk(
+                    type="virtio_disk",
+                    slot=0,
+                    cache_mode="none",
+                    size=4200,
+                    uuid="id",
+                    name="jc1-disk-0",
+                    disable_snapshotting=False,
+                    tiering_priority_factor=8,
+                    mount_points=[],
+                    read_only=False,
+                ),
+                Disk(
+                    type="virtio_disk",
+                    slot=0,
+                    cache_mode="none",
+                    size=4200,
+                    uuid="id",
+                    name="jc1-disk-0",
+                    disable_snapshotting=False,
+                    tiering_priority_factor=8,
+                    mount_points=[],
+                    read_only=False,
+                ),
+            ],
+            memory=42,
+            name="VM-name-unique",
+            nics=[],
+            vcpu=2,
+            operating_system=None,
+            power_state="started",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
+            uuid="id",
+        )
+
+        disk_query = dict(type="virtio_disk", disk_slot=0)
+        with pytest.raises(errors.ScaleComputingError, match="Disk"):
+            vm.get_specific_disk(disk_query)
 
     def test_get_or_fail_when_get(self, rest_client):
         rest_client.list_records.return_value = [
