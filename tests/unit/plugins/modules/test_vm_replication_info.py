@@ -37,6 +37,11 @@ class TestRun:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
 
     @classmethod
@@ -55,6 +60,11 @@ class TestRun:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
 
     def test_run_with_vm_name(self, create_module, rest_client):

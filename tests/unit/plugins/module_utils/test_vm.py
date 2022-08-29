@@ -48,7 +48,7 @@ class TestVM:
 
         assert vm == VM.from_ansible(vm_dict)
 
-    def test_vm_from_hypercore_dict_is_not_none(self):
+    def test_vm_from_hypercore_dict_is_not_none(self, rest_client):
         vm = VM(
             uuid="",  # No uuid when creating object from ansible
             node_uuid="412a3e85-8c21-4138-a36e-789eae3548a3",
@@ -63,6 +63,21 @@ class TestVM:
             boot_devices=None,
             attach_guest_tools_iso=False,
             operating_system=None,
+            node_affinity={
+                "strict_affinity": False,
+                "preferred_node": {
+                    "node_uuid": "",
+                    "backplane_ip": "",
+                    "lan_ip": "",
+                    "peer_id": "",
+                },
+                "backup_node": {
+                    "node_uuid": "",
+                    "backplane_ip": "",
+                    "lan_ip": "",
+                    "peer_id": "",
+                },
+            },
         )
 
         vm_dict = dict(
@@ -79,15 +94,20 @@ class TestVM:
             bootDevices=None,
             attachGuestToolsISO=False,
             operatingSystem=None,
+            affinityStrategy={
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         )
 
-        vm_from_hypercore = VM.from_hypercore(vm_dict)
+        vm_from_hypercore = VM.from_hypercore(vm_dict, rest_client)
         assert vm == vm_from_hypercore
 
-    def test_vm_from_hypercore_dict_is_none(self):
+    def test_vm_from_hypercore_dict_is_none(self, rest_client):
         vm = None
         vm_dict = None
-        vm_from_hypercore = VM.from_hypercore(vm_dict)
+        vm_from_hypercore = VM.from_hypercore(vm_dict, rest_client)
         assert vm == vm_from_hypercore
 
     def test_vm_to_hypercore(self):
@@ -135,6 +155,21 @@ class TestVM:
             boot_devices=None,
             attach_guest_tools_iso=False,
             operating_system="os_windows_server_2012",
+            node_affinity={
+                "strict_affinity": True,
+                "preferred_node": {
+                    "node_uuid": "412a3e85-8c21-4138-a36e-789eae3548a3",
+                    "backplane_ip": "10.0.0.1",
+                    "lan_ip": "10.0.0.2",
+                    "peer_id": 1,
+                },
+                "backup_node": {
+                    "node_uuid": "f6v3c6b3-99c6-475b-8e8e-9ae2587db5fc",
+                    "backplane_ip": "10.0.0.3",
+                    "lan_ip": "10.0.0.4",
+                    "peer_id": 2,
+                },
+            },
         )
 
         assert vm.to_ansible() == dict(
@@ -150,6 +185,21 @@ class TestVM:
             boot_devices=[],
             attach_guest_tools_iso=False,
             operating_system="os_windows_server_2012",
+            node_affinity={
+                "strict_affinity": True,
+                "preferred_node": {
+                    "node_uuid": "412a3e85-8c21-4138-a36e-789eae3548a3",
+                    "backplane_ip": "10.0.0.1",
+                    "lan_ip": "10.0.0.2",
+                    "peer_id": 1,
+                },
+                "backup_node": {
+                    "node_uuid": "f6v3c6b3-99c6-475b-8e8e-9ae2587db5fc",
+                    "backplane_ip": "10.0.0.3",
+                    "lan_ip": "10.0.0.4",
+                    "peer_id": 2,
+                },
+            },
         )
 
     def test_find_disk(self):
@@ -237,6 +287,21 @@ class TestVM:
             boot_devices=None,
             attach_guest_tools_iso=False,
             operating_system="os_windows_server_2012",
+            node_affinity={
+                "strict_affinity": True,
+                "preferred_node": {
+                    "node_uuid": "412a3e85-8c21-4138-a36e-789eae3548a3",
+                    "backplane_ip": "10.0.0.1",
+                    "lan_ip": "10.0.0.2",
+                    "peer_id": 1,
+                },
+                "backup_node": {
+                    "node_uuid": "f6v3c6b3-99c6-475b-8e8e-9ae2587db5fc",
+                    "backplane_ip": "10.0.0.3",
+                    "lan_ip": "10.0.0.4",
+                    "peer_id": 2,
+                },
+            },
         ) == VM(
             uuid=None,  # No uuid when creating object from ansible
             node_uuid="412a3e85-8c21-4138-a36e-789eae3548a3",
@@ -251,6 +316,21 @@ class TestVM:
             boot_devices=None,
             attach_guest_tools_iso=False,
             operating_system="os_windows_server_2012",
+            node_affinity={
+                "strict_affinity": True,
+                "preferred_node": {
+                    "node_uuid": "412a3e85-8c21-4138-a36e-789eae3548a3",
+                    "backplane_ip": "10.0.0.1",
+                    "lan_ip": "10.0.0.2",
+                    "peer_id": 1,
+                },
+                "backup_node": {
+                    "node_uuid": "f6v3c6b3-99c6-475b-8e8e-9ae2587db5fc",
+                    "backplane_ip": "10.0.0.3",
+                    "lan_ip": "10.0.0.4",
+                    "peer_id": 2,
+                },
+            },
         )
 
     def test_equal_false(self):
@@ -268,6 +348,7 @@ class TestVM:
             boot_devices=None,
             attach_guest_tools_iso=False,
             operating_system="os_windows_server_2012",
+            node_affinity={},
         ) != VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM   NAME    CHANGED !!!!!!",
@@ -282,41 +363,8 @@ class TestVM:
             boot_devices=None,
             attach_guest_tools_iso=False,
             operating_system="os_windows_server_2012",
+            node_affinity={},
         )
-
-    def test_compare(self):
-        hypercore_dict = dict(
-            uuid=None,
-            name="VM-name",
-            nodeUUID=None,
-            tags="XLAB-test-tag1,XLAB-test-tag2",
-            description="desc",
-            mem=42,
-            state="RUNNING",
-            numVCPU=2,
-            netDevs=[],
-            blockDevs=[],
-            bootDevices=None,
-            attachGuestToolsISO=False,
-            operatingSystem=None,
-        )
-
-        ansible_dict = dict(
-            uuid=None,  # No uuid when creating object from ansible
-            vm_name="VM-name",
-            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
-            description="desc",
-            memory=42,
-            power_state="started",
-            vcpu=2,
-            nics=[],
-            disks=[],
-            boot_devices=None,
-            attach_guest_tools_iso=False,
-            operating_system=None,
-        )
-
-        assert VM.compare(ansible_dict, hypercore_dict)
 
     def test_get_by_name(self, rest_client):
         ansible_dict = dict(
@@ -336,6 +384,11 @@ class TestVM:
             bootDevices=None,
             attachGuestToolsISO=False,
             operatingSystem=None,
+            affinityStrategy={
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         )
 
         vm = VM(
@@ -352,6 +405,21 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             uuid="id",
             node_uuid="node_id",
+            node_affinity={
+                "strict_affinity": False,
+                "preferred_node": {
+                    "node_uuid": "",
+                    "backplane_ip": "",
+                    "lan_ip": "",
+                    "peer_id": "",
+                },
+                "backup_node": {
+                    "node_uuid": "",
+                    "backplane_ip": "",
+                    "lan_ip": "",
+                    "peer_id": "",
+                },
+            },
         )
 
         vm_by_name = VM.get_by_name(ansible_dict, rest_client)
@@ -373,10 +441,15 @@ class TestVM:
                 "numVCPU": 2,
                 "bootDevices": [],
                 "operatingSystem": "windows",
+                "affinityStrategy": {
+                    "strictAffinity": False,
+                    "preferredNodeUUID": "",
+                    "backupNodeUUID": "",
+                },
             }
         ]
         actual = VM.from_hypercore(
-            vm_dict=rest_client.list_records.return_value[0]
+            vm_dict=rest_client.list_records.return_value[0], rest_client=rest_client
         ).to_hypercore()
         results = VM.get_or_fail(
             query={"name": "XLAB_test_vm"}, rest_client=rest_client
@@ -394,7 +467,7 @@ class TestVM:
 
 class TestNic:
     @classmethod
-    def _get_test_vm(cls):
+    def _get_test_vm(cls, rest_client):
         nic_dict_1 = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
             "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -429,7 +502,13 @@ class TestNic:
                 "numVCPU": 2,
                 "bootDevices": [],
                 "operatingSystem": "windows",
-            }
+                "affinityStrategy": {
+                    "strictAffinity": False,
+                    "preferredNodeUUID": "",
+                    "backupNodeUUID": "",
+                },
+            },
+            rest_client,
         )
 
     def test_delete_unused_nics_to_hypercore_vm_when_no_delete(
@@ -460,6 +539,11 @@ class TestNic:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         rest_client.list_records.return_value = [vm_dict]
         virtual_machine = VM.get(
@@ -507,6 +591,11 @@ class TestNic:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         rest_client.list_records.return_value = [vm_dict]
         rest_client.delete_record.return_value = {"taskTag": "1234"}
@@ -564,6 +653,11 @@ class TestNic:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         rest_client.list_records.return_value = [vm_dict]
         rest_client.delete_record.side_effect = [
@@ -578,8 +672,8 @@ class TestNic:
         )
         assert results is True
 
-    def test_find_nic_vlan(self):
-        virtual_machine = self._get_test_vm()
+    def test_find_nic_vlan(self, rest_client):
+        virtual_machine = self._get_test_vm(rest_client)
         results = virtual_machine.find_nic(vlan=1)
         assert results[1] is (None)
         assert results[0].vlan == 1
@@ -588,8 +682,8 @@ class TestNic:
         assert results[0].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         assert results[0].connected is True
 
-    def test_find_nic_vlan_and_vlan_new(self):
-        virtual_machine = self._get_test_vm()
+    def test_find_nic_vlan_and_vlan_new(self, rest_client):
+        virtual_machine = self._get_test_vm(rest_client)
         results = virtual_machine.find_nic(vlan=2, vlan_new=1)
         print(results)
         assert results[0].vlan == 2
@@ -603,8 +697,8 @@ class TestNic:
         assert results[1].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         assert results[1].connected is True
 
-    def test_find_nic_mac(self):
-        virtual_machine = self._get_test_vm()
+    def test_find_nic_mac(self, rest_client):
+        virtual_machine = self._get_test_vm(rest_client)
         results = virtual_machine.find_nic(mac="12-34-56-78-CD")
         print(results)
         assert results[0].vlan == 2
@@ -613,8 +707,8 @@ class TestNic:
         assert results[0].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         assert results[0].connected is True
 
-    def test_find_nic_mac_and_mac_new(self):
-        virtual_machine = self._get_test_vm()
+    def test_find_nic_mac_and_mac_new(self, rest_client):
+        virtual_machine = self._get_test_vm(rest_client)
         results = virtual_machine.find_nic(
             mac="12-34-56-78-CD", mac_new="12-34-56-78-AB"
         )

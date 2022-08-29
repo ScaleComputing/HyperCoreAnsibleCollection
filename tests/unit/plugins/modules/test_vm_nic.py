@@ -35,6 +35,11 @@ class TestEnsurePresentOrSet:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
 
     @classmethod
@@ -71,6 +76,11 @@ class TestEnsurePresentOrSet:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
 
     @classmethod
@@ -107,6 +117,11 @@ class TestEnsurePresentOrSet:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
 
     @classmethod
@@ -1002,6 +1017,11 @@ class TestEnsureAbsent:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
 
     @classmethod
@@ -1038,6 +1058,11 @@ class TestEnsureAbsent:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
 
     def test_ensure_absent_when_no_change(self, create_module, rest_client):

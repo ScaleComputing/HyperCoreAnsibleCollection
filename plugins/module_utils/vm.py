@@ -11,6 +11,7 @@ __metaclass__ = type
 from ..module_utils.errors import DeviceNotUnique
 from ..module_utils.nic import Nic
 from ..module_utils.disk import Disk
+from ..module_utils.node import Node
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
 from ..module_utils.utils import (
@@ -49,6 +50,7 @@ class VM(PayloadMapper):
         boot_devices=None,
         attach_guest_tools_iso=False,
         operating_system=None,
+        node_affinity=None,
     ):
 
         self.operating_system = operating_system
@@ -64,6 +66,7 @@ class VM(PayloadMapper):
         self.disks = disks or []
         self.boot_devices = boot_devices or []
         self.attach_guest_tools_iso = attach_guest_tools_iso
+        self.node_affinity = node_affinity
 
     @property
     def nic_list(self):
@@ -93,11 +96,38 @@ class VM(PayloadMapper):
         )
 
     @classmethod
-    def from_hypercore(cls, vm_dict):
-        if (
-            vm_dict is None
-        ):  # In case we call RestClient.get_record and there is no results
+    def from_hypercore(cls, vm_dict, rest_client):
+        # In case we call RestClient.get_record and there is no results
+        if vm_dict is None:
             return None
+
+        preferred_node = Node.get_by_uuid(
+            vm_dict["affinityStrategy"]["preferredNodeUUID"], rest_client
+        )
+        backup_node = Node.get_by_uuid(
+            vm_dict["affinityStrategy"]["preferredNodeUUID"], rest_client
+        )
+
+        node_affinity = dict(
+            strict_affinity=vm_dict["affinityStrategy"]["strictAffinity"],
+            preferred_node=dict(
+                node_uuid=vm_dict["affinityStrategy"]["preferredNodeUUID"],
+                backplane_ip=preferred_node.backplane_ip
+                if preferred_node is not None
+                else "",
+                lan_ip=preferred_node.lan_ip if preferred_node is not None else "",
+                peer_id=preferred_node.peer_id if preferred_node is not None else "",
+            ),
+            backup_node=dict(
+                node_uuid=vm_dict["affinityStrategy"]["backupNodeUUID"],
+                backplane_ip=backup_node.backplane_ip
+                if backup_node is not None
+                else "",
+                lan_ip=backup_node.lan_ip if backup_node is not None else "",
+                peer_id=backup_node.peer_id if backup_node is not None else "",
+            ),
+        )
+
         return VM(
             uuid=vm_dict["uuid"],  # No uuid when creating object from ansible
             node_uuid=vm_dict["nodeUUID"],  # Needed in vm_node_affinity
@@ -115,17 +145,7 @@ class VM(PayloadMapper):
             boot_devices=vm_dict["bootDevices"],
             attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", ""),
             operating_system=vm_dict["operatingSystem"],
-        )
-
-    @classmethod
-    def compare(cls, ansible_dict, hypercore_dict):
-        """
-        :param ansible_dict: Dict that is defined by user in playbook (often referred as module.params in code)
-        :param hypercore_dict: Dict that is obtained from HyperCore API
-        :return: Bool value if those dict represent the same objects in python
-        """
-        return VM.from_hypercore(vm_dict=hypercore_dict) == VM.from_ansible(
-            vm_dict=ansible_dict
+            node_affinity=node_affinity,
         )
 
     @classmethod
@@ -137,7 +157,8 @@ class VM(PayloadMapper):
         if not record:
             return []
         return [
-            VM.from_hypercore(vm_dict=virtual_machine) for virtual_machine in record
+            VM.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client)
+            for virtual_machine in record
         ]
 
     @classmethod
@@ -149,7 +170,8 @@ class VM(PayloadMapper):
         if not record:
             raise errors.VMNotFound(query)
         return [
-            VM.from_hypercore(vm_dict=virtual_machine) for virtual_machine in record
+            VM.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client)
+            for virtual_machine in record
         ]
 
     # TODO (domen): Remove usages of get_legacy method with method get
@@ -190,7 +212,7 @@ class VM(PayloadMapper):
             ansible_dict, "vm_name", ansible_hypercore_map=dict(vm_name="name")
         )
         hypercore_dict = rest_client.get_record("/rest/v1/VirDomain", query)
-        vm_from_hypercore = VM.from_hypercore(hypercore_dict)
+        vm_from_hypercore = VM.from_hypercore(hypercore_dict, rest_client)
         return vm_from_hypercore
 
     def to_hypercore(self):
@@ -229,6 +251,7 @@ class VM(PayloadMapper):
             uuid=self.uuid,
             boot_devices=self.boot_devices,
             attach_guest_tools_iso=self.attach_guest_tools_iso,
+            node_affinity=self.node_affinity,
         )
 
     # search by vlan or mac as specified in US-11:
@@ -312,6 +335,7 @@ class VM(PayloadMapper):
                 self.disks == other.disks,
                 self.boot_devices == other.boot_devices,
                 self.attach_guest_tools_iso == other.attach_guest_tools_iso,
+                self.node_affinity == other.node_affinity,
             )
         )
 

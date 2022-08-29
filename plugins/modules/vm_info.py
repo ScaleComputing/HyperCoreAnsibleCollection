@@ -58,28 +58,40 @@ vms:
   returned: success
   type: list
   sample:
-    - "boot_devices":  # TODO check what we promised
-            - "name": ""
-              "disk_slot": 0
-              "type": "virtio_disk"
-              "uuid": "fec11a1d-e8e3-4a50-8b50-57dece3e8baf"
-      "description": "XLAB-ac1-export-20220705T201528: "
-      "disks":  # TODO check what we promised
-            - "size": 8589934592
-              "name": ""
-              "disk_slot": 0
-              "type": "virtio_disk"
-              "uuid": "e8c8aa6b-1043-48a0-8407-2c432d705378"
-              "memory": 536870912
-      "vm_name": "XLAB-CentOS-7-x86_64-GenericCloud-2111"
-      "nics":
-            - "type": "RTL8139"
-              "uuid": "4c627449-99c6-475b-8e8e-9ae2587db5fc"
-              "vlan": 0
-      "vcpu": 2
-      "power_state": "shutoff"
-      "tags": "Xlab,ac1,us3"
-      "uuid": "f0c91f97-cbfc-40f8-b918-ab77ae8ea7fb"
+    - boot_devices:  # TODO check what we promised
+        - name: ""
+          disk_slot: 0
+          type: "virtio_disk"
+          uuid: "fec11a1d-e8e3-4a50-8b50-57dece3e8baf"
+      description: "XLAB-ac1-export-20220705T201528: "
+      disks:  # TODO check what we promised
+        - size: 8589934592
+          name: ""
+          disk_slot: 0
+          type: "virtio_disk"
+          uuid: "e8c8aa6b-1043-48a0-8407-2c432d705378"
+          memory: 536870912
+      vm_name: "XLAB-CentOS-7-x86_64-GenericCloud-2111"
+      nics:
+        - type: "RTL8139"
+          uuid: "4c627449-99c6-475b-8e8e-9ae2587db5fc"
+          vlan: 0
+      vcpu: 2
+      power_state: "shutoff"
+      tags: "Xlab,ac1,us3"
+      uuid: "f0c91f97-cbfc-40f8-b918-ab77ae8ea7fb"
+      node_affinity:
+        - strict_affinity: true
+          preferred_node:
+            - node_uuid: "412a3e85-8c21-4138-a36e-789eae3548a3"
+              backplane_ip: "10.0.0.1"
+              lan_ip: "10.0.0.2"
+              peer_id: 1
+          backup_node:
+            - node_uuid: "f6v3c6b3-99c6-475b-8e8e-9ae2587db5fc"
+              backplane_ip: "10.0.0.3"
+              lan_ip: "10.0.0.4"
+              peer_id: 2
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -99,7 +111,7 @@ def run(module, rest_client):
         ansible_hypercore_map=dict(uuid="uuid", vm_name="name"),
     )
     return [
-        VM.from_hypercore(vm_dict=vm_dict).to_ansible()
+        VM.from_hypercore(vm_dict=vm_dict, rest_client=rest_client).to_ansible()
         for vm_dict in rest_client.list_records("/rest/v1/VirDomain", query)
     ]
 

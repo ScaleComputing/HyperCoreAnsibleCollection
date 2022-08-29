@@ -76,6 +76,11 @@ class TestGet:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         rest_client.get_record.return_value = remote_cluster_dict
         rest_client.list_records.side_effect = [
