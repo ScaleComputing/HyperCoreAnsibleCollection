@@ -59,6 +59,7 @@ class TestEnsureAbsent:
                         {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
                     ],
                     "name": "ISO-test-name",
+                    "path": "scribe/1234",
                     "ready_for_insert": False,
                     "size": 8000,
                     "uuid": "id",
@@ -72,6 +73,7 @@ class TestEnsureAbsent:
                         {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
                     ],
                     "name": "ISO-test-name",
+                    "path": "scribe/1234",
                     "ready_for_insert": False,
                     "size": 8000,
                     "uuid": "id",
@@ -123,34 +125,34 @@ class TestEnsurePresent:
         rest_client.update_record.assert_called_once()
 
         assert result == (
-            (
-                True,
-                [
-                    {
-                        "mounts": [
-                            {"vm_name": "vm-name-1", "vm_uuid": "vm-uuid-1"},
-                            {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
-                        ],
-                        "name": "ISO-test-name",
-                        "ready_for_insert": False,
-                        "size": 8000,
-                        "uuid": "id",
-                    }
-                ],
+            True,
+            [
                 {
-                    "after": {
-                        "mounts": [
-                            {"vm_name": "vm-name-1", "vm_uuid": "vm-uuid-1"},
-                            {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
-                        ],
-                        "name": "ISO-test-name",
-                        "ready_for_insert": False,
-                        "size": 8000,
-                        "uuid": "id",
-                    },
-                    "before": None,
+                    "mounts": [
+                        {"vm_name": "vm-name-1", "vm_uuid": "vm-uuid-1"},
+                        {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
+                    ],
+                    "name": "ISO-test-name",
+                    "path": "scribe/1234",
+                    "ready_for_insert": False,
+                    "size": 8000,
+                    "uuid": "id",
+                }
+            ],
+            {
+                "after": {
+                    "mounts": [
+                        {"vm_name": "vm-name-1", "vm_uuid": "vm-uuid-1"},
+                        {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
+                    ],
+                    "name": "ISO-test-name",
+                    "path": "scribe/1234",
+                    "ready_for_insert": False,
+                    "size": 8000,
+                    "uuid": "id",
                 },
-            )
+                "before": None,
+            },
         )
 
     def test_ensure_present_iso_image_present_ready_for_insert_true(
@@ -182,17 +184,16 @@ class TestEnsurePresent:
         rest_client.update_record.assert_not_called()
         result = iso.ensure_present(module, rest_client)
         assert result == (
-            (
-                False,
-                [
-                    {
-                        "mounts": [],
-                        "name": "iso-image-name",
-                        "ready_for_insert": True,
-                        "size": 1234,
-                        "uuid": "id",
-                    }
-                ],
-                {},
-            )
+            False,
+            [
+                {
+                    "mounts": [],
+                    "name": "iso-image-name",
+                    "path": "/path/",
+                    "ready_for_insert": True,
+                    "size": 1234,
+                    "uuid": "id",
+                }
+            ],
+            {},
         )

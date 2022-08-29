@@ -13,12 +13,13 @@ from ..module_utils.nic import Nic
 from ..module_utils.disk import Disk
 from ..module_utils.node import Node
 from ..module_utils.utils import PayloadMapper
-from ..module_utils.rest_client import RestClient
 from ..module_utils.utils import (
     get_query,
+    filter_results,
 )
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
+from ..module_utils.errors import ScaleComputingError
 
 FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     started="RUNNING",
@@ -87,7 +88,7 @@ class VM(PayloadMapper):
             vcpu=vm_dict["vcpu"],
             nics=[Nic.from_ansible(ansible_data=nic) for nic in vm_dict["nics"] or []],
             disks=[
-                Disk(from_hc3=True, disk_dict=disk) for disk in vm_dict["disks"] or []
+                Disk.from_ansible(disk_dict) for disk_dict in vm_dict["disks"] or []
             ],
             boot_devices=vm_dict.get("boot_devices", []),
             attach_guest_tools_iso=vm_dict["attach_guest_tools_iso"] or False,
@@ -139,7 +140,7 @@ class VM(PayloadMapper):
             vcpu=vm_dict["numVCPU"],
             nics=[Nic.from_hypercore(hypercore_data=nic) for nic in vm_dict["netDevs"]],
             disks=[
-                Disk(from_hc3=True, disk_dict=disk) for disk in vm_dict["blockDevs"]
+                Disk.from_hypercore(disk_dict) for disk_dict in vm_dict["blockDevs"]
             ],
             # TODO: When boot devices get implemented, add transformation here
             boot_devices=vm_dict["bootDevices"],
@@ -174,36 +175,8 @@ class VM(PayloadMapper):
             for virtual_machine in record
         ]
 
-    # TODO (domen): Remove usages of get_legacy method with method get
     @classmethod
-    def get_legacy(
-        cls, client, name=None, uuid=None
-    ):  # get all VMs or specific (requires parameter Name or uuid)
-        rest_client = RestClient(client=client)
-        end_point = "/rest/v1/VirDomain/"
-        all_vms_list = rest_client.list_records(endpoint=end_point)
-        if name:
-            all_vm_names = [vm["name"] for vm in all_vms_list]
-            # TODO raise specific exception if multiple VMs have same name
-            if all_vm_names.count(name) > 1:
-                raise DeviceNotUnique("Virtual machine - vm.py - get()")
-            for (
-                vm
-            ) in (
-                all_vms_list
-            ):  # find first | what if more than one VM with the same name?
-                if vm["name"] == name:
-                    return [vm]
-            return []
-        elif uuid:
-            for vm in all_vms_list:
-                if vm["uuid"] == uuid:
-                    return [vm]
-            return []
-        return all_vms_list
-
-    @classmethod
-    def get_by_name(cls, ansible_dict, rest_client):
+    def get_by_name(cls, ansible_dict, rest_client, must_exist=False):
         """
         With given dict from playbook, finds the existing vm by name from the HyperCore api and constructs object VM if
         the record exists. If there is no record with such name, None is returned.
@@ -221,7 +194,7 @@ class VM(PayloadMapper):
             description=self.description,
             mem=self.mem,
             numVCPU=self.numVCPU,
-            blockDevs=[disk.data_to_hc3() for disk in self.disk_list],
+            blockDevs=[disk.to_hypercore() for disk in self.disk_list],
             netDevs=[nic.to_hypercore() for nic in self.nic_list],
             # TODO: When boot devices get implemented, add transformation here
             bootDevices=self.boot_devices,
@@ -245,7 +218,7 @@ class VM(PayloadMapper):
             power_state=self.power_state,
             memory=self.mem,
             vcpu=self.numVCPU,
-            disks=[disk.data_to_ansible() for disk in self.disk_list],
+            disks=[disk.to_ansible() for disk in self.disk_list],
             nics=[nic.to_ansible() for nic in self.nic_list],
             tags=self.tags,
             uuid=self.uuid,
@@ -341,3 +314,19 @@ class VM(PayloadMapper):
 
     def __str__(self):
         return super().__str__()
+
+    def get_specific_disk(self, query):
+        """query is dict. Usually, query's keys will be either disk_slot and type (since disk is uniquely identified
+        with vm_name, disk_slot and type. Additionally, in case of attaching/detaching ISO image (type == ide_cdrom),
+        disk could be identified with just the given vm (and its name), name and type."""
+        filtered_results = filter_results(
+            results=[vm_disk.to_ansible() for vm_disk in self.disks],
+            filter_data=query,
+        )
+        if len(filtered_results) > 1:
+            raise ScaleComputingError(
+                "Disk isn't uniquely identifyed by {0} in VM {1}.".format(
+                    query, self.name
+                )
+            )
+        return filtered_results[0] if filtered_results else None

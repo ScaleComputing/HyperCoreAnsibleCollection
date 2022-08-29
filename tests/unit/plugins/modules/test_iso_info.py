@@ -53,6 +53,7 @@ class TestRun:
                     {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
                 ],
                 "name": "ISO-test-name",
+                "path": "scribe/1234",
                 "ready_for_insert": False,
                 "size": 8000,
                 "uuid": "id",

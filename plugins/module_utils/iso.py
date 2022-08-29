@@ -15,12 +15,7 @@ from ..module_utils.utils import get_query
 class ISO(PayloadMapper):
     # Variables in ISO are written in ansible-native format
     def __init__(
-        self,
-        name,
-        uuid=None,
-        size=-1,
-        mounts=None,
-        ready_for_insert=False,
+        self, name, uuid=None, size=-1, mounts=None, ready_for_insert=False, path=None
     ):
         if mounts is None:
             mounts = []
@@ -30,6 +25,7 @@ class ISO(PayloadMapper):
         # mounts represent list of dicts with vm_uuid and vm_name as keys and their values as values
         self.mounts = mounts
         self.ready_for_insert = ready_for_insert
+        self.path = path
 
     @classmethod
     def from_ansible(cls, vm_dict):
@@ -53,6 +49,7 @@ class ISO(PayloadMapper):
                 for mount in vm_dict["mounts"]
             ],
             ready_for_insert=vm_dict["readyForInsert"],
+            path=vm_dict["path"],
         )
 
     def to_hypercore(self):
@@ -61,6 +58,7 @@ class ISO(PayloadMapper):
             name=self.name,
             size=self.size,
             readyForInsert=self.ready_for_insert,
+            path=self.path,
         )
 
     def to_ansible(self):
@@ -70,6 +68,7 @@ class ISO(PayloadMapper):
             size=self.size,
             mounts=self.mounts,
             ready_for_insert=self.ready_for_insert,
+            path=self.path,
         )
 
     def __eq__(self, other):
@@ -100,12 +99,23 @@ class ISO(PayloadMapper):
         }
 
     @classmethod
-    def get_by_name(cls, ansible_dict, rest_client):
+    def get_by_name(cls, ansible_dict, rest_client, must_exist=False):
         """
         With given dict from playbook, finds the existing iso by name from the HyperCore api and constructs object ISO if
         the record exists. If there is no record with such name, None is returned.
         """
         query = get_query(ansible_dict, "name", ansible_hypercore_map=dict(name="name"))
-        hypercore_dict = rest_client.get_record("/rest/v1/ISO", query, must_exist=False)
+        hypercore_dict = rest_client.get_record(
+            "/rest/v1/ISO", query, must_exist=must_exist
+        )
         iso_from_hypercore = ISO.from_hypercore(hypercore_dict)
         return iso_from_hypercore
+
+    def attach_iso_payload(self):
+        """Used in module vm_disk"""
+        return dict(path=self.path, name=self.name)
+
+    @classmethod
+    def detach_iso_payload(cls):
+        """Used in module vm_disk"""
+        return dict(path="", name="")
