@@ -1,0 +1,29 @@
+- name: US-8. As a user I want to be able to import a new VM image from HTTPS and SMB so that I can clone it later
+  hosts: localhost
+  tasks:
+  - name: Import VM from SMB with cloud_init data
+    scale_computing.hypercore.vm_import:
+      cluster_instance:
+          host: 'https://10.5.11.30'
+          username: 'admin'
+          password: 'admin'
+      vm_name: XLAB-POST-TEST-IMPORT
+      smb:
+        server: XLAB-demo-VM-smb-server
+        path: /users/test
+        username: example1
+        password: badpass
+      cloud_init:
+        user_data:
+          autoinstall:
+            - version: 1
+            - locale: en_US"
+        meta_data:
+          network:
+            version: 2
+            renderer: networkd
+    register: output
+
+  - name: output the HTTP request results
+    debug:
+      var: output

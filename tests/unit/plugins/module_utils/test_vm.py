@@ -929,7 +929,7 @@ class TestVMExport:
 
     def test_create_export_or_import_vm_payload_when_export(self):
         results = VM.create_export_or_import_vm_payload(
-            "10.5.11.170", "/user", "username", "password", "this-vm-name", True
+            "10.5.11.170", "/user", "username", "password", "this-vm-name", None, True
         )
         assert results == dict(
             target=dict(
@@ -994,7 +994,7 @@ class TestVMExport:
 class TestVMImport:
     def test_create_export_or_import_vm_payload_when_import(self):
         results = VM.create_export_or_import_vm_payload(
-            "10.5.11.170", "/user", "username", "password", "this-vm-name", False
+            "10.5.11.170", "/user", "username", "password", "this-vm-name", None, False
         )
         print(results)
         assert results == dict(
