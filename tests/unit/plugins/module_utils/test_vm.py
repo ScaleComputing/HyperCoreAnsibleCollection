@@ -850,3 +850,209 @@ class TestNic:
         assert results[1].uuid == "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"
         assert results[1].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         assert results[1].connected is True
+
+
+class TestVMExport:
+    def test_get_smb_server_ip_when_server_not_found(self, rest_client):
+        server_name = "SMB-TEST-VM"
+        rest_client.list_records.return_value = []
+        with pytest.raises(
+            errors.VMNotFound,
+            match="Virtual machine - {'name': 'SMB-TEST-VM'} - not found",
+        ):
+            VM.get_smb_server_ip(rest_client, server_name)
+
+    def test_get_smb_server_ip_when_ip_not_found(self, rest_client):
+        vm_dict = {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "SMB-TEST-VM",
+            "blockDevs": [],
+            "netDevs": [],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+        }
+        server_name = "SMB-TEST-VM"
+        rest_client.list_records.return_value = [vm_dict]
+        with pytest.raises(
+            errors.SMBServerNotFound,
+            match="SMB server is either not connected or not in the same network - SMB-TEST-VM",
+        ):
+            VM.get_smb_server_ip(rest_client, server_name)
+
+    def test_get_smb_server_ip_when_ip_found(self, rest_client):
+        smb_dict = {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "SMB-TEST-VM",
+            "blockDevs": [],
+            "netDevs": [
+                {
+                    "vlan": 1,
+                    "type": "VIRTIO",
+                    "ipv4Addresses": ["10.5.11.170"],
+                    "virDomainUUID": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                    "macAddress": "",
+                    "connected": True,
+                    "uuid": "nic-uuid",
+                }
+            ],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+        }
+        server_name = "SMB-TEST-VM"
+        rest_client.list_records.return_value = [smb_dict]
+        results = VM.get_smb_server_ip(rest_client, server_name)
+        assert results == "10.5.11.170"
+
+    def test_create_export_or_import_vm_payload_when_export(self):
+        results = VM.create_export_or_import_vm_payload(
+            "10.5.11.170", "/user", "username", "password", "this-vm-name", True
+        )
+        assert results == dict(
+            target=dict(
+                pathURI="smb://"
+                + "username"
+                + ":"
+                + "password"
+                + "@"
+                + "10.5.11.170"
+                + "/"
+                + "/user"
+            )
+        )
+
+    def test_export_vm(self, rest_client):
+        ansible_dict = {
+            "vm_name": "this-vm",
+            "smb": {
+                "server": "smb-server",
+                "path": "/somewhere",
+                "username": "user",
+                "password": "pass",
+            },
+        }
+        smb_dict = {
+            "uuid": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "XLAB_test_smb",
+            "blockDevs": [],
+            "netDevs": [
+                {
+                    "vlan": 1,
+                    "type": "VIRTIO",
+                    "ipv4Addresses": ["10.5.11.170"],
+                    "virDomainUUID": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                    "macAddress": "",
+                    "connected": True,
+                    "uuid": "nic-uuid",
+                }
+            ],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+        }
+        virtual_machine = VM.from_hypercore(smb_dict, rest_client)
+        rest_client.list_records.return_value = [smb_dict]
+        rest_client.create_record.return_value = {"taskTag": "12345"}
+        results = virtual_machine.export_vm(rest_client, ansible_dict)
+        assert results == {"taskTag": "12345"}
+
+
+class TestVMImport:
+    def test_create_export_or_import_vm_payload_when_import(self):
+        results = VM.create_export_or_import_vm_payload(
+            "10.5.11.170", "/user", "username", "password", "this-vm-name", False
+        )
+        print(results)
+        assert results == dict(
+            source=dict(
+                pathURI="smb://"
+                + "username"
+                + ":"
+                + "password"
+                + "@"
+                + "10.5.11.170"
+                + "/"
+                + "/user"
+            ),
+            template=dict(name="this-vm-name"),
+        )
+
+    def test_import_vm(self, rest_client):
+        ansible_dict = {
+            "vm_name": "this-vm",
+            "smb": {
+                "server": "smb-server",
+                "path": "/somewhere",
+                "username": "user",
+                "password": "pass",
+            },
+        }
+        smb_dict = {
+            "uuid": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "XLAB_test_smb",
+            "blockDevs": [],
+            "netDevs": [
+                {
+                    "vlan": 1,
+                    "type": "VIRTIO",
+                    "ipv4Addresses": ["10.5.11.170"],
+                    "virDomainUUID": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                    "macAddress": "",
+                    "connected": True,
+                    "uuid": "nic-uuid",
+                }
+            ],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+        }
+        virtual_machine = VM.from_hypercore(smb_dict, rest_client)
+        rest_client.list_records.return_value = [smb_dict]
+        rest_client.create_record.return_value = {"taskTag": "12345"}
+        results = virtual_machine.import_vm(rest_client, ansible_dict)
+        assert results == {"taskTag": "12345"}

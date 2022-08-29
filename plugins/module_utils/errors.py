@@ -53,7 +53,7 @@ class MissingValueHypercore(ScaleComputingError):
 
 class DeviceNotUnique(ScaleComputingError):
     def __init__(self, data):
-        self.message = "Device is not unique - {0}".format(data)
+        self.message = "Device is not unique - {0} - already exists".format(data)
         super(DeviceNotUnique, self).__init__(self.message)
 
 
@@ -75,3 +75,11 @@ class ClusterConnectionNotFound(ScaleComputingError):
     def __init__(self, data):
         self.message = "No cluster connection found - {0}".format(data)
         super(ClusterConnectionNotFound, self).__init__(self.message)
+
+
+class SMBServerNotFound(ScaleComputingError):
+    def __init__(self, data):
+        self.message = "SMB server is either not connected or not in the same network - {0}".format(
+            data
+        )
+        super(SMBServerNotFound, self).__init__(self.message)

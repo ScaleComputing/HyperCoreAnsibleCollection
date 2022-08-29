@@ -136,6 +136,47 @@ class VM(PayloadMapper):
         )
 
     @classmethod
+    def get_smb_server_ip(cls, rest_client, server_name):
+        smb_server = VM.get_or_fail(
+            query={"name": server_name}, rest_client=rest_client
+        )[0]
+        for nic in smb_server.nics:
+            if nic.ipv4Addresses:
+                return nic.ipv4Addresses[0]  # First available IP address
+        raise errors.SMBServerNotFound(server_name)
+
+    @classmethod
+    def create_export_or_import_vm_payload(
+        cls, smb_server_ip, path, username, password, vm_name, is_export
+    ):
+        if is_export:
+            return dict(
+                target=dict(
+                    pathURI="smb://"
+                    + username
+                    + ":"
+                    + password
+                    + "@"
+                    + smb_server_ip
+                    + "/"
+                    + path
+                )
+            )
+        return dict(
+            source=dict(
+                pathURI="smb://"
+                + username
+                + ":"
+                + password
+                + "@"
+                + smb_server_ip
+                + "/"
+                + path
+            ),
+            template=dict(name=vm_name),
+        )
+
+    @classmethod
     def get(cls, query, rest_client):  # if query is None, return list of all VMs
         record = rest_client.list_records(
             "/rest/v1/VirDomain",
@@ -173,6 +214,26 @@ class VM(PayloadMapper):
         hypercore_dict = rest_client.get_record("/rest/v1/VirDomain", query)
         vm_from_hypercore = VM.from_hypercore(hypercore_dict, rest_client)
         return vm_from_hypercore
+
+    @classmethod
+    def import_vm(cls, rest_client, ansible_dict):
+        smb_server_ip = cls.get_smb_server_ip(
+            rest_client, ansible_dict["smb"]["server"]
+        )
+        data = cls.create_export_or_import_vm_payload(
+            smb_server_ip,
+            ansible_dict["smb"]["path"],
+            ansible_dict["smb"]["username"],
+            ansible_dict["smb"]["password"],
+            ansible_dict["vm_name"],
+            is_export=False,
+        )
+        return rest_client.create_record(
+            endpoint="/rest/v1/VirDomain/import",
+            payload=data,
+            check_mode=False,
+            timeout=None,
+        )
 
     def to_hypercore(self):
         vm_dict = dict(
@@ -276,6 +337,23 @@ class VM(PayloadMapper):
                 TaskTag.wait_task(rest_client, response)
                 changed = True
         return changed
+
+    def export_vm(self, rest_client, ansible_dict):
+        smb_server_ip = VM.get_smb_server_ip(rest_client, ansible_dict["smb"]["server"])
+        data = VM.create_export_or_import_vm_payload(
+            smb_server_ip,
+            ansible_dict["smb"]["path"],
+            ansible_dict["smb"]["username"],
+            ansible_dict["smb"]["password"],
+            ansible_dict["vm_name"],
+            is_export=True,
+        )
+        return rest_client.create_record(
+            endpoint="/rest/v1/VirDomain/" + self.uuid + "/export",
+            payload=data,
+            check_mode=False,
+            timeout=None,
+        )
 
     def __eq__(self, other):
         """One VM is equal to another if it has ALL attributes exactly the same"""
