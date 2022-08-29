@@ -8,6 +8,8 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+import base64
+
 from ..module_utils.errors import DeviceNotUnique
 from ..module_utils.nic import Nic
 from ..module_utils.disk import Disk
@@ -136,6 +138,30 @@ class VM(PayloadMapper):
         )
 
     @classmethod
+    def create_cloud_init_payload(cls, ansible_dict):
+        if "cloud_init" in ansible_dict.keys() and (
+            ansible_dict["cloud_init"]["user_data"]
+            or ansible_dict["cloud_init"]["meta_data"]
+        ):
+            return dict(
+                userData=str(
+                    base64.b64encode(
+                        bytes(str(ansible_dict["cloud_init"]["user_data"]), "utf-8")
+                    )
+                )[2:-1]
+                if ansible_dict["cloud_init"]["user_data"] is not None
+                else "",
+                metaData=str(
+                    base64.b64encode(
+                        bytes(str(ansible_dict["cloud_init"]["meta_data"]), "utf-8")
+                    )
+                )[2:-1]
+                if ansible_dict["cloud_init"]["meta_data"] is not None
+                else "",
+            )
+        return None
+
+    @classmethod
     def get_smb_server_ip(cls, rest_client, server_name):
         smb_server = VM.get_or_fail(
             query={"name": server_name}, rest_client=rest_client
@@ -147,7 +173,7 @@ class VM(PayloadMapper):
 
     @classmethod
     def create_export_or_import_vm_payload(
-        cls, smb_server_ip, path, username, password, vm_name, is_export
+        cls, smb_server_ip, path, username, password, vm_name, cloud_init, is_export
     ):
         if is_export:
             return dict(
@@ -161,6 +187,23 @@ class VM(PayloadMapper):
                     + "/"
                     + path
                 )
+            )
+        if cloud_init:
+            return dict(
+                source=dict(
+                    pathURI="smb://"
+                    + username
+                    + ":"
+                    + password
+                    + "@"
+                    + smb_server_ip
+                    + "/"
+                    + path
+                ),
+                template=dict(
+                    name=vm_name,
+                    cloudInitData=cloud_init,
+                ),
             )
         return dict(
             source=dict(
@@ -220,12 +263,14 @@ class VM(PayloadMapper):
         smb_server_ip = cls.get_smb_server_ip(
             rest_client, ansible_dict["smb"]["server"]
         )
+        cloud_init = cls.create_cloud_init_payload(ansible_dict)
         data = cls.create_export_or_import_vm_payload(
             smb_server_ip,
             ansible_dict["smb"]["path"],
             ansible_dict["smb"]["username"],
             ansible_dict["smb"]["password"],
             ansible_dict["vm_name"],
+            cloud_init,
             is_export=False,
         )
         return rest_client.create_record(
@@ -346,6 +391,7 @@ class VM(PayloadMapper):
             ansible_dict["smb"]["username"],
             ansible_dict["smb"]["password"],
             ansible_dict["vm_name"],
+            None,
             is_export=True,
         )
         return rest_client.create_record(

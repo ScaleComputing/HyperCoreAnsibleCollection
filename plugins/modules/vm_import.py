@@ -54,6 +54,23 @@ options:
         description:
           - Password.
         required: true
+  cloud_init:
+    description:
+      - Configuration to be used by cloud-init (Linux) or cloudbase-init (Windows).
+      - When non-empty will create an extra ISO device attached to VirDomain as a NoCloud datasource.
+    required: false
+    type: dict
+    suboptions:
+      user_data:
+        description:
+          - Configuration user-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
+          - Valid YAML syntax.
+        type: dict
+      meta_data:
+        type: dict
+        description:
+          - Configuration meta-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
+          - Valid YAML syntax.
 """
 
 EXAMPLES = r"""
@@ -65,6 +82,25 @@ EXAMPLES = r"""
       path: /share/path/to/vms/demo-vm-exported-v0
       username: user
       password: pass
+  register: output
+
+- name: import VM from SMB with cloud init data added
+  scale_computing.hypercore.vm_import:
+    vm_name: demo-vm
+    smb:
+      server: demo-smb-server
+      path: /share/path/to/vms/demo-vm-exported-v0
+      username: user
+      password: pass
+    cloud_init:
+      user_data:
+        valid:
+        - yaml: 1
+        - expression: 2
+      meta_data:
+        valid:
+          yaml: 3
+          expression: 4
   register: output
 """
 
@@ -130,6 +166,14 @@ def main():
                         no_log=True,
                         required=True,
                     ),
+                ),
+            ),
+            cloud_init=dict(
+                type="dict",
+                default={},
+                options=dict(
+                    user_data=dict(type="dict"),
+                    meta_data=dict(type="dict"),
                 ),
             ),
         ),

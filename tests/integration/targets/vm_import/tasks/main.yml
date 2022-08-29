@@ -19,6 +19,13 @@
         memory: 536870912
         vcpu: 2
 
+    - name: Delete XLAB-import-test-integration-imported-cloud-init
+      scale_computing.hypercore.vm: &delete-XLAB-import-test-integration-imported-cloud-init
+        vm_name: XLAB-import-test-integration-imported-cloud-init
+        state: absent
+        memory: 536870912
+        vcpu: 2
+
     - name: Create XLAB-import-test-integration
       scale_computing.hypercore.api:
         action: post
@@ -103,6 +110,30 @@
         that:
           - imported_info.records | length == 1
 
+    - name: Import XLAB-import-test-integration from SMB, add cloud_init
+      scale_computing.hypercore.vm_import:
+        vm_name: XLAB-import-test-integration-imported-cloud-init
+        smb:
+          server: XLAB-demo-VM-smb-server
+          path: /users/integration-test
+          username: example1
+          password: badpass
+        cloud_init:
+          user_data:
+            is_this: "yes"
+            valid:
+              - "yaml"
+              - "expression?"
+          meta_data:
+            this_data:
+              - "is"
+              - "very meta"
+      register: import_vm
+    - ansible.builtin.assert:
+        that:
+          - import_vm is changed
+          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported-cloud-init - import complete from - XLAB-demo-VM-smb-server"
+
     - name: Delete XLAB-import-test-integration
       scale_computing.hypercore.vm: *delete-XLAB-import-test-integration
       register: vm_deleted
@@ -112,6 +143,13 @@
 
     - name: Delete XLAB-import-test-integration-imported
       scale_computing.hypercore.vm: *delete-XLAB-import-test-integration-imported
+      register: vm_deleted
+    - ansible.builtin.assert:
+        that:
+          - vm_deleted is changed
+
+    - name: Delete XLAB-import-test-integration-imported-cloud-init
+      scale_computing.hypercore.vm: *delete-XLAB-import-test-integration-imported-cloud-init
       register: vm_deleted
     - ansible.builtin.assert:
         that:
