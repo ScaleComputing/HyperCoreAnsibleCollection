@@ -105,7 +105,7 @@ class VM(PayloadMapper):
             vm_dict["affinityStrategy"]["preferredNodeUUID"], rest_client
         )
         backup_node = Node.get_by_uuid(
-            vm_dict["affinityStrategy"]["preferredNodeUUID"], rest_client
+            vm_dict["affinityStrategy"]["backupNodeUUID"], rest_client
         )
 
         node_affinity = dict(
