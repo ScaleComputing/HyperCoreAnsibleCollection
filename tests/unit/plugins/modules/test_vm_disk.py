@@ -87,18 +87,8 @@ class TestGetVMByName:
             uuid="id",
             node_affinity=dict(
                 strict_affinity=False,
-                preferred_node=dict(
-                    node_uuid="",
-                    backplane_ip="",
-                    lan_ip="",
-                    peer_id="",
-                ),
-                backup_node=dict(
-                    node_uuid="",
-                    backplane_ip="",
-                    lan_ip="",
-                    peer_id="",
-                ),
+                preferred_node=None,
+                backup_node=None,
             ),
             node_uuid="node-id",
         )
@@ -182,18 +172,8 @@ class TestGetVMByName:
             uuid="id",
             node_affinity=dict(
                 strict_affinity=False,
-                preferred_node=dict(
-                    node_uuid="",
-                    backplane_ip="",
-                    lan_ip="",
-                    peer_id="",
-                ),
-                backup_node=dict(
-                    node_uuid="",
-                    backplane_ip="",
-                    lan_ip="",
-                    peer_id="",
-                ),
+                preferred_node=None,
+                backup_node=None,
             ),
             node_uuid="node-id",
         )
