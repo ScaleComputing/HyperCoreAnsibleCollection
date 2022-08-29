@@ -108,24 +108,18 @@ class VM(PayloadMapper):
             vm_dict["affinityStrategy"]["backupNodeUUID"], rest_client
         )
 
+        def set_affinity_node(node):
+            return dict(
+                node_uuid=node.node_uuid if node is not None else "",
+                backplane_ip=node.backplane_ip if node is not None else "",
+                lan_ip=node.lan_ip if node is not None else "",
+                peer_id=node.peer_id if node is not None else "",
+            )
+
         node_affinity = dict(
             strict_affinity=vm_dict["affinityStrategy"]["strictAffinity"],
-            preferred_node=dict(
-                node_uuid=vm_dict["affinityStrategy"]["preferredNodeUUID"],
-                backplane_ip=preferred_node.backplane_ip
-                if preferred_node is not None
-                else "",
-                lan_ip=preferred_node.lan_ip if preferred_node is not None else "",
-                peer_id=preferred_node.peer_id if preferred_node is not None else "",
-            ),
-            backup_node=dict(
-                node_uuid=vm_dict["affinityStrategy"]["backupNodeUUID"],
-                backplane_ip=backup_node.backplane_ip
-                if backup_node is not None
-                else "",
-                lan_ip=backup_node.lan_ip if backup_node is not None else "",
-                peer_id=backup_node.peer_id if backup_node is not None else "",
-            ),
+            preferred_node=set_affinity_node(preferred_node),
+            backup_node=set_affinity_node(backup_node),
         )
 
         return VM(
