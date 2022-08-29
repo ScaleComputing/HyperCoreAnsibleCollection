@@ -71,18 +71,8 @@ class TestRun:
                 operating_system=None,
                 node_affinity={
                     "strict_affinity": False,
-                    "preferred_node": {
-                        "node_uuid": "",
-                        "backplane_ip": "",
-                        "lan_ip": "",
-                        "peer_id": "",
-                    },
-                    "backup_node": {
-                        "node_uuid": "",
-                        "backplane_ip": "",
-                        "lan_ip": "",
-                        "peer_id": "",
-                    },
+                    "preferred_node": None,
+                    "backup_node": None,
                 },
             ),
         ]

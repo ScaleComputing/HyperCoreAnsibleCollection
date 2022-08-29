@@ -74,20 +74,10 @@ class TestNode:
         rest_client.get_record.return_value = None
         node_from_hypercore = Node.get_by_uuid(node_uuid, rest_client)
 
-        assert node_from_hypercore == Node(            
-            node_uuid="",
-            backplane_ip="",
-            lan_ip="",
-            peer_id=None,
-        )
+        assert node_from_hypercore is None
 
     def test_get_by_uuid_no_uuid(self, rest_client):
         node_uuid = ""
         node_from_hypercore = Node.get_by_uuid(node_uuid, rest_client)
 
-        assert node_from_hypercore == Node(            
-            node_uuid="",
-            backplane_ip="",
-            lan_ip="",
-            peer_id=None,
-        )
+        assert node_from_hypercore is None
