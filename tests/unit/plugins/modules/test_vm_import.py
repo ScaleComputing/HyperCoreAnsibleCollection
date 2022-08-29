@@ -67,6 +67,11 @@ class TestRun:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         smb_dict = {
             "uuid": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -92,6 +97,11 @@ class TestRun:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         module = create_module(
             params=dict(
@@ -155,6 +165,11 @@ class TestRun:
                 "numVCPU": 2,
                 "bootDevices": [],
                 "operatingSystem": "windows",
+                "affinityStrategy": {
+                    "strictAffinity": False,
+                    "preferredNodeUUID": "",
+                    "backupNodeUUID": "",
+                },
             }
         ]
 
@@ -191,6 +206,11 @@ class TestRun:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         module = create_module(
             params=dict(

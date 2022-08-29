@@ -877,6 +877,11 @@ class TestVMExport:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         server_name = "SMB-TEST-VM"
         rest_client.list_records.return_value = [vm_dict]
@@ -911,6 +916,11 @@ class TestVMExport:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
         server_name = "SMB-TEST-VM"
         rest_client.list_records.return_value = [smb_dict]
@@ -968,8 +978,13 @@ class TestVMExport:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
-        virtual_machine = VM.from_hypercore(smb_dict)
+        virtual_machine = VM.from_hypercore(smb_dict, rest_client)
         rest_client.list_records.return_value = [smb_dict]
         rest_client.create_record.return_value = {"taskTag": "12345"}
         results = virtual_machine.export_vm(rest_client, ansible_dict)
@@ -1030,8 +1045,13 @@ class TestVMImport:
             "numVCPU": 2,
             "bootDevices": [],
             "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
         }
-        virtual_machine = VM.from_hypercore(smb_dict)
+        virtual_machine = VM.from_hypercore(smb_dict, rest_client)
         rest_client.list_records.return_value = [smb_dict]
         rest_client.create_record.return_value = {"taskTag": "12345"}
         results = virtual_machine.import_vm(rest_client, ansible_dict)
