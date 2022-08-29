@@ -103,23 +103,15 @@ class VM(PayloadMapper):
 
         preferred_node = Node.get_by_uuid(
             vm_dict["affinityStrategy"]["preferredNodeUUID"], rest_client
-        )
+        ).to_ansible()
         backup_node = Node.get_by_uuid(
             vm_dict["affinityStrategy"]["backupNodeUUID"], rest_client
-        )
-
-        def set_affinity_node(node):
-            return dict(
-                node_uuid=node.node_uuid if node is not None else "",
-                backplane_ip=node.backplane_ip if node is not None else "",
-                lan_ip=node.lan_ip if node is not None else "",
-                peer_id=node.peer_id if node is not None else "",
-            )
+        ).to_ansible()
 
         node_affinity = dict(
             strict_affinity=vm_dict["affinityStrategy"]["strictAffinity"],
-            preferred_node=set_affinity_node(preferred_node),
-            backup_node=set_affinity_node(backup_node),
+            preferred_node=preferred_node,
+            backup_node=backup_node,
         )
 
         return VM(

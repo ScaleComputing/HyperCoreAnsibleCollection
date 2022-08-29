@@ -64,8 +64,10 @@ class Node(PayloadMapper):
         From node_uuid in VM's affinity strategy, find and return Node. If there is no record with such uuid, None is returned.
         """
         if node_uuid == "":
-            return None
+            return Node("", "", "", None)
         query = {"uuid": node_uuid}
         hypercore_dict = rest_client.get_record("/rest/v1/Node", query)
         node_from_hypercore = cls.from_hypercore(hypercore_dict)
+        if node_from_hypercore is None:
+            return Node("", "", "", None)
         return node_from_hypercore
