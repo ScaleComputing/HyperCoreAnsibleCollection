@@ -26,9 +26,7 @@ def get_query(input, *field_names, ansible_hypercore_map):
     even if there's no mapping between hypercore and ansible columns for the sake of verbosity and consistency
     """
     ansible_query = filter_dict(input, *field_names)
-    hypercore_query = transform_ansible_to_hypercore_query(
-        ansible_query, ansible_hypercore_map
-    )
+    hypercore_query = transform_query(ansible_query, ansible_hypercore_map)
     return hypercore_query
 
 
@@ -43,12 +41,9 @@ def filter_dict(input, *field_names):
     return output
 
 
-def transform_ansible_to_hypercore_query(ansible_query, ansible_hypercore_map):
-    """ansible_hypercore_map[key]: ansible_query[key] -> ansible_hypercore_map[key]: value"""
-    return {
-        ansible_hypercore_map[key]: ansible_query[key]
-        for key, value in ansible_query.items()
-    }
+def transform_query(raw_query, query_map):
+    # Transforms query by renaming raw_query's keys by specifying those keys and the new values in query_map
+    return {query_map[key]: raw_query[key] for key, value in raw_query.items()}
 
 
 class PayloadMapper:

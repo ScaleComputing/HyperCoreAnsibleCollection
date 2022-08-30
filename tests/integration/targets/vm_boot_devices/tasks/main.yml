@@ -1,0 +1,185 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Delete the VM with name vm-integration-test-boot_devices, if it exists from before
+      scale_computing.hypercore.vm: &vm-delete
+        vm_name: vm-integration-test-boot_devices
+        state: absent
+        memory: 536870912
+        vcpu: 2
+      register: result
+
+    - name: Create VM vm-integration-test-boot_devices on which we'll build our block devices on
+      scale_computing.hypercore.vm:
+        vm_name: vm-integration-test-boot_devices
+        description: Demo VM
+        tags:
+          - "Integration test"
+        memory: 536870912
+        vcpu: 2
+        state: present
+      register: result
+
+    - name: Create project directory /tmp (if it doesn't exist already)
+      file: state=directory path=/tmp
+
+    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-current.iso
+      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-current.iso
+
+    - name: Delete the ISO image (if it may exist from before)
+      scale_computing.hypercore.iso:
+        name: "TinyCore-current.iso"
+        state: absent
+      register: result
+
+    - name: Upload ISO image TinyCore-current.iso to HyperCore API
+      scale_computing.hypercore.iso:
+        name: "TinyCore-current.iso"
+        source: "/tmp/TinyCore-current.iso"
+        state: present
+      register: result
+
+    - name: Set a couple of disks
+      scale_computing.hypercore.vm_disk:
+        vm_name: vm-integration-test-boot_devices
+        items:
+          - disk_slot: 1
+            type: virtio_disk
+            size: "{{ '5 GB' | human_to_bytes }}"
+          - disk_slot: 2
+            type: virtio_disk
+            size: "{{ '10 GB' | human_to_bytes }}"
+          - disk_slot: 2
+            type: ide_cdrom
+            size: "{{ '5 GB' | human_to_bytes }}"
+            iso_name: "TinyCore-current.iso"
+        state: set
+      register: created_disks
+
+    - name: Set a couple of nics
+      scale_computing.hypercore.vm_nic:
+        vm_name: vm-integration-test-boot_devices
+        items:
+          - vlan: 1
+            type: RTL8139
+          - vlan: 2
+            type: virtio
+        state: set
+      register: created_nics
+
+    - name: Assert that bootDevices is empty list at first
+      scale_computing.hypercore.vm_info:
+        vm_name: vm-integration-test-boot_devices
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.records.0.boot_devices == []
+
+    - name: Set virtio_disk device as bootable
+      scale_computing.hypercore.vm_boot_devices:
+        vm_name: vm-integration-test-boot_devices
+        items:
+          - type: virtio_disk
+            disk_slot: 2
+        state: present
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.record.0.uuid == created_disks.record.1.uuid
+
+    - name: Set device as first boot device
+      scale_computing.hypercore.vm_boot_devices:
+        vm_name: vm-integration-test-boot_devices
+        items:
+          - type: nic
+            nic_vlan: 2
+        state: present
+        first: true
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.record | length == 2
+          - result.record.1.uuid == created_disks.record.1.uuid
+          - result.record.0.uuid == created_nics.records.1.uuid
+
+    - name: Set device as not bootable
+      scale_computing.hypercore.vm_boot_devices:
+        vm_name: vm-integration-test-boot_devices
+        items:
+          - type: nic
+            nic_vlan: 2
+        state: absent
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.record | length == 1
+          - result.record.0.uuid == created_disks.record.1.uuid
+
+    - name: Set exact boot order
+      scale_computing.hypercore.vm_boot_devices:
+        vm_name: vm-integration-test-boot_devices
+        items:
+          - type: virtio_disk
+            disk_slot: 1
+          - type: nic
+            nic_vlan: 2
+          - type: virtio_disk
+            disk_slot: 2
+        state: set
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.record | length == 3
+          - result.record.0.uuid == created_disks.record.0.uuid
+          - result.record.1.uuid == created_nics.records.1.uuid
+          - result.record.2.uuid == created_disks.record.1.uuid
+
+    - name: Set ISO as first boot device. Identifying CD-ROM by field iso_name
+      scale_computing.hypercore.vm_boot_devices:
+        vm_name: vm-integration-test-boot_devices
+        items:
+          - type: ide_cdrom
+            iso_name: TinyCore-current.iso
+        state: present
+        first: true
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.record | length == 4
+          - result.record.0.uuid == created_disks.record.2.uuid
+          - result.record.1.uuid == created_disks.record.0.uuid
+          - result.record.2.uuid == created_nics.records.1.uuid
+          - result.record.3.uuid == created_disks.record.1.uuid
+
+    - name: Set all devices as not bootable
+      scale_computing.hypercore.vm_boot_devices:
+        vm_name: vm-integration-test-boot_devices
+        items: []
+        state: set
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.record == []
+
+    - name: Delete the ISO image from the API
+      scale_computing.hypercore.iso:
+        name: "TinyCore-current.iso"
+        state: absent
+      register: result
+
+    - name: Delete locally installed ISO image from /tmp/TinyCore-current.iso
+      ansible.builtin.file:
+        path: /tmp/TinyCore-current.iso
+        state: absent
+      register: file_deleted
+    - ansible.builtin.assert:
+        that:
+          file_deleted is changed
+
+    - name: Delete the VM on which the tests were performed
+      scale_computing.hypercore.vm: *vm-delete
+      register: result

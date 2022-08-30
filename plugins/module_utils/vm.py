@@ -254,7 +254,9 @@ class VM(PayloadMapper):
         query = get_query(
             ansible_dict, "vm_name", ansible_hypercore_map=dict(vm_name="name")
         )
-        hypercore_dict = rest_client.get_record("/rest/v1/VirDomain", query)
+        hypercore_dict = rest_client.get_record(
+            "/rest/v1/VirDomain", query, must_exist=must_exist
+        )
         vm_from_hypercore = VM.from_hypercore(hypercore_dict, rest_client)
         return vm_from_hypercore
 
@@ -425,18 +427,21 @@ class VM(PayloadMapper):
     def __str__(self):
         return super().__str__()
 
+    def get_specific_nic(self, query):
+        results = [nic.to_ansible() for nic in self.nics]
+        return self.filter_specific_objects(results, query, "Nic")
+
     def get_specific_disk(self, query):
-        """query is dict. Usually, query's keys will be either disk_slot and type (since disk is uniquely identified
-        with vm_name, disk_slot and type. Additionally, in case of attaching/detaching ISO image (type == ide_cdrom),
-        disk could be identified with just the given vm (and its name), name and type."""
-        filtered_results = filter_results(
-            results=[vm_disk.to_ansible() for vm_disk in self.disks],
-            filter_data=query,
-        )
+        results = [vm_disk.to_ansible() for vm_disk in self.disks]
+        return self.filter_specific_objects(results, query, "Disk")
+
+    def filter_specific_objects(self, results, query, type):
+        # Type is type of the device, for example disk or nic
+        filtered_results = filter_results(results, query)
         if len(filtered_results) > 1:
             raise ScaleComputingError(
-                "Disk isn't uniquely identifyed by {0} in VM {1}.".format(
-                    query, self.name
+                "{0} isn't uniquely identifyed by {1} in VM {2}.".format(
+                    type, query, self.name
                 )
             )
         return filtered_results[0] if filtered_results else None
