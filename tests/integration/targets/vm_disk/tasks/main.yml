@@ -5,17 +5,17 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   block:
-    - name: Delete the VM with name vm-integration-test, if it exists from before
+    - name: Delete the VM with name vm-integration-test-disks, if it exists from before
       scale_computing.hypercore.vm: &vm-delete
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         state: absent
         memory: 536870912
         vcpu: 2
       register: result
 
-    - name: Create VM vm-integration-test on which we'll build our block devices on
+    - name: Create VM vm-integration-test-disks on which we'll build our block devices on
       scale_computing.hypercore.vm:
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         description: Demo VM
         tags:
           - "Integration test"
@@ -29,7 +29,7 @@
 
     - name: Create virtio disk in slot 0 with 5GB space
       scale_computing.hypercore.vm_disk: &create-virtio-disk
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         items:
           - disk_slot: 0
             type: virtio_disk
@@ -53,7 +53,7 @@
 
     - name: Resize the disk to 10GB (update)
       scale_computing.hypercore.vm_disk:
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         items:
           - disk_slot: 0
             type: virtio_disk
@@ -66,7 +66,7 @@
 
     - name: Update existing disk - resize, change type of the disk and cache_mode
       scale_computing.hypercore.vm_disk:
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         items:
           - disk_slot: 0
             type_new: ide_disk
@@ -83,7 +83,7 @@
 
     - name: Remove the previously updated disk
       scale_computing.hypercore.vm_disk:
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         items:
           - disk_slot: 0
             type: ide_disk
@@ -114,7 +114,7 @@
 
     - name: Create cdrom disk in slot 0 with 5GB space and attach TinyCore-current.iso image onto it
       scale_computing.hypercore.vm_disk: &create-cdrom-disk
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         items:
           - disk_slot: 0
             type: ide_cdrom
@@ -129,18 +129,18 @@
           - result.record.0.disk_slot == 0
           - result.record.0.name == "TinyCore-current.iso"
 
-    - name: Assert that ISO image is mounted on vm-integration-test
+    - name: Assert that ISO image is mounted on vm-integration-test-disks
       scale_computing.hypercore.iso_info:
         name: TinyCore-current.iso
       register: result
     - ansible.builtin.assert:
         that:
-          - result.records.0.mounts.0.vm_name == "vm-integration-test"
+          - result.records.0.mounts.0.vm_name == "vm-integration-test-disks"
 
 
     - name: Detach ISO image from the disk
       scale_computing.hypercore.vm_disk:
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         items:
           - disk_slot: 0
             type: ide_cdrom
@@ -150,7 +150,7 @@
         that:
           - result.record.0.name == ""
 
-    - name: Assert that ISO image isn't mounted on vm-integration-test anymore
+    - name: Assert that ISO image isn't mounted on vm-integration-test-disks anymore
       scale_computing.hypercore.iso_info:
         name: TinyCore-current.iso
       register: result
@@ -160,7 +160,7 @@
 
     - name: Remove all previous disks and set new virtio disk with 5 GB space in slot 1
       scale_computing.hypercore.vm_disk:
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         items:
           - disk_slot: 1
             type: virtio_disk
@@ -177,7 +177,7 @@
 
     - name: Force remove all disks
       scale_computing.hypercore.vm_disk:
-        vm_name: vm-integration-test
+        vm_name: vm-integration-test-disks
         items: [ ]
         state: set
         force: 1
@@ -192,6 +192,15 @@
         name: "TinyCore-current.iso"
         state: absent
       register: result
+
+    - name: Delete locally installed ISO image from /tmp/TinyCore-current.iso
+      ansible.builtin.file:
+        path: /tmp/TinyCore-current.iso
+        state: absent
+      register: file_deleted
+    - ansible.builtin.assert:
+        that:
+          file_deleted is changed
 
     - name: Delete the VM on which the tests were performed
       scale_computing.hypercore.vm: *vm-delete

@@ -32,24 +32,22 @@ class TestFilterDict:
         )
 
 
-class TestTransformAnsibleToHypercoreQuery:
+class TestTransformQuery:
     def test_transform_ansible_to_hypercore_query_ansible_query_empty(self):
-        assert {} == utils.transform_ansible_to_hypercore_query(
+        assert {} == utils.transform_query(
             dict(),
             dict(vm_name="name"),
         )
 
     def test_transform_ansible_to_hypercore_query_ansible_success(self):
-        assert dict(
-            name="demo-vm-name", de="aaa"
-        ) == utils.transform_ansible_to_hypercore_query(
+        assert dict(name="demo-vm-name", de="aaa") == utils.transform_query(
             dict(vm_name="demo-vm-name", abc="aaa"),
             dict(vm_name="name", abc="de"),
         )
 
     def test_transform_ansible_to_hypercore_query_ansible_key_not_found(self):
         with pytest.raises(KeyError):
-            utils.transform_ansible_to_hypercore_query(
+            utils.transform_query(
                 dict(vm_name="demo-vm-name"),
                 dict(),
             )
