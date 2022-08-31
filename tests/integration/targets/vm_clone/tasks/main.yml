@@ -7,24 +7,14 @@
   block:
     - name: Delete XLAB-vm_clone-CI_test
       scale_computing.hypercore.vm: &delete-XLAB-vm_clone_CI-test
-        vm_name: XLAB-vm_clone-CI_test
+        vm_name: "{{ item }}"
         state: absent
         memory: 536870912
         vcpu: 2
-
-    - name: Delete XLAB-vm_clone_CI-test-clone
-      scale_computing.hypercore.vm: &delete-XLAB-vm_clone_CI-test-clone
-        vm_name: XLAB-vm_clone_CI-test-clone
-        state: absent
-        memory: 536870912
-        vcpu: 2
-
-    - name: Delete XLAB-vm_clone_CI-test-cloud_init-clone
-      scale_computing.hypercore.vm: &delete-XLAB-vm_clone_CI-test-cloud_init-clone
-        vm_name: XLAB-vm_clone_CI-test-cloud_init-clone
-        state: absent
-        memory: 536870912
-        vcpu: 2
+      loop:
+        - XLAB-vm_clone-CI_test
+        - XLAB-vm_clone_CI-test-clone
+        - XLAB-vm_clone_CI-test-cloud_init-clone
 
     - name: Create XLAB-vm_clone-CI_test
       scale_computing.hypercore.api:
@@ -100,23 +90,13 @@
         that:
           - cloned_cloud_init_info.records | length == 1
 
-    - name: Delete XLAB-vm_clone_CI-test
+    - name: Delete XLAB-vm_clone-CI_test end test
       scale_computing.hypercore.vm: *delete-XLAB-vm_clone_CI-test
       register: output
-    - ansible.builtin.assert:
-        that:
-          - output is changed
-
-    - name: Delete XLAB-vm_clone_CI-test-clone
-      scale_computing.hypercore.vm: *delete-XLAB-vm_clone_CI-test-clone
-      register: output
-    - ansible.builtin.assert:
-        that:
-          - output is changed
-
-    - name: Delete XLAB-vm_clone_CI-test-cloud_init-clone
-      scale_computing.hypercore.vm: *delete-XLAB-vm_clone_CI-test-cloud_init-clone
-      register: output
+      loop:
+        - XLAB-vm_clone-CI_test
+        - XLAB-vm_clone_CI-test-clone
+        - XLAB-vm_clone_CI-test-cloud_init-clone
     - ansible.builtin.assert:
         that:
           - output is changed

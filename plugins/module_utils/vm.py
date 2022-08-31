@@ -427,7 +427,7 @@ class VM(PayloadMapper):
             ansible_dict["vm_name"], ansible_dict["tags"], self.tags, cloud_init_data
         )
         return rest_client.create_record(
-            endpoint="/rest/v1/VirDomain/" + self.uuid + "/clone",
+            endpoint=f"/rest/v1/VirDomain/{self.uuid}/clone",
             payload=data,
             check_mode=False,
             timeout=None,
