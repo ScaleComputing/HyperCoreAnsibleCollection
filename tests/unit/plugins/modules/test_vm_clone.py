@@ -30,8 +30,6 @@ class TestMain:
             ),
         )
         success, results = run_main_info(vm_clone, params)
-        print(success)
-        print(results)
         assert success is True
         assert results == {"changed": False, "msg": []}
 
@@ -85,7 +83,7 @@ class TestRun:
         }
         return vm_dict
 
-    def test_run_when_clone_already_exists(self, rest_client, create_module):
+    def test_run_when_clone_already_exists(self, rest_client, create_module, mocker):
         module = module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -98,6 +96,9 @@ class TestRun:
             )
         )
         rest_client.list_records.side_effect = [[self._get_empty_vm()]]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         with pytest.raises(
             errors.DeviceNotUnique,
             match="Device is not unique - XLAB-test-vm-clone - already exists",
@@ -123,7 +124,7 @@ class TestRun:
         ):
             vm_clone.run(module, rest_client)
 
-    def test_run_when_VM_running(self, rest_client, create_module):
+    def test_run_when_VM_running(self, rest_client, create_module, mocker):
         module = module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -137,6 +138,9 @@ class TestRun:
             )
         )
         rest_client.list_records.side_effect = [[], [self._get_empty_vm_running()]]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         with pytest.raises(
             errors.ScaleComputingError,
             match="Device is running and cannot be cloned, shutdown first.",
@@ -160,7 +164,6 @@ class TestRun:
         rest_client.create_record.return_value = {"taskTag": "1234"}
         rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
         results = vm_clone.run(module, rest_client)
-        print(results)
         assert results == (
             True,
             "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone",
@@ -189,7 +192,6 @@ class TestRun:
         rest_client.create_record.return_value = {"taskTag": "1234"}
         rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
         results = vm_clone.run(module, rest_client)
-        print(results)
         assert results == (
             True,
             "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone",

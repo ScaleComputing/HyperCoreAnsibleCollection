@@ -67,7 +67,7 @@ class TestRun:
             },
         }
 
-    def test_run_with_vm_name(self, create_module, rest_client):
+    def test_run_with_vm_name(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -98,8 +98,12 @@ class TestRun:
             [vm_replication],
             [vm_dict],
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_replication_info.run(module, rest_client)
-        print(results)
+
         assert results == (
             False,
             [
@@ -111,7 +115,7 @@ class TestRun:
             ],
         )
 
-    def test_run_without_vm_name(self, create_module, rest_client):
+    def test_run_without_vm_name(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -149,8 +153,12 @@ class TestRun:
             [vm_dict_1],
             [vm_dict_2],
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_replication_info.run(module, rest_client)
-        print(results)
+
         assert results == (
             False,
             [

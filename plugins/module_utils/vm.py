@@ -104,17 +104,33 @@ class VM(PayloadMapper):
         if vm_dict is None:
             return None
 
-        preferred_node = Node.get_by_uuid(
-            vm_dict["affinityStrategy"]["preferredNodeUUID"], rest_client
+        preferred_node = Node.get_node(
+            query={"uuid": vm_dict["affinityStrategy"]["preferredNodeUUID"]},
+            rest_client=rest_client,
         )
-        backup_node = Node.get_by_uuid(
-            vm_dict["affinityStrategy"]["backupNodeUUID"], rest_client
+        backup_node = Node.get_node(
+            query={"uuid": vm_dict["affinityStrategy"]["backupNodeUUID"]},
+            rest_client=rest_client,
         )
 
         node_affinity = dict(
             strict_affinity=vm_dict["affinityStrategy"]["strictAffinity"],
-            preferred_node=preferred_node.to_ansible() if preferred_node else None,
-            backup_node=backup_node.to_ansible() if backup_node else None,
+            preferred_node=preferred_node.to_ansible()
+            if preferred_node
+            else dict(
+                node_uuid=None,
+                backplane_ip=None,
+                lan_ip=None,
+                peer_id=None,
+            ),  # for vm_node_affinity diff check
+            backup_node=backup_node.to_ansible()
+            if backup_node
+            else dict(
+                node_uuid=None,
+                backplane_ip=None,
+                lan_ip=None,
+                peer_id=None,
+            ),  # for vm_node_affinity diff check,
         )
 
         return VM(
