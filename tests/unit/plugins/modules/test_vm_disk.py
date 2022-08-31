@@ -25,7 +25,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestGetVMByName:
-    def test_get_vm_by_name_disks_empty(self, create_module, rest_client):
+    def test_get_vm_by_name_disks_empty(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -87,16 +87,29 @@ class TestGetVMByName:
             uuid="id",
             node_affinity=dict(
                 strict_affinity=False,
-                preferred_node=None,
-                backup_node=None,
+                preferred_node=dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
+                backup_node=dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
             ),
             node_uuid="node-id",
         )
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_disk.get_vm_by_name(module, rest_client)
         assert result == (vm, [])
 
-    def test_get_vm_by_name_disks_present(self, create_module, rest_client):
+    def test_get_vm_by_name_disks_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -172,11 +185,24 @@ class TestGetVMByName:
             uuid="id",
             node_affinity=dict(
                 strict_affinity=False,
-                preferred_node=None,
-                backup_node=None,
+                preferred_node=dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
+                backup_node=dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
             ),
             node_uuid="node-id",
         )
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_disk.get_vm_by_name(module, rest_client)
         assert result == (
@@ -495,7 +521,7 @@ class TestForceRemoveAllDisks:
 
 class TestEnsurePresentOrSet:
     def test_ensure_present_create_new_disk(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -570,6 +596,10 @@ class TestEnsurePresentOrSet:
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_disk.ensure_present_or_set(module, rest_client)
         assert results == (
             True,
@@ -608,7 +638,9 @@ class TestEnsurePresentOrSet:
             },
         )
 
-    def test_ensure_present_update_test_idempotency(self, create_module, rest_client):
+    def test_ensure_present_update_test_idempotency(
+        self, create_module, rest_client, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -692,6 +724,10 @@ class TestEnsurePresentOrSet:
                 "nodeUUID": "node-id",
             },
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_disk.ensure_present_or_set(module, rest_client)
         assert results == (
             False,
@@ -744,7 +780,9 @@ class TestEnsurePresentOrSet:
             },
         )
 
-    def test_ensure_present_update_record(self, create_module, rest_client, task_wait):
+    def test_ensure_present_update_record(
+        self, create_module, rest_client, task_wait, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -832,6 +870,10 @@ class TestEnsurePresentOrSet:
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_disk.ensure_present_or_set(module, rest_client)
         assert results == (
             True,
@@ -885,7 +927,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_attach_iso_cdrom_existing(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -984,6 +1026,10 @@ class TestEnsurePresentOrSet:
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_disk.ensure_present_or_set(module, rest_client)
         assert results == (
             True,
@@ -1037,7 +1083,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_attach_iso_cdrom_absent(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -1125,6 +1171,10 @@ class TestEnsurePresentOrSet:
             "taskTag": "124",
             "createdUUID": "disk-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_disk.ensure_present_or_set(module, rest_client)
         assert results == (
             True,
@@ -1165,7 +1215,9 @@ class TestEnsurePresentOrSet:
 
     # ensure_present uses only a subset of code of ensure_set. So not testing ensure set again, setting the created
     # disks to empty list as this is tested in this class in methods above already
-    def test_ensure_set_force_remove_disks(self, create_module, rest_client, task_wait):
+    def test_ensure_set_force_remove_disks(
+        self, create_module, rest_client, task_wait, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1215,6 +1267,10 @@ class TestEnsurePresentOrSet:
             },
             "nodeUUID": "node-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         result = vm_disk.ensure_present_or_set(module, rest_client)
         assert result == (
             True,
@@ -1239,7 +1295,9 @@ class TestEnsurePresentOrSet:
             },
         )
 
-    def test_ensure_set_remove_unused_disk(self, create_module, rest_client, task_wait):
+    def test_ensure_set_remove_unused_disk(
+        self, create_module, rest_client, task_wait, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1344,11 +1402,13 @@ class TestEnsurePresentOrSet:
                 "nodeUUID": "node-id",
             },
         ]
-
         rest_client.delete_record.return_value = {
             "taskTag": "123",
             "createdUUID": "",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_disk.ensure_present_or_set(module, rest_client)
 
@@ -1377,7 +1437,7 @@ class TestEnsurePresentOrSet:
 
 
 class TestEnsureAbsent:
-    def test_ensure_absent_no_disk_present(self, create_module, rest_client):
+    def test_ensure_absent_no_disk_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1432,6 +1492,10 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
             },
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_disk.ensure_absent(module, rest_client)
         assert results == (
             False,
@@ -1442,7 +1506,9 @@ class TestEnsureAbsent:
             },
         )
 
-    def test_ensure_absent_delete_record(self, create_module, rest_client, task_wait):
+    def test_ensure_absent_delete_record(
+        self, create_module, rest_client, task_wait, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1511,6 +1577,10 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
             },
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_disk.ensure_absent(module, rest_client)
         assert results == (
             True,
@@ -1536,7 +1606,7 @@ class TestEnsureAbsent:
         )
 
     def test_ensure_absent_cdrom_name_in_desired_disk_and_query(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -1618,6 +1688,10 @@ class TestEnsureAbsent:
             "taskTag": "123",
             "createdUUID": "",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_disk.ensure_absent(module, rest_client)
         assert results == (
             False,
@@ -1643,7 +1717,7 @@ class TestEnsureAbsent:
         )
 
     def test_ensure_absent_cdrom_no_name_error(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -1693,12 +1767,18 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
             },
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         with pytest.raises(ScaleComputingError, match="ISO"):
             vm_disk.ensure_absent(module, rest_client)
 
 
 class TestNotUsedDisks:
-    def test_delete_not_used_disks_no_deletion(self, create_module, rest_client):
+    def test_delete_not_used_disks_no_deletion(
+        self, create_module, rest_client, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1747,6 +1827,9 @@ class TestNotUsedDisks:
             },
             "nodeUUID": "node-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         changed = False
         changed = vm_disk.delete_not_used_disks(module, rest_client, changed)
@@ -1754,7 +1837,7 @@ class TestNotUsedDisks:
         assert not changed
 
     def test_delete_not_used_disks_deletion(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -1810,6 +1893,9 @@ class TestNotUsedDisks:
             "taskTag": "123",
             "createdUUID": "",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         changed = vm_disk.delete_not_used_disks(module, rest_client, changed)
         rest_client.delete_record.assert_called_with(
             "/rest/v1/VirDomainBlockDevice/disk-id",

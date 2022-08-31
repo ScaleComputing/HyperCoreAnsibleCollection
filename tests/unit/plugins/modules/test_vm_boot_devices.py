@@ -122,7 +122,9 @@ class TestUpdateBootDeviceOrder:
 
 
 class TestEnsureAbsent:
-    def test_ensure_absent_no_source_object_present(self, create_module, rest_client):
+    def test_ensure_absent_no_source_object_present(
+        self, create_module, rest_client, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -238,6 +240,9 @@ class TestEnsureAbsent:
                 readOnly=False,
             ),
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_boot_devices.ensure_absent(module, rest_client)
         rest_client.update_record.assert_not_called()
@@ -292,7 +297,9 @@ class TestEnsureAbsent:
             },
         )
 
-    def test_ensure_absent_uuid_not_in_boot_devices(self, create_module, rest_client):
+    def test_ensure_absent_uuid_not_in_boot_devices(
+        self, create_module, rest_client, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -382,13 +389,16 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
             },
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_boot_devices.ensure_absent(module, rest_client)
         rest_client.update_record.assert_not_called()
         assert result == (False, [], {"after": [], "before": []})
 
     def test_ensure_absent_update_successful(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -492,11 +502,13 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
             },
         ]
-
         rest_client.update_record.return_value = {
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_boot_devices.ensure_absent(module, rest_client)
         rest_client.update_record.assert_called_once()
@@ -525,7 +537,9 @@ class TestEnsureAbsent:
 
 
 class TestEnsurePresent:
-    def test_ensure_present_no_source_object_present(self, create_module, rest_client):
+    def test_ensure_present_no_source_object_present(
+        self, create_module, rest_client, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -615,12 +629,17 @@ class TestEnsurePresent:
                 "nodeUUID": "node-id",
             },
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_boot_devices.ensure_present(module, rest_client)
         rest_client.update_record.assert_not_called()
         assert result == (False, [], {"after": [], "before": []})
 
-    def test_ensure_present_item_first(self, create_module, rest_client, task_wait):
+    def test_ensure_present_item_first(
+        self, create_module, rest_client, task_wait, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -755,6 +774,9 @@ class TestEnsurePresent:
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_boot_devices.ensure_present(module, rest_client)
         rest_client.update_record.assert_called_once()
@@ -836,7 +858,7 @@ class TestEnsurePresent:
         )
 
     def test_ensure_present_item_not_first_boot_order_already_present(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -954,11 +976,13 @@ class TestEnsurePresent:
                 readOnly=False,
             ),
         ]
-
         rest_client.update_record.return_value = {
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_boot_devices.ensure_present(module, rest_client)
         rest_client.update_record.assert_not_called()
@@ -1014,7 +1038,7 @@ class TestEnsurePresent:
         )
 
     def test_ensure_present_item_not_first_boot_order_updated(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -1119,11 +1143,13 @@ class TestEnsurePresent:
                 readOnly=False,
             ),
         ]
-
         rest_client.update_record.return_value = {
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_boot_devices.ensure_present(module, rest_client)
         rest_client.update_record.assert_called_once()
@@ -1166,7 +1192,9 @@ class TestEnsurePresent:
 
 
 class TestEnsureSet:
-    def test_ensure_set_no_source_object_present(self, create_module, rest_client):
+    def test_ensure_set_no_source_object_present(
+        self, create_module, rest_client, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1256,13 +1284,16 @@ class TestEnsureSet:
                 "nodeUUID": "node-id",
             },
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_boot_devices.ensure_set(module, rest_client)
         rest_client.update_record.assert_not_called()
         assert result == (False, [], {"after": [], "before": []})
 
     def test_ensure_set_source_object_present(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
             params=dict(
@@ -1379,11 +1410,14 @@ class TestEnsureSet:
                 readOnly=False,
             ),
         ]
-
         rest_client.update_record.return_value = {
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         result = vm_boot_devices.ensure_set(module, rest_client)
         rest_client.update_record.assert_called_once()
         assert result == (

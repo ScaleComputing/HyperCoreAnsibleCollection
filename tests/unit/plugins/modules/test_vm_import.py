@@ -44,9 +44,9 @@ class TestMain:
                 ),
             ),
         )
+
         success, results = run_main_info(vm_import, params)
-        print(success)
-        print(results)
+
         assert success is True
         assert results == {"changed": False, "msg": []}
 
@@ -127,13 +127,15 @@ class TestRun:
         }
 
         results = vm_import.run(module, rest_client)
-        print(results)
+
         assert results == (
             True,
             "Virtual machine - XLAB-test-vm - import complete from - test-server",
         )
 
-    def test_run_when_imported_VM_already_exists(self, create_module, rest_client):
+    def test_run_when_imported_VM_already_exists(
+        self, create_module, rest_client, mocker
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -172,6 +174,9 @@ class TestRun:
                 },
             }
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         with pytest.raises(
             errors.DeviceNotUnique,

@@ -52,15 +52,47 @@ class TestNode:
 
         assert node.to_ansible() == ansible_dict
 
-    def test_get_by_uuid(self, rest_client):
-        node_uuid = "51e6d073-7566-4273-9196-58720117bd7f"
+    def test_equal_true(self):
+        node1 = Node(
+            node_uuid="51e6d073-7566-4273-9196-58720117bd7f",
+            backplane_ip="10.0.0.1",
+            lan_ip="10.0.0.1",
+            peer_id=1,
+        )
+        node2 = Node(
+            node_uuid="51e6d073-7566-4273-9196-58720117bd7f",
+            backplane_ip="10.0.0.1",
+            lan_ip="10.0.0.1",
+            peer_id=1,
+        )
+
+        assert node1 == node2
+
+    def test_equal_false(self):
+        node1 = Node(
+            node_uuid="51e6d073-7566-4273-9196-58720117bd7f",
+            backplane_ip="10.0.0.1",
+            lan_ip="10.0.0.1",
+            peer_id=1,
+        )
+        node2 = Node(
+            node_uuid="",
+            backplane_ip="10.0.0.1",
+            lan_ip="10.0.0.1",
+            peer_id=1,
+        )
+
+        assert node1 != node2
+
+    def test_get_node(self, rest_client):
         rest_client.get_record.return_value = dict(
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
             backplaneIP="10.0.0.1",
             lanIP="10.0.0.1",
             peerID=1,
         )
-        node_from_hypercore = Node.get_by_uuid(node_uuid, rest_client)
+        query = {"uuid": "51e6d073-7566-4273-9196-58720117bd7f"}
+        node_from_hypercore = Node.get_node(query, rest_client)
 
         assert node_from_hypercore == Node(
             node_uuid="51e6d073-7566-4273-9196-58720117bd7f",
@@ -68,16 +100,3 @@ class TestNode:
             lan_ip="10.0.0.1",
             peer_id=1,
         )
-
-    def test_get_by_uuid_no_record(self, rest_client):
-        node_uuid = "51e6d073-7566-4273-9196-58720117bd7f"
-        rest_client.get_record.return_value = None
-        node_from_hypercore = Node.get_by_uuid(node_uuid, rest_client)
-
-        assert node_from_hypercore is None
-
-    def test_get_by_uuid_no_uuid(self, rest_client):
-        node_uuid = ""
-        node_from_hypercore = Node.get_by_uuid(node_uuid, rest_client)
-
-        assert node_from_hypercore is None

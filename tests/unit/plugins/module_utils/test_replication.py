@@ -46,7 +46,7 @@ class TestGet:
         )
         assert results == []
 
-    def test_get_vm_exist(self, rest_client):
+    def test_get_vm_exist(self, rest_client, mocker):
         hypercore_data = {
             "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "uuid": "8972f2as-179a-67af-66a1-6uiahgf47ffs",
@@ -82,6 +82,9 @@ class TestGet:
                 "backupNodeUUID": "",
             },
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         rest_client.get_record.return_value = remote_cluster_dict
         rest_client.list_records.side_effect = [
             [hypercore_data],

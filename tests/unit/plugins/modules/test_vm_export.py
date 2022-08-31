@@ -44,15 +44,15 @@ class TestMain:
                 ),
             ),
         )
+
         success, results = run_main_info(vm_export, params)
-        print(success)
-        print(results)
+
         assert success is True
         assert results == {"changed": False, "msg": []}
 
 
 class TestRun:
-    def test_run_when_VM_found(self, create_module, rest_client):
+    def test_run_when_VM_found(self, create_module, rest_client, mocker):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -124,9 +124,12 @@ class TestRun:
             "taskTag": "1234",
             "createdUUID": "uuid",
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         results = vm_export.run(module, rest_client)
-        print(results)
+
         assert results == (
             True,
             "Virtual machine - XLAB-test-vm - export complete to - test-server",

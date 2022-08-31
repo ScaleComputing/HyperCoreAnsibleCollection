@@ -49,7 +49,7 @@ class TestVM:
 
         assert vm == VM.from_ansible(vm_dict)
 
-    def test_vm_from_hypercore_dict_is_not_none(self, rest_client):
+    def test_vm_from_hypercore_dict_is_not_none(self, rest_client, mocker):
         vm = VM(
             uuid="",  # No uuid when creating object from ansible
             node_uuid="412a3e85-8c21-4138-a36e-789eae3548a3",
@@ -66,8 +66,18 @@ class TestVM:
             operating_system=None,
             node_affinity={
                 "strict_affinity": False,
-                "preferred_node": None,
-                "backup_node": None,
+                "preferred_node": dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
+                "backup_node": dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
             },
         )
 
@@ -91,7 +101,9 @@ class TestVM:
                 "backupNodeUUID": "",
             },
         )
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         vm_from_hypercore = VM.from_hypercore(vm_dict, rest_client)
         assert vm == vm_from_hypercore
 
@@ -357,7 +369,7 @@ class TestVM:
             node_affinity={},
         )
 
-    def test_get_by_name(self, rest_client):
+    def test_get_by_name(self, rest_client, mocker):
         ansible_dict = dict(
             vm_name="vm-name",
         )
@@ -398,11 +410,23 @@ class TestVM:
             node_uuid="node_id",
             node_affinity={
                 "strict_affinity": False,
-                "preferred_node": None,
-                "backup_node": None,
+                "preferred_node": dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
+                "backup_node": dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
             },
         )
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         vm_by_name = VM.get_by_name(ansible_dict, rest_client)
         assert vm == vm_by_name
 
@@ -552,7 +576,7 @@ class TestVM:
         with pytest.raises(errors.ScaleComputingError, match="Disk"):
             vm.get_specific_disk(disk_query)
 
-    def test_get_or_fail_when_get(self, rest_client):
+    def test_get_or_fail_when_get(self, rest_client, mocker):
         rest_client.list_records.return_value = [
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -575,6 +599,9 @@ class TestVM:
                 },
             }
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         actual = VM.from_hypercore(
             vm_dict=rest_client.list_records.return_value[0], rest_client=rest_client
         ).to_hypercore()
@@ -594,7 +621,7 @@ class TestVM:
 
 class TestNic:
     @classmethod
-    def _get_test_vm(cls, rest_client):
+    def _get_test_vm(cls, rest_client, mocker):
         nic_dict_1 = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
             "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -614,6 +641,9 @@ class TestNic:
             "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             "connected": True,
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         return VM.from_hypercore(
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -639,7 +669,7 @@ class TestNic:
         )
 
     def test_delete_unused_nics_to_hypercore_vm_when_no_delete(
-        self, create_module, rest_client
+        self, create_module, rest_client, mocker
     ):
         module = create_module(
             params=dict(
@@ -672,6 +702,9 @@ class TestNic:
                 "backupNodeUUID": "",
             },
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
         virtual_machine = VM.get(
             query={"name": module.params["vm_name"]}, rest_client=rest_client
@@ -682,7 +715,7 @@ class TestNic:
         assert results is False
 
     def test_delete_unused_nics_to_hypercore_vm_when_one_nic_deleted(
-        self, create_module, rest_client
+        self, create_module, rest_client, mocker
     ):
         module = create_module(
             params=dict(
@@ -724,6 +757,9 @@ class TestNic:
                 "backupNodeUUID": "",
             },
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
         rest_client.delete_record.return_value = {"taskTag": "1234"}
         virtual_machine = VM.get(
@@ -735,7 +771,7 @@ class TestNic:
         assert results is True
 
     def test_delete_unused_nics_to_hypercore_vm_when_multiple_nic_deleted(
-        self, create_module, rest_client
+        self, create_module, rest_client, mocker
     ):
         module = create_module(
             params=dict(
@@ -786,6 +822,9 @@ class TestNic:
                 "backupNodeUUID": "",
             },
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
         rest_client.delete_record.side_effect = [
             {"taskTag": "1234"},
@@ -799,8 +838,8 @@ class TestNic:
         )
         assert results is True
 
-    def test_find_nic_vlan(self, rest_client):
-        virtual_machine = self._get_test_vm(rest_client)
+    def test_find_nic_vlan(self, rest_client, mocker):
+        virtual_machine = self._get_test_vm(rest_client, mocker)
         results = virtual_machine.find_nic(vlan=1)
         assert results[1] is (None)
         assert results[0].vlan == 1
@@ -809,8 +848,8 @@ class TestNic:
         assert results[0].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         assert results[0].connected is True
 
-    def test_find_nic_vlan_and_vlan_new(self, rest_client):
-        virtual_machine = self._get_test_vm(rest_client)
+    def test_find_nic_vlan_and_vlan_new(self, rest_client, mocker):
+        virtual_machine = self._get_test_vm(rest_client, mocker)
         results = virtual_machine.find_nic(vlan=2, vlan_new=1)
         print(results)
         assert results[0].vlan == 2
@@ -824,8 +863,8 @@ class TestNic:
         assert results[1].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         assert results[1].connected is True
 
-    def test_find_nic_mac(self, rest_client):
-        virtual_machine = self._get_test_vm(rest_client)
+    def test_find_nic_mac(self, rest_client, mocker):
+        virtual_machine = self._get_test_vm(rest_client, mocker)
         results = virtual_machine.find_nic(mac="12-34-56-78-CD")
         print(results)
         assert results[0].vlan == 2
@@ -834,8 +873,8 @@ class TestNic:
         assert results[0].vm_uuid == "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg"
         assert results[0].connected is True
 
-    def test_find_nic_mac_and_mac_new(self, rest_client):
-        virtual_machine = self._get_test_vm(rest_client)
+    def test_find_nic_mac_and_mac_new(self, rest_client, mocker):
+        virtual_machine = self._get_test_vm(rest_client, mocker)
         results = virtual_machine.find_nic(
             mac="12-34-56-78-CD", mac_new="12-34-56-78-AB"
         )
@@ -862,7 +901,7 @@ class TestVMExport:
         ):
             VM.get_smb_server_ip(rest_client, server_name)
 
-    def test_get_smb_server_ip_when_ip_not_found(self, rest_client):
+    def test_get_smb_server_ip_when_ip_not_found(self, rest_client, mocker):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -884,6 +923,9 @@ class TestVMExport:
             },
         }
         server_name = "SMB-TEST-VM"
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
         with pytest.raises(
             errors.SMBServerNotFound,
@@ -891,7 +933,7 @@ class TestVMExport:
         ):
             VM.get_smb_server_ip(rest_client, server_name)
 
-    def test_get_smb_server_ip_when_ip_found(self, rest_client):
+    def test_get_smb_server_ip_when_ip_found(self, rest_client, mocker):
         smb_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -923,6 +965,9 @@ class TestVMExport:
             },
         }
         server_name = "SMB-TEST-VM"
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         rest_client.list_records.return_value = [smb_dict]
         results = VM.get_smb_server_ip(rest_client, server_name)
         assert results == "10.5.11.170"
@@ -944,7 +989,7 @@ class TestVMExport:
             )
         )
 
-    def test_export_vm(self, rest_client):
+    def test_export_vm(self, rest_client, mocker):
         ansible_dict = {
             "vm_name": "this-vm",
             "smb": {
@@ -984,6 +1029,9 @@ class TestVMExport:
                 "backupNodeUUID": "",
             },
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         virtual_machine = VM.from_hypercore(smb_dict, rest_client)
         rest_client.list_records.return_value = [smb_dict]
         rest_client.create_record.return_value = {"taskTag": "12345"}
@@ -1011,7 +1059,7 @@ class TestVMImport:
             template=dict(name="this-vm-name"),
         )
 
-    def test_import_vm(self, rest_client):
+    def test_import_vm(self, rest_client, mocker):
         ansible_dict = {
             "vm_name": "this-vm",
             "smb": {
@@ -1051,6 +1099,9 @@ class TestVMImport:
                 "backupNodeUUID": "",
             },
         }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         virtual_machine = VM.from_hypercore(smb_dict, rest_client)
         rest_client.list_records.return_value = [smb_dict]
         rest_client.create_record.return_value = {"taskTag": "12345"}
@@ -1087,7 +1138,7 @@ class TestVMClone:
             }
         }
 
-    def test_clone_vm(self, rest_client):
+    def test_clone_vm(self, rest_client, mocker):
         ansible_dict = {"vm_name": "XLAB-test-vm-clone", "tags": None}
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -1111,6 +1162,9 @@ class TestVMClone:
         }
         rest_client.list_records.return_value = [vm_dict]
         rest_client.create_record.return_value = {"taskTag": "1234"}
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         virtual_machine = VM.get_or_fail(
             query={"name": "XLAB-test-vm-clone"}, rest_client=rest_client
         )[0]

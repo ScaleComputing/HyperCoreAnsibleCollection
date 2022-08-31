@@ -22,7 +22,7 @@ pytestmark = pytest.mark.skipif(
 
 class TestEnabledOrReenabled:
     def test_ensure_enabled_or_reenabled_when_replication_not_exist(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -85,11 +85,14 @@ class TestEnabledOrReenabled:
             [vm_dict],
         ]
         rest_client.create_record.return_value = {"taskTag": "1234"}
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (True, after, {"before": None, "after": after})
 
     def test_ensure_enabled_or_reenabled_when_replication_exists_change_state(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -161,11 +164,14 @@ class TestEnabledOrReenabled:
             [vm_dict],
         ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (True, after, {"before": before, "after": after})
 
     def test_ensure_enabled_or_reenabled_when_replication_exists_no_changes(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -219,12 +225,17 @@ class TestEnabledOrReenabled:
             [vm_dict],
         ]
         rest_client.update_record.return_value = {"taskTag": ""}
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
 
 
 class TestDisabled:
-    def test_ensure_disabled_replication_not_exists(self, rest_client, create_module):
+    def test_ensure_disabled_replication_not_exists(
+        self, rest_client, create_module, mocker
+    ):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -258,11 +269,14 @@ class TestDisabled:
             )
         )
         rest_client.list_records.side_effect = [[vm_dict], []]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
 
     def test_ensure_disabled_replication_exists_state_not_changed(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -297,11 +311,14 @@ class TestDisabled:
             )
         )
         rest_client.list_records.side_effect = [[vm_dict], []]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
 
     def test_ensure_disabled_replication_exists_state_changed(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -373,6 +390,9 @@ class TestDisabled:
             [vm_dict],
         ]
         rest_client.update_record.return_value = {"taskTag": "1234"}
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (True, after, {"before": before, "after": after})
 
@@ -392,9 +412,9 @@ class TestMain:
                 type="str",
             ),
         )
+
         success, results = run_main(vm_replication, params)
-        print(success)
-        print(results)
+
         assert success is True
         assert results == {
             "changed": False,

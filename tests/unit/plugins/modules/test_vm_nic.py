@@ -221,7 +221,7 @@ class TestEnsurePresentOrSet:
         }
 
     def test_ensure_present_or_set_when_no_change_and_state_set(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -236,12 +236,16 @@ class TestEnsurePresentOrSet:
             )
         )
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (False, [], {"before": [], "after": []})
 
     def test_ensure_present_or_set_when_no_change_and_state_present(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -256,12 +260,16 @@ class TestEnsurePresentOrSet:
             )
         )
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (False, [], {"before": [], "after": []})
 
     def test_ensure_present_or_set_when_changed_create_nics_and_state_set(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -286,8 +294,12 @@ class TestEnsurePresentOrSet:
             self._get_nic_2(),
             {"state": ""},
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [
@@ -332,7 +344,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_or_set_when_changed_create_nics_and_state_present(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -357,8 +369,12 @@ class TestEnsurePresentOrSet:
             self._get_nic_2(),
             {"state": ""},
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [
@@ -403,7 +419,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_or_set_when_changed_delete_all_and_state_set(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -422,8 +438,12 @@ class TestEnsurePresentOrSet:
             {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
         ]
         rest_client.list_records.return_value = [self._get_test_vm()]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [],
@@ -451,7 +471,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_or_set_when_changed_nic_type_and_state_present(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -479,8 +499,12 @@ class TestEnsurePresentOrSet:
             self._get_nic_2_updated(),
             {"state": ""},
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [
@@ -542,7 +566,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_or_set_when_changed_nic_type_and_state_set(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -570,8 +594,12 @@ class TestEnsurePresentOrSet:
             self._get_nic_2_updated(),
             {"state": ""},
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [
@@ -633,7 +661,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_or_set_when_changed_nic_vlan_and_state_present(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -661,8 +689,12 @@ class TestEnsurePresentOrSet:
             self._get_nic_2_updated_vlan(),
             {"state": ""},
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [
@@ -724,7 +756,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_or_set_when_changed_nic_vlan_and_state_set(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -755,8 +787,12 @@ class TestEnsurePresentOrSet:
             self._get_nic_2_updated_vlan(),
             {"state": ""},
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [
@@ -818,7 +854,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_or_set_when_changed_nic_mac_and_state_present(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -846,8 +882,12 @@ class TestEnsurePresentOrSet:
             self._get_nic_2_updated_mac(),
             {"state": ""},
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [
@@ -909,7 +949,7 @@ class TestEnsurePresentOrSet:
         )
 
     def test_ensure_present_or_set_when_changed_nic_mac_and_state_set(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
         module = create_module(
             params=dict(
@@ -937,8 +977,12 @@ class TestEnsurePresentOrSet:
             self._get_nic_2_updated_mac(),
             {"state": ""},
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [
@@ -1065,7 +1109,7 @@ class TestEnsureAbsent:
             },
         }
 
-    def test_ensure_absent_when_no_change(self, create_module, rest_client):
+    def test_ensure_absent_when_no_change(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1078,12 +1122,16 @@ class TestEnsureAbsent:
                 state="absent",
             )
         )
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
+
         results = vm_nic.ensure_absent(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (False, [], {"before": [], "after": []})
 
-    def test_ensure_absent_when_change(self, create_module, rest_client):
+    def test_ensure_absent_when_change(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1100,9 +1148,13 @@ class TestEnsureAbsent:
             {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
             {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
         rest_client.list_records.return_value = [self._get_test_vm()]
+
         results = vm_nic.ensure_absent(module=module, rest_client=rest_client)
-        print(results)
+
         assert results == (
             True,
             [None, None],
@@ -1143,9 +1195,9 @@ class TestMain:
             ),
             items=[],
         )
+
         success, results = run_main(vm_nic, params)
-        print(success)
-        print(results)
+
         assert success is True
         assert results == {
             "changed": False,

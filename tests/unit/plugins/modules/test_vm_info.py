@@ -14,7 +14,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestRun:
-    def test_run_records_present(self, create_module, rest_client):
+    def test_run_records_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -52,6 +52,9 @@ class TestRun:
                 },
             ),
         ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
 
         result = vm_info.run(module, rest_client)
 
@@ -71,8 +74,18 @@ class TestRun:
                 operating_system=None,
                 node_affinity={
                     "strict_affinity": False,
-                    "preferred_node": None,
-                    "backup_node": None,
+                    "preferred_node": dict(
+                        node_uuid=None,
+                        backplane_ip=None,
+                        lan_ip=None,
+                        peer_id=None,
+                    ),
+                    "backup_node": dict(
+                        node_uuid=None,
+                        backplane_ip=None,
+                        lan_ip=None,
+                        peer_id=None,
+                    ),
                 },
             ),
         ]
