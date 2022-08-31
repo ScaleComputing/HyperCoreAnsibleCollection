@@ -150,14 +150,22 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Ordered list of boot devices uuid-s, which may be found on /rest/v1/VirDomain
+    - VM's device that we're assigning the boot order to (either disks, from endpoint /VirDomainBlockDevices, or
+      nics, from endpoint /VirDomainNetDevices).
   returned: success
   type: dict
   sample:
-    boot_devices:
-      - 74df5b47-c468-4626-a7e4-34eca13b2f81
-      - a5136b8d-6ef3-4705-95bb-a9567925e4f7
-      - b54bba24-7257-421e-83a9-608010cf7a8d
+    cache_mode: none
+    disable_snapshotting: false
+    disk_slot: 2
+    mount_points: []
+    name: ""
+    read_only: false
+    size: 10737418240
+    tiering_priority_factor: 8
+    type: virtio_disk
+    uuid: d48847d0-91b1-4edf-ab28-3be864494711
+    vm_uuid: 183c5d7c-1e2e-4871-84e8-9ef35bfda5ca
 """
 
 from ansible.module_utils.basic import AnsibleModule
