@@ -1056,3 +1056,63 @@ class TestVMImport:
         rest_client.create_record.return_value = {"taskTag": "12345"}
         results = virtual_machine.import_vm(rest_client, ansible_dict)
         assert results == {"taskTag": "12345"}
+
+
+class TestVMClone:
+    def test_create_clone_vm_payload_without_cloud_init(self):
+        results = VM.create_clone_vm_payload(
+            "clone_name", ["bla", "bla1"], ["oroginal_tag", "original_tag2"], None
+        )
+        print(results)
+        assert results == {
+            "template": {
+                "name": "clone_name",
+                "tags": "oroginal_tag,original_tag2,bla,bla1",
+            }
+        }
+
+    def test_create_clone_vm_payload_with_cloud_init(self):
+        results = VM.create_clone_vm_payload(
+            "clone_name",
+            ["bla", "bla1"],
+            ["oroginal_tag", "original_tag2"],
+            {"userData": "something", "metaData": "else"},
+        )
+        print(results)
+        assert results == {
+            "template": {
+                "name": "clone_name",
+                "tags": "oroginal_tag,original_tag2,bla,bla1",
+                "cloudInitData": {"userData": "something", "metaData": "else"},
+            }
+        }
+
+    def test_clone_vm(self, rest_client):
+        ansible_dict = {"vm_name": "XLAB-test-vm-clone", "tags": None}
+        vm_dict = {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "XLAB-test-vm-clone",
+            "blockDevs": [],
+            "netDevs": [],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+        }
+        rest_client.list_records.return_value = [vm_dict]
+        rest_client.create_record.return_value = {"taskTag": "1234"}
+        virtual_machine = VM.get_or_fail(
+            query={"name": "XLAB-test-vm-clone"}, rest_client=rest_client
+        )[0]
+        results = virtual_machine.clone_vm(rest_client, ansible_dict)
+        assert results == {"taskTag": "1234"}

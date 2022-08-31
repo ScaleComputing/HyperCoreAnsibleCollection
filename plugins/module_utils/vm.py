@@ -220,6 +220,24 @@ class VM(PayloadMapper):
         )
 
     @classmethod
+    def create_clone_vm_payload(
+        cls, clone_name, ansible_tags, hypercore_tags, cloud_init
+    ):
+        data = {"template": {}}
+        if clone_name:
+            data["template"]["name"] = clone_name
+        if (
+            ansible_tags or hypercore_tags
+        ):  # Cloned VM does not retain tags from the original
+            for tag in ansible_tags or []:
+                if tag not in hypercore_tags:
+                    hypercore_tags.append(tag)
+            data["template"]["tags"] = ",".join(hypercore_tags)
+        if cloud_init:
+            data["template"]["cloudInitData"] = cloud_init
+        return data
+
+    @classmethod
     def get(cls, query, rest_client):  # if query is None, return list of all VMs
         record = rest_client.list_records(
             "/rest/v1/VirDomain",
@@ -398,6 +416,18 @@ class VM(PayloadMapper):
         )
         return rest_client.create_record(
             endpoint="/rest/v1/VirDomain/" + self.uuid + "/export",
+            payload=data,
+            check_mode=False,
+            timeout=None,
+        )
+
+    def clone_vm(self, rest_client, ansible_dict):
+        cloud_init_data = VM.create_cloud_init_payload(ansible_dict)
+        data = VM.create_clone_vm_payload(
+            ansible_dict["vm_name"], ansible_dict["tags"], self.tags, cloud_init_data
+        )
+        return rest_client.create_record(
+            endpoint=f"/rest/v1/VirDomain/{self.uuid}/clone",
             payload=data,
             check_mode=False,
             timeout=None,
