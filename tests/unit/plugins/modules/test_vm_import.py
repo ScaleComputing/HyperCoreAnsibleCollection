@@ -187,36 +187,6 @@ class TestRun:
     def test_run_when_imported_VM_not_exists_but_import_failed(
         self, create_module, rest_client
     ):
-        smb_dict = {
-            "uuid": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "nodeUUID": "",
-            "name": "XLAB_test_smb",
-            "blockDevs": [],
-            "netDevs": [
-                {
-                    "vlan": 1,
-                    "type": "VIRTIO",
-                    "ipv4Addresses": ["10.5.11.170"],
-                    "virDomainUUID": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                    "macAddress": "",
-                    "connected": True,
-                    "uuid": "nic-uuid",
-                }
-            ],
-            "stats": "bla",
-            "tags": "XLAB,test",
-            "description": "test vm",
-            "mem": 23424234,
-            "state": "RUNNING",
-            "numVCPU": 2,
-            "bootDevices": [],
-            "operatingSystem": "windows",
-            "affinityStrategy": {
-                "strictAffinity": False,
-                "preferredNodeUUID": "",
-                "backupNodeUUID": "",
-            },
-        }
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -234,7 +204,7 @@ class TestRun:
             )
         )
         rest_client.get_record.return_value = {}
-        rest_client.list_records.side_effect = [[], [smb_dict], []]
+        rest_client.list_records.side_effect = [[], []]
         rest_client.create_record.return_value = {
             "taskTag": "1234",
             "createdUUID": "uuid",

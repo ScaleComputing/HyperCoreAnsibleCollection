@@ -178,16 +178,6 @@ class VM(PayloadMapper):
         return None
 
     @classmethod
-    def get_smb_server_ip(cls, rest_client, server_name):
-        smb_server = VM.get_or_fail(
-            query={"name": server_name}, rest_client=rest_client
-        )[0]
-        for nic in smb_server.nics:
-            if nic.ipv4Addresses:
-                return nic.ipv4Addresses[0]  # First available IP address
-        raise errors.SMBServerNotFound(server_name)
-
-    @classmethod
     def create_export_or_import_vm_payload(
         cls, smb_server_ip, path, username, password, vm_name, cloud_init, is_export
     ):
@@ -296,12 +286,9 @@ class VM(PayloadMapper):
 
     @classmethod
     def import_vm(cls, rest_client, ansible_dict):
-        smb_server_ip = cls.get_smb_server_ip(
-            rest_client, ansible_dict["smb"]["server"]
-        )
         cloud_init = cls.create_cloud_init_payload(ansible_dict)
         data = cls.create_export_or_import_vm_payload(
-            smb_server_ip,
+            ansible_dict["smb"]["server"],
             ansible_dict["smb"]["path"],
             ansible_dict["smb"]["username"],
             ansible_dict["smb"]["password"],
@@ -420,9 +407,8 @@ class VM(PayloadMapper):
         return changed
 
     def export_vm(self, rest_client, ansible_dict):
-        smb_server_ip = VM.get_smb_server_ip(rest_client, ansible_dict["smb"]["server"])
         data = VM.create_export_or_import_vm_payload(
-            smb_server_ip,
+            ansible_dict["smb"]["server"],
             ansible_dict["smb"]["path"],
             ansible_dict["smb"]["username"],
             ansible_dict["smb"]["password"],
