@@ -15,13 +15,8 @@
         username: example1
         password: badpass
       cloud_init:
-        user_data2: lookup(file, filename)
-        user_data: |
-          #cloud-config
-          autoinstall:
-            - version: 1
-            - locale: en_US
-        meta_data:
+        user_data: "{{ lookup('file', 'path/to/file.txt') }}"
+        meta_data: |
           network:
             version: 2
             renderer: networkd

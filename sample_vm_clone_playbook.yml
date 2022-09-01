@@ -8,16 +8,18 @@
         username: 'admin'
         password: 'admin'
       vm_name: XLAB-POST-TEST-clone
-      source_vm_name: XLAB-smb-export
+      source_vm_name: XLAB-POST-TEST
       tags:
         - Xlab
         - Domen
         - Test
       cloud_init:
-        user_data:
+        user_data: |
+          #cloud-config
           autoinstall:
             - version: 1
             - locale: en_US"
+        meta_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
     register: testout
 
   - name: output the HTTP request results
