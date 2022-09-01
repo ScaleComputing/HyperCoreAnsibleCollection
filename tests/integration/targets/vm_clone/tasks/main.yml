@@ -62,13 +62,13 @@
         vm_name: XLAB-vm_clone_CI-test-cloud_init-clone
         source_vm_name: XLAB-vm_clone-CI_test
         cloud_init:
-          user_data:
-            yaml: "bla"
-            is_valid: "yes"
-          meta_data:
+          user_data: |
+            yaml: bla
+            is_valid: yes
+          meta_data: |
             this_data:
-              - "very"
-              - "meta"
+              - very
+              - meta
       register: output
     - ansible.builtin.assert:
         that:

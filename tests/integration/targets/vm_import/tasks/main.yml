@@ -78,7 +78,7 @@
       scale_computing.hypercore.vm_export:
         vm_name: XLAB-import-test-integration
         smb:
-          server: XLAB-demo-VM-smb-server
+          server: "10.5.11.179"
           path: /users/integration-test
           username: example1
           password: badpass
@@ -86,13 +86,13 @@
     - ansible.builtin.assert:
         that:
           - output is changed
-          - output.msg == "Virtual machine - XLAB-import-test-integration - export complete to - XLAB-demo-VM-smb-server"
+          - output.msg == "Virtual machine - XLAB-import-test-integration - export complete to - 10.5.11.179"
 
     - name: Import XLAB-import-test-integration from SMB
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported
         smb:
-          server: XLAB-demo-VM-smb-server
+          server: "10.5.11.179"
           path: /users/integration-test
           username: example1
           password: badpass
@@ -100,7 +100,7 @@
     - ansible.builtin.assert:
         that:
           - import_vm is changed
-          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported - import complete from - XLAB-demo-VM-smb-server"
+          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported - import complete from - 10.5.11.179"
 
     - name: Retrieve imported VM
       scale_computing.hypercore.vm_info:
@@ -114,25 +114,25 @@
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported-cloud-init
         smb:
-          server: XLAB-demo-VM-smb-server
+          server: "10.5.11.179"
           path: /users/integration-test
           username: example1
           password: badpass
         cloud_init:
-          user_data:
-            is_this: "yes"
+          user_data: |
+            is_this: yes
             valid:
-              - "yaml"
-              - "expression?"
-          meta_data:
+              - yaml
+              - expression?
+          meta_data: |
             this_data:
-              - "is"
-              - "very meta"
+              - is
+              - very meta
       register: import_vm
     - ansible.builtin.assert:
         that:
           - import_vm is changed
-          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported-cloud-init - import complete from - XLAB-demo-VM-smb-server"
+          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported-cloud-init - import complete from - 10.5.11.179"
 
     - name: Delete XLAB-import-test-integration
       scale_computing.hypercore.vm: *delete-XLAB-import-test-integration

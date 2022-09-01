@@ -38,6 +38,7 @@ options:
         type: str
         description:
           - Specified SMB server, where the selected virtual machine is to be imported from.
+          - Has to be IP or DNS name.
         required: true
       path:
         type: str
@@ -78,7 +79,7 @@ EXAMPLES = r"""
   scale_computing.hypercore.vm_import:
     vm_name: demo-vm
     smb:
-      server: demo-smb-server
+      server: IP-or-DNS-name-of-SMB-server
       path: /share/path/to/vms/demo-vm-exported-v0
       username: user
       password: pass
@@ -88,7 +89,7 @@ EXAMPLES = r"""
   scale_computing.hypercore.vm_import:
     vm_name: demo-vm
     smb:
-      server: demo-smb-server
+      server: IP-or-DNS-name-of-SMB-server
       path: /share/path/to/vms/demo-vm-exported-v0
       username: user
       password: pass
