@@ -46,9 +46,9 @@ options:
         description:
           - Configuration user-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
           - Valid YAML syntax.
-        type: dict
+        type: str
       meta_data:
-        type: dict
+        type: str
         description:
           - Configuration meta-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
           - Valid YAML syntax.
@@ -67,11 +67,8 @@ EXAMPLES = r"""
     vm_name: demo-vm-clone
     source_vm_name: demo-vm
     cloud_init:
-      user_data:
-        valid:
-        - yaml: 1
-        - expression: 2
-      meta_data:
+      user_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+      meta_data: |
         valid:
           yaml: 3
           expression: 4
@@ -137,8 +134,8 @@ def main():
                 type="dict",
                 default={},
                 options=dict(
-                    user_data=dict(type="dict"),
-                    meta_data=dict(type="dict"),
+                    user_data=dict(type="str"),
+                    meta_data=dict(type="str"),
                 ),
             ),
         ),
