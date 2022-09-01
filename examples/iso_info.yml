@@ -1,11 +1,12 @@
 - name: Example iso_info module
   hosts: localhost
-  # connection: local  # partial solution to use SC_HOST from bash environ
+  connection: local
   gather_facts: False
   environment:
-    - SC_HOST: https://1.2.3.4
-    - SC_USERNAME: admin
-    - SC_PASSWORD: todo
+    MY_VAR: my_value
+    # - SC_HOST: https://1.2.3.4
+    # - SC_USERNAME: admin
+    # - SC_PASSWORD: todo
 
   tasks:
   # ------------------------------------------------------
@@ -28,6 +29,7 @@
       var: iso_results
 
   # ------------------------------------------------------
+  # TODO this should fail
   - name: Get info about not present ISO image
     scale_computing.hypercore.iso_info:
       name: no-such-iso-image-p29bvao8w6f4evo.iso
