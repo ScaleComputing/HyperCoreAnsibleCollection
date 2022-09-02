@@ -119,3 +119,6 @@
         that:
           - output is changed
           - "'nodeUUID not set, strict affinity set to false' in output.msg"
+
+    - name: Delete XLAB-vm_node_affinity_CI_test
+      scale_computing.hypercore.vm: *delete-XLAB-vm_node_affinity_CI_test
