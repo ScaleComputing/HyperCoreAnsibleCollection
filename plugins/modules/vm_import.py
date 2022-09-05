@@ -31,7 +31,7 @@ options:
   smb:
     description:
       - SMB server, access and location data.
-      - server, path, username, password
+      - server, path, username, password.
     type: dict
     suboptions:
       server:
@@ -49,7 +49,7 @@ options:
         type: str
         description:
           - Specified .xml file name.
-          - If not specified, plugin assumes .xml file name is the same as directory name.
+          - If not specified, plugin assumes .xml file name is the same as directory name from the path parameter.
       username:
         type: str
         description:
@@ -63,7 +63,7 @@ options:
   http_uri:
     description:
       - Specified URI location.
-      - path, file name
+      - path, file name.
     type: dict
     suboptions:
       path:
@@ -104,6 +104,7 @@ EXAMPLES = r"""
       path: /share/path/to/vms/demo-vm-exported-v0
       username: user
       password: pass
+      file_name: my_file.xml
   register: output
 
 - name: import VM from SMB with cloud init data added
@@ -114,6 +115,7 @@ EXAMPLES = r"""
       path: /share/path/to/vms/demo-vm-exported-v0
       username: user
       password: pass
+      file_name: my_file.xml
     cloud_init:
       user_data: |
         valid:
@@ -127,7 +129,7 @@ EXAMPLES = r"""
     vm_name: demo-vm
     http_uri:
       path: 'http://some-address-where-file-is-located'
-      file_name: actual_file_name
+      file_name: actual_file_name.xml
   register: output
 
 - name: import VM from URI with cloud init data added
@@ -135,7 +137,7 @@ EXAMPLES = r"""
     vm_name: demo-vm
     http_uri:
       path: 'http://some-address-where-file-is-located'
-      file_name: actual_file_name
+      file_name: actual_file_name.xml
     cloud_init:
       user_data: |
         valid:

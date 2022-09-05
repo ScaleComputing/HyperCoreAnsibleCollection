@@ -31,7 +31,7 @@ options:
   smb:
     description:
       - SMB server, access and location data.
-      - Destination, username, password
+      - Destination, username, password.
     type: dict
     suboptions:
       server:
@@ -49,7 +49,7 @@ options:
         type: str
         description:
           - Specified xml file name.
-          - If not specified, file name will be the same as directory name.
+          - If not specified, file name will be the same as directory name from the path parameter.
       username:
         type: str
         description:
@@ -63,7 +63,7 @@ options:
   http_uri:
     description:
       - Specified URI location.
-      - path, file name
+      - path, file name.
     type: dict
     suboptions:
       path:
@@ -88,6 +88,14 @@ EXAMPLES = r"""
       file_name: my_file.xml
       username: user
       password: pass
+  register: output
+
+- name: export VM to URI
+  scale_computing.hypercore.vm_export:
+    vm_name: demo-vm
+    http_uri:
+      path: 'http://some-address-where-file-is-located'
+      file_name: actual_file_name.xml
   register: output
 """
 

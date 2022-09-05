@@ -904,6 +904,7 @@ class TestVMExport:
             },
         }
         results = VM.create_export_or_import_vm_payload(ansible_dict, None, True)
+        print(results)
         assert results == dict(
             target=dict(
                 pathURI="smb://"
