@@ -893,9 +893,16 @@ class TestNic:
 
 class TestVMExport:
     def test_create_export_or_import_vm_payload_when_export(self):
-        results = VM.create_export_or_import_vm_payload(
-            "10.5.11.170", "/user", "username", "password", "this-vm-name", None, True
-        )
+        ansible_dict = {
+            "vm_name": "this-vm-name",
+            "smb": {
+                "path": "/user",
+                "username": "username",
+                "password": "password",
+                "server": "10.5.11.170",
+            },
+        }
+        results = VM.create_export_or_import_vm_payload(ansible_dict, None, True)
         assert results == dict(
             target=dict(
                 pathURI="smb://"
@@ -961,9 +968,16 @@ class TestVMExport:
 
 class TestVMImport:
     def test_create_export_or_import_vm_payload_when_import(self):
-        results = VM.create_export_or_import_vm_payload(
-            "10.5.11.170", "/user", "username", "password", "this-vm-name", None, False
-        )
+        ansible_dict = {
+            "vm_name": "this-vm-name",
+            "smb": {
+                "path": "/user",
+                "username": "username",
+                "password": "password",
+                "server": "10.5.11.170",
+            },
+        }
+        results = VM.create_export_or_import_vm_payload(ansible_dict, None, False)
         print(results)
         assert results == dict(
             source=dict(

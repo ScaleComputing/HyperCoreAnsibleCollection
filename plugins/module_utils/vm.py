@@ -177,53 +177,46 @@ class VM(PayloadMapper):
             )
         return None
 
-    @classmethod
-    def create_export_or_import_vm_payload(
-        cls, smb_server_ip, path, username, password, vm_name, cloud_init, is_export
-    ):
-        if is_export:
-            return dict(
-                target=dict(
-                    pathURI="smb://"
-                    + username
-                    + ":"
-                    + password
-                    + "@"
-                    + smb_server_ip
-                    + "/"
-                    + path
+    @staticmethod
+    def create_export_or_import_vm_payload(ansible_dict, cloud_init, is_export):
+        if ansible_dict["smb"]:
+            pathURI = f"smb://{ansible_dict['smb']['username']}:{ansible_dict['smb']['password']}@{ansible_dict['smb']['server']}/{ansible_dict['smb']['path']}"
+            if is_export:
+                return dict(
+                    target=dict(pathURI=pathURI),
                 )
-            )
-        if cloud_init:
-            return dict(
-                source=dict(
-                    pathURI="smb://"
-                    + username
-                    + ":"
-                    + password
-                    + "@"
-                    + smb_server_ip
-                    + "/"
-                    + path
-                ),
-                template=dict(
-                    name=vm_name,
-                    cloudInitData=cloud_init,
-                ),
-            )
-        return dict(
-            source=dict(
-                pathURI="smb://"
-                + username
-                + ":"
-                + password
-                + "@"
-                + smb_server_ip
-                + "/"
-                + path
-            ),
-            template=dict(name=vm_name),
-        )
+            elif cloud_init:
+                return dict(
+                    source=dict(pathURI=pathURI),
+                    template=dict(
+                        name=ansible_dict["vm_name"],
+                        cloudInitData=cloud_init,
+                    ),
+                )
+            else:
+                return dict(
+                    source=dict(pathURI=pathURI),
+                    template=dict(
+                        name=ansible_dict["vm_name"],
+                    ),
+                )
+        elif ansible_dict["http_uri"]:
+            pathURI = f"{ansible_dict['http_uri']['path']}/{ansible_dict['http_uri']['file_name']}"
+            if cloud_init:
+                return dict(
+                    source=dict(pathURI=pathURI),
+                    template=dict(
+                        name=ansible_dict["vm_name"],
+                        cloudInitData=cloud_init,
+                    ),
+                )
+            else:
+                return dict(
+                    source=dict(pathURI=pathURI),
+                    template=dict(
+                        name=ansible_dict["vm_name"],
+                    ),
+                )
 
     @classmethod
     def create_clone_vm_payload(
@@ -288,11 +281,7 @@ class VM(PayloadMapper):
     def import_vm(cls, rest_client, ansible_dict):
         cloud_init = cls.create_cloud_init_payload(ansible_dict)
         data = cls.create_export_or_import_vm_payload(
-            ansible_dict["smb"]["server"],
-            ansible_dict["smb"]["path"],
-            ansible_dict["smb"]["username"],
-            ansible_dict["smb"]["password"],
-            ansible_dict["vm_name"],
+            ansible_dict,
             cloud_init,
             is_export=False,
         )
@@ -408,11 +397,7 @@ class VM(PayloadMapper):
 
     def export_vm(self, rest_client, ansible_dict):
         data = VM.create_export_or_import_vm_payload(
-            ansible_dict["smb"]["server"],
-            ansible_dict["smb"]["path"],
-            ansible_dict["smb"]["username"],
-            ansible_dict["smb"]["password"],
-            ansible_dict["vm_name"],
+            ansible_dict,
             None,
             is_export=True,
         )
