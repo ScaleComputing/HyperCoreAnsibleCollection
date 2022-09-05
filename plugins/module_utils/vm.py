@@ -54,6 +54,7 @@ class VM(PayloadMapper):
         attach_guest_tools_iso=False,
         operating_system=None,
         node_affinity=None,
+        snapshot_schedule_uuid=None,
     ):
 
         self.operating_system = operating_system
@@ -70,6 +71,7 @@ class VM(PayloadMapper):
         self.boot_devices = boot_devices or []
         self.attach_guest_tools_iso = attach_guest_tools_iso
         self.node_affinity = node_affinity
+        self.snapshot_schedule_uuid = snapshot_schedule_uuid
 
     @property
     def nic_list(self):
@@ -151,6 +153,7 @@ class VM(PayloadMapper):
             attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", ""),
             operating_system=vm_dict["operatingSystem"],
             node_affinity=node_affinity,
+            snapshot_schedule_uuid=vm_dict["snapshotScheduleUUID"],
         )
 
     @classmethod
@@ -430,6 +433,7 @@ class VM(PayloadMapper):
                 self.boot_devices == other.boot_devices,
                 self.attach_guest_tools_iso == other.attach_guest_tools_iso,
                 self.node_affinity == other.node_affinity,
+                self.snapshot_schedule_uuid == other.snapshot_schedule_uuid,
             )
         )
 
