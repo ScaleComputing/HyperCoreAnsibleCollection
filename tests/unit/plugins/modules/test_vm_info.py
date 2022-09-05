@@ -50,6 +50,7 @@ class TestRun:
                     "preferredNodeUUID": "",
                     "backupNodeUUID": "",
                 },
+                snapshotScheduleUUID="snapshot_schedule_id",
             ),
         ]
         mocker.patch(

@@ -58,6 +58,7 @@ class TestEnsureAbsent:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            snapshotScheduleUUID="snapshot_schedule_uuid",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -147,6 +148,7 @@ class TestEnsurePresent:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            snapshotScheduleUUID="snapshot_schedule_uuid",
         )
         rest_client.update_record.return_value = dict(
             vm_name="VM-unique-name-updated",

@@ -57,6 +57,7 @@ class TestGetVMByName:
                     backupNodeUUID="",
                 ),
                 nodeUUID="node-id",
+                snapshotScheduleUUID="snapshot_schedule_id",
             ),
             dict(
                 uuid="node-id",
@@ -101,6 +102,7 @@ class TestGetVMByName:
                 ),
             ),
             node_uuid="node-id",
+            snapshot_schedule_uuid="snapshot_schedule_id",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -154,6 +156,7 @@ class TestGetVMByName:
                 backupNodeUUID="",
             ),
             nodeUUID="node-id",
+            snapshotScheduleUUID="snapshot_schedule_id",
         )
 
         vm = VM(
@@ -199,6 +202,7 @@ class TestGetVMByName:
                 ),
             ),
             node_uuid="node-id",
+            snapshot_schedule_uuid="snapshot_schedule_id",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -556,6 +560,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -590,6 +595,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         rest_client.create_record.return_value = {
@@ -688,6 +694,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -722,6 +729,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         mocker.patch(
@@ -830,6 +838,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -864,6 +873,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         rest_client.update_record.return_value = {
@@ -977,6 +987,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "iso-uuid",
@@ -1020,6 +1031,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         rest_client.update_record.return_value = {
@@ -1118,6 +1130,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "iso-uuid",
@@ -1161,6 +1174,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         rest_client.update_record.return_value = {
@@ -1266,6 +1280,7 @@ class TestEnsurePresentOrSet:
                 "backupNodeUUID": "",
             },
             "nodeUUID": "node-id",
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -1346,6 +1361,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -1380,6 +1396,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -1400,6 +1417,7 @@ class TestEnsurePresentOrSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         rest_client.delete_record.return_value = {
@@ -1470,6 +1488,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -1490,6 +1509,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         mocker.patch(
@@ -1555,6 +1575,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -1575,6 +1596,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         mocker.patch(
@@ -1654,6 +1676,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "iso-uuid",
@@ -1682,6 +1705,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         rest_client.update_record.return_value = {
@@ -1765,6 +1789,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         mocker.patch(
@@ -1826,6 +1851,7 @@ class TestNotUsedDisks:
                 "backupNodeUUID": "",
             },
             "nodeUUID": "node-id",
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -1886,6 +1912,7 @@ class TestNotUsedDisks:
                 "backupNodeUUID": "",
             },
             "nodeUUID": "node-id",
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
 
         changed = False

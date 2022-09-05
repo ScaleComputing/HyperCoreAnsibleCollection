@@ -72,6 +72,7 @@ class TestRun:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
         smb_dict = {
             "uuid": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -102,6 +103,7 @@ class TestRun:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
         module = create_module(
             params=dict(
