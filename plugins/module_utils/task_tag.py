@@ -35,3 +35,16 @@ class TaskTag:
             ):  # TaskTag has finished
                 break
             sleep(1)
+
+    @staticmethod
+    def get_task_status(rest_client, task):
+        if type(task) != dict:
+            raise errors.ScaleComputingError("task should be dictionary.")
+        if "taskTag" not in task.keys():
+            raise errors.ScaleComputingError("taskTag is not in task dictionary.")
+        if not task["taskTag"]:
+            return
+        task_status = rest_client.get_record(
+            "{0}/{1}".format("/rest/v1/TaskTag", task["taskTag"]), query={}
+        )
+        return task_status if task_status else {}
