@@ -32,7 +32,6 @@ options:
       - SMB server, access and location data.
       - Destination, username, password
     type: dict
-    required: true
     suboptions:
       server:
         type: str
@@ -45,6 +44,11 @@ options:
         description:
           - Specified location on the SMB server, where the exported virtual machine is to be exported to.
         required: true
+      file_name:
+        type: str
+        description:
+          - Specified xml file name.
+          - If not specified, file name will be the same as directory name.
       username:
         type: str
         description:
@@ -55,6 +59,22 @@ options:
         description:
           - Password.
         required: true
+  http_uri:
+    description:
+      - Specified URI location.
+      - path, file name
+    type: dict
+    suboptions:
+      path:
+        type: str
+        description:
+          - Specified URI location, where the virtual machine is to be exported to.
+        required: true
+      file_name:
+        type: str
+        description:
+          - File name to be imported from the specified URI location.
+        required: true
 """
 
 EXAMPLES = r"""
@@ -64,6 +84,7 @@ EXAMPLES = r"""
     smb:
       server: IP-or-DNS-name-of-SMB-server
       path: /share/path/to/vms/demo-vm-exported-v0
+      file_name: my_file.xml
       username: user
       password: pass
   register: output
@@ -114,7 +135,6 @@ def main():
             ),
             smb=dict(
                 type="dict",
-                required=True,
                 options=dict(
                     server=dict(
                         type="str",
@@ -124,6 +144,9 @@ def main():
                         type="str",
                         required=True,
                     ),
+                    file_name=dict(
+                        type="str",
+                    ),
                     username=dict(
                         type="str",
                         required=True,
@@ -131,6 +154,19 @@ def main():
                     password=dict(
                         type="str",
                         no_log=True,
+                        required=True,
+                    ),
+                ),
+            ),
+            http_uri=dict(
+                type="dict",
+                options=dict(
+                    path=dict(
+                        type="str",
+                        required=True,
+                    ),
+                    file_name=dict(
+                        type="str",
                         required=True,
                     ),
                 ),

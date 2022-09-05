@@ -900,6 +900,7 @@ class TestVMExport:
                 "username": "username",
                 "password": "password",
                 "server": "10.5.11.170",
+                "file_name": "my_file.xml",
             },
         }
         results = VM.create_export_or_import_vm_payload(ansible_dict, None, True)
@@ -912,7 +913,8 @@ class TestVMExport:
                 + "@"
                 + "10.5.11.170"
                 + "/"
-                + "/user"
+                + "/user",
+                definitionFileName="my_file.xml",
             )
         )
 
@@ -924,6 +926,7 @@ class TestVMExport:
                 "path": "/somewhere",
                 "username": "user",
                 "password": "pass",
+                "file_name": None,
             },
         }
         smb_dict = {
@@ -975,6 +978,7 @@ class TestVMImport:
                 "username": "username",
                 "password": "password",
                 "server": "10.5.11.170",
+                "file_name": "my_file.xml",
             },
         }
         results = VM.create_export_or_import_vm_payload(ansible_dict, None, False)
@@ -988,7 +992,8 @@ class TestVMImport:
                 + "@"
                 + "10.5.11.170"
                 + "/"
-                + "/user"
+                + "/user",
+                definitionFileName="my_file.xml",
             ),
             template=dict(name="this-vm-name"),
         )
@@ -1001,6 +1006,7 @@ class TestVMImport:
                 "path": "/somewhere",
                 "username": "user",
                 "password": "pass",
+                "file_name": None,
             },
         }
         smb_dict = {

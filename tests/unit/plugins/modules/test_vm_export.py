@@ -116,6 +116,7 @@ class TestRun:
                     "path": "/somewhere/else",
                     "username": "user",
                     "password": "pass",
+                    "file_name": None,
                 },
             )
         )

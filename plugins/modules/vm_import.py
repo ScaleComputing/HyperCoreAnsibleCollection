@@ -44,6 +44,11 @@ options:
         description:
           - Specified location on the SMB server, where the exported virtual machine is to be imported from.
         required: true
+      file_name:
+        type: str
+        description:
+          - Specified .xml file name.
+          - If not specified, plugin assumes .xml file name is the same as directory name.
       username:
         type: str
         description:
@@ -194,6 +199,9 @@ def main():
                     path=dict(
                         type="str",
                         required=True,
+                    ),
+                    file_name=dict(
+                        type="str",
                     ),
                     username=dict(
                         type="str",

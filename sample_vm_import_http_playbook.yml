@@ -8,11 +8,8 @@
         username: 'admin'
         password: 'admin'
       vm_name: XLAB-POST-TEST-import
-      smb:
-        server: "10.5.11.179"
-        path: /users/export-test
-        username: example1
-        password: badpass
+      http_uri:
+        path: https://www.google.si/
         file_name: my_file.xml
       cloud_init:
         user_data: |

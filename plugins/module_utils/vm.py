@@ -179,44 +179,46 @@ class VM(PayloadMapper):
 
     @staticmethod
     def create_export_or_import_vm_payload(ansible_dict, cloud_init, is_export):
+        payload = {}
         if ansible_dict["smb"]:
             pathURI = f"smb://{ansible_dict['smb']['username']}:{ansible_dict['smb']['password']}@{ansible_dict['smb']['server']}/{ansible_dict['smb']['path']}"
             if is_export:
-                return dict(
-                    target=dict(pathURI=pathURI),
-                )
-            elif cloud_init:
-                return dict(
-                    source=dict(pathURI=pathURI),
-                    template=dict(
-                        name=ansible_dict["vm_name"],
-                        cloudInitData=cloud_init,
-                    ),
-                )
+                payload["target"] = {}
+                payload["target"]["pathURI"] = pathURI
+                if ansible_dict["smb"]["file_name"]:
+                    payload["target"]["definitionFileName"] = ansible_dict["smb"][
+                        "file_name"
+                    ]
             else:
-                return dict(
-                    source=dict(pathURI=pathURI),
-                    template=dict(
-                        name=ansible_dict["vm_name"],
-                    ),
-                )
+                payload["source"] = {}
+                payload["template"] = {}
+                payload["source"]["pathURI"] = pathURI
+                payload["template"]["name"] = ansible_dict["vm_name"]
+                if cloud_init:
+                    payload["template"]["cloudInitData"] = cloud_init
+                if ansible_dict["smb"]["file_name"]:
+                    payload["source"]["definitionFileName"] = ansible_dict["smb"][
+                        "file_name"
+                    ]
         elif ansible_dict["http_uri"]:
-            pathURI = f"{ansible_dict['http_uri']['path']}/{ansible_dict['http_uri']['file_name']}"
-            if cloud_init:
-                return dict(
-                    source=dict(pathURI=pathURI),
-                    template=dict(
-                        name=ansible_dict["vm_name"],
-                        cloudInitData=cloud_init,
-                    ),
-                )
+            pathURI = f"{ansible_dict['http_uri']['path']}"
+            if is_export:
+                payload["target"] = {}
+                payload["target"]["pathURI"] = pathURI
+                payload["target"]["definitionFileName"] = ansible_dict["http_uri"][
+                    "file_name"
+                ]
             else:
-                return dict(
-                    source=dict(pathURI=pathURI),
-                    template=dict(
-                        name=ansible_dict["vm_name"],
-                    ),
-                )
+                payload["source"] = {}
+                payload["template"] = {}
+                payload["source"]["pathURI"] = pathURI
+                payload["template"]["name"] = ansible_dict["vm_name"]
+                payload["source"]["definitionFileName"] = ansible_dict["http_uri"][
+                    "file_name"
+                ]
+                if cloud_init:
+                    payload["template"]["cloudInitData"] = cloud_init
+        return payload
 
     @classmethod
     def create_clone_vm_payload(
