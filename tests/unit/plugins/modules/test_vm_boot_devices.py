@@ -178,6 +178,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",
@@ -225,6 +226,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",
@@ -353,6 +355,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -387,6 +390,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         mocker.patch(
@@ -453,6 +457,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",
@@ -500,6 +505,7 @@ class TestEnsureAbsent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         rest_client.update_record.return_value = {
@@ -593,6 +599,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -627,6 +634,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         mocker.patch(
@@ -694,6 +702,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",
@@ -741,6 +750,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",
@@ -914,6 +924,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",
@@ -961,6 +972,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",
@@ -1094,6 +1106,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -1128,6 +1141,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",
@@ -1248,6 +1262,7 @@ class TestEnsureSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -1282,6 +1297,7 @@ class TestEnsureSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
         ]
         mocker.patch(
@@ -1348,6 +1364,7 @@ class TestEnsureSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",
@@ -1395,6 +1412,7 @@ class TestEnsureSet:
                     "backupNodeUUID": "",
                 },
                 "nodeUUID": "node-id",
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             },
             dict(
                 uuid="disk-id",

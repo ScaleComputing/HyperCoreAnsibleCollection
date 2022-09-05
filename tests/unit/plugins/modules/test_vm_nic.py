@@ -40,6 +40,7 @@ class TestEnsurePresentOrSet:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_uuid",
         }
 
     @classmethod
@@ -81,6 +82,7 @@ class TestEnsurePresentOrSet:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_uuid",
         }
 
     @classmethod
@@ -122,6 +124,7 @@ class TestEnsurePresentOrSet:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_uuid",
         }
 
     @classmethod
@@ -1066,6 +1069,7 @@ class TestEnsureAbsent:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_uuid",
         }
 
     @classmethod
@@ -1107,6 +1111,7 @@ class TestEnsureAbsent:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_uuid",
         }
 
     def test_ensure_absent_when_no_change(self, create_module, rest_client, mocker):

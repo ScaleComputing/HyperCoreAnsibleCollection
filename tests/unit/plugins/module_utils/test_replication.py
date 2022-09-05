@@ -81,6 +81,7 @@ class TestGet:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"

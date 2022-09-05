@@ -79,6 +79,7 @@ class TestVM:
                     peer_id=None,
                 ),
             },
+            snapshot_schedule_uuid="9238175f-2d6a-489f-9157-fa6345719b3b",
         )
 
         vm_dict = dict(
@@ -100,6 +101,7 @@ class TestVM:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            snapshotScheduleUUID="9238175f-2d6a-489f-9157-fa6345719b3b",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -392,6 +394,7 @@ class TestVM:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            snapshotScheduleUUID="snapshot_schedule_id",
         )
 
         vm = VM(
@@ -423,6 +426,7 @@ class TestVM:
                     peer_id=None,
                 ),
             },
+            snapshot_schedule_uuid="snapshot_schedule_id",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -597,6 +601,7 @@ class TestVM:
                     "preferredNodeUUID": "",
                     "backupNodeUUID": "",
                 },
+                "snapshotScheduleUUID": "snapshot_schedule_id",
             }
         ]
         mocker.patch(
@@ -664,6 +669,7 @@ class TestNic:
                     "preferredNodeUUID": "",
                     "backupNodeUUID": "",
                 },
+                "snapshotScheduleUUID": "",
             },
             rest_client,
         )
@@ -701,6 +707,7 @@ class TestNic:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -756,6 +763,7 @@ class TestNic:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -821,6 +829,7 @@ class TestNic:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -948,6 +957,7 @@ class TestVMExport:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -1018,6 +1028,7 @@ class TestVMImport:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -1079,6 +1090,7 @@ class TestVMClone:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
         rest_client.list_records.return_value = [vm_dict]
         rest_client.create_record.return_value = {"taskTag": "1234"}

@@ -56,6 +56,7 @@ class TestRun:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
         return vm_dict
 
@@ -80,6 +81,7 @@ class TestRun:
                 "preferredNodeUUID": "",
                 "backupNodeUUID": "",
             },
+            "snapshotScheduleUUID": "snapshot_schedule_id",
         }
         return vm_dict
 
