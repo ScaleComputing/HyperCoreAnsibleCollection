@@ -16,6 +16,7 @@ author:
 short_description: Plugin handles import of the virtual machine.
 description:
   - Plugin enables import of the virtual machine, from a specified location.
+  - Use either smb or http_uri, they are mutually exclusive.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance

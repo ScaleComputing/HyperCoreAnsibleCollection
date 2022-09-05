@@ -16,6 +16,7 @@ author:
 short_description: Plugin handles export of the virtual machine.
 description:
   - Plugin enables export of the virtual machine, to a specified location.
+  - Use either smb or http_uri, they are mutually exclusive.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -108,6 +109,12 @@ from ..module_utils.task_tag import TaskTag
 
 
 def run(module, rest_client):
+    if (not module.params["smb"] and not module.params["http_uri"]) or (
+        module.params["smb"] and module.params["http_uri"]
+    ):
+        raise errors.ScaleComputingError(
+            "Exactly one of the parameters is required: smb or http_uri."
+        )
     virtual_machine_obj = VM.get_or_fail(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )[0]
