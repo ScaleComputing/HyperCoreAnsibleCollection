@@ -90,11 +90,17 @@ def run(module, rest_client):
     virtual_machine_obj = VM.get_or_fail(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )[0]
-    task = virtual_machine_obj.export_vm(rest_client, module.params)
-    TaskTag.wait_task(rest_client, task)
-    return True, "Virtual machine - {0} - export complete to - {1}".format(
-        module.params["vm_name"], module.params["smb"]["server"]
-    )
+    try:
+        task = virtual_machine_obj.export_vm(rest_client, module.params)
+        TaskTag.wait_task(rest_client, task)
+        task_status = TaskTag.get_task_status(rest_client, task)
+        if task_status.get("state", "") == "COMPLETE":
+            output_msg = f"Virtual machine - {module.params['vm_name']} - export complete to - {module.params['smb']['server']}"
+            return True, output_msg
+        output_msg = f"There was a problem during export, {module.params['vm_name']} to {module.params['smb']['server']} - Failed"
+        return False, output_msg
+    except TimeoutError as e:
+        raise errors.ScaleComputingError(f"Request timed out: {e}")
 
 
 def main():

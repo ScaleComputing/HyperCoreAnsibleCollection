@@ -120,6 +120,7 @@ class TestRun:
             )
         )
         rest_client.list_records.side_effect = [[vm_dict], [smb_dict]]
+        rest_client.get_record.return_value = {"state": "COMPLETE"}
         rest_client.create_record.return_value = {
             "taskTag": "1234",
             "createdUUID": "uuid",

@@ -24,7 +24,10 @@ class RestClient:
     def list_records(self, endpoint, query=None, timeout=None):
         """Results are obtained so that first off, all records are obtained and
         then filtered manually"""
-        records = self.client.get(path=endpoint, timeout=timeout).json
+        try:
+            records = self.client.get(path=endpoint, timeout=timeout).json
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
         return utils.filter_results(records, query)
 
     def get_record(self, endpoint, query=None, must_exist=False, timeout=None):
@@ -47,22 +50,36 @@ class RestClient:
         if check_mode:
             # Approximate the result using the payload.
             return payload
-        return self.client.post(endpoint, payload, query=_query(), timeout=timeout).json
+        try:
+            response = self.client.post(
+                endpoint, payload, query=_query(), timeout=timeout
+            ).json
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
+        return response
 
     def update_record(self, endpoint, payload, check_mode, record=None, timeout=None):
         # No action is possible when updating a record
         if check_mode:
             # Approximate the result by manually patching the existing state.
             return dict(record or {}, **payload)
-        return self.client.patch(
-            endpoint, payload, query=_query(), timeout=timeout
-        ).json
+        try:
+            response = self.client.patch(
+                endpoint, payload, query=_query(), timeout=timeout
+            ).json
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
+        return response
 
     def delete_record(self, endpoint, check_mode, timeout=None):
         # No action is possible when deleting a record
         if check_mode:
             return
-        return self.client.delete(endpoint, timeout=timeout).json
+        try:
+            response = self.client.delete(endpoint, timeout=timeout).json
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
+        return response
 
     def put_record(
         self,
@@ -78,11 +95,15 @@ class RestClient:
             return
         # Only /rest/v1/ISO/[uuid}/data is using put, which doesn't return anything.
         # self.client.put on this endpoint returns None.
-        return self.client.put(
-            endpoint,
-            data=payload,
-            query=_query(),
-            timeout=timeout,
-            binary_data=binary_data,
-            headers=headers,
-        )
+        try:
+            response = self.client.put(
+                endpoint,
+                data=payload,
+                query=_query(),
+                timeout=timeout,
+                binary_data=binary_data,
+                headers=headers,
+            )
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
+        return response

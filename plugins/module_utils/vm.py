@@ -402,7 +402,7 @@ class VM(PayloadMapper):
             is_export=True,
         )
         return rest_client.create_record(
-            endpoint="/rest/v1/VirDomain/" + self.uuid + "/export",
+            endpoint=f"/rest/v1/VirDomain/{self.uuid}/export",
             payload=data,
             check_mode=False,
             timeout=None,
