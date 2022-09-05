@@ -915,7 +915,8 @@ class TestVMExport:
                 + "/"
                 + "/user",
                 definitionFileName="my_file.xml",
-            )
+            ),
+            template=dict(),
         )
 
     def test_export_vm(self, rest_client, mocker):

@@ -198,13 +198,19 @@ class VM(PayloadMapper):
         elif ansible_dict["http_uri"]:
             pathURI = f"{ansible_dict['http_uri']['path']}"
             if is_export:
-                payload["target"] = {"pathURI": pathURI, "definitionFileName": ansible_dict["http_uri"]["file_name"]}
+                payload["target"] = {
+                    "pathURI": pathURI,
+                    "definitionFileName": ansible_dict["http_uri"]["file_name"],
+                }
             else:
-                payload["source"] = {"pathURI": pathURI, "definitionFileName": ansible_dict["http_uri"]["file_name"]}
+                payload["source"] = {
+                    "pathURI": pathURI,
+                    "definitionFileName": ansible_dict["http_uri"]["file_name"],
+                }
                 payload["source"]["pathURI"] = pathURI
                 payload["template"]["name"] = ansible_dict["vm_name"]
         if cloud_init:
-                    payload["template"]["cloudInitData"] = cloud_init
+            payload["template"]["cloudInitData"] = cloud_init
         return payload
 
     @classmethod
