@@ -162,9 +162,11 @@ from ..module_utils.task_tag import TaskTag
 
 
 def run(module, rest_client):
-    if not module.params["smb"] and not module.params["http_uri"]:
+    if (not module.params["smb"] and not module.params["http_uri"]) or (
+        module.params["smb"] and module.params["http_uri"]
+    ):
         raise errors.ScaleComputingError(
-            "One of the parameters is required: smb or http_uri."
+            "Exactly one of the parameters is required: smb or http_uri."
         )
     virtual_machine_obj_list = VM.get(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
