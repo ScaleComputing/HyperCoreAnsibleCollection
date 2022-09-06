@@ -4,23 +4,17 @@
 
 # ----------------------------------------------------------
 # Check GET response contains all fields returned by HC3.
-# /ping returns a dict type
 - name: Get HC3 ping
   scale_computing.hypercore.api:
     action: get
     endpoint: /rest/v1/ping
   register: ping_result
 
-# HC3 returns {"status": "Active"}
 - ansible.builtin.assert:
     that:
       - ping_result is not changed
-      # do we want to return list (records) or a single record?
-      # ATM ping_result.record is list.
-#      - ping_result.record.status == "Active"  # TODO fix
-#      - ping_result.record.status is defined
+      - ping_result.record.0 == "status"
 
-# /Node returns a list type
 - name: Get HC3 Node
   scale_computing.hypercore.api:
     action: get
@@ -32,8 +26,6 @@
       - nodes_result is not changed
       - nodes_result.record is iterable
       - nodes_result.record[0] is iterable
-      # TODO nodes_result.record[0].backplaneIP or nodes_result.record[0][0].backplaneIP
-      # nodes_result.record[0].backplaneIP looks nicer
       - nodes_result.record[0].backplaneIP is defined
 
 # ----------------------------------------------------------
@@ -52,3 +44,4 @@
       # Hm. Is there any case where something would be changed, even if HTTP call failed?
       - iso_result is not changed
       - iso_result is failed
+      - "'Unexpected response - 400' in iso_result.msg"

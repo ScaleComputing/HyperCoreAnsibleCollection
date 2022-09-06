@@ -66,3 +66,11 @@
 - ansible.builtin.assert:
     that:
       - not result.record
+
+# This task is here to test if response 400 (client or payload's problem) or response 500 (HyperCore's error) is raised.
+- name: Update the VM without any payload specified
+  scale_computing.hypercore.api:
+    action: patch
+    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+  register: vm_updated
+  ignore_errors: True

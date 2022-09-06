@@ -44,7 +44,6 @@ options:
         certain fields may be necessary and have to be specified here. For other columns if not specified here, they
         may be assigned the default value automatically.
       - If I(action==delete), data option is going to be ignored.
-    default: {}
   endpoint:
     description:
       - The raw endpoint that we want to perform post, patch or delete operation on.
@@ -245,7 +244,6 @@ def main():
             arguments.get_spec("cluster_instance"),
             data=dict(
                 type="dict",
-                default=dict(),
             ),
             action=dict(
                 type="str",
