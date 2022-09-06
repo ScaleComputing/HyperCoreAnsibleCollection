@@ -1,0 +1,27 @@
+- name: Clone POST-TEST VM
+  hosts: localhost
+  tasks:
+  - name: Clone POST-TEST VM
+    scale_computing.hypercore.vm_clone:
+      cluster_instance:
+        host: 'https://10.5.11.30'
+        username: 'admin'
+        password: 'admin'
+      vm_name: XLAB-POST-TEST-clone
+      source_vm_name: XLAB-POST-TEST
+      tags:
+        - Xlab
+        - Domen
+        - Test
+      cloud_init:
+        user_data: |
+          #cloud-config
+          autoinstall:
+            - version: 1
+            - locale: en_US"
+        meta_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+    register: testout
+
+  - name: output the HTTP request results
+    debug:
+      var: testout

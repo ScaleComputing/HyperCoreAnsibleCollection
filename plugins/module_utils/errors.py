@@ -45,13 +45,41 @@ class MissingValueAnsible(ScaleComputingError):
 
 
 # In-case argument spec doesn't catch exception
-class MissingValueHC3(ScaleComputingError):
+class MissingValueHypercore(ScaleComputingError):
     def __init__(self, data):
-        self.message = "Missing value - {0}".format(data)
-        super(MissingValueHC3, self).__init__(self.message)
+        self.message = "Missing values from hypercore API - {0}".format(data)
+        super(MissingValueHypercore, self).__init__(self.message)
 
 
 class DeviceNotUnique(ScaleComputingError):
     def __init__(self, data):
-        self.message = "Device is not unique - {0}".format(data)
+        self.message = "Device is not unique - {0} - already exists".format(data)
         super(DeviceNotUnique, self).__init__(self.message)
+
+
+class VMNotFound(ScaleComputingError):
+    def __init__(self, data):
+        self.message = "Virtual machine - {0} - not found".format(data)
+        super(VMNotFound, self).__init__(self.message)
+
+
+class ReplicationNotUnique(ScaleComputingError):
+    def __init__(self, data):
+        self.message = (
+            "There is already a replication on - {0} - virtual machine".format(data)
+        )
+        super(ReplicationNotUnique, self).__init__(self.message)
+
+
+class ClusterConnectionNotFound(ScaleComputingError):
+    def __init__(self, data):
+        self.message = "No cluster connection found - {0}".format(data)
+        super(ClusterConnectionNotFound, self).__init__(self.message)
+
+
+class SMBServerNotFound(ScaleComputingError):
+    def __init__(self, data):
+        self.message = "SMB server is either not connected or not in the same network - {0}".format(
+            data
+        )
+        super(SMBServerNotFound, self).__init__(self.message)

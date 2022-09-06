@@ -13,9 +13,10 @@ module: vm_info
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
+  - Tjaž Eržen (@tjazsch)
 short_description: Return info about virtual machines
 description:
-  - Plugin return information about all or specific virtual machines in a cluster
+  - Plugin return information about all or specific virtual machines in a cluster.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -23,16 +24,16 @@ seealso: []
 options:
   uuid:
     description:
-      - Virtual machine uniquie identifier
-      - Used to identify selected virtual machine by uuid
+      - Virtual machine unique identifier.
     type: str
   vm_name:
     description:
       - Virtual machine name
-      - Used to identify selected virtual machine by name
+      - Used to identify selected virtual machine by name.
     type: str
 """
 
+# TODO (domen): Update EXAMPLES
 EXAMPLES = r"""
 - name: Retrieve all VMs
   scale_computing.hypercore.sample_vm_info:
@@ -57,28 +58,40 @@ vms:
   returned: success
   type: list
   sample:
-    - "boot_devices":  # TODO check what we promised
-            - "name": ""
-              "disk_slot": 0
-              "type": "virtio_disk"
-              "uuid": "fec11a1d-e8e3-4a50-8b50-57dece3e8baf"
-      "description": "XLAB-ac1-export-20220705T201528: "
-      "disks":  # TODO check what we promised
-            - "size": 8589934592
-              "name": ""
-              "disk_slot": 0
-              "type": "virtio_disk"
-              "uuid": "e8c8aa6b-1043-48a0-8407-2c432d705378"
-              "memory": 536870912
-      "vm_name": "XLAB-CentOS-7-x86_64-GenericCloud-2111"
-      "nics":
-            - "type": "RTL8139"
-              "uuid": "4c627449-99c6-475b-8e8e-9ae2587db5fc"
-              "vlan": 0
-      "vcpu": 2
-      "power_state": "shutoff"
-      "tags": "Xlab,ac1,us3"
-      "uuid": "f0c91f97-cbfc-40f8-b918-ab77ae8ea7fb"
+    - boot_devices:  # TODO check what we promised
+        - name: ""
+          disk_slot: 0
+          type: "virtio_disk"
+          uuid: "fec11a1d-e8e3-4a50-8b50-57dece3e8baf"
+      description: "XLAB-ac1-export-20220705T201528: "
+      disks:  # TODO check what we promised
+        - size: 8589934592
+          name: ""
+          disk_slot: 0
+          type: "virtio_disk"
+          uuid: "e8c8aa6b-1043-48a0-8407-2c432d705378"
+          memory: 536870912
+      vm_name: "XLAB-CentOS-7-x86_64-GenericCloud-2111"
+      nics:
+        - type: "RTL8139"
+          uuid: "4c627449-99c6-475b-8e8e-9ae2587db5fc"
+          vlan: 0
+      vcpu: 2
+      power_state: "shutoff"
+      tags: "Xlab,ac1,us3"
+      uuid: "f0c91f97-cbfc-40f8-b918-ab77ae8ea7fb"
+      node_affinity:
+        - strict_affinity: true
+          preferred_node:
+            - node_uuid: "412a3e85-8c21-4138-a36e-789eae3548a3"
+              backplane_ip: "10.0.0.1"
+              lan_ip: "10.0.0.2"
+              peer_id: 1
+          backup_node:
+            - node_uuid: "f6v3c6b3-99c6-475b-8e8e-9ae2587db5fc"
+              backplane_ip: "10.0.0.3"
+              lan_ip: "10.0.0.4"
+              peer_id: 2
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -86,36 +99,21 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.vm import VM
-from ..module_utils.utils import validate_uuid
+from ..module_utils.utils import get_query
+from ..module_utils.rest_client import RestClient
 
 
-def run(
-    module, client
-):  # if we decide to use vm_name and vm_uuid across all playbooks we can add most of this to .get method in VM class
-    virtual_machine_info_list = []
-    if module.params["uuid"]:  # Search by uuid
-        validate_uuid(module.params["uuid"])
-        virtual_machine = VM(
-            from_hc3=True,
-            vm_dict=VM.get(client, uuid=module.params["uuid"])[0],
-            client=client,
-        )
-        virtual_machine_info_list.append(virtual_machine.data_to_ansible())
-    elif module.params["vm_name"]:  # Search by name
-        virtual_machine = VM(
-            from_hc3=True,
-            vm_dict=VM.get(client, name=module.params["vm_name"])[0],
-            client=client,
-        )
-        virtual_machine_info_list.append(virtual_machine.data_to_ansible())
-    else:  # No name or uuid, we return all VMs
-        # virtual_machine = VM(client=client)
-        virtual_machines = VM.get(client)  # List of all virtual machines in the cluster
-        for virtual_machine in virtual_machines:
-            virtual_machine = VM(from_hc3=True, vm_dict=virtual_machine, client=client)
-            virtual_machine_info_list.append(virtual_machine.data_to_ansible())
-
-    return virtual_machine_info_list
+def run(module, rest_client):
+    query = get_query(
+        module.params,
+        "uuid",
+        "vm_name",
+        ansible_hypercore_map=dict(uuid="uuid", vm_name="name"),
+    )
+    return [
+        VM.from_hypercore(vm_dict=vm_dict, rest_client=rest_client).to_ansible()
+        for vm_dict in rest_client.list_records("/rest/v1/VirDomain", query)
+    ]
 
 
 def main():
@@ -135,10 +133,10 @@ def main():
         host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
-
         client = Client(host, username, password)
-        vms = run(module, client)
-        module.exit_json(changed=False, vms=vms)
+        rest_client = RestClient(client)
+        records = run(module, rest_client)
+        module.exit_json(changed=False, records=records)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

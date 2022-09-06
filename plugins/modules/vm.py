@@ -8,11 +8,13 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+
 DOCUMENTATION = r"""
 module: vm
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
+  - Tjaž Eržen (@tjazsch)
 short_description: Create or update virtual machine
 description:
   - Module creates a new virtual machine or updates existing virtual machine.
@@ -44,7 +46,7 @@ options:
   power_state:
     description:
       - Virtual machine power state
-    choices: [ running, blocked, paused, shutdown, shutoff, crashed ]
+    choices: [ started, stopped ]
     type: str
   state:
     description:
@@ -106,45 +108,46 @@ from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
+from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
+from ..module_utils.state import VMState
+from ..module_utils.task_tag import TaskTag
 
 
-# @Jure / @Justin define how we want to handle boot_device at VM creation
-def parse_boot_device_list_to_str(boot_device_list):
-    return []
+def ensure_absent(module, rest_client):
+    vm = VM.get_by_name(module.params, rest_client)
+    if vm:
+        task_tag = rest_client.delete_record(
+            "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid), module.check_mode
+        )
+        TaskTag.wait_task(rest_client, task_tag)
+        return True, task_tag
+    return False, dict()
 
 
-def create_vm_body(virtual_machine):
-    vm_body = {}
-    optional = {}
-    temp_dict = virtual_machine.data_to_hc3()
-    optional["attachGuestToolsISO"] = temp_dict["attachGuestToolsISO"]
-    temp_dict.pop("attachGuestToolsISO")
-    vm_body["dom"] = temp_dict
-    vm_body["options"] = optional
-    return vm_body
+def ensure_present(module, rest_client):
+    before = VM.get_by_name(module.params, rest_client)
+    if before:  # If the record already exists, update it using PATCH method
+        task_tag = rest_client.update_record(
+            "{0}/{1}".format("/rest/v1/VirDomain", before.uuid),
+            before.update_payload_to_hc3(),
+            module.check_mode,
+        )
+    else:  # The record doesn't exist; Create it using POST with specified data
+        new_vm = VM.from_ansible(vm_dict=module.params)
+        task_tag = rest_client.create_record(
+            "/rest/v1/VirDomain",
+            new_vm.create_payload_to_hc3(),
+            module.check_mode,
+        )
+    TaskTag.wait_task(rest_client, task_tag)
+    return True, task_tag
 
 
-def create_vm_update_body(virtual_machine):
-    update_body = virtual_machine.data_to_hc3()
-    update_body.pop("attachGuestToolsISO")
-    return update_body
-
-
-def run(module, client):
-    end_point = "/rest/v1/VirDomain"
-
-    new_virtual_machine = VM(from_hc3=False, vm_dict=module.params, client=client)
-    existing_virtual_machines = VM.get(client=client, name=new_virtual_machine.name)
-    if not existing_virtual_machines:
-        data = create_vm_body(new_virtual_machine)
-        json_response = client.request("POST", end_point, data=data).json
-    else:  # TODO check if VM needs to be updated ()
-        end_point += "/" + existing_virtual_machines[0]["uuid"]
-        data = create_vm_update_body(new_virtual_machine)
-        json_response = client.request("PATCH", end_point, data=data).json
-
-    return json_response
+def run(module, rest_client):
+    if module.params["state"] == VMState.absent:
+        return ensure_absent(module, rest_client)
+    return ensure_present(module, rest_client)
 
 
 def main():
@@ -170,13 +173,8 @@ def main():
             power_state=dict(
                 type="str",
                 choices=[
-                    # TODO check those options
-                    "running",
-                    "blocked",
-                    "paused",
-                    "shutdown",
-                    "shutoff",
-                    "crashed",
+                    "started",
+                    "stopped",
                 ],
             ),
             state=dict(
@@ -213,10 +211,10 @@ def main():
         host = module.params["cluster_instance"]["host"]
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
-
         client = Client(host, username, password)
-        vms = run(module, client)
-        module.exit_json(changed=False, vms=vms)
+        rest_client = RestClient(client)
+        changed, debug_task_tag = run(module, rest_client)
+        module.exit_json(changed=changed, debug_task_tag=debug_task_tag)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

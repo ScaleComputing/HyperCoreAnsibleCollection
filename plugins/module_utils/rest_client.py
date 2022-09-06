@@ -5,24 +5,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-# import errors
 from . import errors
+from . import utils
 
 __metaclass__ = type
-
-
-def is_superset(superset, candidate):
-    if not candidate:
-        return True
-    for k, v in candidate.items():
-        if k in superset and superset[k] == v:
-            continue
-        return False
-    return True
-
-
-def filter_results(results, filter_data):
-    return [element for element in results if is_superset(element, filter_data)]
 
 
 def _query(original=None):
@@ -35,14 +21,17 @@ class RestClient:
     def __init__(self, client):
         self.client = client
 
-    def list_records(self, endpoint, query=None):
+    def list_records(self, endpoint, query=None, timeout=None):
         """Results are obtained so that first off, all records are obtained and
         then filtered manually"""
-        records = self.client.get(path=endpoint).json
-        return filter_results(records, query)
+        try:
+            records = self.client.get(path=endpoint, timeout=timeout).json
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
+        return utils.filter_results(records, query)
 
-    def get_record(self, endpoint, query=None, must_exist=False):
-        records = self.list_records(endpoint=endpoint, query=query)
+    def get_record(self, endpoint, query=None, must_exist=False, timeout=None):
+        records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)
         if len(records) > 1:
             raise errors.ScaleComputingError(
                 "{0} records from endpoint {1} match the {2} query.".format(
@@ -57,21 +46,64 @@ class RestClient:
             )
         return records[0] if records else None
 
-    def create_record(self, endpoint, payload, check_mode):
+    def create_record(self, endpoint, payload, check_mode, timeout=None):
         if check_mode:
             # Approximate the result using the payload.
             return payload
-        return self.client.post(endpoint, payload, query=_query()).json
+        try:
+            response = self.client.post(
+                endpoint, payload, query=_query(), timeout=timeout
+            ).json
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
+        return response
 
-    def update_record(self, endpoint, payload, check_mode, record=None):
+    def update_record(self, endpoint, payload, check_mode, record=None, timeout=None):
         # No action is possible when updating a record
         if check_mode:
             # Approximate the result by manually patching the existing state.
             return dict(record or {}, **payload)
-        return self.client.patch(endpoint, payload, query=_query()).json
+        try:
+            response = self.client.patch(
+                endpoint, payload, query=_query(), timeout=timeout
+            ).json
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
+        return response
 
-    def delete_record(self, endpoint, check_mode):
+    def delete_record(self, endpoint, check_mode, timeout=None):
         # No action is possible when deleting a record
         if check_mode:
             return
-        self.client.delete(endpoint)
+        try:
+            response = self.client.delete(endpoint, timeout=timeout).json
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
+        return response
+
+    def put_record(
+        self,
+        endpoint,
+        payload,
+        check_mode,
+        timeout=None,
+        binary_data=None,
+        headers=None,
+    ):
+        # Method put doesn't support check mode
+        if check_mode:
+            return
+        # Only /rest/v1/ISO/[uuid}/data is using put, which doesn't return anything.
+        # self.client.put on this endpoint returns None.
+        try:
+            response = self.client.put(
+                endpoint,
+                data=payload,
+                query=_query(),
+                timeout=timeout,
+                binary_data=binary_data,
+                headers=headers,
+            )
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
+        return response

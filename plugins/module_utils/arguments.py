@@ -9,6 +9,10 @@ __metaclass__ = type
 
 from ansible.module_utils.basic import env_fallback
 
+# TODO - env from /etc/environment is loaded
+# But when env is set in bash session, env seems to be lost on ssh connection to localhost.
+# connection=local might help, but only for localhost.
+# Maybe: set variables via inventory, or extra-vars.
 
 SHARED_SPECS = dict(
     cluster_instance=dict(

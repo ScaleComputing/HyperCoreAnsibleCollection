@@ -1,0 +1,102 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Delete XLAB-vm_clone-CI_test
+      scale_computing.hypercore.vm: &delete-XLAB-vm_clone_CI-test
+        vm_name: "{{ item }}"
+        state: absent
+        memory: 536870912
+        vcpu: 2
+      loop:
+        - XLAB-vm_clone-CI_test
+        - XLAB-vm_clone_CI-test-clone
+        - XLAB-vm_clone_CI-test-cloud_init-clone
+
+    - name: Create XLAB-vm_clone-CI_test
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/VirDomain
+        data:
+          dom:
+            name: XLAB-vm_clone-CI_test
+            tags: Xlab,CI,test,vm_clone
+            mem: 512100100
+            numVCPU: 2
+            blockDevs:
+              - type: VIRTIO_DISK
+                capacity: 8100100100
+                name: jc1-disk-0
+            netDevs:
+              - type: RTL8139
+                vlan: 0
+                connected: true
+          options:
+            attachGuestToolsISO: False
+      register: vm_created
+    - ansible.builtin.assert:
+        that:
+          - vm_created is succeeded
+          - vm_created is changed
+
+    - name: Wait for the VM to be created
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ vm_created.record }}"
+
+    - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-clone
+      scale_computing.hypercore.vm_clone:
+        vm_name: XLAB-vm_clone_CI-test-clone
+        source_vm_name: XLAB-vm_clone-CI_test
+        tags:
+          - new tag
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+
+    - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-cloud_init-clone
+      scale_computing.hypercore.vm_clone:
+        vm_name: XLAB-vm_clone_CI-test-cloud_init-clone
+        source_vm_name: XLAB-vm_clone-CI_test
+        cloud_init:
+          user_data: |
+            yaml: bla
+            is_valid: yes
+          meta_data: |
+            this_data:
+              - very
+              - meta
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+
+    - name: Retrieve XLAB-vm_clone_CI-test-clone
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_clone_CI-test-clone
+      register: cloned_info
+    - ansible.builtin.assert:
+        that:
+          - cloned_info.records | length == 1
+
+    - name: Retrieve XLAB-vm_clone_CI-test-cloud_init-clone
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_clone_CI-test-cloud_init-clone
+      register: cloned_cloud_init_info
+    - ansible.builtin.assert:
+        that:
+          - cloned_cloud_init_info.records | length == 1
+
+    - name: Delete XLAB-vm_clone-CI_test end test
+      scale_computing.hypercore.vm: *delete-XLAB-vm_clone_CI-test
+      register: output
+      loop:
+        - XLAB-vm_clone-CI_test
+        - XLAB-vm_clone_CI-test-clone
+        - XLAB-vm_clone_CI-test-cloud_init-clone
+    - ansible.builtin.assert:
+        that:
+          - output is changed

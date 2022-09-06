@@ -13,12 +13,22 @@ import pytest
 
 from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
+from unittest.mock import MagicMock
+import os
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
     Client,
 )
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.rest_client import (
     RestClient,
+)
+
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import (
+    VM,
+)
+
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag import (
+    TaskTag,
 )
 
 
@@ -29,7 +39,20 @@ def client(mocker):
 
 @pytest.fixture
 def rest_client(mocker):
-    return mocker.Mock(spec=RestClient)
+    return mocker.Mock(spec=RestClient(client=client))
+
+
+@pytest.fixture
+def vm(mocker):
+    # Fixture for object VM. Used in tests, where it isn't really relevant with what the VM is initialized with
+    return mocker.Mock(spec=VM)
+
+
+@pytest.fixture
+def task_wait():
+    task_tag = TaskTag
+    task_tag.wait_task = MagicMock(return_value=None)
+    return task_tag
 
 
 @pytest.fixture
@@ -46,6 +69,11 @@ def create_module(mocker):
         )
 
     return constructor
+
+
+@pytest.fixture
+def os_stat():
+    os.stat = MagicMock(return_value=os.stat_result((0, 0, 0, 0, 0, 0, 0, 0, 0, 0)))
 
 
 # Helpers for testing module invocation (parameter parsing and validation). Adapted from
@@ -73,6 +101,10 @@ def run_mock(module, client, another_client=None):
     return False, {}, dict(before={}, after={})
 
 
+def run_mock_info(module, client, another_client=None):
+    return False, []
+
+
 @pytest.fixture
 def run_main(mocker):
     def runner(module, params=None):
@@ -88,6 +120,34 @@ def run_main(mocker):
         # We can mock the run function because we enforce module structure in our
         # development guidelines.
         mocker.patch.object(module, "run", run_mock)
+
+        try:
+            module.main()
+        except AnsibleRunEnd as e:
+            return e.success, e.result
+        assert False, "Module is not calling exit_json or fail_json."
+
+    mocker.patch.multiple(
+        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
+    )
+    return runner
+
+
+@pytest.fixture
+def run_main_info(mocker):
+    def runner(module, params=None):
+        args = dict(
+            ANSIBLE_MODULE_ARGS=dict(
+                _ansible_remote_tmp="/tmp",
+                _ansible_keep_remote_files=False,
+            ),
+        )
+        args["ANSIBLE_MODULE_ARGS"].update(params or {})
+        mocker.patch.object(basic, "_ANSIBLE_ARGS", to_bytes(json.dumps(args)))
+
+        # We can mock the run function because we enforce module structure in our
+        # development guidelines.
+        mocker.patch.object(module, "run", run_mock_info)
 
         try:
             module.main()

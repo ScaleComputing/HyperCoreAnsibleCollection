@@ -1,0 +1,27 @@
+- name: US 21 - As a user I want to be able to create, update and delete remote cluster to cluster replication connections to enable/disable replication
+  hosts: localhost
+  tasks:
+  #TODO: uncomment when remote_cluster_info is implemented
+  #- name: Get info about specific remote cluster
+  #  scale_computing.hypercore.remote_cluster_info:
+  #    remote_cluster: PUB4
+
+  #TODO: uncomment when remote_cluster_info is implemented
+  #- name: Get info about all remote clusters
+  #  scale_computing.hypercore.remote_cluster_info:
+
+  - name: Replicate demo-vm VM to DC2
+    scale_computing.hypercore.vm_replication:
+      cluster_instance:
+        host: 'https://10.5.11.30'
+        username: 'admin'
+        password: 'admin'
+      vm_name: XLAB-POST-TEST
+      remote_cluster: '891f482a-8f5f-4755-bea4-bbcc338f566f'
+      state: disabled  # choices [enabled|disabled|reenabled]
+    register: testout
+
+  - name: output the HTTP request results
+    debug:
+      var: testout
+      

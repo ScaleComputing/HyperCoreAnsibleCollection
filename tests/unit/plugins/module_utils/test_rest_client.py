@@ -24,30 +24,6 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-class TestIsSuperset:
-    @pytest.mark.parametrize(
-        "superset,candidate",
-        [
-            (dict(), dict()),
-            (dict(a=1), dict()),
-            (dict(a=1), dict(a=1)),
-            (dict(a=1, b=2), dict(b=2)),
-        ],
-    )
-    def test_valid_superset(self, superset, candidate):
-        assert rest_client.is_superset(superset, candidate) is True
-
-    @pytest.mark.parametrize(
-        "superset,candidate",
-        [
-            (dict(), dict(a=1)),  # superset is missing a key
-            (dict(a=1), dict(a=2)),  # key value is different
-        ],
-    )
-    def test_not_a_superset(self, superset, candidate):
-        assert rest_client.is_superset(superset, candidate) is False
-
-
 class TestTableListRecords:
     def test_empty_response(self, client):
         client.get.return_value = Response(
@@ -58,9 +34,7 @@ class TestTableListRecords:
         records = t.list_records("my_table")
 
         assert ["result"] == records
-        client.get.assert_called_once_with(
-            path="my_table",
-        )
+        client.get.assert_called_once_with(path="my_table", timeout=None)
 
     def test_non_empty_response(self, client):
         client.get.return_value = Response(
@@ -82,6 +56,7 @@ class TestTableListRecords:
 
         client.get.assert_called_once_with(
             path="my_table",
+            timeout=None,
         )
 
 
@@ -116,6 +91,7 @@ class TestTableCreateRecord:
             "my_table",
             dict(a=4),
             query={},
+            timeout=None,
         )
 
     def test_check_mode(self, client):
@@ -139,6 +115,7 @@ class TestTableUpdateRecord:
             "my_table/id",
             dict(a=4),
             query=dict(),
+            timeout=None,
         )
 
     def test_check_mode(self, client):
@@ -151,15 +128,41 @@ class TestTableUpdateRecord:
 
 class TestTableDeleteRecord:
     def test_normal_mode(self, client):
-        client.delete.return_value = Response(204, "")
+        client.delete.return_value = Response(
+            204, '{"result": {"a": 3, "b": "sys_id"}}'
+        )
         t = rest_client.RestClient(client)
 
         t.delete_record("my_table/id", check_mode=False)
 
-        client.delete.assert_called_with("my_table/id")
+        client.delete.assert_called_with("my_table/id", timeout=None)
 
     def test_check_mode(self, client):
         client.delete.return_value = Response(204, "")
         t = rest_client.RestClient(client)
         t.delete_record("my_table/id", True)
         client.delete.assert_not_called()
+
+
+class TestTablePutRecord:
+    def test_normal_mode(self, client):
+        client.put.return_value = Response(204, '{"result": {"a": 3, "b": "sys_id"}}')
+        t = rest_client.RestClient(client)
+
+        t.put_record(
+            endpoint="my_table/id",
+            payload=None,
+            check_mode=False,
+            timeout=None,
+            binary_data=None,
+            headers=None,
+        )
+
+        client.put.assert_called_with(
+            "my_table/id",
+            data=None,
+            query=dict(),
+            timeout=None,
+            binary_data=None,
+            headers=None,
+        )

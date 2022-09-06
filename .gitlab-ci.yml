@@ -12,13 +12,14 @@ stages:
   - build  # build collection tar.gz
   - deploy  # push collection tar.gz to galaxy
 
+before_script:
+  - pip3 install -r sanity.requirements -r test.requirements
+  - apt update
+  - apt install -y git shellcheck
+
 coverage:
   stage: test
   image: python:3.8.12-slim-buster
-  before_script:
-    - pip3 install -r sanity.requirements -r test.requirements
-    - apt update
-    - apt install -y git
   script:
     - pip install ansible-core==2.13.1
     # ansible-test needs special directory structure.
@@ -47,10 +48,6 @@ coverage:
 sanity:
   stage: test
   image: python:3.8.12-slim-buster
-  before_script:
-    - pip3 install -r sanity.requirements -r test.requirements
-    - apt update
-    - apt install -y git
   script:
     - pip install ansible-core==2.13.1
     # ansible-test needs special directory structure.
@@ -67,10 +64,6 @@ sanity:
 integration:
   stage: test
   image: python:3.8.12-slim-buster
-  before_script:
-    - pip3 install -r sanity.requirements -r test.requirements
-    - apt update
-    - apt install -y git
   script:
     - pip install ansible-core==2.13.1
     # ansible-test needs special directory structure.
