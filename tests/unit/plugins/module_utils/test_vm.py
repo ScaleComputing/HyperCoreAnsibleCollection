@@ -902,9 +902,18 @@ class TestNic:
 
 class TestVMExport:
     def test_create_export_or_import_vm_payload_when_export(self):
-        results = VM.create_export_or_import_vm_payload(
-            "10.5.11.170", "/user", "username", "password", "this-vm-name", None, True
-        )
+        ansible_dict = {
+            "vm_name": "this-vm-name",
+            "smb": {
+                "path": "/user",
+                "username": "username",
+                "password": "password",
+                "server": "10.5.11.170",
+                "file_name": "my_file.xml",
+            },
+        }
+        results = VM.create_export_or_import_vm_payload(ansible_dict, None, True)
+        print(results)
         assert results == dict(
             target=dict(
                 pathURI="smb://"
@@ -914,8 +923,10 @@ class TestVMExport:
                 + "@"
                 + "10.5.11.170"
                 + "/"
-                + "/user"
-            )
+                + "/user",
+                definitionFileName="my_file.xml",
+            ),
+            template=dict(),
         )
 
     def test_export_vm(self, rest_client, mocker):
@@ -926,6 +937,7 @@ class TestVMExport:
                 "path": "/somewhere",
                 "username": "user",
                 "password": "pass",
+                "file_name": None,
             },
         }
         smb_dict = {
@@ -971,9 +983,17 @@ class TestVMExport:
 
 class TestVMImport:
     def test_create_export_or_import_vm_payload_when_import(self):
-        results = VM.create_export_or_import_vm_payload(
-            "10.5.11.170", "/user", "username", "password", "this-vm-name", None, False
-        )
+        ansible_dict = {
+            "vm_name": "this-vm-name",
+            "smb": {
+                "path": "/user",
+                "username": "username",
+                "password": "password",
+                "server": "10.5.11.170",
+                "file_name": "my_file.xml",
+            },
+        }
+        results = VM.create_export_or_import_vm_payload(ansible_dict, None, False)
         print(results)
         assert results == dict(
             source=dict(
@@ -984,7 +1004,8 @@ class TestVMImport:
                 + "@"
                 + "10.5.11.170"
                 + "/"
-                + "/user"
+                + "/user",
+                definitionFileName="my_file.xml",
             ),
             template=dict(name="this-vm-name"),
         )
@@ -997,6 +1018,7 @@ class TestVMImport:
                 "path": "/somewhere",
                 "username": "user",
                 "password": "pass",
+                "file_name": None,
             },
         }
         smb_dict = {

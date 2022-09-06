@@ -16,6 +16,7 @@ author:
 short_description: Plugin handles import of the virtual machine.
 description:
   - Plugin enables import of the virtual machine, from a specified location.
+  - Use either smb or http_uri, they are mutually exclusive.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -30,9 +31,8 @@ options:
   smb:
     description:
       - SMB server, access and location data.
-      - Source, username, password
+      - server, path, username, password.
     type: dict
-    required: true
     suboptions:
       server:
         type: str
@@ -45,6 +45,11 @@ options:
         description:
           - Specified location on the SMB server, where the exported virtual machine is to be imported from.
         required: true
+      file_name:
+        type: str
+        description:
+          - Specified .xml file name.
+          - If not specified, plugin assumes .xml file name is the same as directory name from the path parameter.
       username:
         type: str
         description:
@@ -54,6 +59,22 @@ options:
         type: str
         description:
           - Password.
+        required: true
+  http_uri:
+    description:
+      - Specified URI location.
+      - path, file name.
+    type: dict
+    suboptions:
+      path:
+        type: str
+        description:
+          - Specified URI location, where the virtual machine is to be imported from.
+        required: true
+      file_name:
+        type: str
+        description:
+          - File name to be imported from the specified URI location.
         required: true
   cloud_init:
     description:
@@ -83,6 +104,7 @@ EXAMPLES = r"""
       path: /share/path/to/vms/demo-vm-exported-v0
       username: user
       password: pass
+      file_name: my_file.xml
   register: output
 
 - name: import VM from SMB with cloud init data added
@@ -93,6 +115,29 @@ EXAMPLES = r"""
       path: /share/path/to/vms/demo-vm-exported-v0
       username: user
       password: pass
+      file_name: my_file.xml
+    cloud_init:
+      user_data: |
+        valid:
+        - yaml: 1
+        - expression: 2
+      meta_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+  register: output
+
+- name: import VM from URI
+  scale_computing.hypercore.vm_import:
+    vm_name: demo-vm
+    http_uri:
+      path: 'http://some-address-where-file-is-located'
+      file_name: actual_file_name.xml
+  register: output
+
+- name: import VM from URI with cloud init data added
+  scale_computing.hypercore.vm_import:
+    vm_name: demo-vm
+    http_uri:
+      path: 'http://some-address-where-file-is-located'
+      file_name: actual_file_name.xml
     cloud_init:
       user_data: |
         valid:
@@ -120,6 +165,12 @@ from ..module_utils.task_tag import TaskTag
 
 
 def run(module, rest_client):
+    if (not module.params["smb"] and not module.params["http_uri"]) or (
+        module.params["smb"] and module.params["http_uri"]
+    ):
+        raise errors.ScaleComputingError(
+            "Exactly one of the parameters is required: smb or http_uri."
+        )
     virtual_machine_obj_list = VM.get(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )
@@ -145,7 +196,6 @@ def main():
             ),
             smb=dict(
                 type="dict",
-                required=True,
                 options=dict(
                     server=dict(
                         type="str",
@@ -155,6 +205,9 @@ def main():
                         type="str",
                         required=True,
                     ),
+                    file_name=dict(
+                        type="str",
+                    ),
                     username=dict(
                         type="str",
                         required=True,
@@ -162,6 +215,19 @@ def main():
                     password=dict(
                         type="str",
                         no_log=True,
+                        required=True,
+                    ),
+                ),
+            ),
+            http_uri=dict(
+                type="dict",
+                options=dict(
+                    path=dict(
+                        type="str",
+                        required=True,
+                    ),
+                    file_name=dict(
+                        type="str",
                         required=True,
                     ),
                 ),

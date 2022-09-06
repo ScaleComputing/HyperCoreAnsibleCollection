@@ -118,7 +118,9 @@ class TestRun:
                     "path": "/somewhere/else",
                     "username": "user",
                     "password": "pass",
+                    "file_name": None,
                 },
+                http_uri=None,
             )
         )
         rest_client.list_records.side_effect = [[vm_dict], [smb_dict]]
@@ -153,6 +155,7 @@ class TestRun:
                     "username": "user",
                     "password": "pass",
                 },
+                http_uri=None,
             )
         )
         rest_client.list_records.return_value = []

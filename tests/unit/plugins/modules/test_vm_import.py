@@ -118,7 +118,9 @@ class TestRun:
                     "path": "/somewhere/else",
                     "username": "user",
                     "password": "pass",
+                    "file_name": None,
                 },
+                http_uri=None,
             )
         )
         rest_client.get_record.return_value = {}
@@ -152,6 +154,7 @@ class TestRun:
                     "username": "user",
                     "password": "pass",
                 },
+                http_uri=None,
             )
         )
         rest_client.list_records.return_value = [
@@ -203,7 +206,9 @@ class TestRun:
                     "path": "/somewhere/else",
                     "username": "user",
                     "password": "pass",
+                    "file_name": None,
                 },
+                http_uri=None,
             )
         )
         rest_client.get_record.return_value = {}

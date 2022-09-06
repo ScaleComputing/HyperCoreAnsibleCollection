@@ -1,0 +1,21 @@
+- name: import from URI
+  hosts: localhost
+  tasks:
+  - name: import VM from URI
+    scale_computing.hypercore.vm_export:
+      cluster_instance:
+        host: 'https://10.5.11.30'
+        username: 'admin'
+        password: 'admin'
+      vm_name: XLAB-POST-TEST
+      smb:
+        server: "10.5.11.179"
+        path: /users/export-test
+        username: example1
+        password: badpass
+        file_name: my_file.xml
+    register: testout
+
+  - name: output the HTTP request results
+    debug:
+      var: testout

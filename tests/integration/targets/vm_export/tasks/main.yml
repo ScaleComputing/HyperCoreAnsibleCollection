@@ -68,6 +68,7 @@
           path: /users/test
           username: example1
           password: badpass
+          file_name: my_file.xml
       register: output
     - ansible.builtin.assert:
         that:
