@@ -29,6 +29,14 @@
         that:
           - output is changed
 
+    - name: Check that affinity is false by default
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+
     - name: List all nodes
       scale_computing.hypercore.node_info:
       register: nodes
@@ -40,7 +48,12 @@
       scale_computing.hypercore.vm_node_affinity:
         vm_name: XLAB-vm_node_affinity_CI_test
         strict_affinity: false
-    
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is not changed
+          - "'Node affinity already set to desired values' in output.msg"
+
     - name: Set VM node affinity by backplane IP and peer ID - check mode
       scale_computing.hypercore.vm_node_affinity:
         vm_name: XLAB-vm_node_affinity_CI_test
@@ -64,6 +77,7 @@
         that:
           - output.records[0].node_affinity.strict_affinity == false
 
+    # TODO check different preferred_node/backup_node
     - name: Set VM node affinity by node_uuid
       scale_computing.hypercore.vm_node_affinity:
         vm_name: XLAB-vm_node_affinity_CI_test
@@ -77,6 +91,16 @@
         that:
           - output is changed
           - "'Node affinity successfully updated' in output.msg"
+
+    - name: Check that affinity is changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == true
+          - output.records[0].node_affinity.preferred_node.node_uuid == nodes.records[0].node_uuid
+          - output.records[0].node_affinity.backup_node.node_uuid == nodes.records[0].node_uuid
 
     - name: Set VM node affinity with the same parameters
       scale_computing.hypercore.vm_node_affinity:
