@@ -86,7 +86,7 @@
     - ansible.builtin.assert:
         that:
           - output is changed
-          - output.msg == "Virtual machine - XLAB-import-test-integration - export complete to - 10.5.11.179"
+          - output.msg == "Virtual machine - XLAB-import-test-integration - export complete."
 
     - name: Import XLAB-import-test-integration from SMB
       scale_computing.hypercore.vm_import:
@@ -100,7 +100,7 @@
     - ansible.builtin.assert:
         that:
           - import_vm is changed
-          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported - import complete from - 10.5.11.179"
+          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported - import complete."
 
     - name: Retrieve imported VM
       scale_computing.hypercore.vm_info:
@@ -132,7 +132,7 @@
     - ansible.builtin.assert:
         that:
           - import_vm is changed
-          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported-cloud-init - import complete from - 10.5.11.179"
+          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported-cloud-init - import complete."
 
     - name: Delete XLAB-import-test-integration
       scale_computing.hypercore.vm: *delete-XLAB-import-test-integration
