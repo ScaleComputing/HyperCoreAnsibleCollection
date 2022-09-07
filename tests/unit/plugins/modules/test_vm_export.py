@@ -124,7 +124,7 @@ class TestRun:
             )
         )
         rest_client.list_records.side_effect = [[vm_dict], [smb_dict]]
-        rest_client.get_record.return_value = {"state": "COMPLETE"}
+        rest_client.get_record.side_effect = [{}, {"state": "COMPLETE"}]
         rest_client.create_record.return_value = {
             "taskTag": "1234",
             "createdUUID": "uuid",
@@ -137,7 +137,7 @@ class TestRun:
 
         assert results == (
             True,
-            "Virtual machine - XLAB-test-vm - export complete to - test-server",
+            "Virtual machine - XLAB-test-vm - export complete.",
         )
 
     def test_run_when_VM_not_found(self, create_module, rest_client):

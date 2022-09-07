@@ -9,8 +9,8 @@
         password: 'admin'
       vm_name: XLAB-POST-TEST-import
       http_uri:
-        path: https://www.google.si/
-        file_name: my_file.xml
+        path: https://github.com/ddemlow/RestAPIExamples/raw/master/ubuntu20_04-cloud-init/
+        file_name: ubuntu20_04-cloud-init.xml
       cloud_init:
         user_data: |
           valid:

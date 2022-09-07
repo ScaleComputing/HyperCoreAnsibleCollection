@@ -178,10 +178,11 @@ def run(module, rest_client):
         raise errors.DeviceNotUnique(module.params["vm_name"])
     task = VM.import_vm(rest_client, module.params)
     TaskTag.wait_task(rest_client, task)
-    # Check if VM was imported and now exists
-    VM.get_or_fail(query={"name": module.params["vm_name"]}, rest_client=rest_client)
-    return True, "Virtual machine - {0} - import complete from - {1}".format(
-        module.params["vm_name"], module.params["smb"]["server"]
+    task_status = TaskTag.get_task_status(rest_client, task)
+    if task_status.get("state", "") == "COMPLETE":
+        return True, f"Virtual machine - {module.params['vm_name']} - import complete."
+    raise errors.ScaleComputingError(
+        f"There was a problem during import of {module.params['vm_name']}, import failed."
     )
 
 

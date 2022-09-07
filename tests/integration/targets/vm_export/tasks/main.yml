@@ -73,7 +73,7 @@
     - ansible.builtin.assert:
         that:
           - output is changed
-          - output.msg == "Virtual machine - XLAB-export-test-integration - export complete to - 10.5.11.179"
+          - output.msg == "Virtual machine - XLAB-export-test-integration - export complete."
 
     - name: Delete XLAB-export-test-integration
       scale_computing.hypercore.vm: *delete-XLAB-export-test-integration

@@ -123,7 +123,7 @@ class TestRun:
                 http_uri=None,
             )
         )
-        rest_client.get_record.return_value = {}
+        rest_client.get_record.side_effect = [{}, {"state": "COMPLETE"}]
         rest_client.list_records.side_effect = [[], [smb_dict], [vm_dict]]
         rest_client.create_record.return_value = {
             "taskTag": "1234",
@@ -134,7 +134,7 @@ class TestRun:
 
         assert results == (
             True,
-            "Virtual machine - XLAB-test-vm - import complete from - test-server",
+            "Virtual machine - XLAB-test-vm - import complete.",
         )
 
     def test_run_when_imported_VM_already_exists(
@@ -211,14 +211,14 @@ class TestRun:
                 http_uri=None,
             )
         )
-        rest_client.get_record.return_value = {}
+        rest_client.get_record.side_effect = [{}, {"status": "ERROR"}]
         rest_client.list_records.side_effect = [[], []]
         rest_client.create_record.return_value = {
             "taskTag": "1234",
             "createdUUID": "uuid",
         }
         with pytest.raises(
-            errors.VMNotFound,
-            match="Virtual machine - {'name': 'XLAB-test-vm'} - not found",
+            errors.ScaleComputingError,
+            match=f"There was a problem during import of {module.params['vm_name']}, import failed.",
         ):
             vm_import.run(module, rest_client)

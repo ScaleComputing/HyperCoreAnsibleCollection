@@ -33,6 +33,7 @@ options:
       - SMB server, access and location data.
       - Destination, username, password.
     type: dict
+    required: true
     suboptions:
       server:
         type: str
@@ -60,22 +61,6 @@ options:
         description:
           - Password.
         required: true
-  http_uri:
-    description:
-      - Specified URI location.
-      - path, file name.
-    type: dict
-    suboptions:
-      path:
-        type: str
-        description:
-          - Specified URI location, where the virtual machine is to be exported to.
-        required: true
-      file_name:
-        type: str
-        description:
-          - File name to be imported from the specified URI location.
-        required: true
 """
 
 EXAMPLES = r"""
@@ -90,13 +75,6 @@ EXAMPLES = r"""
       password: pass
   register: output
 
-- name: export VM to URI
-  scale_computing.hypercore.vm_export:
-    vm_name: demo-vm
-    http_uri:
-      path: 'http://some-address-where-file-is-located'
-      file_name: actual_file_name.xml
-  register: output
 """
 
 RETURN = r"""
@@ -117,12 +95,6 @@ from ..module_utils.task_tag import TaskTag
 
 
 def run(module, rest_client):
-    if (not module.params["smb"] and not module.params["http_uri"]) or (
-        module.params["smb"] and module.params["http_uri"]
-    ):
-        raise errors.ScaleComputingError(
-            "Exactly one of the parameters is required: smb or http_uri."
-        )
     virtual_machine_obj = VM.get_or_fail(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )[0]
@@ -131,10 +103,13 @@ def run(module, rest_client):
         TaskTag.wait_task(rest_client, task)
         task_status = TaskTag.get_task_status(rest_client, task)
         if task_status.get("state", "") == "COMPLETE":
-            output_msg = f"Virtual machine - {module.params['vm_name']} - export complete to - {module.params['smb']['server']}"
-            return True, output_msg
-        output_msg = f"There was a problem during export, {module.params['vm_name']} to {module.params['smb']['server']} - Failed"
-        return False, output_msg
+            return (
+                True,
+                f"Virtual machine - {module.params['vm_name']} - export complete.",
+            )
+        raise errors.ScaleComputingError(
+            f"There was a problem during export of {module.params['vm_name']}, export failed."
+        )
     except TimeoutError as e:
         raise errors.ScaleComputingError(f"Request timed out: {e}")
 
@@ -150,6 +125,7 @@ def main():
             ),
             smb=dict(
                 type="dict",
+                required=True,
                 options=dict(
                     server=dict(
                         type="str",
@@ -169,19 +145,6 @@ def main():
                     password=dict(
                         type="str",
                         no_log=True,
-                        required=True,
-                    ),
-                ),
-            ),
-            http_uri=dict(
-                type="dict",
-                options=dict(
-                    path=dict(
-                        type="str",
-                        required=True,
-                    ),
-                    file_name=dict(
-                        type="str",
                         required=True,
                     ),
                 ),

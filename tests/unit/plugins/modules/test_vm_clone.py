@@ -162,13 +162,13 @@ class TestRun:
                 tags=None,
             )
         )
-        rest_client.get_record.return_value = None
+        rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
         rest_client.create_record.return_value = {"taskTag": "1234"}
         rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
         results = vm_clone.run(module, rest_client)
         assert results == (
             True,
-            "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone",
+            "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone.",
         )
 
     def test_run_when_VM_cloned_with_tag_and_cloud_init(
@@ -190,11 +190,11 @@ class TestRun:
                 },
             )
         )
-        rest_client.get_record.return_value = None
+        rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
         rest_client.create_record.return_value = {"taskTag": "1234"}
         rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
         results = vm_clone.run(module, rest_client)
         assert results == (
             True,
-            "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone",
+            "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone.",
         )

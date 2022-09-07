@@ -109,8 +109,14 @@ def run(module, rest_client):
         )
     task = virtual_machine_obj.clone_vm(rest_client, module.params)
     TaskTag.wait_task(rest_client, task)
-    return True, "Virtual machine - {0} - cloning complete to - {1}".format(
-        module.params["source_vm_name"], module.params["vm_name"]
+    task_status = TaskTag.get_task_status(rest_client, task)
+    if task_status.get("state", "") == "COMPLETE":
+        return (
+            True,
+            f"Virtual machine - {module.params['source_vm_name']} - cloning complete to - {module.params['vm_name']}.",
+        )
+    raise errors.ScaleComputingError(
+        f"There was a problem during cloning of {module.params['source_vm_name']}, cloning failed."
     )
 
 
