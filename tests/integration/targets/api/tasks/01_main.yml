@@ -34,6 +34,17 @@
   scale_computing.hypercore.task_wait:
     task_tag: "{{vm_created.record}}"
 
+- name: Verify the VM has been created
+  scale_computing.hypercore.api: &get-specific-vm
+    action: get
+    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record.0.mem == 512100100
+      - result.record.0.tags == "Xlab,jc1,us1,integration-test3"
+      - result.record.0.name == "XLAB-jc1"
+
 - name: Retrieve all VMs after creating a new resource
   scale_computing.hypercore.api: *retrieve-all-vms
   register: result
@@ -50,9 +61,7 @@
   register: vm_updated
 
 - name: Verify VM's description has been modified
-  scale_computing.hypercore.api:
-    action: get
-    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+  scale_computing.hypercore.api: *get-specific-vm
   register: result
 - ansible.builtin.assert:
     that:
