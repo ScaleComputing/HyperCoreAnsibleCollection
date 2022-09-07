@@ -120,17 +120,17 @@ class VM(PayloadMapper):
             preferred_node=preferred_node.to_ansible()
             if preferred_node
             else dict(
-                node_uuid=None,
-                backplane_ip=None,
-                lan_ip=None,
+                node_uuid="",
+                backplane_ip="",
+                lan_ip="",
                 peer_id=None,
             ),  # for vm_node_affinity diff check
             backup_node=backup_node.to_ansible()
             if backup_node
             else dict(
-                node_uuid=None,
-                backplane_ip=None,
-                lan_ip=None,
+                node_uuid="",
+                backplane_ip="",
+                lan_ip="",
                 peer_id=None,
             ),  # for vm_node_affinity diff check,
         )
