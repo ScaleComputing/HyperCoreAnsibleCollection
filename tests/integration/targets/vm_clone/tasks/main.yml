@@ -15,7 +15,7 @@
         - XLAB-vm_clone-CI_test
         - XLAB-vm_clone_CI-test-clone
         - XLAB-vm_clone_CI-test-cloud_init-clone
-        - XLAB-clone-while-running-test
+        - XLAB-clone-while-running-test-clone
 
     - name: Create XLAB-vm_clone-CI_test
       scale_computing.hypercore.api:
@@ -124,6 +124,7 @@
         - XLAB-vm_clone-CI_test
         - XLAB-vm_clone_CI-test-clone
         - XLAB-vm_clone_CI-test-cloud_init-clone
+        - XLAB-clone-while-running-test-clone
     - ansible.builtin.assert:
         that:
           - output is changed
