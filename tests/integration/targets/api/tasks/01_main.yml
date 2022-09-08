@@ -58,7 +58,6 @@
     endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
     data:
       description: updated description
-  register: vm_updated
 
 - name: Verify VM's description has been modified
   scale_computing.hypercore.api: *get-specific-vm
