@@ -17,6 +17,7 @@ author:
 short_description: Update virtual machine's node affinity
 description:
   - Module updates selected virtual machine's node affinity.
+  - If any of the node isn't set, it will be overwritten with empty string.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -32,7 +33,6 @@ options:
     description:
       - Enable or disable strict enforcement of affinity strategy. The VirDomain will only run on preferred or backup node.
       - If strict_affinity is set to true and nodes are not provided, the preferred_node's uuid will be set to node_uuid provided in VM.
-        If node_uuid is not set, strict_affinity will be set to False.
     type: bool
     required: True
   preferred_node:
@@ -41,6 +41,7 @@ options:
       - Can be set by node_uuid, backplane_ip, lan_ip or peer_id
       - One of the options should be enough. In case that all are set, logical AND operation will be used.
         Task will return FAIL in case, that node can not be uniquely identified.
+      - In case if node isn't provided, old value is deleted (except for the corner cases described above).
     type: dict
     suboptions:
       node_uuid:
@@ -61,6 +62,7 @@ options:
       - Can be set by node_uuid, backplane_ip, lan_ip or peer_id
       - One of the options should be enough. In case that all are set, logical AND operation will be used.
         Task will return FAIL in case, that node can not be uniquely identified.
+      - In case if node isn't provided, old value is deleted.
     type: dict
     suboptions:
       node_uuid:
@@ -123,7 +125,10 @@ from ..module_utils.utils import get_query
 
 def get_node_uuid(module, node, rest_client):
     node_uuid = ""  # if node is not provided
-    if module.params[node] is not None:  # if node is provided
+    if module.params[node] is not None and any(
+        value is not None for value in module.params[node].values()
+    ):  # if node is provided and at least one of it's parameters isn't None
+        # if all parameters are set to None, query will be set to {} thus returning existing node
         query = get_query(
             module.params[node],
             "node_uuid",  # uuid is checked if it really exists
@@ -158,16 +163,16 @@ def run(module, rest_client):
         msg = "Node affinity successfully updated."
 
         if (
-            module.params["strict_affinity"] is True
+            strict_affinity is True
             and preferred_node_uuid == ""
             and backup_node_uuid == ""
         ):
-            preferred_node_uuid = vm_before.node_uuid
-            msg = "No nodes provided, VM's preferredNodeUUID set to it's nodeUUID."
-
             if vm_before.node_uuid == "":
                 strict_affinity = False
                 msg = "No nodes provided and VM's nodeUUID not set, strict affinity set to false"
+            else:
+                preferred_node_uuid = vm_before.node_uuid
+                msg = "No nodes provided, VM's preferredNodeUUID set to it's nodeUUID."
 
         payload = {
             "affinityStrategy": {
