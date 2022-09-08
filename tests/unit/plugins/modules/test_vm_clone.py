@@ -126,29 +126,6 @@ class TestRun:
         ):
             vm_clone.run(module, rest_client)
 
-    def test_run_when_VM_running(self, rest_client, create_module, mocker):
-        module = module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_name="XLAB-test-vm-clone",
-                source_vm_name="XLAB-test-vm",
-                tags=None,
-            )
-        )
-        rest_client.list_records.side_effect = [[], [self._get_empty_vm_running()]]
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
-        ).return_value = None
-        with pytest.raises(
-            errors.ScaleComputingError,
-            match="Device is running and cannot be cloned, shutdown first.",
-        ):
-            vm_clone.run(module, rest_client)
-
     def test_run_when_VM_cloned(self, rest_client, create_module):
         module = module = create_module(
             params=dict(
