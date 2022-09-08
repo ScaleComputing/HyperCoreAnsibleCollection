@@ -18,129 +18,6 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-class TestRun:
-    def test_run_call_get_method(self, create_module, rest_client):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                action="get",
-                endpoint="/rest/v1/VirDomain",
-                data=dict(),
-            )
-        )
-
-        rest_client.list_records.return_value = []
-
-        result = api.run(module, rest_client)
-
-        rest_client.list_records.assert_called_with(
-            endpoint="/rest/v1/VirDomain",
-            query={},
-        )
-
-        assert result == (False, [], None)
-
-    def test_run_call_post_method(self, create_module, rest_client):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                action="post",
-                endpoint="/rest/v1/VirDomain",
-                data=dict(),
-            )
-        )
-
-        rest_client.get_record.return_value = None
-        rest_client.create_record.return_value = dict(name="newly created record")
-
-        result = api.run(module, rest_client)
-
-        rest_client.create_record.assert_called_with(
-            endpoint="/rest/v1/VirDomain",
-            check_mode=False,
-            payload=dict(),
-        )
-
-        assert result == (
-            True,
-            dict(name="newly created record"),
-            dict(
-                after=dict(name="newly created record"),
-                before=None,
-            ),
-        )
-
-    def test_run_call_patch_method(self, create_module, rest_client):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                action="patch",
-                endpoint="/rest/v1/VirDomain",
-                unique_id="id",
-                data=dict(),
-            )
-        )
-
-        rest_client.get_record.return_value = dict(name="record before")
-        rest_client.update_record.return_value = dict(name="record after")
-
-        result = api.run(module, rest_client)
-
-        rest_client.update_record.assert_called_with(
-            endpoint="/rest/v1/VirDomain",
-            payload=dict(),
-            check_mode=False,
-        )
-
-        assert result == (
-            True,
-            dict(name="record after"),
-            dict(before=dict(name="record before"), after=dict(name="record after")),
-        )
-
-    def test_run_call_delete_method(self, create_module, rest_client):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                action="delete",
-                endpoint="/rest/v1/VirDomain",
-                unique_id="id",
-                data=dict(),
-            )
-        )
-
-        rest_client.get_record.return_value = dict(name="Existing record")
-        rest_client.delete_record.return_value = None
-        result = api.run(module, rest_client)
-
-        rest_client.delete_record.assert_called_with(
-            endpoint="/rest/v1/VirDomain",
-            check_mode=False,
-        )
-
-        assert result == (
-            True,
-            None,
-            dict(before=dict(name="Existing record"), after=None),
-        )
-
-
 class TestGetMethod:
     def test_get_method_record_present(self, create_module, rest_client):
         module = create_module(
@@ -169,7 +46,7 @@ class TestGetMethod:
             query={},
         )
 
-        assert result == (False, [dict(name="record1"), dict(name="record2")], None)
+        assert result == (False, [dict(name="record1"), dict(name="record2")])
 
     def test_get_method_record_absent(self, create_module, rest_client):
         module = create_module(
@@ -195,11 +72,11 @@ class TestGetMethod:
             query={},
         )
 
-        assert result == (False, [], None)
+        assert result == (False, [])
 
 
 class TestDeleteRecord:
-    def test_delete_method_record_present(self, create_module, rest_client):
+    def test_delete_method_record_present(self, create_module, rest_client, task_wait):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -214,7 +91,10 @@ class TestDeleteRecord:
         )
 
         rest_client.get_record.return_value = dict(name="Existing record")
-        rest_client.delete_record.return_value = None
+        rest_client.delete_record.return_value = {
+            "taskTag": "1234",
+            "createdUUID": "deleted-id",
+        }
         result = api.run(module, rest_client)
         rest_client.delete_record.assert_called_once()
         rest_client.delete_record.assert_called_with(
@@ -222,15 +102,30 @@ class TestDeleteRecord:
             check_mode=False,
         )
 
-        assert result == (
-            True,
-            None,
-            dict(before=dict(name="Existing record"), after=None),
+        assert result == (True, {"taskTag": "1234", "createdUUID": "deleted-id"})
+
+    def test_delete_method_record_absent(self, create_module, rest_client, task_wait):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                action="delete",
+                endpoint="/rest/v1/VirDomain/id",
+                data=dict(),
+            )
         )
+
+        rest_client.get_record.return_value = None
+        result = api.run(module, rest_client)
+        rest_client.delete_record.assert_not_called()
+        assert result == (False, dict())
 
 
 class TestPostMethod:
-    def test_post_method(self, create_module, rest_client):
+    def test_post_method(self, create_module, rest_client, task_wait):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -244,7 +139,10 @@ class TestPostMethod:
             )
         )
 
-        rest_client.create_record.return_value = dict(name="Created record")
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "createdUUID": "deleted-id",
+        }
         result = api.post_record(module, rest_client)
 
         rest_client.create_record.assert_called_with(
@@ -252,38 +150,5 @@ class TestPostMethod:
             check_mode=False,
             payload=dict(),
         )
-
         rest_client.create_record.assert_called_once()
-        assert result == (
-            True,
-            dict(name="Created record"),
-            dict(after=dict(name="Created record"), before=None),
-        )
-
-    def test_post_method_record_present(self, create_module, rest_client):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                action="post",
-                endpoint="/rest/v1/VirDomain",
-                unique_id="id",
-                data=dict(name="name after"),
-            )
-        )
-
-        rest_client.get_record.return_value = dict(name="record to delete")
-        rest_client.delete_record.return_value = None
-        result = api.delete_record(module, rest_client)
-        rest_client.delete_record.assert_called_once()
-        assert result == (
-            True,
-            None,
-            dict(
-                before=dict(name="record to delete"),
-                after=None,
-            ),
-        )
+        assert result == (True, {"createdUUID": "deleted-id", "taskTag": "1234"})

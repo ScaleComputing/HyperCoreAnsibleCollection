@@ -155,8 +155,8 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - Result that HyperCore REST API returns when an endpoint is called.
-    - The content structure is dependent on the API endpoint.
+    - In case of C(action==get), the records from the specified endpoint. Below is example output for C(action==get).
+    - In case of C(action==post), C(action==patch) or C(action==delete), the task tag, returned from the HyperCore API.
   returned: success
   type: list
   sample:
@@ -174,6 +174,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
+from ..module_utils.task_tag import TaskTag
 
 
 def patch_record(module, rest_client):
@@ -182,25 +183,29 @@ def patch_record(module, rest_client):
         endpoint=module.params["endpoint"],
         must_exist=True,
     )
-    new = rest_client.update_record(
+    task_tag = rest_client.update_record(
         endpoint=module.params["endpoint"],
         payload=module.params["data"],
         check_mode=module.check_mode,
     )
-    return True, new, dict(before=old, after=new)
+    TaskTag.wait_task(rest_client, task_tag)
+    new = rest_client.get_record(
+        query=None,
+        endpoint=module.params["endpoint"],
+        must_exist=True,
+    )
+    changed = False if old == new else True
+    return changed, task_tag
 
 
 def post_record(module, rest_client):
-    record = rest_client.create_record(
+    task_tag = rest_client.create_record(
         endpoint=module.params["endpoint"],
         payload=module.params["data"],
         check_mode=module.check_mode,
     )
-    return (
-        True,
-        record,
-        dict(before=None, after=record),
-    )
+    TaskTag.wait_task(rest_client, task_tag)
+    return True, task_tag
 
 
 def delete_record(module, rest_client):
@@ -209,13 +214,16 @@ def delete_record(module, rest_client):
     record = rest_client.get_record(
         endpoint=module.params["endpoint"],
         query=module.params["data"],
-        must_exist=True,
+        must_exist=False,
     )
-    rest_client.delete_record(
-        endpoint=module.params["endpoint"],
-        check_mode=module.check_mode,
-    )
-    return True, None, dict(before=record, after=None)
+    if record:
+        task_tag = rest_client.delete_record(
+            endpoint=module.params["endpoint"],
+            check_mode=module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, task_tag)
+        return True, task_tag
+    return False, dict()
 
 
 def get_records(module, rest_client):
@@ -223,7 +231,7 @@ def get_records(module, rest_client):
         query=module.params["data"],
         endpoint=module.params["endpoint"],
     )
-    return False, records, None
+    return False, records
 
 
 def run(module, rest_client):
@@ -264,8 +272,8 @@ def main():
             password=module.params["cluster_instance"]["password"],
         )
         rest_client = RestClient(client)
-        changed, record, diff = run(module, rest_client)
-        module.exit_json(changed=changed, record=record, diff=diff)
+        changed, record = run(module, rest_client)
+        module.exit_json(changed=changed, record=record)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

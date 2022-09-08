@@ -30,10 +30,6 @@
     that:
       - vm_created is changed
 
-- name: Wait for the object to be created
-  scale_computing.hypercore.task_wait:
-    task_tag: "{{vm_created.record}}"
-
 - name: Verify the VM has been created
   scale_computing.hypercore.api: &get-specific-vm
     action: get
@@ -52,12 +48,16 @@
     that:
       - result.record | length == initial.record | length + 1
 
-- name: Update the VM
+- name: Update the VM (change description)
   scale_computing.hypercore.api:
     action: patch
     endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
     data:
       description: updated description
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result is changed
 
 - name: Verify VM's description has been modified
   scale_computing.hypercore.api: *get-specific-vm
@@ -66,6 +66,15 @@
     that:
       - result.record.0.description == "updated description"
 
+- name: Update the VM (don't change anything)
+  scale_computing.hypercore.api:
+    action: patch
+    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+    data: {}
+- ansible.builtin.assert:
+    that:
+      - result is not changed
+
 # This task is here to test if response 400 (client or payload's problem) or response 500 (HyperCore's error) is raised.
 - name: Update the VM without any payload specified
   scale_computing.hypercore.api:
@@ -73,11 +82,25 @@
     endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
   ignore_errors: True
 
-- name: Verify that record has been deleted
-  scale_computing.hypercore.api:
+- name: Delete the record
+  scale_computing.hypercore.api: &delete-record
     action: delete
     endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
   register: result
 - ansible.builtin.assert:
     that:
-      - not result.record
+      - result is changed
+
+- name: Verify that record has been deleted
+  scale_computing.hypercore.api: *get-specific-vm
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record == []
+
+- name: Delete the record once again and assert the result isn't changed this time
+  scale_computing.hypercore.api: *delete-record
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result is not changed
