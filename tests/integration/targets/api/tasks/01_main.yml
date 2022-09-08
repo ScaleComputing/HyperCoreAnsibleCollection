@@ -1,0 +1,106 @@
+---
+- name: Retrieve all VMs
+  scale_computing.hypercore.api: &retrieve-all-vms
+    action: get
+    endpoint: /rest/v1/VirDomain
+  register: initial
+
+- name: Create a VM
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-jc1
+        tags: Xlab,jc1,us1,integration-test3
+        mem: 512100100
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+            name: jc1-disk-0
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: true
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is changed
+
+- name: Verify the VM has been created
+  scale_computing.hypercore.api: &get-specific-vm
+    action: get
+    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record.0.mem == 512100100
+      - result.record.0.tags == "Xlab,jc1,us1,integration-test3"
+      - result.record.0.name == "XLAB-jc1"
+
+- name: Retrieve all VMs after creating a new resource
+  scale_computing.hypercore.api: *retrieve-all-vms
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record | length == initial.record | length + 1
+
+- name: Update the VM (change description)
+  scale_computing.hypercore.api:
+    action: patch
+    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+    data:
+      description: updated description
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result is changed
+
+- name: Verify VM's description has been modified
+  scale_computing.hypercore.api: *get-specific-vm
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record.0.description == "updated description"
+
+- name: Update the VM (don't change anything)
+  scale_computing.hypercore.api:
+    action: patch
+    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+    data: {}
+- ansible.builtin.assert:
+    that:
+      - result is not changed
+
+# This task is here to test if response 400 (client or payload's problem) or response 500 (HyperCore's error) is raised.
+- name: Update the VM without any payload specified
+  scale_computing.hypercore.api:
+    action: patch
+    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+  ignore_errors: True
+
+- name: Delete the record
+  scale_computing.hypercore.api: &delete-record
+    action: delete
+    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result is changed
+
+- name: Verify that record has been deleted
+  scale_computing.hypercore.api: *get-specific-vm
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record == []
+
+- name: Delete the record once again and assert the result isn't changed this time
+  scale_computing.hypercore.api: *delete-record
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result is not changed

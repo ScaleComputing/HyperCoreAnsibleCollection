@@ -22,7 +22,7 @@ def validate_uuid(value):
 
 def get_query(input, *field_names, ansible_hypercore_map):
     """
-    Wrapps filter_dict and transform_ansible_to_hypercore_query. Preffer to use 'get_query' over filter_dict
+    Wrapps filter_dict and transform_ansible_to_hypercore_query. Prefer to use 'get_query' over filter_dict
     even if there's no mapping between hypercore and ansible columns for the sake of verbosity and consistency
     """
     ansible_query = filter_dict(input, *field_names)
