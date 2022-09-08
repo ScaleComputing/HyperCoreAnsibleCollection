@@ -15,6 +15,7 @@
         - XLAB-vm_clone-CI_test
         - XLAB-vm_clone_CI-test-clone
         - XLAB-vm_clone_CI-test-cloud_init-clone
+        - XLAB-clone-while-running-test
 
     - name: Create XLAB-vm_clone-CI_test
       scale_computing.hypercore.api:
@@ -85,6 +86,32 @@
     - name: Retrieve XLAB-vm_clone_CI-test-cloud_init-clone
       scale_computing.hypercore.vm_info:
         vm_name: XLAB-vm_clone_CI-test-cloud_init-clone
+      register: cloned_cloud_init_info
+    - ansible.builtin.assert:
+        that:
+          - cloned_cloud_init_info.records | length == 1
+
+  # Not the best solution, for power_state changes we need to send array instead of dict (raw api not supporting)
+    - name: Clone XLAB-clone-while-running-test into XLAB-clone-while-running-test-clone
+      scale_computing.hypercore.vm_clone:
+        vm_name: XLAB-clone-while-running-test-clone
+        source_vm_name: XLAB-demo-VM-smb-server
+        cloud_init:
+          user_data: |
+            yaml: bla
+            is_valid: yes
+          meta_data: |
+            this_data:
+              - very
+              - meta
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+
+    - name: Retrieve XLAB-clone-while-running-test-clone
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-clone-while-running-test-clone
       register: cloned_cloud_init_info
     - ansible.builtin.assert:
         that:
