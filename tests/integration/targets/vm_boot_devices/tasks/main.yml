@@ -9,18 +9,19 @@
       scale_computing.hypercore.vm: &vm-delete
         vm_name: vm-integration-test-boot_devices
         state: absent
-        memory: 536870912
-        vcpu: 2
       register: result
 
-    - name: Create VM vm-integration-test-boot_devices on which we'll build our block devices on
+    - name: Create VM
       scale_computing.hypercore.vm:
         vm_name: vm-integration-test-boot_devices
         description: Demo VM
         tags:
           - "Integration test"
-        memory: 536870912
+        memory: "{{ '512 MB' | human_to_bytes }}"
         vcpu: 2
+        power_state: shutdown
+        disks: []
+        nics: []
         state: present
       register: result
 
@@ -137,6 +138,16 @@
           - result.record.0.uuid == created_disks.record.0.uuid
           - result.record.1.uuid == created_nics.records.1.uuid
           - result.record.2.uuid == created_disks.record.1.uuid
+
+    - name: Set CD-ROM as not bootable
+      scale_computing.hypercore.vm_boot_devices:
+        vm_name: vm-integration-test-boot_devices
+        items:
+          - type: ide_cdrom
+            disk_slot: 2
+        state: absent
+      register: result
+
 
     - name: Set ISO as first boot device. Identifying CD-ROM by field iso_name
       scale_computing.hypercore.vm_boot_devices:

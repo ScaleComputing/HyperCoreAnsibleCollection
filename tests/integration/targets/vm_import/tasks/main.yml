@@ -9,22 +9,16 @@
       scale_computing.hypercore.vm: &delete-XLAB-import-test-integration
         vm_name: XLAB-import-test-integration
         state: absent
-        memory: 536870912
-        vcpu: 2
 
     - name: Delete XLAB-import-test-integration-imported
       scale_computing.hypercore.vm: &delete-XLAB-import-test-integration-imported
         vm_name: XLAB-import-test-integration-imported
         state: absent
-        memory: 536870912
-        vcpu: 2
 
     - name: Delete XLAB-import-test-integration-imported-cloud-init
       scale_computing.hypercore.vm: &delete-XLAB-import-test-integration-imported-cloud-init
         vm_name: XLAB-import-test-integration-imported-cloud-init
         state: absent
-        memory: 536870912
-        vcpu: 2
 
     - name: Create XLAB-import-test-integration
       scale_computing.hypercore.api:

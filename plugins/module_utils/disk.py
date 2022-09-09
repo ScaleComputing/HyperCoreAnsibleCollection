@@ -62,7 +62,7 @@ class Disk(PayloadMapper):
             cache_mode=self.cache_mode,
             size=self.size,
             disk_slot=self.slot,
-            name=self.name,
+            iso_name=self.name,
             disable_snapshotting=self.disable_snapshotting,
             tiering_priority_factor=self.tiering_priority_factor,
             mount_points=self.mount_points,
@@ -101,12 +101,17 @@ class Disk(PayloadMapper):
             disk_type = ansible_dict["type"]
         # Only disk_type and slot are certainly going to be present in ansible_dict.
         # The rest of the fields may be specified if update action is performed
+        # Ensure that size is integer
+        if ansible_dict.get("size", None):
+            size = int(ansible_dict["size"])
+        else:
+            size = None
         return cls(
             type=disk_type,
             slot=ansible_dict["disk_slot"],
-            size=ansible_dict.get("size", None),
+            size=size,
             cache_mode=ansible_dict.get("cache_mode", None),
-            name=ansible_dict.get("name", None),
+            name=ansible_dict.get("iso_name", None),
             disable_snapshotting=ansible_dict.get("disable_snapshotting", None),
             tiering_priority_factor=ansible_dict.get("tiering_priority_factor", None),
             mount_points=ansible_dict.get("mount_points", None),

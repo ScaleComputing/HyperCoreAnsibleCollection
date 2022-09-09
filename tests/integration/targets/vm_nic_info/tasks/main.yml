@@ -13,21 +13,21 @@
       scale_computing.hypercore.vm: &delete-XLAB-vm_nic_CI_test
         vm_name: XLAB-vm_nic_info_CI_test
         state: absent
-        memory: 536870912
-        vcpu: 2
       register: result
 
     - name: Create VM with name XLAB-vm_nic_info_CI_test
       scale_computing.hypercore.vm:
         vm_name: XLAB-vm_nic_info_CI_test
         description: Demo VM
-        power_state: stopped
+        power_state: stop
         state: present
         tags:
           - 'Xlab'
           - 'CI'
           - 'test'
         memory: 536870912
+        disks: []
+        nics: []
         vcpu: 2
       register: output
     - ansible.builtin.assert:

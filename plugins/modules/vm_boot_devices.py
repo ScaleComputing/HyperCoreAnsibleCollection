@@ -176,93 +176,35 @@ from ..module_utils.errors import ScaleComputingError
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
-from ..module_utils.utils import filter_dict, transform_query
-from ..module_utils.task_tag import TaskTag
-from ..module_utils.nic import Nic
-from ..module_utils.disk import Disk
-
-
-SOURCE_OBJECT_QUERY_MAPPING = dict(
-    disk_slot="disk_slot", nic_vlan="vlan", iso_name="name"
-)
-
-
-def get_vm_and_boot_devices(module, rest_client):
-    vm = VM.get_by_name(module.params, rest_client, must_exist=True)
-    boot_devices = vm.boot_devices
-    source_objects_ansible = get_source_object_list(rest_client, boot_devices)
-    return vm, boot_devices, source_objects_ansible
-
-
-def get_source_object_query(desired_source_object):
-    source_object_raw_query = filter_dict(
-        desired_source_object, "disk_slot", "nic_vlan", "iso_name"
-    )
-    return transform_query(source_object_raw_query, SOURCE_OBJECT_QUERY_MAPPING)
-
-
-def get_vm_device(vm, desired_source_object):
-    source_object_query = get_source_object_query(desired_source_object)
-    if desired_source_object["type"] == "nic":  # Retrieve Nic object
-        return vm.get_specific_nic(source_object_query)
-    source_object_query["type"] = desired_source_object["type"]
-    return vm.get_specific_disk(source_object_query)  # Retrieve disk object
-
-
-def _get_source_object_from_uuid(rest_client, source_object_uuid):
-    disk_hypercore_dict = rest_client.get_record(
-        "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", source_object_uuid)
-    )
-    if disk_hypercore_dict:
-        return Disk.from_hypercore(disk_hypercore_dict).to_ansible()
-    nic_hypercore_dict = rest_client.get_record(
-        "{0}/{1}".format("/rest/v1/VirDomainNetDevice", source_object_uuid)
-    )
-    return Nic.from_hypercore(nic_hypercore_dict).to_ansible()
-
-
-def get_source_object_list(rest_client, boot_order_list):
-    return [
-        _get_source_object_from_uuid(rest_client, source_object_uuid)
-        for source_object_uuid in boot_order_list
-    ]
-
-
-def update_boot_device_order(module, rest_client, uuid, boot_order):
-    # uuid is vm's uuid. boot_order is the desired order we want to set to boot devices
-    task_tag = rest_client.update_record(
-        "{0}/{1}".format("/rest/v1/VirDomain", uuid),
-        dict(bootDevices=boot_order, uuid=uuid),
-        module.check_mode,
-    )
-    TaskTag.wait_task(rest_client, task_tag)
 
 
 def ensure_absent(module, rest_client):
-    vm_before, boot_devices_before, before = get_vm_and_boot_devices(
-        module, rest_client
+    vm_before, boot_devices_before, before = VM.get_vm_and_boot_devices(
+        module.params, rest_client
     )
     changed = False
     for desired_boot_device in module.params["items"]:
-        vm_device = get_vm_device(vm_before, desired_boot_device)
+        vm_device = vm_before.get_vm_device(desired_boot_device)
         if not vm_device or vm_device["uuid"] not in boot_devices_before:
             continue
         uuid = vm_device["uuid"]
         boot_order = deepcopy(boot_devices_before)
         boot_order.remove(uuid)
-        update_boot_device_order(module, rest_client, vm_before.uuid, boot_order)
+        VM.update_boot_device_order(module, rest_client, vm_before.uuid, boot_order)
         changed = True
-    vm_after, boot_devices_after, after = get_vm_and_boot_devices(module, rest_client)
+    vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
+        module.params, rest_client
+    )
     return changed, after, dict(before=before, after=after)
 
 
 def ensure_present(module, rest_client):
-    vm_before, boot_devices_before, before = get_vm_and_boot_devices(
-        module, rest_client
+    vm_before, boot_devices_before, before = VM.get_vm_and_boot_devices(
+        module.params, rest_client
     )
     changed = False
     for desired_boot_device in module.params["items"]:
-        vm_device = get_vm_device(vm_before, desired_boot_device)
+        vm_device = vm_before.get_vm_device(desired_boot_device)
         if not vm_device:
             continue
         uuid = vm_device["uuid"]
@@ -277,29 +219,26 @@ def ensure_present(module, rest_client):
                 desired_boot_order = boot_devices_before + [uuid]
         if desired_boot_order == boot_devices_before:
             continue
-        update_boot_device_order(
+        VM.update_boot_device_order(
             module, rest_client, vm_before.uuid, desired_boot_order
         )
         changed = True
-    vm_after, boot_devices_after, after = get_vm_and_boot_devices(module, rest_client)
+    vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
+        module.params, rest_client
+    )
     return changed, after, dict(before=before, after=after)
 
 
 def ensure_set(module, rest_client):
-    vm_before, boot_devices_before, before = get_vm_and_boot_devices(
-        module, rest_client
+    vm_before, boot_devices_before, before = VM.get_vm_and_boot_devices(
+        module.params, rest_client
     )
-    changed = False
-    boot_order = []
-    for desired_boot_device in module.params["items"]:
-        vm_device = get_vm_device(vm_before, desired_boot_device)
-        if not vm_device:
-            continue
-        boot_order.append(vm_device["uuid"])
-    if boot_order != boot_devices_before:
-        update_boot_device_order(module, rest_client, vm_before.uuid, boot_order)
-        changed = True
-    vm_after, boot_devices_after, after = get_vm_and_boot_devices(module, rest_client)
+    changed = vm_before.set_boot_devices(
+        module.params["items"], module, rest_client, boot_devices_before
+    )
+    vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
+        module.params, rest_client
+    )
     return changed, after, dict(before=before, after=after)
 
 

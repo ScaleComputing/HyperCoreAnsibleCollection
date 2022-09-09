@@ -98,9 +98,12 @@ class TestTableCreateRecord:
         client.post.return_value = Response(201, '{"result": {"a": 3, "b": "sys_id"}}')
         t = rest_client.RestClient(client)
 
-        record = t.create_record("my_table", dict(a=4), True)
+        result = t.create_record("my_table", dict(a=4), True)
 
-        assert dict(a=4) == record
+        assert result == dict(
+            createdUUID="0000000000",
+            taskTag="00000",
+        )
         client.post.assert_not_called()
 
 
@@ -121,8 +124,11 @@ class TestTableUpdateRecord:
     def test_check_mode(self, client):
         client.patch.return_value = Response(200, '{"result": {"a": 3, "b": "sys_id"}}')
         t = rest_client.RestClient(client)
-        record = t.update_record("my_table", dict(a=4), True)
-        assert dict(a=4) == record
+        result = t.update_record("my_table", dict(a=4), True)
+        assert result == dict(
+            createdUUID="0000000000",
+            taskTag="00000",
+        )
         client.patch.assert_not_called()
 
 

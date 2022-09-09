@@ -14,7 +14,8 @@ from ..module_utils.errors import DeviceNotUnique
 from ..module_utils.nic import Nic
 from ..module_utils.disk import Disk
 from ..module_utils.node import Node
-from ..module_utils.utils import PayloadMapper
+from ..module_utils.iso import ISO
+from ..module_utils.utils import PayloadMapper, filter_dict, transform_query
 from ..module_utils.utils import (
     get_query,
     filter_results,
@@ -23,15 +24,71 @@ from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
 from ..module_utils.errors import ScaleComputingError
 
-FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
-    started="RUNNING",
-    stopped="SHUTOFF",
-)
+# FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE and FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE are mappings for how
+# states are stored in python/ansible and how are they stored in hypercore
 
 # Inverted dict FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE
-FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE = {
-    v: k for k, v in FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE.items()
-}
+FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE = dict(
+    RUNNING="started",
+    SHUTOFF="stopped",
+    BLOCKED="blocked",
+    PAUSED="paused",
+    SHUTDOWN="shutdown",
+    CRASHED="crashed",
+)
+
+# FROM_ANSIBLE_TO_HYPERCORE_ACTION_STATE in mapping between how states are stored in ansible and how
+# states are stored in hypercore. Used in update_vm_power_state.
+FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
+    start="START",
+    shutdown="SHUTDOWN",
+    stop="STOP",
+    pause="PAUSE",
+    rebot="REBOOT",
+    reset="RESET",
+    livemigrate="LIVEMIGRATE",
+    started="START",
+)
+
+DEFAULT_DISK_CDROM_PAYLOAD = dict(
+    cacheMode="WRITETHROUGH",
+    path="",
+    type="IDE_CDROM",
+    uuid="cdrom",
+    capacity=0,
+)
+
+DEFAULT_DISK_OTHER_PAYLOAD = dict(
+    cacheMode="WRITETHROUGH",
+    path="",
+    uuid="primaryDrive",
+)
+
+DEFAULT_MACHINE_TYPE = "scale-7.2"
+VM_PAYLOAD_KEYS = [
+    "blockDevs",
+    "bootDevices",
+    "description",
+    "machineType",
+    "mem",
+    "name",
+    "netDevs",
+    "numVCPU",
+    "tags",
+]
+
+VM_DEVICE_QUERY_MAPPING_ANSIBLE = dict(
+    disk_slot="disk_slot", nic_vlan="vlan", iso_name="iso_name"
+)
+
+DISK_TYPES_HYPERCORE = [
+    "IDE_DISK",
+    "SCSI_DISK",
+    "VIRTIO_DISK",
+    "IDE_CDROM",
+    "IDE_FLOPPY",
+    "NVRAM",
+]
 
 
 class VM(PayloadMapper):
@@ -50,6 +107,7 @@ class VM(PayloadMapper):
         power_state=None,
         nics=None,  # nics represents a list of type Nic
         disks=None,  # disks represents a list of type Nic
+        # boot_devices are stored as list of nics and/or disks internally.
         boot_devices=None,
         attach_guest_tools_iso=False,
         operating_system=None,
@@ -83,7 +141,7 @@ class VM(PayloadMapper):
 
     @classmethod
     def from_ansible(cls, vm_dict):
-        return VM(
+        return cls(
             uuid=vm_dict.get("uuid", None),  # No uuid when creating object from ansible
             name=vm_dict["vm_name"],
             tags=vm_dict["tags"],
@@ -135,7 +193,7 @@ class VM(PayloadMapper):
             ),  # for vm_node_affinity diff check,
         )
 
-        return VM(
+        return cls(
             uuid=vm_dict["uuid"],  # No uuid when creating object from ansible
             node_uuid=vm_dict["nodeUUID"],  # Needed in vm_node_affinity
             name=vm_dict["name"],
@@ -148,8 +206,7 @@ class VM(PayloadMapper):
             disks=[
                 Disk.from_hypercore(disk_dict) for disk_dict in vm_dict["blockDevs"]
             ],
-            # TODO: When boot devices get implemented, add transformation here
-            boot_devices=vm_dict["bootDevices"],
+            boot_devices=cls.get_vm_device_list(vm_dict),
             attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", ""),
             operating_system=vm_dict["operatingSystem"],
             node_affinity=node_affinity,
@@ -227,7 +284,7 @@ class VM(PayloadMapper):
         if not record:
             return []
         return [
-            VM.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client)
+            cls.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client)
             for virtual_machine in record
         ]
 
@@ -240,7 +297,7 @@ class VM(PayloadMapper):
         if not record:
             raise errors.VMNotFound(query)
         return [
-            VM.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client)
+            cls.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client)
             for virtual_machine in record
         ]
 
@@ -256,7 +313,7 @@ class VM(PayloadMapper):
         hypercore_dict = rest_client.get_record(
             "/rest/v1/VirDomain", query, must_exist=must_exist
         )
-        vm_from_hypercore = VM.from_hypercore(hypercore_dict, rest_client)
+        vm_from_hypercore = cls.from_hypercore(hypercore_dict, rest_client)
         return vm_from_hypercore
 
     @classmethod
@@ -282,7 +339,6 @@ class VM(PayloadMapper):
             numVCPU=self.numVCPU,
             blockDevs=[disk.to_hypercore() for disk in self.disk_list],
             netDevs=[nic.to_hypercore() for nic in self.nic_list],
-            # TODO: When boot devices get implemented, add transformation here
             bootDevices=self.boot_devices,
             tags=",".join(self.tags),
             uuid=self.uuid,
@@ -308,7 +364,9 @@ class VM(PayloadMapper):
             nics=[nic.to_ansible() for nic in self.nic_list],
             tags=self.tags,
             uuid=self.uuid,
-            boot_devices=self.boot_devices,
+            boot_devices=[
+                boot_device.to_ansible() for boot_device in self.boot_devices
+            ],
             attach_guest_tools_iso=self.attach_guest_tools_iso,
             node_affinity=self.node_affinity,
         )
@@ -347,18 +405,50 @@ class VM(PayloadMapper):
             if disk.slot == slot:
                 return disk
 
-    def create_payload_to_hc3(self):
-        dom = self.to_hypercore()
-        del dom["uuid"]  # No uuid is used when creating payload
-        return dict(
-            options=dict(attachGuestToolsISO=dom.pop("attachGuestToolsISO")),
-            dom=dom,
-        )
+    def post_vm_payload(self, rest_client, ansible_dict):
+        # The rest of the keys from VM_PAYLOAD_KEYS will get set properly automatically
+        # Cloud init will be obtained through ansible_dict - If method will be reused outside of vm module,
+        # cloud_init should be one of the ansible_dict's keys.
+        payload = self.to_hypercore()
+        VM._post_vm_payload_set_disks(payload, rest_client)
+        payload["machineType"] = DEFAULT_MACHINE_TYPE
+        payload["netDevs"] = [
+            filter_dict(nic, *nic.keys()) for nic in payload["netDevs"]
+        ]
+        payload["bootDevices"] = []
+        dom = filter_dict(payload, *VM_PAYLOAD_KEYS)
+        cloud_init_payload = VM.create_cloud_init_payload(ansible_dict)
+        if cloud_init_payload is not None:
+            dom["CloudIinitData"] = cloud_init_payload
+        options = dict(attachGuestToolsISO=payload["attachGuestToolsISO"])
+        return dict(dom=dom, options=options)
 
-    def update_payload_to_hc3(self):
-        update_body = self.to_hypercore()
-        update_body.pop("attachGuestToolsISO")
-        return update_body
+    @staticmethod
+    def _post_vm_payload_set_disks(vm_hypercore_dict, rest_client):
+        disks_payload = []
+        cdrom_exists = False
+        primary_disk_set = False
+        for disk in vm_hypercore_dict["blockDevs"]:
+            disk_payload = dict()
+            if disk.get("cacheMode", None):
+                disk_payload["cacheMode"] = disk["cacheMode"]
+            else:
+                disk_payload["cacheMode"] = DEFAULT_DISK_CDROM_PAYLOAD["cacheMode"]
+            disk_payload["type"] = disk["type"]
+            disk_payload["capacity"] = disk["capacity"] or 0
+            if disk_payload["type"] == "IDE_CDROM":
+                iso_name = disk["name"]
+                iso = ISO.get_by_name(dict(name=iso_name), rest_client, must_exist=True)
+                disk_payload["path"] = iso.path
+                cdrom_exists = True
+            if not primary_disk_set and disk_payload["type"] != "IDE_CDROM":
+                # Assign the first disk to be the primary
+                disk_payload["uuid"] = DEFAULT_DISK_OTHER_PAYLOAD["uuid"]
+                primary_disk_set = True
+            disks_payload.append(disk_payload)
+        if not cdrom_exists:
+            disks_payload.insert(0, DEFAULT_DISK_CDROM_PAYLOAD)
+        vm_hypercore_dict["blockDevs"] = disks_payload
 
     def delete_unused_nics_to_hypercore_vm(self, ansible_dict, rest_client):
         changed = False
@@ -429,19 +519,108 @@ class VM(PayloadMapper):
 
     def get_specific_nic(self, query):
         results = [nic.to_ansible() for nic in self.nics]
-        return self.filter_specific_objects(results, query, "Nic")
+        return VM.filter_specific_objects(results, query, "Nic")
 
     def get_specific_disk(self, query):
         results = [vm_disk.to_ansible() for vm_disk in self.disks]
-        return self.filter_specific_objects(results, query, "Disk")
+        return VM.filter_specific_objects(results, query, "Disk")
 
-    def filter_specific_objects(self, results, query, type):
+    @staticmethod
+    def filter_specific_objects(results, query, object_type):
         # Type is type of the device, for example disk or nic
         filtered_results = filter_results(results, query)
         if len(filtered_results) > 1:
             raise ScaleComputingError(
-                "{0} isn't uniquely identifyed by {1} in VM {2}.".format(
-                    type, query, self.name
+                "{0} isn't uniquely identifyed by {1} in the VM.".format(
+                    object_type, query
                 )
             )
         return filtered_results[0] if filtered_results else None
+
+    @staticmethod
+    def get_vm_device_ansible_query(desired_vm_device_ansible):
+        vm_device_raw_query = filter_dict(
+            desired_vm_device_ansible, "disk_slot", "nic_vlan", "iso_name"
+        )
+        return transform_query(vm_device_raw_query, VM_DEVICE_QUERY_MAPPING_ANSIBLE)
+
+    def get_vm_device(self, desired_vm_object):
+        vm_device_query = VM.get_vm_device_ansible_query(desired_vm_object)
+        if desired_vm_object["type"] == "nic":  # Retrieve Nic object
+            return self.get_specific_nic(vm_device_query)
+        vm_device_query["type"] = desired_vm_object["type"]
+        return self.get_specific_disk(vm_device_query)  # Retrieve disk object
+
+    def set_boot_devices_order(self, boot_items):
+        boot_order = []
+        for desired_boot_device in boot_items:
+            vm_device = self.get_vm_device(desired_boot_device)
+            if not vm_device:
+                continue
+            boot_order.append(vm_device["uuid"])
+        return boot_order
+
+    @staticmethod
+    def update_boot_device_order(module, rest_client, uuid, boot_order):
+        # uuid is vm's uuid. boot_order is the desired order we want to set to boot devices
+        task_tag = rest_client.update_record(
+            "{0}/{1}".format("/rest/v1/VirDomain", uuid),
+            dict(bootDevices=boot_order, uuid=uuid),
+            module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, task_tag)
+
+    def set_boot_devices(
+        self, boot_items, module, rest_client, previous_boot_order, changed=False
+    ):
+        desired_boot_order = self.set_boot_devices_order(boot_items)
+        if desired_boot_order != previous_boot_order:
+            VM.update_boot_device_order(
+                module, rest_client, self.uuid, desired_boot_order
+            )
+            changed = True
+        return changed
+
+    @classmethod
+    def get_vm_and_boot_devices(cls, ansible_dict, rest_client):
+        """Helper to modules vm_boot_devices and vm."""
+        vm = cls.get_by_name(ansible_dict, rest_client, must_exist=True)
+        boot_devices_uuid = [boot_device.uuid for boot_device in vm.boot_devices]
+        boot_devices_ansible = [
+            boot_device.to_ansible() for boot_device in vm.boot_devices
+        ]
+        return vm, boot_devices_uuid, boot_devices_ansible
+
+    def update_vm_power_state(self, module, rest_client, desired_power_state):
+        """Sets the power state to what is stored in self.power_state"""
+        # desired_power_state must be present in FROM_ANSIBLE_TO_HYPERCORE_ACTION_STATE's keys
+        if not self.power_state:
+            raise errors.ScaleComputingError("No information about VM's power state.")
+        task_tag = rest_client.create_record(
+            "/rest/v1/VirDomain/action",
+            [
+                dict(
+                    virDomainUUID=self.uuid,
+                    actionType=FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE[
+                        desired_power_state
+                    ],
+                    cause="INTERNAL",
+                )
+            ],
+            module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, task_tag)
+
+    @classmethod
+    def get_vm_device_list(cls, vm_hypercore_dict):
+        all_vm_devices = vm_hypercore_dict["netDevs"] + vm_hypercore_dict["blockDevs"]
+        vm_device_list = []
+        for vm_device_uuid in vm_hypercore_dict["bootDevices"]:
+            vm_device_hypercore = cls.filter_specific_objects(
+                all_vm_devices, {"uuid": vm_device_uuid}, "Disk or nic"
+            )
+            if vm_device_hypercore["type"] in DISK_TYPES_HYPERCORE:
+                vm_device_list.append(Disk.from_hypercore(vm_device_hypercore))
+            else:  # The device is Nic
+                vm_device_list.append(Nic.from_hypercore(vm_device_hypercore))
+        return vm_device_list
