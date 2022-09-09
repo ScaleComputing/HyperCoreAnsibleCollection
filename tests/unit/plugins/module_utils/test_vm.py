@@ -61,7 +61,7 @@ class TestVM:
             vcpu=2,
             nics=[],
             disks=[],
-            boot_devices=None,
+            boot_devices=[],
             attach_guest_tools_iso=False,
             operating_system=None,
             node_affinity={
@@ -93,7 +93,7 @@ class TestVM:
             numVCPU=2,
             netDevs=[],
             blockDevs=[],
-            bootDevices=None,
+            bootDevices=[],
             attachGuestToolsISO=False,
             operatingSystem=None,
             affinityStrategy={
@@ -106,6 +106,7 @@ class TestVM:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+
         vm_from_hypercore = VM.from_hypercore(vm_dict, rest_client)
         assert vm == vm_from_hypercore
 
@@ -122,7 +123,7 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="started",
+            power_state="start",
             vcpu=2,
             nics=[],
             disks=[],
@@ -143,7 +144,7 @@ class TestVM:
             uuid=None,
             attachGuestToolsISO=False,
             operatingSystem="os_windows_server_2012",
-            state="RUNNING",
+            state="START",
         )
 
     def test_vm_to_ansible(self):
@@ -210,72 +211,6 @@ class TestVM:
     def test_find_disk(self):
         # TODO (domen): Write tests for find_disk, if necessary
         pass
-
-    def test_create_payload_to_hc3(self):
-
-        vm = VM(
-            uuid=None,  # No uuid when creating object from ansible
-            name="VM-name",
-            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
-            description="desc",
-            memory=42,
-            power_state="started",
-            vcpu=2,
-            nics=[],
-            disks=[],
-            boot_devices=None,
-            attach_guest_tools_iso=False,
-            operating_system="os_windows_server_2012",
-        )
-
-        assert vm.create_payload_to_hc3() == dict(
-            options=dict(attachGuestToolsISO=False),
-            dom=dict(
-                name="VM-name",
-                description="desc",
-                mem=42,
-                numVCPU=2,
-                blockDevs=[],
-                netDevs=[],
-                bootDevices=[],
-                tags="XLAB-test-tag1,XLAB-test-tag2",
-                operatingSystem="os_windows_server_2012",
-                state="RUNNING",
-            ),
-        )
-
-    def test_update_payload_to_hc3(self):
-
-        vm = VM(
-            uuid=None,  # No uuid when creating object from ansible
-            name="VM-name",
-            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
-            description="desc",
-            memory=42,
-            power_state="started",
-            vcpu=2,
-            nics=[],
-            disks=[],
-            boot_devices=None,
-            attach_guest_tools_iso=False,
-            operating_system="os_windows_server_2012",
-        )
-
-        assert vm.update_payload_to_hc3() == dict(
-            dict(
-                name="VM-name",
-                description="desc",
-                mem=42,
-                numVCPU=2,
-                blockDevs=[],
-                netDevs=[],
-                bootDevices=[],
-                tags="XLAB-test-tag1,XLAB-test-tag2",
-                uuid=None,
-                operatingSystem="os_windows_server_2012",
-                state="RUNNING",
-            )
-        )
 
     def test_equal_true(self):
         assert VM(
@@ -386,7 +321,7 @@ class TestVM:
             numVCPU=2,
             netDevs=[],
             blockDevs=[],
-            bootDevices=None,
+            bootDevices=[],
             attachGuestToolsISO=False,
             operatingSystem=None,
             affinityStrategy={
@@ -484,7 +419,7 @@ class TestVM:
             uuid="id",
             vm_uuid=None,
             cache_mode="none",
-            name="jc1-disk-0",
+            iso_name="jc1-disk-0",
             disable_snapshotting=False,
             tiering_priority_factor=8,
             mount_points=[],
@@ -607,8 +542,9 @@ class TestVM:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        hypercore_dict = rest_client.list_records.return_value[0]
         actual = VM.from_hypercore(
-            vm_dict=rest_client.list_records.return_value[0], rest_client=rest_client
+            vm_dict=hypercore_dict, rest_client=rest_client
         ).to_hypercore()
         results = VM.get_or_fail(
             query={"name": "XLAB_test_vm"}, rest_client=rest_client
@@ -622,6 +558,201 @@ class TestVM:
             match="Virtual machine - {'name': 'XLAB-test-vm'} - not found",
         ):
             VM.get_or_fail(query={"name": "XLAB-test-vm"}, rest_client=rest_client)
+
+    def test_post_vm_payload_cloud_init_absent(self, rest_client):
+        vm = VM(
+            uuid=None,
+            name="VM-name",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
+            description="desc",
+            memory=42,
+            power_state="started",
+            vcpu=2,
+            nics=[],
+            disks=[],
+            boot_devices=[],
+            attach_guest_tools_iso=False,
+            operating_system=None,
+        )
+
+        post_vm_payload = vm.post_vm_payload(rest_client, {})
+
+        assert post_vm_payload == {
+            "dom": {
+                "blockDevs": [
+                    {
+                        "cacheMode": "WRITETHROUGH",
+                        "capacity": 0,
+                        "path": "",
+                        "type": "IDE_CDROM",
+                        "uuid": "cdrom",
+                    }
+                ],
+                "bootDevices": [],
+                "description": "desc",
+                "machineType": "scale-7.2",
+                "mem": 42,
+                "name": "VM-name",
+                "netDevs": [],
+                "numVCPU": 2,
+                "tags": "XLAB-test-tag1,XLAB-test-tag2",
+            },
+            "options": {"attachGuestToolsISO": False},
+        }
+
+    def test_post_vm_payload_cloud_init_present(self, rest_client):
+        vm = VM(
+            uuid=None,
+            name="VM-name",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
+            description="desc",
+            memory=42,
+            power_state="started",
+            vcpu=2,
+            nics=[],
+            disks=[],
+            boot_devices=[],
+            attach_guest_tools_iso=False,
+            operating_system=None,
+        )
+
+        ansible_dict = dict(
+            cloud_init=dict(
+                user_data="cloud_init-user-data",
+                meta_data="cloud_init-meta-data",
+            )
+        )
+
+        post_vm_payload = vm.post_vm_payload(rest_client, ansible_dict)
+
+        assert post_vm_payload == {
+            "dom": {
+                "CloudIinitData": {
+                    "metaData": "Y2xvdWRfaW5pdC1tZXRhLWRhdGE=",
+                    "userData": "Y2xvdWRfaW5pdC11c2VyLWRhdGE=",
+                },
+                "blockDevs": [
+                    {
+                        "cacheMode": "WRITETHROUGH",
+                        "capacity": 0,
+                        "path": "",
+                        "type": "IDE_CDROM",
+                        "uuid": "cdrom",
+                    }
+                ],
+                "bootDevices": [],
+                "description": "desc",
+                "machineType": "scale-7.2",
+                "mem": 42,
+                "name": "VM-name",
+                "netDevs": [],
+                "numVCPU": 2,
+                "tags": "XLAB-test-tag1,XLAB-test-tag2",
+            },
+            "options": {"attachGuestToolsISO": False},
+        }
+
+    def test_post_vm_payload_set_disks(self, rest_client):
+        vm_dict = dict(
+            uuid="",
+            nodeUUID="412a3e85-8c21-4138-a36e-789eae3548a3",
+            name="VM-name",
+            tags="XLAB-test-tag1,XLAB-test-tag2",
+            description="desc",
+            mem=42,
+            state="RUNNING",
+            numVCPU=2,
+            netDevs=[],
+            blockDevs=[
+                dict(
+                    uuid="id",
+                    virDomainUUID="vm-id",
+                    type="VIRTIO_DISK",
+                    cacheMode="NONE",
+                    capacity=4200,
+                    slot=0,
+                    name="VIRTIO_DISK",
+                    disableSnapshotting=False,
+                    tieringPriorityFactor=8,
+                    mountPoints=[],
+                    readOnly=False,
+                )
+            ],
+            bootDevices=[],
+            attachGuestToolsISO=False,
+            operatingSystem=None,
+            affinityStrategy={
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+        )
+
+        VM._post_vm_payload_set_disks(vm_dict, rest_client)
+
+        assert vm_dict == {
+            "affinityStrategy": {
+                "backupNodeUUID": "",
+                "preferredNodeUUID": "",
+                "strictAffinity": False,
+            },
+            "attachGuestToolsISO": False,
+            "blockDevs": [
+                {
+                    "cacheMode": "WRITETHROUGH",
+                    "capacity": 0,
+                    "path": "",
+                    "type": "IDE_CDROM",
+                    "uuid": "cdrom",
+                },
+                {
+                    "cacheMode": "NONE",
+                    "capacity": 4200,
+                    "type": "VIRTIO_DISK",
+                    "uuid": "primaryDrive",
+                },
+            ],
+            "bootDevices": [],
+            "description": "desc",
+            "mem": 42,
+            "name": "VM-name",
+            "netDevs": [],
+            "nodeUUID": "412a3e85-8c21-4138-a36e-789eae3548a3",
+            "numVCPU": 2,
+            "operatingSystem": None,
+            "state": "RUNNING",
+            "tags": "XLAB-test-tag1,XLAB-test-tag2",
+            "uuid": "",
+        }
+
+    def test_update_boot_device_order(self, create_module, rest_client, task_wait):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="VM-name",
+            )
+        )
+
+        uuid = "vm-id"
+        boot_order = ["device1-id", "device2-id"]
+
+        rest_client.update_record.return_value = {
+            "taskTag": "123",
+            "createdUUID": "disk-id",
+        }
+        VM.update_boot_device_order(module, rest_client, uuid, boot_order)
+        rest_client.update_record.assert_called_with(
+            "/rest/v1/VirDomain/vm-id",
+            dict(
+                bootDevices=["device1-id", "device2-id"],
+                uuid="vm-id",
+            ),
+            False,
+        )
 
 
 class TestNic:
@@ -1060,6 +1191,59 @@ class TestVMImport:
         rest_client.create_record.return_value = {"taskTag": "12345"}
         results = virtual_machine.import_vm(rest_client, ansible_dict)
         assert results == {"taskTag": "12345"}
+
+    def test_get_vm_device_type_not_nic(self, create_module, rest_client):
+        vm = VM(
+            attach_guest_tools_iso=False,
+            boot_devices=[],
+            description="desc",
+            disks=[
+                Disk(
+                    type="virtio_disk",
+                    slot=0,
+                    uuid="id",
+                    vm_uuid="vm-id",
+                    cache_mode="none",
+                    size=4200,
+                    name="jc1-disk-0",
+                    disable_snapshotting=False,
+                    tiering_priority_factor=8,
+                    mount_points=[],
+                    read_only=False,
+                )
+            ],
+            memory=42,
+            name="VM-name",
+            nics=[],
+            vcpu=2,
+            operating_system=None,
+            power_state="started",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
+            uuid="id",
+        )
+
+        desired_source_object = dict(
+            disk_slot=0,
+            nic_vlan=None,
+            iso_name="jc1-disk-0",
+            type="virtio_disk",
+        )
+
+        source_object_ansible = vm.get_vm_device(desired_source_object)
+
+        assert source_object_ansible == {
+            "cache_mode": "none",
+            "disable_snapshotting": False,
+            "disk_slot": 0,
+            "mount_points": [],
+            "iso_name": "jc1-disk-0",
+            "read_only": False,
+            "size": 4200,
+            "tiering_priority_factor": 8,
+            "type": "virtio_disk",
+            "uuid": "id",
+            "vm_uuid": "vm-id",
+        }
 
 
 class TestVMClone:
