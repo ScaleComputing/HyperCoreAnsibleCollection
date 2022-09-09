@@ -364,7 +364,7 @@ def ensure_absent(module, rest_client):
         uuid = existing_disk.uuid
         if ansible_desired_disk["type"] == "ide_cdrom":
             # Detach ISO image and don't delete the disk
-            if ansible_desired_disk.get("name", None):
+            if ansible_desired_disk.get("iso_name", None):
                 name = ansible_desired_disk["iso_name"]
             elif existing_disk.name:
                 name = existing_disk.name

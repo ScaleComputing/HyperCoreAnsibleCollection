@@ -21,7 +21,10 @@
           - "Integration test"
         memory: 536870912
         vcpu: 2
+        power_state: shutdown
         state: present
+        disks: [ ]
+        nics: [ ]
       register: result
     - ansible.builtin.assert:
         that:
@@ -38,11 +41,11 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - result.record | length == 1
-          - result.record.0.type == "virtio_disk"
-          - result.record.0.disk_slot == 0
-          - result.record.0.size == 5368709120
-          - result.record.0.name == ""
+          - result.record | length == 2  # One CDROM is added by default
+          - result.record.1.type == "virtio_disk"
+          - result.record.1.disk_slot == 0
+          - result.record.1.size == 5368709120
+          - result.record.1.iso_name == ""
 
     - name: Create another virtio (test idempotence)
       scale_computing.hypercore.vm_disk: *create-virtio-disk
@@ -62,7 +65,7 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - result.record.0.size == 10737418240
+          - result.record.1.size == 10737418240
 
     - name: Update existing disk - resize, change type of the disk and cache_mode
       scale_computing.hypercore.vm_disk:
@@ -77,21 +80,22 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - result.record.0.size == 11918534246
-          - result.record.0.type == "ide_disk"
-          - result.record.0.cache_mode == "writeback"
+          - result.record.1.size == 11918534246
+          - result.record.1.type == "ide_disk"
+          - result.record.1.cache_mode == "writeback"
 
     - name: Remove the previously updated disk
       scale_computing.hypercore.vm_disk:
         vm_name: vm-integration-test-disks
         items:
-          - disk_slot: 0
+          - disk_slot: 1
             type: ide_disk
         state: absent
       register: result
     - ansible.builtin.assert:
         that:
-          - result.record == []
+          - result.record | length == 1
+          - result.record.0.type == "ide_cdrom"
 
     - name: Create project directory /tmp (if it doesn't exist already)
       file: state=directory path=/tmp
@@ -112,7 +116,7 @@
         state: present
       register: result
 
-    - name: Create cdrom disk in slot 0 with 5GB space and attach TinyCore-current.iso image onto it
+    - name: Attach TinyCore-current.iso ISO onto the current CD-ROM device
       scale_computing.hypercore.vm_disk: &create-cdrom-disk
         vm_name: vm-integration-test-disks
         items:
@@ -124,10 +128,9 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - result.record | length == 1
           - result.record.0.type == "ide_cdrom"
           - result.record.0.disk_slot == 0
-          - result.record.0.name == "TinyCore-current.iso"
+          - result.record.0.iso_name == "TinyCore-current.iso"
 
     - name: Assert that ISO image is mounted on vm-integration-test-disks
       scale_computing.hypercore.iso_info:
@@ -136,7 +139,6 @@
     - ansible.builtin.assert:
         that:
           - result.records.0.mounts.0.vm_name == "vm-integration-test-disks"
-
 
     - name: Detach ISO image from the disk
       scale_computing.hypercore.vm_disk:
@@ -148,7 +150,7 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - result.record.0.name == ""
+          - result.record.0.iso_name == ""
 
     - name: Assert that ISO image isn't mounted on vm-integration-test-disks anymore
       scale_computing.hypercore.iso_info:
@@ -170,7 +172,6 @@
     - ansible.builtin.assert:
         that:
           - result is changed
-          - result.record | length == 1
           - result.record.0.type == "virtio_disk"
           - result.record.0.disk_slot == 1
           - result.record.0.size == 5368709120

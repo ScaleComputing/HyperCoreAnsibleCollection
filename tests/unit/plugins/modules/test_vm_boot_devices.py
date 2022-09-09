@@ -14,111 +14,10 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.modules import (
     vm_boot_devices,
 )
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.disk import Disk
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
 )
-
-
-class TestGetSourceObjectQuery:
-    def test_get_source_object_query(self):
-        desired_source_object = dict(
-            disk_slot=2,
-            nic_vlan=None,
-            iso_name="iso-image-name",
-        )
-        assert vm_boot_devices.get_source_object_query(desired_source_object) == dict(
-            disk_slot=2,
-            name="iso-image-name",
-        )
-
-
-class TestGetVMDevice:
-    def test_get_vm_device_type_not_nic(self, create_module, rest_client):
-        vm = VM(
-            attach_guest_tools_iso=False,
-            boot_devices=[],
-            description="desc",
-            disks=[
-                Disk(
-                    type="virtio_disk",
-                    slot=0,
-                    uuid="id",
-                    vm_uuid="vm-id",
-                    cache_mode="none",
-                    size=4200,
-                    name="jc1-disk-0",
-                    disable_snapshotting=False,
-                    tiering_priority_factor=8,
-                    mount_points=[],
-                    read_only=False,
-                )
-            ],
-            memory=42,
-            name="VM-name",
-            nics=[],
-            vcpu=2,
-            operating_system=None,
-            power_state="started",
-            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
-            uuid="id",
-        )
-
-        desired_source_object = dict(
-            disk_slot=0,
-            nic_vlan=None,
-            iso_name="jc1-disk-0",
-            type="virtio_disk",
-        )
-
-        source_object_ansible = vm_boot_devices.get_vm_device(vm, desired_source_object)
-
-        assert source_object_ansible == {
-            "cache_mode": "none",
-            "disable_snapshotting": False,
-            "disk_slot": 0,
-            "mount_points": [],
-            "name": "jc1-disk-0",
-            "read_only": False,
-            "size": 4200,
-            "tiering_priority_factor": 8,
-            "type": "virtio_disk",
-            "uuid": "id",
-            "vm_uuid": "vm-id",
-        }
-
-
-class TestUpdateBootDeviceOrder:
-    def test_update_boot_device_order(self, create_module, rest_client, task_wait):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_name="VM-name",
-            )
-        )
-
-        uuid = "vm-id"
-        boot_order = ["device1-id", "device2-id"]
-
-        rest_client.update_record.return_value = {
-            "taskTag": "123",
-            "createdUUID": "disk-id",
-        }
-        vm_boot_devices.update_boot_device_order(module, rest_client, uuid, boot_order)
-        rest_client.update_record.assert_called_with(
-            "/rest/v1/VirDomain/vm-id",
-            dict(
-                bootDevices=["device1-id", "device2-id"],
-                uuid="vm-id",
-            ),
-            False,
-        )
 
 
 class TestEnsureAbsent:
@@ -180,19 +79,6 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
             },
-            dict(
-                uuid="disk-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "name": "XLAB_test_vm",
@@ -228,19 +114,6 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
             },
-            dict(
-                uuid="disk-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
         ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -255,8 +128,8 @@ class TestEnsureAbsent:
                     "cache_mode": "none",
                     "disable_snapshotting": False,
                     "disk_slot": 444,
+                    "iso_name": "jc1-disk-0",
                     "mount_points": [],
-                    "name": "jc1-disk-0",
                     "read_only": False,
                     "size": 4200,
                     "tiering_priority_factor": 8,
@@ -271,8 +144,8 @@ class TestEnsureAbsent:
                         "cache_mode": "none",
                         "disable_snapshotting": False,
                         "disk_slot": 444,
+                        "iso_name": "jc1-disk-0",
                         "mount_points": [],
-                        "name": "jc1-disk-0",
                         "read_only": False,
                         "size": 4200,
                         "tiering_priority_factor": 8,
@@ -286,8 +159,8 @@ class TestEnsureAbsent:
                         "cache_mode": "none",
                         "disable_snapshotting": False,
                         "disk_slot": 444,
+                        "iso_name": "jc1-disk-0",
                         "mount_points": [],
-                        "name": "jc1-disk-0",
                         "read_only": False,
                         "size": 4200,
                         "tiering_priority_factor": 8,
@@ -459,19 +332,6 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
             },
-            dict(
-                uuid="disk-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "name": "XLAB_test_vm",
@@ -527,9 +387,9 @@ class TestEnsureAbsent:
                     {
                         "cache_mode": "none",
                         "disable_snapshotting": False,
-                        "disk_slot": 444,
+                        "disk_slot": 1,
                         "mount_points": [],
-                        "name": "jc1-disk-0",
+                        "iso_name": "jc1-disk-0",
                         "read_only": False,
                         "size": 4200,
                         "tiering_priority_factor": 8,
@@ -694,7 +554,7 @@ class TestEnsurePresent:
                 "mem": 23424234,
                 "state": "RUNNING",
                 "numVCPU": 2,
-                "bootDevices": ["boot-order-other-id"],
+                "bootDevices": [],
                 "operatingSystem": "windows",
                 "affinityStrategy": {
                     "preferredNodeUUID": "",
@@ -704,19 +564,6 @@ class TestEnsurePresent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
             },
-            dict(
-                uuid="disk-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "name": "XLAB_test_vm",
@@ -742,7 +589,7 @@ class TestEnsurePresent:
                 "mem": 23424234,
                 "state": "RUNNING",
                 "numVCPU": 2,
-                "bootDevices": ["disk-id", "boot-order-other-id"],
+                "bootDevices": ["disk-id"],
                 "operatingSystem": "windows",
                 "affinityStrategy": {
                     "preferredNodeUUID": "",
@@ -752,32 +599,6 @@ class TestEnsurePresent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
             },
-            dict(
-                uuid="disk-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
-            dict(
-                uuid="boot-order-other-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
         ]
 
         rest_client.update_record.return_value = {
@@ -796,66 +617,25 @@ class TestEnsurePresent:
                 {
                     "cache_mode": "none",
                     "disable_snapshotting": False,
-                    "disk_slot": 444,
+                    "disk_slot": 1,
+                    "iso_name": "jc1-disk-0",
                     "mount_points": [],
-                    "name": "jc1-disk-0",
                     "read_only": False,
                     "size": 4200,
                     "tiering_priority_factor": 8,
                     "type": "virtio_disk",
                     "uuid": "disk-id",
                     "vm_uuid": "vm-id",
-                },
-                {
-                    "cache_mode": "none",
-                    "disable_snapshotting": False,
-                    "disk_slot": 444,
-                    "mount_points": [],
-                    "name": "jc1-disk-0",
-                    "read_only": False,
-                    "size": 4200,
-                    "tiering_priority_factor": 8,
-                    "type": "virtio_disk",
-                    "uuid": "boot-order-other-id",
-                    "vm_uuid": "vm-id",
-                },
+                }
             ],
             {
                 "after": [
                     {
                         "cache_mode": "none",
                         "disable_snapshotting": False,
-                        "disk_slot": 444,
+                        "disk_slot": 1,
+                        "iso_name": "jc1-disk-0",
                         "mount_points": [],
-                        "name": "jc1-disk-0",
-                        "read_only": False,
-                        "size": 4200,
-                        "tiering_priority_factor": 8,
-                        "type": "virtio_disk",
-                        "uuid": "disk-id",
-                        "vm_uuid": "vm-id",
-                    },
-                    {
-                        "cache_mode": "none",
-                        "disable_snapshotting": False,
-                        "disk_slot": 444,
-                        "mount_points": [],
-                        "name": "jc1-disk-0",
-                        "read_only": False,
-                        "size": 4200,
-                        "tiering_priority_factor": 8,
-                        "type": "virtio_disk",
-                        "uuid": "boot-order-other-id",
-                        "vm_uuid": "vm-id",
-                    },
-                ],
-                "before": [
-                    {
-                        "cache_mode": "none",
-                        "disable_snapshotting": False,
-                        "disk_slot": 444,
-                        "mount_points": [],
-                        "name": "jc1-disk-0",
                         "read_only": False,
                         "size": 4200,
                         "tiering_priority_factor": 8,
@@ -864,6 +644,7 @@ class TestEnsurePresent:
                         "vm_uuid": "vm-id",
                     }
                 ],
+                "before": [],
             },
         )
 
@@ -926,19 +707,6 @@ class TestEnsurePresent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
             },
-            dict(
-                uuid="disk-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "name": "XLAB_test_vm",
@@ -974,19 +742,6 @@ class TestEnsurePresent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
             },
-            dict(
-                uuid="disk-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
         ]
         rest_client.update_record.return_value = {
             "taskTag": "123",
@@ -1004,9 +759,9 @@ class TestEnsurePresent:
                 {
                     "cache_mode": "none",
                     "disable_snapshotting": False,
-                    "disk_slot": 444,
+                    "disk_slot": 1,
+                    "iso_name": "jc1-disk-0",
                     "mount_points": [],
-                    "name": "jc1-disk-0",
                     "read_only": False,
                     "size": 4200,
                     "tiering_priority_factor": 8,
@@ -1020,9 +775,9 @@ class TestEnsurePresent:
                     {
                         "cache_mode": "none",
                         "disable_snapshotting": False,
-                        "disk_slot": 444,
+                        "disk_slot": 1,
+                        "iso_name": "jc1-disk-0",
                         "mount_points": [],
-                        "name": "jc1-disk-0",
                         "read_only": False,
                         "size": 4200,
                         "tiering_priority_factor": 8,
@@ -1035,9 +790,9 @@ class TestEnsurePresent:
                     {
                         "cache_mode": "none",
                         "disable_snapshotting": False,
-                        "disk_slot": 444,
+                        "disk_slot": 1,
+                        "iso_name": "jc1-disk-0",
                         "mount_points": [],
-                        "name": "jc1-disk-0",
                         "read_only": False,
                         "size": 4200,
                         "tiering_priority_factor": 8,
@@ -1143,19 +898,6 @@ class TestEnsurePresent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
             },
-            dict(
-                uuid="disk-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
         ]
         rest_client.update_record.return_value = {
             "taskTag": "123",
@@ -1173,9 +915,9 @@ class TestEnsurePresent:
                 {
                     "cache_mode": "none",
                     "disable_snapshotting": False,
-                    "disk_slot": 444,
+                    "disk_slot": 1,
+                    "iso_name": "jc1-disk-0",
                     "mount_points": [],
-                    "name": "jc1-disk-0",
                     "read_only": False,
                     "size": 4200,
                     "tiering_priority_factor": 8,
@@ -1189,9 +931,9 @@ class TestEnsurePresent:
                     {
                         "cache_mode": "none",
                         "disable_snapshotting": False,
-                        "disk_slot": 444,
+                        "disk_slot": 1,
+                        "iso_name": "jc1-disk-0",
                         "mount_points": [],
-                        "name": "jc1-disk-0",
                         "read_only": False,
                         "size": 4200,
                         "tiering_priority_factor": 8,
@@ -1356,7 +1098,7 @@ class TestEnsureSet:
                 "mem": 23424234,
                 "state": "RUNNING",
                 "numVCPU": 2,
-                "bootDevices": ["boot-order-other-id"],
+                "bootDevices": [],
                 "operatingSystem": "windows",
                 "affinityStrategy": {
                     "preferredNodeUUID": "",
@@ -1366,19 +1108,6 @@ class TestEnsureSet:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
             },
-            dict(
-                uuid="disk-id",
-                virDomainUUID="vm-id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                slot=444,
-                name="jc1-disk-0",
-                disableSnapshotting=False,
-                tieringPriorityFactor=8,
-                mountPoints=[],
-                readOnly=False,
-            ),
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "name": "XLAB_test_vm",
@@ -1444,9 +1173,9 @@ class TestEnsureSet:
                 {
                     "cache_mode": "none",
                     "disable_snapshotting": False,
-                    "disk_slot": 444,
+                    "disk_slot": 1,
+                    "iso_name": "jc1-disk-0",
                     "mount_points": [],
-                    "name": "jc1-disk-0",
                     "read_only": False,
                     "size": 4200,
                     "tiering_priority_factor": 8,
@@ -1460,9 +1189,9 @@ class TestEnsureSet:
                     {
                         "cache_mode": "none",
                         "disable_snapshotting": False,
-                        "disk_slot": 444,
+                        "disk_slot": 1,
+                        "iso_name": "jc1-disk-0",
                         "mount_points": [],
-                        "name": "jc1-disk-0",
                         "read_only": False,
                         "size": 4200,
                         "tiering_priority_factor": 8,
@@ -1471,20 +1200,6 @@ class TestEnsureSet:
                         "vm_uuid": "vm-id",
                     }
                 ],
-                "before": [
-                    {
-                        "cache_mode": "none",
-                        "disable_snapshotting": False,
-                        "disk_slot": 444,
-                        "mount_points": [],
-                        "name": "jc1-disk-0",
-                        "read_only": False,
-                        "size": 4200,
-                        "tiering_priority_factor": 8,
-                        "type": "virtio_disk",
-                        "uuid": "disk-id",
-                        "vm_uuid": "vm-id",
-                    }
-                ],
+                "before": [],
             },
         )

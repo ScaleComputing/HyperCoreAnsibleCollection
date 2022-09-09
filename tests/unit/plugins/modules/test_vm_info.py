@@ -23,7 +23,6 @@ class TestRun:
                     password="admin",
                 ),
                 vm_name="VM-unique-name",
-                uuid="id",
             ),
         )
 
@@ -40,7 +39,7 @@ class TestRun:
                 netDevs=[],
                 blockDevs=[],
                 cloudInitData=None,
-                bootDevices=None,
+                bootDevices=[],
                 attachGuestToolsISO=False,
                 operatingSystem=None,
                 latestTaskTag=None,

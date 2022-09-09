@@ -9,8 +9,6 @@
       scale_computing.hypercore.vm: &delete-XLAB-vm_replication_CI_test
         vm_name: XLAB-vm_replication_CI_test
         state: absent
-        memory: 536870912
-        vcpu: 2
 
     - name: Create a VM
       scale_computing.hypercore.api:
