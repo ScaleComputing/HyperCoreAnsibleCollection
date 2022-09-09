@@ -71,7 +71,8 @@ See Also
   {{ "  " * level }}| **default**: {{ spec.default }}
 {%     endif %}
 {%     if spec.choices %}
-  {{ "  " * level }}| **choices**: {{ ", ".join(spec.choices) }}
+{%       set str_choices = spec.choices | map("string")  %}
+  {{ "  " * level }}| **choices**: {{ ", ".join(str_choices) }}
 {%     endif %}
 
 {%     if spec.suboptions %}
