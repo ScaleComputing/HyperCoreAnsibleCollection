@@ -15,7 +15,9 @@ from ..module_utils import errors
 
 class TaskTag:
     @classmethod
-    def wait_task(cls, rest_client, task):
+    def wait_task(cls, rest_client, task, check_mode=False):
+        if check_mode:
+            return
         if type(task) != dict:
             raise errors.ScaleComputingError("task should be dictionary.")
         if "taskTag" not in task.keys():

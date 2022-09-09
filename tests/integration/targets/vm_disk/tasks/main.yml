@@ -100,19 +100,19 @@
     - name: Create project directory /tmp (if it doesn't exist already)
       file: state=directory path=/tmp
 
-    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-current.iso
-      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-current.iso
+    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-vm-disk-integration.iso
+      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-vm-disk-integration.iso
 
     - name: Delete the ISO image (if it may exist from before)
-      scale_computing.hypercore.iso:
-        name: "TinyCore-current.iso"
+      scale_computing.hypercore.iso: &delete-iso
+        name: "TinyCore-vm-disk-integration.iso"
         state: absent
       register: result
 
-    - name: Upload ISO image TinyCore-current.iso to HyperCore API
+    - name: Upload ISO image TinyCore-vm-disk-integration.iso to HyperCore API
       scale_computing.hypercore.iso:
-        name: "TinyCore-current.iso"
-        source: "/tmp/TinyCore-current.iso"
+        name: "TinyCore-vm-disk-integration.iso"
+        source: "/tmp/TinyCore-vm-disk-integration.iso"
         state: present
       register: result
 
@@ -123,18 +123,18 @@
           - disk_slot: 0
             type: ide_cdrom
             size: "{{ '5 GB' | human_to_bytes }}"
-            iso_name: "TinyCore-current.iso"
+            iso_name: "TinyCore-vm-disk-integration.iso"
         state: present
       register: result
     - ansible.builtin.assert:
         that:
           - result.record.0.type == "ide_cdrom"
           - result.record.0.disk_slot == 0
-          - result.record.0.iso_name == "TinyCore-current.iso"
+          - result.record.0.iso_name == "TinyCore-vm-disk-integration.iso"
 
     - name: Assert that ISO image is mounted on vm-integration-test-disks
       scale_computing.hypercore.iso_info:
-        name: TinyCore-current.iso
+        name: TinyCore-vm-disk-integration.iso
       register: result
     - ansible.builtin.assert:
         that:
@@ -154,7 +154,7 @@
 
     - name: Assert that ISO image isn't mounted on vm-integration-test-disks anymore
       scale_computing.hypercore.iso_info:
-        name: TinyCore-current.iso
+        name: TinyCore-vm-disk-integration.iso
       register: result
     - ansible.builtin.assert:
         that:
@@ -189,14 +189,12 @@
           - result.record == []
 
     - name: Delete the ISO image from the API
-      scale_computing.hypercore.iso:
-        name: "TinyCore-current.iso"
-        state: absent
+      scale_computing.hypercore.iso: *delete-iso
       register: result
 
-    - name: Delete locally installed ISO image from /tmp/TinyCore-current.iso
+    - name: Delete locally installed ISO image from /tmp/TinyCore-vm-disk-integration.iso
       ansible.builtin.file:
-        path: /tmp/TinyCore-current.iso
+        path: /tmp/TinyCore-vm-disk-integration.iso
         state: absent
       register: file_deleted
     - ansible.builtin.assert:

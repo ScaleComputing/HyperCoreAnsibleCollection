@@ -234,7 +234,7 @@ def create_block_device(module, rest_client, vm, desired_disk):
         payload,
         module.check_mode,
     )
-    TaskTag.wait_task(rest_client, task_tag)
+    TaskTag.wait_task(rest_client, task_tag, module.check_mode)
     return task_tag["createdUUID"]
 
 
@@ -250,7 +250,7 @@ def iso_image_management(module, rest_client, iso, uuid, attach):
     )
     # Not returning anything, since it isn't used in code.
     # Disk's uuid is stored in task_tag if relevant in the future.
-    TaskTag.wait_task(rest_client, task_tag)
+    TaskTag.wait_task(rest_client, task_tag, module.check_mode)
 
 
 def force_remove_all_disks(module, rest_client, vm, disks_before):
@@ -265,7 +265,7 @@ def force_remove_all_disks(module, rest_client, vm, disks_before):
             "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
             module.check_mode,
         )
-        TaskTag.wait_task(rest_client, task_tag)
+        TaskTag.wait_task(rest_client, task_tag, module.check_mode)
     return True, [], dict(before=disks_before, after=[])
 
 
@@ -276,7 +276,7 @@ def update_block_device(module, rest_client, desired_disk, existing_disk, vm):
         payload,
         module.check_mode,
     )
-    TaskTag.wait_task(rest_client, task_tag)
+    TaskTag.wait_task(rest_client, task_tag, module.check_mode)
 
 
 def delete_not_used_disks(module, rest_client, changed):
@@ -297,7 +297,7 @@ def delete_not_used_disks(module, rest_client, changed):
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
                 module.check_mode,
             )
-            TaskTag.wait_task(rest_client, task_tag)
+            TaskTag.wait_task(rest_client, task_tag, module.check_mode)
             changed = True
     return changed
 
@@ -377,7 +377,7 @@ def ensure_absent(module, rest_client):
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
                 module.check_mode,
             )
-            TaskTag.wait_task(rest_client, task_tag)
+            TaskTag.wait_task(rest_client, task_tag, module.check_mode)
             changed = True
 
     vm_after, disks_after = get_vm_by_name(module, rest_client)
