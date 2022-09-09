@@ -13,6 +13,13 @@ import uuid
 from ..module_utils.errors import InvalidUuidFormatError
 
 
+# Used in case of check mode
+MOCKED_TASK_TAG = dict(
+    createdUUID="0000000000",
+    taskTag="00000",
+)
+
+
 def validate_uuid(value):
     try:
         uuid.UUID(value, version=4)

@@ -48,8 +48,7 @@ class RestClient:
 
     def create_record(self, endpoint, payload, check_mode, timeout=None):
         if check_mode:
-            # Approximate the result using the payload.
-            return payload
+            return utils.MOCKED_TASK_TAG
         try:
             response = self.client.post(
                 endpoint, payload, query=_query(), timeout=timeout
@@ -61,8 +60,7 @@ class RestClient:
     def update_record(self, endpoint, payload, check_mode, record=None, timeout=None):
         # No action is possible when updating a record
         if check_mode:
-            # Approximate the result by manually patching the existing state.
-            return dict(record or {}, **payload)
+            return utils.MOCKED_TASK_TAG
         try:
             response = self.client.patch(
                 endpoint, payload, query=_query(), timeout=timeout
@@ -74,7 +72,7 @@ class RestClient:
     def delete_record(self, endpoint, check_mode, timeout=None):
         # No action is possible when deleting a record
         if check_mode:
-            return
+            return utils.MOCKED_TASK_TAG
         try:
             response = self.client.delete(endpoint, timeout=timeout).json
         except TimeoutError as e:
@@ -90,9 +88,9 @@ class RestClient:
         binary_data=None,
         headers=None,
     ):
-        # Method put doesn't support check mode
+        # Method put doesn't support check mode # IT ACTUALLY DOES
         if check_mode:
-            return
+            return None
         # Only /rest/v1/ISO/[uuid}/data is using put, which doesn't return anything.
         # self.client.put on this endpoint returns None.
         try:

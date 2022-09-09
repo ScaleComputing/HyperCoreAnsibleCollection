@@ -126,7 +126,7 @@ class TestNic:
         nic_dict = Nic.from_hypercore(nic_dict).to_hypercore()
         assert results.to_hypercore() == nic_dict
 
-    def test_send_update_nic_to_hypercore(self, rest_client):
+    def test_send_update_nic_to_hypercore(self, rest_client, task_wait):
         existing_nic = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
             "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -158,7 +158,7 @@ class TestNic:
         new_nic = Nic.from_hypercore(new_nic)
         assert results == (True, [existing_nic.to_ansible()], [new_nic.to_ansible()])
 
-    def test_send_create_nic_to_hypercore(self, rest_client):
+    def test_send_create_nic_to_hypercore(self, rest_client, task_wait):
         new_nic = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
             "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -183,7 +183,7 @@ class TestNic:
         print((True, [None], [Nic.from_hypercore(new_nic).to_ansible()]))
         assert results == (True, [None], [Nic.from_hypercore(new_nic).to_ansible()])
 
-    def test_send_delete_nic_request_to_hypercore(self, rest_client):
+    def test_send_delete_nic_request_to_hypercore(self, rest_client, task_wait):
         nic_to_delete = self._get_nic_1()
         rest_client.delete_record.return_value = {"taskTag": "1234"}
         rest_client.get_record.side_effect = [{"state": "Done"}]
@@ -417,7 +417,7 @@ class TestNicCompare:
 
 
 class TestUpdateNic:
-    def test_update_nic_when_one_nic_updated(self, rest_client):
+    def test_update_nic_when_one_nic_updated(self, rest_client, task_wait):
         before = []
         after = []
         new_nic = {
