@@ -47,6 +47,14 @@
       scale_computing.hypercore.task_wait:
         task_tag: "{{ vm_created.record }}"
 
+    - name: Retrieve XLAB-vm_clone_CI-test
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_clone-CI_test
+      register: source_info
+    - ansible.builtin.assert:
+        that:
+          - source_info.records | length == 1
+
     - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-clone
       scale_computing.hypercore.vm_clone:
         vm_name: XLAB-vm_clone_CI-test-clone
@@ -82,6 +90,12 @@
     - ansible.builtin.assert:
         that:
           - cloned_info.records | length == 1
+          - source_info.records.0.vcpu == cloned_info.records.0.vcpu
+          - source_info.records.0.tags != cloned_info.records.0.tags
+          - source_info.records.0.boot_devices | length == cloned_info.records.0.boot_devices | length
+          - source_info.records.0.disks | length ==  cloned_info.records.0.disks | length
+          - source_info.records.0.nics | length ==  cloned_info.records.0.nics | length
+          - source_info.records.0.node_affinity == cloned_info.records.0.node_affinity
 
     - name: Retrieve XLAB-vm_clone_CI-test-cloud_init-clone
       scale_computing.hypercore.vm_info:
@@ -90,20 +104,27 @@
     - ansible.builtin.assert:
         that:
           - cloned_cloud_init_info.records | length == 1
+          - source_info.records.0.vcpu == cloned_cloud_init_info.records.0.vcpu
+          - source_info.records.0.tags == cloned_cloud_init_info.records.0.tags
+          - source_info.records.0.boot_devices | length == cloned_cloud_init_info.records.0.boot_devices | length
+          - source_info.records.0.disks | length != cloned_cloud_init_info.records.0.disks | length
+          - source_info.records.0.nics | length == cloned_cloud_init_info.records.0.nics | length
+          - source_info.records.0.node_affinity == cloned_cloud_init_info.records.0.node_affinity
+
+    - name: Retrieve XLAB-demo-VM-smb-server
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-demo-VM-smb-server
+      register: demo_server_info
+    - ansible.builtin.assert:
+        that:
+          - demo_server_info.records | length == 1
+          - demo_server_info.records.0.power_state == "started"
 
   # Not the best solution, for power_state changes we need to send array instead of dict (raw api not supporting)
-    - name: Clone XLAB-clone-while-running-test into XLAB-clone-while-running-test-clone
+    - name: Clone XLAB-demo-VM-smb-server into XLAB-clone-while-running-test-clone
       scale_computing.hypercore.vm_clone:
         vm_name: XLAB-clone-while-running-test-clone
         source_vm_name: XLAB-demo-VM-smb-server
-        cloud_init:
-          user_data: |
-            yaml: bla
-            is_valid: yes
-          meta_data: |
-            this_data:
-              - very
-              - meta
       register: output
     - ansible.builtin.assert:
         that:
@@ -112,10 +133,16 @@
     - name: Retrieve XLAB-clone-while-running-test-clone
       scale_computing.hypercore.vm_info:
         vm_name: XLAB-clone-while-running-test-clone
-      register: cloned_cloud_init_info
+      register: cloned_while_running_info
     - ansible.builtin.assert:
         that:
-          - cloned_cloud_init_info.records | length == 1
+          - cloned_while_running_info.records | length == 1
+          - demo_server_info.records.0.vcpu == cloned_while_running_info.records.0.vcpu
+          - demo_server_info.records.0.tags == cloned_while_running_info.records.0.tags
+          - demo_server_info.records.0.boot_devices | length == cloned_while_running_info.records.0.boot_devices | length
+          - demo_server_info.records.0.disks | length == cloned_while_running_info.records.0.disks | length
+          - demo_server_info.records.0.nics | length == cloned_while_running_info.records.0.nics | length
+          - demo_server_info.records.0.node_affinity != cloned_while_running_info.records.0.node_affinity
 
     - name: Delete XLAB-vm_clone-CI_test end test
       scale_computing.hypercore.vm: *delete-XLAB-vm_clone_CI-test
