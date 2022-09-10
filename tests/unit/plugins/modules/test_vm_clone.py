@@ -101,6 +101,9 @@ class TestRun:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         with pytest.raises(
             errors.DeviceNotUnique,
             match="Device is not unique - XLAB-test-vm-clone - already exists",
@@ -127,7 +130,7 @@ class TestRun:
             vm_clone.run(module, rest_client)
 
     def test_run_when_VM_running(self, rest_client, create_module, mocker):
-        module = module = create_module(
+        module = create_module(
             params=dict(
                 cluster_instance=dict(
                     host="https://0.0.0.0",
@@ -143,14 +146,17 @@ class TestRun:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         with pytest.raises(
             errors.ScaleComputingError,
             match="Device is running and cannot be cloned, shutdown first.",
         ):
             vm_clone.run(module, rest_client)
 
-    def test_run_when_VM_cloned(self, rest_client, create_module):
-        module = module = create_module(
+    def test_run_when_VM_cloned(self, rest_client, create_module, mocker):
+        module = create_module(
             params=dict(
                 cluster_instance=dict(
                     host="https://0.0.0.0",
@@ -165,6 +171,12 @@ class TestRun:
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
         rest_client.create_record.return_value = {"taskTag": "1234"}
         rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_clone.run(module, rest_client)
         assert results == (
             True,
@@ -172,9 +184,9 @@ class TestRun:
         )
 
     def test_run_when_VM_cloned_with_tag_and_cloud_init(
-        self, rest_client, create_module
+        self, rest_client, create_module, mocker
     ):
-        module = module = create_module(
+        module = create_module(
             params=dict(
                 cluster_instance=dict(
                     host="https://0.0.0.0",
@@ -193,6 +205,12 @@ class TestRun:
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
         rest_client.create_record.return_value = {"taskTag": "1234"}
         rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_clone.run(module, rest_client)
         assert results == (
             True,
