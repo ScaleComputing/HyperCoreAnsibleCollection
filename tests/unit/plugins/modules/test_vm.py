@@ -69,6 +69,9 @@ class TestEnsureAbsent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         rest_client.delete_record.return_value = None
 
         result = vm.ensure_absent(module, rest_client)
@@ -101,6 +104,7 @@ class TestEnsureAbsent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -133,6 +137,7 @@ class TestEnsureAbsent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -193,6 +198,9 @@ class TestEnsureAbsent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         rest_client.delete_record.return_value = None
         rest_client.create_record.return_value = {
             "taskTag": 123,
@@ -229,6 +237,7 @@ class TestEnsureAbsent:
                     },
                     "operating_system": None,
                     "power_state": "started",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -261,6 +270,7 @@ class TestEnsureAbsent:
                     },
                     "operating_system": None,
                     "power_state": "started",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -352,6 +362,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         with pytest.raises(ScaleComputingError, match="not unique"):
             vm.ensure_present(module, rest_client)
 
@@ -431,7 +444,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         rest_client.create_record.return_value = {
             "taskTag": 123,
             "createdUUID": "",
@@ -464,6 +479,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -495,6 +511,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -620,7 +637,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         rest_client.create_record.return_value = {
             "taskTag": 123,
             "createdUUID": "",
@@ -686,6 +705,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -745,6 +765,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -864,7 +885,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         rest_client.create_record.return_value = {
             "taskTag": 123,
             "createdUUID": "",
@@ -916,6 +939,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -961,6 +985,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "snapshot_schedule": None,
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
                     "vcpu": 2,

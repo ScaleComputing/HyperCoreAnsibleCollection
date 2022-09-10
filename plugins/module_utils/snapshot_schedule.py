@@ -85,6 +85,13 @@ class SnapshotSchedule(PayloadMapper):
         )
         return snapshot_schedule_from_hypercore
 
+    @classmethod
+    def get_snapshot_schedule(cls, query, rest_client, must_exist=False):
+        hypercore_dict = rest_client.get_record(
+            "/rest/v1/VirDomainSnapshotSchedule", query, must_exist=must_exist
+        )
+        return cls.from_hypercore(hypercore_dict)
+
     def create_post_payload(self):
         return self._post_and_patch_payload()
 

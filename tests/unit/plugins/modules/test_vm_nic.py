@@ -242,7 +242,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (False, [], {"before": [], "after": []})
@@ -266,7 +268,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (False, [], {"before": [], "after": []})
@@ -300,7 +304,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (
@@ -375,7 +381,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (
@@ -444,7 +452,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (
@@ -505,7 +515,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (
@@ -600,7 +612,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (
@@ -695,7 +709,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (
@@ -793,7 +809,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (
@@ -888,7 +906,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (
@@ -983,7 +1003,9 @@ class TestEnsurePresentOrSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_nic.ensure_present_or_set(module=module, rest_client=rest_client)
 
         assert results == (
@@ -1130,6 +1152,9 @@ class TestEnsureAbsent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
 
         results = vm_nic.ensure_absent(module=module, rest_client=rest_client)
@@ -1155,6 +1180,9 @@ class TestEnsureAbsent:
         ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         rest_client.list_records.return_value = [self._get_test_vm()]
 

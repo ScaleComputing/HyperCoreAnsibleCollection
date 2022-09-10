@@ -55,39 +55,42 @@ class TestRun:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         result = vm_info.run(module, rest_client)
 
         assert result == [
-            dict(
-                uuid="id",  # No uuid when creating object from ansible
-                vm_name="VM-unique-name",
-                tags=["XLAB-test-tag1", "XLAB-test-tag2"],
-                description="desc",
-                memory=42,
-                power_state="started",
-                vcpu=2,
-                nics=[],
-                disks=[],
-                boot_devices=[],
-                attach_guest_tools_iso=False,
-                operating_system=None,
-                node_affinity={
+            {
+                "attach_guest_tools_iso": False,
+                "boot_devices": [],
+                "description": "desc",
+                "disks": [],
+                "memory": 42,
+                "nics": [],
+                "node_affinity": {
+                    "backup_node": {
+                        "backplane_ip": "",
+                        "lan_ip": "",
+                        "node_uuid": "",
+                        "peer_id": None,
+                    },
+                    "preferred_node": {
+                        "backplane_ip": "",
+                        "lan_ip": "",
+                        "node_uuid": "",
+                        "peer_id": None,
+                    },
                     "strict_affinity": False,
-                    "preferred_node": dict(
-                        node_uuid="",
-                        backplane_ip="",
-                        lan_ip="",
-                        peer_id=None,
-                    ),
-                    "backup_node": dict(
-                        node_uuid="",
-                        backplane_ip="",
-                        lan_ip="",
-                        peer_id=None,
-                    ),
                 },
-            ),
+                "operating_system": None,
+                "power_state": "started",
+                "snapshot_schedule": None,
+                "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
+                "uuid": "id",
+                "vcpu": 2,
+                "vm_name": "VM-unique-name",
+            }
         ]
 
     def test_run_records_absent(self, create_module, rest_client):
