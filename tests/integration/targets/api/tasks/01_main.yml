@@ -1,4 +1,13 @@
 ---
+# ----------------------------------Cleanup------------------------------------------------------------------------
+
+- name: Delete XLAB-jc1
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-jc1
+    state: absent
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+
 - name: Retrieve all VMs
   scale_computing.hypercore.api: &retrieve-all-vms
     action: get
@@ -41,13 +50,6 @@
       - result.record.0.tags == "Xlab,jc1,us1,integration-test3"
       - result.record.0.name == "XLAB-jc1"
 
-- name: Retrieve all VMs after creating a new resource
-  scale_computing.hypercore.api: *retrieve-all-vms
-  register: result
-- ansible.builtin.assert:
-    that:
-      - result.record | length == initial.record | length + 1
-
 - name: Update the VM (change description)
   scale_computing.hypercore.api:
     action: patch
@@ -81,6 +83,8 @@
     action: patch
     endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
   ignore_errors: True
+
+# ----------------------------------Cleanup------------------------------------------------------------------------
 
 - name: Delete the record
   scale_computing.hypercore.api: &delete-record
