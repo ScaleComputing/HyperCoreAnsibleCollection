@@ -69,6 +69,7 @@
     - ansible.builtin.assert:
         that:
           - output is changed
+          - output.msg == "Virtual machine - XLAB-vm_clone-CI_test - cloning complete to - XLAB-vm_clone_CI-test-clone."
 
     - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-cloud_init-clone
       scale_computing.hypercore.vm_clone:
@@ -86,6 +87,7 @@
     - ansible.builtin.assert:
         that:
           - output is changed
+          - output.msg == "Virtual machine - XLAB-vm_clone-CI_test - cloning complete to - XLAB-vm_clone_CI-test-cloud_init-clone."
 
     - name: Retrieve XLAB-vm_clone_CI-test-clone
       scale_computing.hypercore.vm_info:
@@ -133,6 +135,7 @@
     - ansible.builtin.assert:
         that:
           - output is changed
+          - output.msg == "Virtual machine - XLAB-demo-VM-smb-server - cloning complete to - XLAB-clone-while-running-test-clone."
 
     - name: Retrieve XLAB-clone-while-running-test-clone
       scale_computing.hypercore.vm_info:
@@ -159,6 +162,7 @@
     - ansible.builtin.assert:
         that:
           - output is not changed
+          - output.msg == "Virtual machine XLAB-vm_clone_CI-test-clone already exists."
 
     - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-cloud_init-clone Idempotence
       scale_computing.hypercore.vm_clone:
@@ -176,6 +180,7 @@
     - ansible.builtin.assert:
         that:
           - output is not changed
+          - output.msg == "Virtual machine XLAB-vm_clone_CI-test-cloud_init-clone already exists."
 
     - name: Clone XLAB-demo-VM-smb-server into XLAB-clone-while-running-test-clone Idempotence
       scale_computing.hypercore.vm_clone:
@@ -185,6 +190,7 @@
     - ansible.builtin.assert:
         that:
           - output is not changed
+          - output.msg == "Virtual machine XLAB-clone-while-running-test-clone already exists."
 # ----------------------------------Cleanup------------------------------------------------------------------------
 
     - name: Delete XLAB-vm_clone-CI_test end test
