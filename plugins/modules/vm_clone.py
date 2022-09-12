@@ -98,15 +98,13 @@ from ..module_utils.task_tag import TaskTag
 def run(module, rest_client):
     # Check if clone_vm already exists
     if VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client):
-        raise errors.DeviceNotUnique(module.params["vm_name"])
+        return (
+            False,
+            f"Virtual machine {module.params['vm_name']} already exists.",
+        )
     virtual_machine_obj = VM.get_or_fail(
         query={"name": module.params["source_vm_name"]}, rest_client=rest_client
     )[0]
-    # Check if cloned device state is running, can't clone if running
-    if virtual_machine_obj.power_state == "started":
-        raise errors.ScaleComputingError(
-            "Device is running and cannot be cloned, shutdown first."
-        )
     task = virtual_machine_obj.clone_vm(rest_client, module.params)
     TaskTag.wait_task(rest_client, task)
     task_status = TaskTag.get_task_status(rest_client, task)

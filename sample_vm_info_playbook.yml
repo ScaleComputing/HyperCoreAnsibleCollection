@@ -9,8 +9,7 @@
         host: 'https://10.5.11.30'
         username: 'admin'
         password: 'admin'
-      #uuid: '2e36ee02-5f97-4f93-a966-bde5beda796e'	#used to filter based on UUID of virtual device
-      #name: 'XLAB-POST-Domen'
+      vm_name: 'XLAB-demo-VM-smb-server'
     register: testout
  
   - name: output the HTTP request results
