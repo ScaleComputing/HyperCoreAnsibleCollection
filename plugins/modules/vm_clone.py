@@ -98,7 +98,10 @@ from ..module_utils.task_tag import TaskTag
 def run(module, rest_client):
     # Check if clone_vm already exists
     if VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client):
-        raise errors.DeviceNotUnique(module.params["vm_name"])
+        return (
+            False,
+            f"Virtual machine {module.params['vm_name']} already exists.",
+        )
     virtual_machine_obj = VM.get_or_fail(
         query={"name": module.params["source_vm_name"]}, rest_client=rest_client
     )[0]

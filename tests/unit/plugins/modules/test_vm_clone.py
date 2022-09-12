@@ -104,11 +104,9 @@ class TestRun:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
-        with pytest.raises(
-            errors.DeviceNotUnique,
-            match="Device is not unique - XLAB-test-vm-clone - already exists",
-        ):
-            vm_clone.run(module, rest_client)
+        result = vm_clone.run(module, rest_client)
+        print(result)
+        assert result == (False, "Virtual machine XLAB-test-vm-clone already exists.")
 
     def test_run_when_VM_not_found(self, rest_client, create_module):
         module = module = create_module(
@@ -126,32 +124,6 @@ class TestRun:
         with pytest.raises(
             errors.VMNotFound,
             match="Virtual machine - {'name': 'XLAB-test-vm'} - not found",
-        ):
-            vm_clone.run(module, rest_client)
-
-    def test_run_when_VM_running(self, rest_client, create_module, mocker):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_name="XLAB-test-vm-clone",
-                source_vm_name="XLAB-test-vm",
-                tags=None,
-            )
-        )
-        rest_client.list_records.side_effect = [[], [self._get_empty_vm_running()]]
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
-        ).return_value = None
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
-        ).return_value = None
-        with pytest.raises(
-            errors.ScaleComputingError,
-            match="Device is running and cannot be cloned, shutdown first.",
         ):
             vm_clone.run(module, rest_client)
 

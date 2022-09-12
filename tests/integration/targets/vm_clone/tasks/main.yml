@@ -4,6 +4,8 @@
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
 
+# ----------------------------------Cleanup------------------------------------------------------------------------
+
   block:
     - name: Delete XLAB-vm_clone-CI_test
       scale_computing.hypercore.vm: &delete-XLAB-vm_clone_CI-test
@@ -16,6 +18,8 @@
         - XLAB-vm_clone_CI-test-clone
         - XLAB-vm_clone_CI-test-cloud_init-clone
         - XLAB-clone-while-running-test-clone
+
+# ----------------------------------Job-----------------------------------------------------------------------------
 
     - name: Create XLAB-vm_clone-CI_test
       scale_computing.hypercore.api:
@@ -143,6 +147,45 @@
           - demo_server_info.records.0.disks | length == cloned_while_running_info.records.0.disks | length
           - demo_server_info.records.0.nics | length == cloned_while_running_info.records.0.nics | length
           - demo_server_info.records.0.node_affinity != cloned_while_running_info.records.0.node_affinity
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+    - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-clone Idempotence
+      scale_computing.hypercore.vm_clone:
+        vm_name: XLAB-vm_clone_CI-test-clone
+        source_vm_name: XLAB-vm_clone-CI_test
+        tags:
+          - new tag
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is not changed
+
+    - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-cloud_init-clone Idempotence
+      scale_computing.hypercore.vm_clone:
+        vm_name: XLAB-vm_clone_CI-test-cloud_init-clone
+        source_vm_name: XLAB-vm_clone-CI_test
+        cloud_init:
+          user_data: |
+            yaml: bla
+            is_valid: yes
+          meta_data: |
+            this_data:
+              - very
+              - meta
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is not changed
+
+    - name: Clone XLAB-demo-VM-smb-server into XLAB-clone-while-running-test-clone Idempotence
+      scale_computing.hypercore.vm_clone:
+        vm_name: XLAB-clone-while-running-test-clone
+        source_vm_name: XLAB-demo-VM-smb-server
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is not changed
+# ----------------------------------Cleanup------------------------------------------------------------------------
 
     - name: Delete XLAB-vm_clone-CI_test end test
       scale_computing.hypercore.vm: *delete-XLAB-vm_clone_CI-test
