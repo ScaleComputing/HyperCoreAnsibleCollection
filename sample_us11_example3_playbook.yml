@@ -7,7 +7,7 @@
           host: 'https://10.5.11.30'
           username: 'admin'
           password: 'admin'
-      vm_name: XLAB-demo-vm
+      vm_name: XLAB-POST-TEST
       items:
         - vlan: 1
           type: virtio
