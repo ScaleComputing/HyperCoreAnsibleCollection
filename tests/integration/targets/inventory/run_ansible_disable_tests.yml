@@ -1,0 +1,16 @@
+---
+- name: Run HyperCore inventory tests
+  hosts: localhost
+  gather_facts: False
+  environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  tasks:
+    - block:
+      - include_tasks: "{{ item }}"
+        with_fileglob:
+        - "tests/*_disable.yml"
+      # become: yes
+      # become_user: root

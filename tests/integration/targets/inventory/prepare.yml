@@ -1,0 +1,89 @@
+---
+# Create VMs needed for testing inventory plugin
+- name: Prepare test environment
+  hosts: localhost
+  gather_facts: False
+  environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  vars:
+    vm_data_doms:
+      - name: ci-inventory-vm0
+        tags: Xlab,ci-inventory
+        mem: 512100100
+        numVCPU: 1
+#        blockDevs:
+#          - type: VIRTIO_DISK
+#            capacity: 8100100100
+#        netDevs:
+#          - type: RTL8139
+#            vlan: 0
+#            connected: true
+      - name: ci-inventory-vm1
+        tags: Xlab,ci-inventory,ansible_disable,ansible_host=10.0.0.1,ansible_user=first,ansible_port=33
+        mem: 512100100
+        numVCPU: 1
+      - name: ci-inventory-vm2
+        tags: Xlab,ci-inventory,ansible_disable,ansible_enable,ansible_host=10.0.0.2
+        mem: 512100100
+        numVCPU: 1
+      - name: ci-inventory-vm3
+        tags: Xlab,ci-inventory,ansible_enable,ansible_host=10.0.0.3,ansible_ssh_private_key_file=that_file.txt
+        mem: 512100100
+        numVCPU: 1
+      - name: ci-inventory-vm4
+        tags: Xlab,ci-inventory,ansible_enable,ansible_group=grp0,ansible_host=10.0.0.4
+        mem: 512100100
+        numVCPU: 1
+      - name: ci-inventory-vm5
+        tags: Xlab,ci-inventory,ansible_enable,ansible_group=grp1,ansible_ssh_private_key_file=this_file.txt
+        mem: 512100100
+        numVCPU: 1
+      - name: ci-inventory-vm6
+        tags: Xlab,ci-inventory,ansible_enable,ansible_group=grp0,ansible_group=grp1,ansible_user=second
+        mem: 512100100
+        numVCPU: 1
+
+  tasks:
+    # ===============================================================================
+    - name: Create VM {{ vm_data_dom.name }}
+      loop: "{{ vm_data_doms }}"
+      loop_control:
+        loop_var: vm_data_dom
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/VirDomain
+        data:
+          options:
+            attachGuestToolsISO: true
+          dom: "{{ vm_data_dom }}"
+#            name: ci-inventory-vm0
+#            tags: Xlab,ci-inventory,ansible-enable=0
+#            mem: 512100100
+#            numVCPU: 1
+#            blockDevs:
+#              - type: VIRTIO_DISK
+#                capacity: 8100100100
+#            netDevs:
+#              - type: RTL8139
+#                vlan: 0
+#                connected: true
+      register: vms_created
+
+    - name: Check VMs were created
+      loop: "{{ vms_created.results }}"
+      loop_control:
+        loop_var: vm_created
+      ansible.builtin.assert:
+        that:
+          - vm_created is succeeded
+          - vm_created is changed
+
+    - name: Wait for VM0 to be created
+      loop: "{{ vms_created.results }}"
+      loop_control:
+        loop_var: vm_created
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{vm_created.record}}"

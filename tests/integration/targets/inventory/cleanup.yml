@@ -1,0 +1,43 @@
+---
+- name: Cleanup test environment
+  hosts: localhost
+  gather_facts: False
+  environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  tasks:
+    - name: List all VMs
+      scale_computing.hypercore.vm_info:
+      register: vms_result
+
+    - name: Initialize var
+      ansible.builtin.set_fact:
+        vms_to_remove: []
+
+    - name: Find VMs to remove
+      loop: "{{ vms_result.records }}"
+      loop_control:
+        loop_var: vm
+      when: '"ci-inventory" in vm.tags'
+      # ansible.builtin.debug:
+      #   msg: tags={{ vm.tags }}
+      ansible.builtin.set_fact:
+        vms_to_remove: "{{ vms_to_remove + [vm] }}"
+
+    - name: Show vms_to_remove
+      loop: "{{ vms_to_remove }}"
+      loop_control:
+        loop_var: vm
+      ansible.builtin.debug:
+        msg: vm={{ vm }}
+
+    - name: Remove VMs
+      loop: "{{ vms_to_remove }}"
+      loop_control:
+        loop_var: vm
+      scale_computing.hypercore.api:
+        action: delete
+        endpoint: /rest/v1/VirDomain/{{ vm.uuid }}
+     # TODO wait on TaskTags, if needed

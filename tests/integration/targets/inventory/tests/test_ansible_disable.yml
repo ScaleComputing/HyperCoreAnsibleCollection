@@ -1,0 +1,58 @@
+- name: Check vmX in inventory
+  ansible.builtin.debug:
+    msg: "hostvars.keys = {{ hostvars.keys() }}"
+
+- name: Check vmX in inventory
+  ansible.builtin.assert:
+    that:
+      - "{{ 'localhost' in hostvars }}"
+      - "{{ 'ci-inventory-vm0' in hostvars }}"
+      - "{{ 'ci-inventory-vm1' not in hostvars }}"
+      - "{{ 'ci-inventory-vm2' not in hostvars }}"
+      - "{{ 'ci-inventory-vm3' in hostvars }}"
+      - "{{ 'ci-inventory-vm4' in hostvars }}"
+      - "{{ 'ci-inventory-vm5' in hostvars }}"
+      - "{{ 'ci-inventory-vm6' in hostvars }}"
+
+- name: Check hosts in inventory
+  ansible.builtin.assert:
+    that:
+      - "{{ hostvars['ci-inventory-vm0']['ansible_host'] == 'ci-inventory-vm0' }}"
+      - "{{ hostvars['ci-inventory-vm3']['ansible_host'] == '10.0.0.3' }}"
+      - "{{ hostvars['ci-inventory-vm4']['ansible_host'] == '10.0.0.4' }}"
+      - "{{ hostvars['ci-inventory-vm5']['ansible_host'] == 'ci-inventory-vm5' }}"
+      - "{{ hostvars['ci-inventory-vm6']['ansible_host'] == 'ci-inventory-vm6' }}"
+
+- name: Check port in inventory
+  ansible.builtin.assert:
+    that:
+      - "{{ hostvars['ci-inventory-vm0']['ansible_port'] == 22 }}"
+      - "{{ hostvars['ci-inventory-vm3']['ansible_port'] == 22 }}"
+      - "{{ hostvars['ci-inventory-vm4']['ansible_port'] == 22 }}"
+      - "{{ hostvars['ci-inventory-vm5']['ansible_port'] == 22 }}"
+      - "{{ hostvars['ci-inventory-vm6']['ansible_port'] == 22 }}"
+
+- name: Check user in inventory
+  ansible.builtin.assert:
+    that:
+      - "{{ hostvars['ci-inventory-vm0']['ansible_user'] == 'root' }}"
+      - "{{ hostvars['ci-inventory-vm3']['ansible_user'] == 'root' }}"
+      - "{{ hostvars['ci-inventory-vm4']['ansible_user'] == 'root' }}"
+      - "{{ hostvars['ci-inventory-vm5']['ansible_user'] == 'root' }}"
+      - "{{ hostvars['ci-inventory-vm6']['ansible_user'] == 'second' }}"
+
+- name: Check groups in inventory
+  ansible.builtin.assert:
+    that:
+      - "{{ 'ci-inventory-vm0' in hostvars['ci-inventory-vm0']['groups']['ungrouped'] }}"
+      - "{{ 'ci-inventory-vm3' in hostvars['ci-inventory-vm3']['groups']['ungrouped'] }}"
+      - "{{ 'ci-inventory-vm4' in hostvars['ci-inventory-vm4']['groups']['grp0'] }}"
+      - "{{ 'ci-inventory-vm5' in hostvars['ci-inventory-vm5']['groups']['grp1'] }}"
+      - "{{ 'ci-inventory-vm6' in hostvars['ci-inventory-vm6']['groups']['grp0'] }}"
+      - "{{ 'ci-inventory-vm6' in hostvars['ci-inventory-vm6']['groups']['grp1'] }}"
+
+- name: Check groups in inventory
+  ansible.builtin.assert:
+    that:
+      - "{{ hostvars['ci-inventory-vm3']['ansible_ssh_private_key_file'] == 'that_file.txt'}}"
+      - "{{ hostvars['ci-inventory-vm5']['ansible_ssh_private_key_file'] == 'this_file.txt' }}"
