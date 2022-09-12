@@ -86,6 +86,9 @@ class TestGet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         rest_client.get_record.return_value = remote_cluster_dict
         rest_client.list_records.side_effect = [
             [hypercore_data],

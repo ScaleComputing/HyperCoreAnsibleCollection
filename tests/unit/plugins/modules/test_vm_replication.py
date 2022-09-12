@@ -89,6 +89,9 @@ class TestEnabledOrReenabled:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (True, after, {"before": None, "after": after})
 
@@ -169,6 +172,9 @@ class TestEnabledOrReenabled:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (True, after, {"before": before, "after": after})
 
@@ -231,6 +237,9 @@ class TestEnabledOrReenabled:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
 
@@ -276,6 +285,9 @@ class TestDisabled:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
 
@@ -318,6 +330,9 @@ class TestDisabled:
         rest_client.list_records.side_effect = [[vm_dict], []]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
@@ -398,6 +413,9 @@ class TestDisabled:
         rest_client.update_record.return_value = {"taskTag": "1234"}
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (True, after, {"before": before, "after": after})

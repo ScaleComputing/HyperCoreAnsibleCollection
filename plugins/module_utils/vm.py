@@ -23,6 +23,7 @@ from ..module_utils.utils import (
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
 from ..module_utils.errors import ScaleComputingError
+from ..module_utils.snapshot_schedule import SnapshotSchedule
 
 # FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE and FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE are mappings for how
 # states are stored in python/ansible and how are they stored in hypercore
@@ -112,7 +113,7 @@ class VM(PayloadMapper):
         attach_guest_tools_iso=False,
         operating_system=None,
         node_affinity=None,
-        snapshot_schedule_uuid=None,
+        snapshot_schedule=None,
     ):
 
         self.operating_system = operating_system
@@ -129,7 +130,7 @@ class VM(PayloadMapper):
         self.boot_devices = boot_devices or []
         self.attach_guest_tools_iso = attach_guest_tools_iso
         self.node_affinity = node_affinity
-        self.snapshot_schedule_uuid = snapshot_schedule_uuid
+        self.snapshot_schedule = snapshot_schedule  # name of the snapshot_schedule
 
     @property
     def nic_list(self):
@@ -193,6 +194,10 @@ class VM(PayloadMapper):
             ),  # for vm_node_affinity diff check,
         )
 
+        snapshot_schedule = SnapshotSchedule.get_snapshot_schedule(
+            query={"uuid": vm_dict["snapshotScheduleUUID"]}, rest_client=rest_client
+        )
+
         return cls(
             uuid=vm_dict["uuid"],  # No uuid when creating object from ansible
             node_uuid=vm_dict["nodeUUID"],  # Needed in vm_node_affinity
@@ -210,7 +215,7 @@ class VM(PayloadMapper):
             attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", ""),
             operating_system=vm_dict["operatingSystem"],
             node_affinity=node_affinity,
-            snapshot_schedule_uuid=vm_dict["snapshotScheduleUUID"],
+            snapshot_schedule=snapshot_schedule.name if snapshot_schedule else None,
         )
 
     @classmethod
@@ -369,6 +374,7 @@ class VM(PayloadMapper):
             ],
             attach_guest_tools_iso=self.attach_guest_tools_iso,
             node_affinity=self.node_affinity,
+            snapshot_schedule=self.snapshot_schedule,
         )
 
     # search by vlan or mac as specified in US-11:
@@ -510,7 +516,7 @@ class VM(PayloadMapper):
                 self.boot_devices == other.boot_devices,
                 self.attach_guest_tools_iso == other.attach_guest_tools_iso,
                 self.node_affinity == other.node_affinity,
-                self.snapshot_schedule_uuid == other.snapshot_schedule_uuid,
+                self.snapshot_schedule == other.snapshot_schedule,
             )
         )
 

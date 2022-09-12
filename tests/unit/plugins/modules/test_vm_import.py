@@ -183,7 +183,9 @@ class TestRun:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         with pytest.raises(
             errors.DeviceNotUnique,
             match="Device is not unique - XLAB-test-vm - already exists",

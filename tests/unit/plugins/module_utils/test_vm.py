@@ -47,7 +47,8 @@ class TestVM:
             operating_system=None,
         )
 
-        assert vm == VM.from_ansible(vm_dict)
+        vm_from_ansible = VM.from_ansible(vm_dict)
+        assert vm == vm_from_ansible
 
     def test_vm_from_hypercore_dict_is_not_none(self, rest_client, mocker):
         vm = VM(
@@ -79,7 +80,7 @@ class TestVM:
                     peer_id=None,
                 ),
             },
-            snapshot_schedule_uuid="9238175f-2d6a-489f-9157-fa6345719b3b",
+            snapshot_schedule=None,
         )
 
         vm_dict = dict(
@@ -105,6 +106,10 @@ class TestVM:
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
 
         vm_from_hypercore = VM.from_hypercore(vm_dict, rest_client)
@@ -206,6 +211,7 @@ class TestVM:
                     "peer_id": 2,
                 },
             },
+            snapshot_schedule=None,
         )
 
     def test_find_disk(self):
@@ -361,10 +367,13 @@ class TestVM:
                     peer_id=None,
                 ),
             },
-            snapshot_schedule_uuid="snapshot_schedule_id",
+            snapshot_schedule=None,
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         vm_by_name = VM.get_by_name(ansible_dict, rest_client)
         assert vm == vm_by_name
@@ -541,6 +550,9 @@ class TestVM:
         ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         hypercore_dict = rest_client.list_records.return_value[0]
         actual = VM.from_hypercore(
@@ -843,6 +855,9 @@ class TestNic:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
         virtual_machine = VM.get(
             query={"name": module.params["vm_name"]}, rest_client=rest_client
@@ -898,6 +913,9 @@ class TestNic:
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
         rest_client.delete_record.return_value = {"taskTag": "1234"}
@@ -965,6 +983,9 @@ class TestNic:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
         rest_client.delete_record.side_effect = [
             {"taskTag": "1234"},
@@ -979,6 +1000,9 @@ class TestNic:
         assert results is True
 
     def test_find_nic_vlan(self, rest_client, mocker):
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         virtual_machine = self._get_test_vm(rest_client, mocker)
         results = virtual_machine.find_nic(vlan=1)
         assert results[1] is (None)
@@ -989,9 +1013,11 @@ class TestNic:
         assert results[0].connected is True
 
     def test_find_nic_vlan_and_vlan_new(self, rest_client, mocker):
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         virtual_machine = self._get_test_vm(rest_client, mocker)
         results = virtual_machine.find_nic(vlan=2, vlan_new=1)
-        print(results)
         assert results[0].vlan == 2
         assert results[0].mac == "12-34-56-78-CD"
         assert results[0].uuid == "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"
@@ -1004,6 +1030,9 @@ class TestNic:
         assert results[1].connected is True
 
     def test_find_nic_mac(self, rest_client, mocker):
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         virtual_machine = self._get_test_vm(rest_client, mocker)
         results = virtual_machine.find_nic(mac="12-34-56-78-CD")
         print(results)
@@ -1014,6 +1043,9 @@ class TestNic:
         assert results[0].connected is True
 
     def test_find_nic_mac_and_mac_new(self, rest_client, mocker):
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         virtual_machine = self._get_test_vm(rest_client, mocker)
         results = virtual_machine.find_nic(
             mac="12-34-56-78-CD", mac_new="12-34-56-78-AB"
@@ -1105,6 +1137,9 @@ class TestVMExport:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         virtual_machine = VM.from_hypercore(smb_dict, rest_client)
         rest_client.list_records.return_value = [smb_dict]
         rest_client.create_record.return_value = {"taskTag": "12345"}
@@ -1185,6 +1220,9 @@ class TestVMImport:
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         virtual_machine = VM.from_hypercore(smb_dict, rest_client)
         rest_client.list_records.return_value = [smb_dict]
@@ -1302,6 +1340,9 @@ class TestVMClone:
         rest_client.create_record.return_value = {"taskTag": "1234"}
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         virtual_machine = VM.get_or_fail(
             query={"name": "XLAB-test-vm-clone"}, rest_client=rest_client
