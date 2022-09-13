@@ -193,12 +193,7 @@ def run(module, rest_client):
     )
 
     if strict_affinity is True and preferred_node_uuid == "" and backup_node_uuid == "":
-        msg = "Invalid set of parameters - strict affinity set to true and nodes not provided."
-        return (
-            False,
-            msg,
-            dict(before=None, after=None),
-        )
+        raise errors.VMInvalidParams
 
     if (
         vm.node_affinity["strict_affinity"] == strict_affinity

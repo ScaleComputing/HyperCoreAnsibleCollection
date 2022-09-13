@@ -11,6 +11,7 @@ from ansible_collections.scale_computing.hypercore.plugins.modules import (
 )
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.node import Node
+from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -394,12 +395,12 @@ class TestRun:
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.RestClient.update_record"
         )
 
-        changed, msg, diff = vm_node_affinity.run(module, rest_client)
+        with pytest.raises(errors.VMInvalidParams) as exc:
+            vm_node_affinity.run(module, rest_client)
 
-        assert changed is False
         assert (
-            msg
-            == "Invalid set of parameters - strict affinity set to true and nodes not provided."
+            "Invalid set of parameters - strict affinity set to true and nodes not provided."
+            in str(exc.value)
         )
 
     def test_run_no_change(self, create_module, rest_client, mocker):
