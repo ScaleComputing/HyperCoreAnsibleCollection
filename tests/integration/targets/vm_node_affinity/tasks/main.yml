@@ -159,6 +159,31 @@
           - output.records[0].node_affinity.preferred_node.node_uuid == changed.records[0].node_affinity.preferred_node.node_uuid
           - output.records[0].node_affinity.backup_node.node_uuid == changed.records[0].node_affinity.backup_node.node_uuid
 
+    - name: Set VM node affinity to false, nodes not provided - idempotence
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: false
+        preferred_node:
+          node_uuid: Null
+        backup_node:
+          node_uuid: Null
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is not changed
+          - "'Node affinity already set to desired values' in output.msg"
+
+    - name: Check that affinity is not changed - idempotence
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == changed.records[0].node_affinity.preferred_node.node_uuid
+          - output.records[0].node_affinity.backup_node.node_uuid == changed.records[0].node_affinity.backup_node.node_uuid
+
     # ===================================================================
     # Check empty string for preferred_node/backup_node clears preferred_node/backup_node.
     - name: Set VM node affinity - empty string
@@ -185,7 +210,32 @@
           - output.records[0].node_affinity.strict_affinity == false
           - output.records[0].node_affinity.preferred_node.node_uuid == ""
           - output.records[0].node_affinity.backup_node.node_uuid == ""
-    
+
+    - name: Set VM node affinity - empty string - idempotence
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: false
+        preferred_node:
+          node_uuid: ""
+        backup_node:
+          node_uuid: ""
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is not changed
+          - "'Node affinity already set to desired values' in output.msg"
+
+    - name: Check that affinity is not changed - idempotence
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
     # ===================================================================
     # Strict affinity true with empty nodes - this is forbidden, such VM could not be started.
     - name: Set strict_affinity to true, nodes not provided
