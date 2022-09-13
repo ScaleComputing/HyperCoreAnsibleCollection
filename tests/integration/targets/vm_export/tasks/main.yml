@@ -5,12 +5,15 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   block:
+# ----------------------------------Cleanup------------------------------------------------------------------------
     - name: Delete XLAB-export-test-integration
       scale_computing.hypercore.vm: &delete-XLAB-export-test-integration
         vm_name: XLAB-export-test-integration
         state: absent
         memory: 536870912
         vcpu: 2
+
+# ----------------------------------Job-----------------------------------------------------------------------------
 
     - name: Create XLAB-export-test-integration
       scale_computing.hypercore.api:
@@ -74,6 +77,26 @@
         that:
           - output is changed
           - output.msg == "Virtual machine - XLAB-export-test-integration - export complete."
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+# User controls SMB, we can't check if VM is already exported, idempotence check will always be changed is TRUE
+
+    - name: Export XLAB-export-test-integration to SMB Idempotence
+      scale_computing.hypercore.vm_export:
+        vm_name: XLAB-export-test-integration
+        smb:
+          server: "10.5.11.179"
+          path: /users/test
+          username: example1
+          password: badpass
+          file_name: my_file.xml
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+          - output.msg == "Virtual machine - XLAB-export-test-integration - export complete."
+
+# ----------------------------------Cleanup------------------------------------------------------------------------
 
     - name: Delete XLAB-export-test-integration
       scale_computing.hypercore.vm: *delete-XLAB-export-test-integration

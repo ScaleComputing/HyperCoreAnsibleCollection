@@ -175,7 +175,7 @@ def run(module, rest_client):
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )
     if len(virtual_machine_obj_list) > 0:
-        raise errors.DeviceNotUnique(module.params["vm_name"])
+        return False, f"Virtual machine - {module.params['vm_name']} - already exists."
     task = VM.import_vm(rest_client, module.params)
     TaskTag.wait_task(rest_client, task)
     task_status = TaskTag.get_task_status(rest_client, task)
