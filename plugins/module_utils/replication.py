@@ -84,8 +84,8 @@ class Replication(PayloadMapper):
         obj.remote_cluster = ansible_data.get("remote_cluster", None)
         return obj
 
-    @classmethod
-    def find_available_cluster_connection_or_fail(cls, rest_client, ansible_dict):
+    @staticmethod
+    def find_available_cluster_connection_or_fail(rest_client, ansible_dict):
         # Find the right cluster connection or fail!
         records = rest_client.list_records(
             endpoint="/rest/v1/RemoteClusterConnection",
