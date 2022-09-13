@@ -66,6 +66,206 @@ class TestGetNodeUuid:
 
         assert preferred_node_uuid == "preferred_node_uuid"
 
+    def test_get_node_uuid_empty_string(self, create_module, rest_client, mocker):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="VM-name-unique",
+                strict_affinity=True,
+                preferred_node={
+                    "node_uuid": "",
+                    "backplane_ip": "",
+                    "lan_ip": "",
+                    "peer_id": None,
+                },
+                backup_node={
+                    "node_uuid": "",
+                    "backplane_ip": "",
+                    "lan_ip": "",
+                    "peer_id": None,
+                },
+            ),
+        )
+
+        preferred_node_uuid = vm_node_affinity.get_node_uuid(
+            module, "preferred_node", rest_client
+        )
+
+        assert preferred_node_uuid == ""
+
+    def test_get_node_uuid_none(self, create_module, rest_client, mocker):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="VM-name-unique",
+                strict_affinity=True,
+                preferred_node={
+                    "node_uuid": None,
+                    "backplane_ip": None,
+                    "lan_ip": None,
+                    "peer_id": None,
+                },
+                backup_node=None,
+            ),
+        )
+
+        preferred_node_uuid = vm_node_affinity.get_node_uuid(
+            module, "preferred_node", rest_client
+        )
+        backup_node_uuid = vm_node_affinity.get_node_uuid(
+            module, "backup_node", rest_client
+        )
+
+        assert preferred_node_uuid is None
+        assert backup_node_uuid is None
+
+    def test_set_parameters_for_payload(self, create_module, rest_client, mocker):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="VM-name-unique",
+                strict_affinity=True,
+                preferred_node={
+                    "node_uuid": "preferred_node_uuid",
+                    "backplane_ip": "preferred_node_backplane_ip",
+                    "lan_ip": "preferred_node_lab_ip",
+                    "peer_id": 1,
+                },
+                backup_node={
+                    "node_uuid": "backup_node_uuid",
+                    "backplane_ip": "backup_node_backplane_ip",
+                    "lan_ip": "backup_node_lab_ip",
+                    "peer_id": 2,
+                },
+            ),
+        )
+
+        vm = VM(
+            uuid="vm_uuid",
+            node_uuid="vm_node_uuid",
+            name=None,
+            tags=None,
+            description=None,
+            memory=None,
+            power_state=None,
+            vcpu=None,
+            nics=None,
+            disks=None,
+            boot_devices=None,
+            attach_guest_tools_iso=None,
+            operating_system=None,
+            node_affinity=dict(
+                strict_affinity=False,
+                preferred_node=dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
+                backup_node=dict(
+                    node_uuid=None,
+                    backplane_ip=None,
+                    lan_ip=None,
+                    peer_id=None,
+                ),
+            ),
+        )
+
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.get_node_uuid"
+        ).side_effect = ["preferred_node_uuid", "backup_node_uuid"]
+
+        (
+            strict_affinity,
+            preferred_node_uuid,
+            backup_node_uuid,
+        ) = vm_node_affinity.set_parameters_for_payload(module, vm, rest_client)
+
+        assert strict_affinity is True
+        assert preferred_node_uuid == "preferred_node_uuid"
+        assert backup_node_uuid == "backup_node_uuid"
+
+    def test_set_parameters_for_payload_nodes_not_provided(
+        self, create_module, rest_client, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="VM-name-unique",
+                strict_affinity=True,
+                preferred_node={
+                    "node_uuid": None,
+                },
+                backup_node={
+                    "node_uuid": None,
+                },
+            ),
+        )
+
+        vm = VM(
+            uuid="vm_uuid",
+            node_uuid="vm_node_uuid",
+            name=None,
+            tags=None,
+            description=None,
+            memory=None,
+            power_state=None,
+            vcpu=None,
+            nics=None,
+            disks=None,
+            boot_devices=None,
+            attach_guest_tools_iso=None,
+            operating_system=None,
+            node_affinity=dict(
+                strict_affinity=False,
+                preferred_node=dict(
+                    node_uuid="preferred_node_uuid",
+                    backplane_ip="preferred_backplane_ip",
+                    lan_ip="preffered_lan_ip",
+                    peer_id=1,
+                ),
+                backup_node=dict(
+                    node_uuid="backup_node_uuid",
+                    backplane_ip="backup_backplane_ip",
+                    lan_ip="backup_lan_ip",
+                    peer_id=2,
+                ),
+            ),
+        )
+
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.get_node_uuid"
+        ).side_effect = [None, None]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.Node.get_node"
+        )
+
+        (
+            strict_affinity,
+            preferred_node_uuid,
+            backup_node_uuid,
+        ) = vm_node_affinity.set_parameters_for_payload(module, vm, rest_client)
+
+        assert strict_affinity is True
+        assert preferred_node_uuid == "preferred_node_uuid"
+        assert backup_node_uuid == "backup_node_uuid"
+
 
 class TestRun:
     def test_run(self, create_module, rest_client, mocker):
@@ -92,7 +292,9 @@ class TestRun:
                 },
             ),
         )
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.set_parameters_for_payload"
+        ).return_value = (True, "preferred_node_uuid", "backup_node_uuid")
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.VM.get_by_name"
         ).return_value = VM(
@@ -125,12 +327,6 @@ class TestRun:
                 ),
             ),
         )
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.get_node_uuid"
-        ).side_effect = [
-            "preferred_node_uuid",
-            "backup_node_uuid",
-        ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.RestClient.update_record"
         )
@@ -140,7 +336,7 @@ class TestRun:
         assert changed is True
         assert msg == "Node affinity successfully updated."
 
-    def test_run_nodes_not_provided(self, create_module, rest_client, mocker):
+    def test_run_invalid_parameters(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -150,6 +346,12 @@ class TestRun:
                 ),
                 vm_name="VM-name-unique",
                 strict_affinity=True,
+                preferred_node={
+                    "node_uuid": None,
+                },
+                backup_node={
+                    "node_uuid": None,
+                },
             ),
         )
 
@@ -172,97 +374,32 @@ class TestRun:
             node_affinity=dict(
                 strict_affinity=False,
                 preferred_node=dict(
-                    node_uuid=None,
-                    backplane_ip=None,
-                    lan_ip=None,
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
                     peer_id=None,
                 ),
                 backup_node=dict(
-                    node_uuid=None,
-                    backplane_ip=None,
-                    lan_ip=None,
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
                     peer_id=None,
                 ),
             ),
         )
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.get_node_uuid"
-        ).side_effect = [
-            "",
-            "",
-        ]
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.set_parameters_for_payload"
+        ).return_value = (True, "", "")
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.RestClient.update_record"
         )
 
         changed, msg, diff = vm_node_affinity.run(module, rest_client)
 
-        assert changed is True
-        assert msg == "No nodes provided, VM's preferredNodeUUID set to it's nodeUUID."
-
-    def test_run_nodes_not_provided_vm_node_uuid_not_set(
-        self, create_module, rest_client, mocker
-    ):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_name="VM-name-unique",
-                strict_affinity=True,
-            ),
-        )
-
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.VM.get_by_name"
-        ).return_value = VM(
-            uuid="vm_uuid",
-            node_uuid="",
-            name=None,
-            tags=None,
-            description=None,
-            memory=None,
-            power_state=None,
-            vcpu=None,
-            nics=None,
-            disks=None,
-            boot_devices=None,
-            attach_guest_tools_iso=None,
-            operating_system=None,
-            node_affinity=dict(
-                strict_affinity=False,
-                preferred_node=dict(
-                    node_uuid=None,
-                    backplane_ip=None,
-                    lan_ip=None,
-                    peer_id=None,
-                ),
-                backup_node=dict(
-                    node_uuid=None,
-                    backplane_ip=None,
-                    lan_ip=None,
-                    peer_id=None,
-                ),
-            ),
-        )
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.get_node_uuid"
-        ).side_effect = [
-            "",
-            "",
-        ]
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.RestClient.update_record"
-        )
-
-        changed, msg, diff = vm_node_affinity.run(module, rest_client)
-
-        assert changed is True
+        assert changed is False
         assert (
             msg
-            == "No nodes provided and VM's nodeUUID not set, strict affinity set to false"
+            == "Invalid set of parameters - strict affinity set to true and nodes not provided."
         )
 
     def test_run_no_change(self, create_module, rest_client, mocker):
@@ -323,11 +460,8 @@ class TestRun:
             ),
         )
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.get_node_uuid"
-        ).side_effect = [
-            "preferred_node_uuid",
-            "backup_node_uuid",
-        ]
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.set_parameters_for_payload"
+        ).return_value = (True, "preferred_node_uuid", "backup_node_uuid")
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.RestClient.update_record"
         )

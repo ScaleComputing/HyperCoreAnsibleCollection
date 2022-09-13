@@ -1,0 +1,76 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Delete XLAB-vm_node_affinity_CI_test
+      scale_computing.hypercore.vm: &delete-XLAB-vm_node_affinity_CI_test
+        vm_name: XLAB-vm_node_affinity_CI_test
+        state: absent
+      register: result
+
+    - name: Create XLAB-vm_node_affinity_CI_test
+      scale_computing.hypercore.vm:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        description: Demo VM
+        power_state: stop
+        state: present
+        tags:
+          - 'Xlab'
+          - 'CI'
+          - 'test'
+        memory: 536870912
+        vcpu: 2
+        disks: [ ]
+        nics: [ ]
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+
+    - name: Check that affinity is false by default
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    - name: List all nodes
+      scale_computing.hypercore.node_info:
+      register: nodes
+    - ansible.builtin.assert:
+        that:
+          - nodes.records != []
+
+    - name: Set VM node affinity by backplane IP and peer ID - check mode
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: true
+        preferred_node:
+          backplane_ip: "{{ nodes.records[0].backplane_ip }}"
+        backup_node:
+          peer_id: "{{ nodes.records[0].peer_id }}"
+      check_mode: yes
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+          - "'Node affinity successfully updated' in output.msg"
+
+    - name: Check that affinity isn't changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    - name: Delete XLAB-vm_node_affinity_CI_test
+      scale_computing.hypercore.vm: *delete-XLAB-vm_node_affinity_CI_test
