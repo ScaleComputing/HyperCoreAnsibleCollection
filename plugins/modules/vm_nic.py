@@ -188,7 +188,8 @@ def ensure_present_or_set(module, rest_client):
                 changed, before, after = Nic.send_update_nic_request_to_hypercore(
                     rest_client, nic, existing_hc3_nic, before, after
                 )
-            else:  # Create new
+            # Create new
+            elif not existing_hc3_nic and not existing_hc3_nic_with_new:
                 changed, before, after = Nic.send_create_nic_request_to_hypercore(
                     rest_client=rest_client, new_nic=nic, before=before, after=after
                 )
@@ -215,9 +216,12 @@ def ensure_absent(module, rest_client):
     before = []
     after = []
     changed = False
-    virtual_machine_obj_list = VM.get_or_fail(
+    virtual_machine_obj_list = VM.get(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )
+    # VM already absent
+    if len(virtual_machine_obj_list) == 0:
+        return changed, after, dict(before=before, after=after)
     if module.params["items"]:
         for nic in module.params["items"]:
             nic["vm_uuid"] = virtual_machine_obj_list[0].uuid
