@@ -186,11 +186,11 @@ class TestRun:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
-        with pytest.raises(
-            errors.DeviceNotUnique,
-            match="Device is not unique - XLAB-test-vm - already exists",
-        ):
-            vm_import.run(module, rest_client)
+        results = vm_import.run(module, rest_client)
+        assert results == (
+            False,
+            f"Virtual machine - {module.params['vm_name']} - already exists.",
+        )
 
     def test_run_when_imported_VM_not_exists_but_import_failed(
         self, create_module, rest_client
