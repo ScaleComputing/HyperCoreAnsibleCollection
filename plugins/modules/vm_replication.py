@@ -70,7 +70,7 @@ record:
   returned: success
   type: dict
   sample:
-    remote_cluster: "07a2a68a-0afa-4718-9c6f-00a39d08b67e" #TODO: change when cluster_info is implemented
+    remote_cluster: "cluster name example"
     vm_name: demo-vm
     state: "enabled"
 """
@@ -125,7 +125,7 @@ def ensure_enabled_or_reenabled(module, rest_client):
             raise errors.ReplicationNotUnique(virtual_machine_obj_list[0].name)
     else:  # Create replication
         cluster_connection = Replication.find_available_cluster_connection_or_fail(
-            rest_client
+            rest_client, module.params
         )
         new_replication_obj = Replication.from_ansible(
             ansible_data=module.params,

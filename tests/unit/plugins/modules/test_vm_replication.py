@@ -59,7 +59,10 @@ class TestEnabledOrReenabled:
             "remoteNodeIPs": [],
             "remoteNodeUUIDs": [],
         }
-        connection_dict = {"uuid": "connection-uuid"}
+        connection_dict = {
+            "uuid": "connection-uuid",
+            "remoteClusterInfo": {"clusterName": "remote-cluster-name"},
+        }
         module = create_module(
             params=dict(
                 cluster_instance=dict(

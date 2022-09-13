@@ -85,7 +85,8 @@ class Replication(PayloadMapper):
         return obj
 
     @classmethod
-    def find_available_cluster_connection_or_fail(cls, rest_client):
+    def find_available_cluster_connection_or_fail(cls, rest_client, ansible_dict):
+        # Find the right cluster connection or fail!
         records = rest_client.list_records(
             endpoint="/rest/v1/RemoteClusterConnection",
             query=None,
@@ -94,7 +95,20 @@ class Replication(PayloadMapper):
             raise errors.ClusterConnectionNotFound(
                 "replication.py - find_available_cluster_connection_or_fail()"
             )
-        return records[0]  # Return first available
+        if (
+            "remote_cluster" in ansible_dict
+            and ansible_dict["remote_cluster"] is not None
+        ):
+            # Try to find the correct cluster connection
+            for cluster_connection in records:
+                if (
+                    cluster_connection["remoteClusterInfo"]["clusterName"].upper()
+                    == ansible_dict["remote_cluster"].upper()
+                ):
+                    return cluster_connection
+        raise errors.ScaleComputingError(
+            f"Cluster connection to remote cluster {ansible_dict['remote_cluster']} does not exist, unable to create replication."
+        )
 
     def to_hypercore(self):
         replication_dict = {
