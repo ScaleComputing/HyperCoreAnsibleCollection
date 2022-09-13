@@ -243,8 +243,10 @@
         vm_name: XLAB-vm_node_affinity_CI_test
         strict_affinity: true
       register: output
+      ignore_errors: true
     - ansible.builtin.assert:
         that:
+          - output is failed
           - output is not changed
           - "'Invalid set of parameters - strict affinity set to true and nodes not provided' in output.msg"
     
