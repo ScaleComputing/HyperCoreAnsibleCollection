@@ -101,6 +101,15 @@ EXAMPLES = r"""
       backplane_ip: "10.0.0.2"
       lan_ip: "10.0.0.2"
       peer_id: 2
+
+- name: Set strict affinity to false and delete the nodes
+  scale_computing.hypercore.vm_node_affinity:
+    vm_name: demo-vm
+    strict_affinity: true
+    preferred_node:
+      node_uuid: ""
+    backup_node:
+      node_uuid: ""
 """
 
 RETURN = r"""
@@ -124,10 +133,14 @@ from ..module_utils.utils import get_query
 
 
 def get_node_uuid(module, node, rest_client):
-    node_uuid = ""  # if node is not provided
-    if module.params[node] is not None and any(
+    if module.params[node] and any(
+        value == "" for value in module.params[node].values()
+    ):  # delete node
+        node_uuid = ""
+        return node_uuid
+    if module.params[node] and any(
         value is not None for value in module.params[node].values()
-    ):  # if node is provided and at least one of it's parameters isn't None
+    ):  # if node is provided and not "", and at least one of it's parameters isn't None
         # if all parameters are set to None, query will be set to {} thus returning existing node
         query = get_query(
             module.params[node],
@@ -144,79 +157,96 @@ def get_node_uuid(module, node, rest_client):
         )
         node = Node.get_node(query, rest_client, must_exist=True)
         node_uuid = node.node_uuid
-    return node_uuid
+        return node_uuid
 
 
-def run(module, rest_client):
-    vm_before = VM.get_by_name(
-        module.params, rest_client, must_exist=True
-    )  # get vm from vm_name
+def set_parameters_for_payload(module, vm, rest_client):
     strict_affinity = module.params["strict_affinity"]
     preferred_node_uuid = get_node_uuid(module, "preferred_node", rest_client)
     backup_node_uuid = get_node_uuid(module, "backup_node", rest_client)
-
-    if (
-        vm_before.node_affinity["strict_affinity"] != strict_affinity
-        or vm_before.node_affinity["preferred_node"]["node_uuid"] != preferred_node_uuid
-        or vm_before.node_affinity["backup_node"]["node_uuid"] != backup_node_uuid
-    ):
-        msg = "Node affinity successfully updated."
-
-        if (
-            strict_affinity is True
-            and preferred_node_uuid == ""
-            and backup_node_uuid == ""
-        ):
-            if vm_before.node_uuid == "":
-                strict_affinity = False
-                msg = "No nodes provided and VM's nodeUUID not set, strict affinity set to false"
-            else:
-                preferred_node_uuid = vm_before.node_uuid
-                msg = "No nodes provided, VM's preferredNodeUUID set to it's nodeUUID."
-
-        payload = {
-            "affinityStrategy": {
-                "strictAffinity": strict_affinity,
-                "preferredNodeUUID": preferred_node_uuid,
-                "backupNodeUUID": backup_node_uuid,
-            }
-        }
-        endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm_before.uuid)
-        rest_client.update_record(endpoint, payload, module.check_mode)
-        vm_after = VM.get_by_name(module.params, rest_client, must_exist=True)
-        if module.check_mode:
-            vm_after.node_affinity = dict(
-                strict_affinity=strict_affinity,
-                preferred_node=Node.get_node(
-                    {"uuid": preferred_node_uuid}, rest_client
-                ).to_ansible()
-                if preferred_node_uuid != ""
-                else None,
-                backup_node=Node.get_node(
-                    {"uuid": backup_node_uuid}, rest_client
-                ).to_ansible()
-                if backup_node_uuid != ""
-                else None,
+    if preferred_node_uuid is None:  # node is not provided
+        preferred_node_uuid = vm.node_affinity["preferred_node"]["node_uuid"]
+        if vm.node_affinity["preferred_node"]["node_uuid"]:  # Check if exists
+            Node.get_node(
+                {"uuid": vm.node_affinity["preferred_node"]["node_uuid"]},
+                rest_client,
+                must_exist=True,
             )
+    if backup_node_uuid is None:  # node is not provided
+        backup_node_uuid = vm.node_affinity["backup_node"]["node_uuid"]
+        if vm.node_affinity["backup_node"]["node_uuid"]:  # Check if exists
+            Node.get_node(
+                {"uuid": vm.node_affinity["backup_node"]["node_uuid"]},
+                rest_client,
+                must_exist=True,
+            )
+    return strict_affinity, preferred_node_uuid, backup_node_uuid
 
+
+def run(module, rest_client):
+    vm = VM.get_by_name(
+        module.params, rest_client, must_exist=True
+    )  # get vm from vm_name
+
+    strict_affinity, preferred_node_uuid, backup_node_uuid = set_parameters_for_payload(
+        module, vm, rest_client
+    )
+
+    if strict_affinity is True and preferred_node_uuid == "" and backup_node_uuid == "":
+        msg = "Invalid set of parameters - strict affinity set to true and nodes not provided."
         return (
-            True,
+            False,
             msg,
-            dict(before=vm_before.node_affinity, after=vm_after.node_affinity),
+            dict(before=None, after=None),
         )
 
-    else:
+    if (
+        vm.node_affinity["strict_affinity"] == strict_affinity
+        and vm.node_affinity["preferred_node"]["node_uuid"] == preferred_node_uuid
+        and vm.node_affinity["backup_node"]["node_uuid"] == backup_node_uuid
+    ):
         msg = "Node affinity already set to desired values."
         return (
             False,
             msg,
-            dict(before=vm_before.node_affinity, after=vm_before.node_affinity),
+            dict(before=None, after=None),
         )
+
+    payload = {
+        "affinityStrategy": {
+            "strictAffinity": strict_affinity,
+            "preferredNodeUUID": preferred_node_uuid,
+            "backupNodeUUID": backup_node_uuid,
+        }
+    }
+    endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
+    rest_client.update_record(endpoint, payload, module.check_mode)
+    vm_after = VM.get_by_name(module.params, rest_client, must_exist=True)
+    if module.check_mode:
+        vm_after.node_affinity = dict(
+            strict_affinity=strict_affinity,
+            preferred_node=Node.get_node(
+                {"uuid": preferred_node_uuid}, rest_client
+            ).to_ansible()
+            if preferred_node_uuid != ""
+            else None,
+            backup_node=Node.get_node(
+                {"uuid": backup_node_uuid}, rest_client
+            ).to_ansible()
+            if backup_node_uuid != ""
+            else None,
+        )
+    msg = "Node affinity successfully updated."
+    return (
+        True,
+        msg,
+        dict(before=vm.node_affinity, after=vm_after.node_affinity),
+    )
 
 
 def main():
     module = AnsibleModule(
-        supports_check_mode=True,
+        supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             vm_name=dict(
