@@ -92,6 +92,17 @@ DISK_TYPES_HYPERCORE = [
 ]
 
 
+REBOOT_LOOKUP = dict(
+    vm_name=False,
+    description=False,
+    tags=False,
+    memory=True,
+    vcpu=True,
+    power_state=False,
+    snapshot_schedule=True,
+)
+
+
 class VM(PayloadMapper):
     # Fields cloudInitData, desiredDisposition and latestTaskTag are left out and won't be transferred between
     # ansible and hypercore transformations
@@ -630,3 +641,162 @@ class VM(PayloadMapper):
             else:  # The device is Nic
                 vm_device_list.append(Nic.from_hypercore(vm_device_hypercore))
         return vm_device_list
+
+
+class ManageVMParams(VM):
+    @staticmethod
+    def _build_payload(module, rest_client):
+        payload = {}
+        if module.params["vm_name_new"]:
+            payload["name"] = module.params["vm_name_new"]
+        if module.params["description"] is not None:  # we want to be able to write ""
+            payload["description"] = module.params["description"]
+        if module.params["tags"] is not None:  # we want to be able to write ""
+            payload["tags"] = ",".join(
+                module.params["tags"]
+            )  # tags is a list of strings
+        if module.params["memory"]:
+            payload["mem"] = module.params["memory"]
+        if module.params["vcpu"]:
+            payload["numVCPU"] = module.params["vcpu"]
+        if (
+            module.params["snapshot_schedule"] is not None
+        ):  # we want to be able to write ""
+            if module.params["snapshot_schedule"] == "":
+                payload["snapshotScheduleUUID"] = ""
+            else:
+                query = {"name": module.params["snapshot_schedule"]}
+                snapshot_schedule = SnapshotSchedule.get_snapshot_schedule(
+                    query, rest_client, must_exist=True
+                )
+                payload["snapshotScheduleUUID"] = snapshot_schedule.uuid
+        return payload
+
+    @staticmethod
+    def _to_be_changed(vm, module):
+        changed_params = {}
+        if module.params["vm_name_new"]:
+            changed_params["vm_name"] = vm.name != module.params["vm_name_new"]
+        if module.params["description"] is not None:  # we want to be able to write ""
+            changed_params["description"] = (
+                vm.description != module.params["description"]
+            )
+        if module.params["tags"] is not None:  # we want to be able to write ""
+            changed_params["tags"] = vm.tags != module.params["tags"]
+        if module.params["memory"]:
+            changed_params["memory"] = vm.mem != module.params["memory"]
+        if module.params["vcpu"]:
+            changed_params["vcpu"] = vm.numVCPU != module.params["vcpu"]
+        if module.params["power_state"]:
+            changed_params["power_state"] = (
+                module.params["power_state"] not in vm.power_state
+            )  # state in playbook is different than read from HC3 (start/started)
+        if (
+            module.params["snapshot_schedule"] is not None
+        ):  # we want to be able to write ""
+            if module.params["snapshot_schedule"] == "":
+                changed_params["snapshot_schedule"] = vm.snapshot_schedule != ""
+            else:
+                changed_params["snapshot_schedule"] = (
+                    vm.snapshot_schedule != module.params["snapshot_schedule"]
+                )
+        return any(changed_params.values()), changed_params
+
+    @staticmethod
+    def _needs_reboot(module, changed):
+        for param in module.params:
+            if (
+                module.params[param] is not None and param in REBOOT_LOOKUP
+            ):  # skip not provided parameters and cluster_instance
+                if REBOOT_LOOKUP[param] and changed[param]:
+                    return True
+        return False
+
+    @staticmethod
+    def _build_after_diff(module, rest_client):
+        after = {}
+        if module.check_mode:
+            if module.params["vm_name_new"]:
+                after["vm_name"] = module.params["vm_name_new"]
+            else:
+                after["vm_name"] = module.params["vm_name"]
+            if module.params["description"] is not None:
+                after["description"] = module.params["description"]
+            if module.params["tags"] is not None:
+                after["tags"] = module.params["tags"]
+            if module.params["memory"]:
+                after["memory"] = module.params["memory"]
+            if module.params["vcpu"]:
+                after["vcpu"] = module.params["vcpu"]
+            if module.params["power_state"]:
+                after["power_state"] = module.params["power_state"]
+            if module.params["snapshot_schedule"] is not None:
+                after["snapshot_schedule"] = module.params["snapshot_schedule"]
+            return after
+        query = {
+            "name": module.params["vm_name_new"]
+            if module.params["vm_name_new"]
+            else module.params["vm_name"]
+        }
+        vm = VM.get_or_fail(query, rest_client)[0]
+        after["vm_name"] = vm.name
+        if module.params["description"] is not None:
+            after["description"] = vm.description
+        if module.params["tags"] is not None:
+            after["tags"] = vm.tags
+        if module.params["memory"]:
+            after["memory"] = vm.mem
+        if module.params["vcpu"]:
+            after["vcpu"] = vm.numVCPU
+        if module.params["power_state"]:
+            after["power_state"] = vm.power_state
+        if module.params["snapshot_schedule"] is not None:
+            after["snapshot_schedule"] = vm.snapshot_schedule
+        return after
+
+    @staticmethod
+    def _build_before_diff(vm, module):
+        before = {"vm_name": vm.name}
+        if module.params["description"] is not None:
+            before["description"] = vm.description
+        if module.params["tags"] is not None:
+            before["tags"] = vm.tags
+        if module.params["memory"]:
+            before["memory"] = vm.mem
+        if module.params["vcpu"]:
+            before["vcpu"] = vm.numVCPU
+        if module.params["power_state"]:
+            before["power_state"] = vm.power_state
+        if module.params["snapshot_schedule"] is not None:
+            before["snapshot_schedule"] = vm.snapshot_schedule
+        return before
+
+    @staticmethod
+    def set_vm_params(module, rest_client, vm):
+        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module)
+        if changed:
+            payload = ManageVMParams._build_payload(module, rest_client)
+            endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
+            rest_client.update_record(endpoint, payload, module.check_mode)
+            # power_state needs different endpoint
+            # Wait_task in update_vm_power_state doesn't handle check_mode
+            if module.params["power_state"] and not module.check_mode:
+                vm.update_vm_power_state(
+                    module, rest_client, module.params["power_state"]
+                )
+            reboot_needed = ManageVMParams._needs_reboot(module, changed_parameters)
+            return (
+                True,
+                reboot_needed,
+                dict(
+                    before=ManageVMParams._build_before_diff(vm, module),
+                    after=ManageVMParams._build_after_diff(module, rest_client),
+                ),
+            )
+        else:
+            reboot_needed = False
+            return (
+                False,
+                reboot_needed,
+                dict(before=None, after=None),
+            )
