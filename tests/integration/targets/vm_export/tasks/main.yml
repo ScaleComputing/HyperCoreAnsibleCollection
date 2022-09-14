@@ -10,8 +10,6 @@
       scale_computing.hypercore.vm: &delete-XLAB-export-test-integration
         vm_name: XLAB-export-test-integration
         state: absent
-        memory: 536870912
-        vcpu: 2
 
 # ----------------------------------Job-----------------------------------------------------------------------------
 

@@ -31,7 +31,6 @@ options:
   smb:
     description:
       - SMB server, access and location data.
-      - server, path, username, password.
     type: dict
     suboptions:
       server:
@@ -80,7 +79,6 @@ options:
     description:
       - Configuration to be used by cloud-init (Linux) or cloudbase-init (Windows).
       - When non-empty will create an extra ISO device attached to VirDomain as a NoCloud datasource.
-    required: false
     type: dict
     suboptions:
       user_data:
@@ -153,7 +151,7 @@ msg:
     - Return message.
   returned: success
   type: str
-  sample: Virtual machine - VM-TEST - import complete from - SMB-TEST
+  sample: Virtual machine - VM-TEST - import complete.
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -165,12 +163,6 @@ from ..module_utils.task_tag import TaskTag
 
 
 def run(module, rest_client):
-    if (not module.params["smb"] and not module.params["http_uri"]) or (
-        module.params["smb"] and module.params["http_uri"]
-    ):
-        raise errors.ScaleComputingError(
-            "Exactly one of the parameters is required: smb or http_uri."
-        )
     virtual_machine_obj_list = VM.get(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )
@@ -242,6 +234,8 @@ def main():
                 ),
             ),
         ),
+        mutually_exclusive=[("smb", "http_uri")],
+        required_one_of=[("smb", "http_uri")],
     )
 
     try:

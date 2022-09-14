@@ -31,7 +31,6 @@ options:
   smb:
     description:
       - SMB server, access and location data.
-      - Destination, username, password.
     type: dict
     required: true
     suboptions:
@@ -83,7 +82,7 @@ msg:
     - Return message.
   returned: success
   type: str
-  sample: Virtual machine - VM-TEST - export complete to - SMB-TEST
+  sample: Virtual machine - VM-TEST - export complete.
 """
 
 from ansible.module_utils.basic import AnsibleModule
