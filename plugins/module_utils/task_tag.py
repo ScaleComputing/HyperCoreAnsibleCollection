@@ -31,6 +31,13 @@ class TaskTag:
             )
             if task_status is None:  # No such task_status is found
                 break
+            if task_status.get("state", "") in (
+                "ERROR",
+                "UNINITIALIZED",
+            ):  # TaskTag has finished unsucessfully or was never initialized, both are errors.
+                raise errors.ScaleComputingError(
+                    "There was a problem during this task execution."
+                )
             if task_status.get("state", "") not in (
                 "RUNNING",
                 "QUEUED",
