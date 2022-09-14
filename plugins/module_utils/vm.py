@@ -226,7 +226,9 @@ class VM(PayloadMapper):
             attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", ""),
             operating_system=vm_dict["operatingSystem"],
             node_affinity=node_affinity,
-            snapshot_schedule=snapshot_schedule.name if snapshot_schedule else None,
+            snapshot_schedule=snapshot_schedule.name
+            if snapshot_schedule
+            else "",  # "" for vm_params diff check
         )
 
     @classmethod
@@ -694,12 +696,9 @@ class ManageVMParams(VM):
         if (
             module.params["snapshot_schedule"] is not None
         ):  # we want to be able to write ""
-            if module.params["snapshot_schedule"] == "":
-                changed_params["snapshot_schedule"] = vm.snapshot_schedule != ""
-            else:
-                changed_params["snapshot_schedule"] = (
-                    vm.snapshot_schedule != module.params["snapshot_schedule"]
-                )
+            changed_params["snapshot_schedule"] = (
+                vm.snapshot_schedule != module.params["snapshot_schedule"]
+            )
         return any(changed_params.values()), changed_params
 
     @staticmethod

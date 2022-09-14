@@ -102,7 +102,7 @@ class TestGetVMByName:
                 ),
             ),
             node_uuid="node-id",
-            snapshot_schedule=None,
+            snapshot_schedule="",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -204,7 +204,7 @@ class TestGetVMByName:
                 ),
             ),
             node_uuid="node-id",
-            snapshot_schedule=None,
+            snapshot_schedule="",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
