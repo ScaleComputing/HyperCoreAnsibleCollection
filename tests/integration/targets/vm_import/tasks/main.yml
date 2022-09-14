@@ -74,10 +74,10 @@
       scale_computing.hypercore.vm_export:
         vm_name: XLAB-import-test-integration
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
       register: output
     - ansible.builtin.assert:
         that:
@@ -88,10 +88,10 @@
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
       register: import_vm
     - ansible.builtin.assert:
         that:
@@ -116,10 +116,10 @@
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported-cloud-init
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
         cloud_init:
           user_data: |
             is_this: yes
@@ -156,10 +156,10 @@
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
       register: import_vm
     - ansible.builtin.assert:
         that:
@@ -170,10 +170,10 @@
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported-cloud-init
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
         cloud_init:
           user_data: |
             is_this: yes
