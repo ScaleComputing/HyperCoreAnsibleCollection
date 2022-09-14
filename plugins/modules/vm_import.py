@@ -44,6 +44,7 @@ options:
         type: str
         description:
           - Specified location on the SMB server, where the exported virtual machine is to be imported from.
+          - It must start with '/'.
         required: true
       file_name:
         type: str
