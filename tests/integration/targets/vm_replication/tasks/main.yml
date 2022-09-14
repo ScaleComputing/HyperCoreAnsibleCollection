@@ -5,11 +5,13 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   block:
+# ----------------------------------Cleanup---------------------------------------------------------------------------------
     - name: Delete XLAB-vm_replication_CI_test
       scale_computing.hypercore.vm: &delete-XLAB-vm_replication_CI_test
         vm_name: XLAB-vm_replication_CI_test
         state: absent
 
+# ----------------------------------Job-------------------------------------------------------------------------------------
     - name: Create a VM
       scale_computing.hypercore.api:
         action: post
@@ -81,6 +83,18 @@
           - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
           - replication_info.records[0].state == 'enabled'
           - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+    - name: Create replication - 1st pass - Idempotence
+      scale_computing.hypercore.vm_replication:
+        vm_name: XLAB-vm_replication_CI_test
+        remote_cluster: "{{ remote_cluster_0_name }}"
+        state: enabled
+      register: replication_created
+    - ansible.builtin.assert:
+        that:
+          - replication_created is succeeded
+          - replication_created is not changed
 
     - name: Create replication - 2nd pass
       scale_computing.hypercore.vm_replication:
@@ -200,7 +214,7 @@
           - replication_info.records[0].state == 'enabled'
           - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
-    # -----------------------------------------------------------------------
+# ----------------------------------Cleanup---------------------------------------------------------------------------------
     - name: Delete XLAB-vm_replication_CI_test
       scale_computing.hypercore.vm: *delete-XLAB-vm_replication_CI_test
       register: output
