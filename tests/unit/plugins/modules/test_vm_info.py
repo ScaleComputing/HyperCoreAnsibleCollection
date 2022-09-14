@@ -85,7 +85,7 @@ class TestRun:
                 },
                 "operating_system": None,
                 "power_state": "started",
-                "snapshot_schedule": None,
+                "snapshot_schedule": "",
                 "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                 "uuid": "id",
                 "vcpu": 2,

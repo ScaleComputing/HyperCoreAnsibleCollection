@@ -1,0 +1,84 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+  - name: Delete XLAB-vm_params_CI_test (if it exists from before)
+    scale_computing.hypercore.vm: &delete-XLAB-vm_params_CI_test
+      vm_name: XLAB-vm_params_CI_test
+      state: absent
+  
+  - name: Delete XLAB-vm_params_CI_test - updated (if it exists from before)
+    scale_computing.hypercore.vm: &delete-XLAB-vm_params_CI_test-updated
+      vm_name: XLAB-vm_params_CI_test - updated
+      state: absent
+
+  - name: Create XLAB-vm_params_CI_test
+    scale_computing.hypercore.vm:
+      vm_name: XLAB-vm_params_CI_test
+      description: VM for testing vm_params module
+      power_state: stop
+      state: present
+      tags: 
+        - Xlab
+      memory: "{{ '512 MB' | human_to_bytes }}"
+      vcpu: 2
+      disks: []
+      nics: []
+    register: initial
+  - ansible.builtin.assert:
+      that:
+        - initial is changed
+
+  - name: Delete snapshot schedule (if it exists from before)
+    scale_computing.hypercore.snapshot_schedule: &delete-snapshot-schedule
+      name: demo-snap-schedule
+      state: absent
+
+  - name: Setup snapshot schedule
+    scale_computing.hypercore.snapshot_schedule:
+      name: demo-snap-schedule
+      state: present
+      recurrences:
+        - name: weekly-tuesday
+          frequency: "FREQ=WEEKLY;INTERVAL=1;BYDAY=TU"  # RFC-2445
+          start: "2010-01-01 00:00:00"
+          local_retention: "{{ 10 * 7*24*60*60 }}"  # 10 days, unit seconds
+    register: snapshot_schedule
+
+  - name: Set VMs params - check mode
+    scale_computing.hypercore.vm_params: &Set-VMs-parameters
+      vm_name: XLAB-vm_params_CI_test
+      description: VM for testing vm_params module - updated
+      tags:
+        - Xlab
+        - updated
+      vcpu: 3
+      memory:  "{{ '1024 MB' | human_to_bytes }}"
+      power_state: stop # CHECK AFTER VM IS MERGED IF THIS STATE CAN BE SET
+      snapshot_schedule: "{{ snapshot_schedule.record[0].name }}"
+    check_mode: yes
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - output is changed
+        - output.reboot_needed == true
+
+  - name: Check VM's params aren't changed
+    scale_computing.hypercore.vm_info:
+      vm_name: XLAB-vm_params_CI_test
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - output.records[0] == initial.record[0]
+
+  - name: Delete snapshot schedule
+    scale_computing.hypercore.snapshot_schedule: *delete-snapshot-schedule
+
+  - name: Delete XLAB-vm_params_CI_test - updated
+    scale_computing.hypercore.vm: *delete-XLAB-vm_params_CI_test-updated
+
+  - name: Delete XLAB-vm_params_CI_test
+    scale_computing.hypercore.vm: *delete-XLAB-vm_params_CI_test

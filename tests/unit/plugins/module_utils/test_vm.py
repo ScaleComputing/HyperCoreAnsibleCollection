@@ -86,7 +86,7 @@ class TestVM:
                     peer_id=None,
                 ),
             },
-            snapshot_schedule=None,
+            snapshot_schedule="",
         )
 
         vm_dict = dict(
@@ -373,7 +373,7 @@ class TestVM:
                     peer_id=None,
                 ),
             },
-            snapshot_schedule=None,
+            snapshot_schedule="",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -1476,7 +1476,7 @@ class TestManageVMParams:
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="",
-                tags="",
+                tags=[],
                 memory=512,
                 vcpu=3,
                 power_state="start",
@@ -1502,6 +1502,46 @@ class TestManageVMParams:
             "vcpu": True,
             "power_state": False,
             "snapshot_schedule": True,
+        }
+
+    def test_to_be_changed_empty_string_no_change(self, create_module):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="old_name",
+                vm_name_new=None,
+                description="",
+                tags=[""],
+                memory=512,
+                vcpu=3,
+                power_state="start",
+                snapshot_schedule="",
+            ),
+        )
+
+        vm = VM(
+            name="old_name",
+            description="",
+            vcpu=3,
+            memory=512,
+            tags=[""],
+            snapshot_schedule="",
+            power_state="started",
+        )
+
+        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module)
+        assert changed is False
+        assert changed_parameters == {
+            "description": False,
+            "tags": False,
+            "memory": False,
+            "vcpu": False,
+            "power_state": False,
+            "snapshot_schedule": False,
         }
 
     def test_needs_reboot(self, create_module):
