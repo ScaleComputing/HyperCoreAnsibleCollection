@@ -11,7 +11,7 @@
         vm_name: XLAB-vm_replication_CI_test
         state: absent
 
-# ----------------------------------Job-------------------------------------------------------------------------------------
+# ----------------------------------Setup----------------------------------------------------------------------------------
     - name: Create a VM
       scale_computing.hypercore.api:
         action: post
@@ -59,8 +59,8 @@
         remote_cluster_0_name: "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName}}"
         remote_cluster_1_name: "{{ cluster_connection_info.record.1.remoteClusterInfo.clusterName }}"
 
-    # -----------------------------------------------------------------------
-    - name: Create replication - 1st pass
+# ----------------------------------Job-------------------------------------------------------------------------------------
+    - name: Create replication
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
         remote_cluster: "{{ remote_cluster_0_name }}"
@@ -85,7 +85,7 @@
           - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
-    - name: Create replication - 1st pass - Idempotence
+    - name: Create replication - Idempotence
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
         remote_cluster: "{{ remote_cluster_0_name }}"
@@ -96,32 +96,8 @@
           - replication_created is succeeded
           - replication_created is not changed
 
-    - name: Create replication - 2nd pass
-      scale_computing.hypercore.vm_replication:
-        vm_name: XLAB-vm_replication_CI_test
-        remote_cluster: "{{ remote_cluster_0_name }}"
-        state: enabled
-      register: replication_created
-    - ansible.builtin.assert:
-        that:
-          - replication_created is succeeded
-          - replication_created is not changed
-
-    - name: Get replication info for VM
-      scale_computing.hypercore.vm_replication_info:
-        vm_name: XLAB-vm_replication_CI_test
-      register: replication_info
-    - ansible.builtin.assert:
-        that:
-          - replication_info is succeeded
-          - replication_info is not changed
-          - replication_info.records | length == 1
-          - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
-          - replication_info.records[0].state == 'enabled'
-          - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
-
-    # -----------------------------------------------------------------------
-    - name: Disable replication - 1st pass
+# ----------------------------------Job-------------------------------------------------------------------------------------
+    - name: Disable replication
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
         state: disabled
@@ -144,7 +120,8 @@
           - replication_info.records[0].state == 'disabled'
           - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
-    - name: Disable replication - 2nd pass
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+    - name: Disable replication - Idempotence
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
         state: disabled
@@ -154,21 +131,8 @@
           - replication_disabled is succeeded
           - replication_disabled is not changed
 
-    - name: Get replication info for VM
-      scale_computing.hypercore.vm_replication_info:
-        vm_name: XLAB-vm_replication_CI_test
-      register: replication_info
-    - ansible.builtin.assert:
-        that:
-          - replication_info is succeeded
-          - replication_info is not changed
-          - replication_info.records | length == 1
-          - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
-          - replication_info.records[0].state == 'disabled'
-          - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
-
-    # -----------------------------------------------------------------------
-    - name: Reenable replication - 1st pass
+# ----------------------------------Job-------------------------------------------------------------------------------------
+    - name: Reenable replication
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
         state: reenabled
@@ -191,7 +155,8 @@
           - replication_info.records[0].state == 'enabled'
           - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
-    - name: Reenable replication - 2nd pass
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+    - name: Reenable replication - Idempotence
       scale_computing.hypercore.vm_replication:
         vm_name: XLAB-vm_replication_CI_test
         state: reenabled
@@ -200,19 +165,6 @@
         that:
           - replication_reenabled is succeeded
           - replication_reenabled is not changed
-
-    - name: Get replication info for VM
-      scale_computing.hypercore.vm_replication_info:
-        vm_name: XLAB-vm_replication_CI_test
-      register: replication_info
-    - ansible.builtin.assert:
-        that:
-          - replication_info is succeeded
-          - replication_info is not changed
-          - replication_info.records | length == 1
-          - replication_info.records[0].vm_name == 'XLAB-vm_replication_CI_test'
-          - replication_info.records[0].state == 'enabled'
-          - replication_info.records[0].remote_cluster == "{{ remote_cluster_0_name }}"
 
 # ----------------------------------Cleanup---------------------------------------------------------------------------------
     - name: Delete XLAB-vm_replication_CI_test
