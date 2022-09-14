@@ -83,3 +83,9 @@ class SMBServerNotFound(ScaleComputingError):
             data
         )
         super(SMBServerNotFound, self).__init__(self.message)
+
+
+class VMInvalidParams(ScaleComputingError):
+    def __init__(self):
+        self.message = "Invalid set of parameters - strict affinity set to true and nodes not provided."
+        super(VMInvalidParams, self).__init__(self.message)
