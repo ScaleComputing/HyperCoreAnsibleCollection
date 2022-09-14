@@ -25,7 +25,6 @@ options:
   state:
     description:
       - State defines which operation should plugin do over selected network interfaces.
-      - present, absent, set.
     choices: [ present, absent, set ]
     type: str
     required: True
@@ -79,10 +78,11 @@ EXAMPLES = r"""
       - vlan: 0
         type: RTL8139
     state: set
+
 - name: Remove all nic interfces
   scale_computing.hypercore.vm_nic:
     vm_name: XLAB-demo-vm
-    items:
+    items: []
     state: set
 
 - name: Add/Update NICs interface
