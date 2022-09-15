@@ -59,7 +59,7 @@ options:
         type: int
         description:
           - If setting the boot device order of disk, that is C(type==virtio_disk), C(type==ide_disk),
-            C(type==scsi_disk), C(type==ide_floppy) or C(type==nvram) it's required to specify.
+            C(type==scsi_disk), C(type==ide_floppy) or C(type==nvram) disk slot is required to be specified.
           - If setting the boot device order of CD-ROM, that is C(type==ide_cdrom), at least one of C(iso_name)
             or C(disk_slot) is required.
           - If C(type==nic), disk_slot is not relevant.

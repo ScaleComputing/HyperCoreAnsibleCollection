@@ -113,6 +113,7 @@ from ..module_utils.vm import VM, ManageVMParams
 
 def run(module, rest_client):
     vm = VM.get_by_name(module.params, rest_client, must_exist=True)
+    # Update VM's name, description, tags, memory, number of CPUs, power_state and/or assign snapshot schedule.
     changed, reboot_needed, diff = ManageVMParams.set_vm_params(module, rest_client, vm)
     return changed, reboot_needed, diff
 

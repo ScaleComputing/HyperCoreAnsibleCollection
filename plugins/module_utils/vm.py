@@ -44,10 +44,8 @@ FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     start="START",
     shutdown="SHUTDOWN",
     stop="STOP",
-    pause="PAUSE",
     rebot="REBOOT",
     reset="RESET",
-    livemigrate="LIVEMIGRATE",
     started="START",
 )
 
@@ -321,13 +319,17 @@ class VM(PayloadMapper):
         ]
 
     @classmethod
-    def get_by_name(cls, ansible_dict, rest_client, must_exist=False):
+    def get_by_name(
+        cls, ansible_dict, rest_client, must_exist=False, name_field="vm_name"
+    ):
         """
         With given dict from playbook, finds the existing vm by name from the HyperCore api and constructs object VM if
         the record exists. If there is no record with such name, None is returned.
         """
+        # name_field won't be equal to "vm_name" in case of updating the vm.
+        # In that case, it's going to be equal to vm_name_new.
         query = get_query(
-            ansible_dict, "vm_name", ansible_hypercore_map=dict(vm_name="name")
+            ansible_dict, name_field, ansible_hypercore_map={name_field: "name"}
         )
         hypercore_dict = rest_client.get_record(
             "/rest/v1/VirDomain", query, must_exist=must_exist
@@ -605,7 +607,7 @@ class VM(PayloadMapper):
     def get_vm_and_boot_devices(cls, ansible_dict, rest_client):
         """Helper to modules vm_boot_devices and vm."""
         vm = cls.get_by_name(ansible_dict, rest_client, must_exist=True)
-        boot_devices_uuid = [boot_device.uuid for boot_device in vm.boot_devices]
+        boot_devices_uuid = vm.get_boot_device_order()
         boot_devices_ansible = [
             boot_device.to_ansible() for boot_device in vm.boot_devices
         ]
@@ -644,6 +646,9 @@ class VM(PayloadMapper):
             else:  # The device is Nic
                 vm_device_list.append(Nic.from_hypercore(vm_device_hypercore))
         return vm_device_list
+
+    def get_boot_device_order(self):
+        return [boot_device.uuid for boot_device in self.boot_devices]
 
 
 class ManageVMParams(VM):
@@ -691,9 +696,12 @@ class ManageVMParams(VM):
         if module.params["vcpu"]:
             changed_params["vcpu"] = vm.numVCPU != module.params["vcpu"]
         if module.params["power_state"]:
-            changed_params["power_state"] = (
-                module.params["power_state"] not in vm.power_state
-            )  # state in playbook is different than read from HC3 (start/started)
+            # This is comparison between two strings. This works because module.params["power_state"]
+            # is in FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE.keys(), whereas vm.power_state
+            # is in FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE.values().
+            # state in playbook is different than read from HC3 (start/started)
+            is_substring = module.params["power_state"] not in vm.power_state
+            changed_params["power_state"] = is_substring
         if (
             module.params["snapshot_schedule"] is not None
         ):  # we want to be able to write ""
@@ -777,7 +785,8 @@ class ManageVMParams(VM):
         if changed:
             payload = ManageVMParams._build_payload(module, rest_client)
             endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
-            rest_client.update_record(endpoint, payload, module.check_mode)
+            task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
+            TaskTag.wait_task(rest_client, task_tag)
             # power_state needs different endpoint
             # Wait_task in update_vm_power_state doesn't handle check_mode
             if module.params["power_state"] and not module.check_mode:
