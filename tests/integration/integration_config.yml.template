@@ -1,5 +1,9 @@
-# Replace the values of variables with connection and access
-# details for your Personal Developer Instance
-sc_host: <your_host>
+# Replace the values to suit you CI environment
+sc_host: <your_host, example https://10.0.0.2>
 sc_username: <your_user>
 sc_password: <your_password>
+# CI tests for vm_import/vm_export require a SMB server
+smb_server: <example 10.0.0.3>
+smb_share: <example /users>
+smb_username: <example myusername>
+smb_password: <example mypassword>

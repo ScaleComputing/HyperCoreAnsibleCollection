@@ -77,6 +77,10 @@ integration:
       sc_host: ${SC_HOST}
       sc_username: ${SC_USERNAME}
       sc_password: ${SC_PASSWORD}
+      smb_server: ${SMB_SERVER}
+      smb_share: ${SMB_SHARE}
+      smb_username: ${SMB_USERNAME}
+      smb_password: ${SMB_PASSWORD}
       EOF
     - cat tests/integration/integration_config.yml
     - ansible-test integration

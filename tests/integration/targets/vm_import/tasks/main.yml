@@ -15,7 +15,7 @@
         - XLAB-import-test-integration-imported
         - XLAB-import-test-integration-imported-cloud-init
 
-# ----------------------------------Job-----------------------------------------------------------------------------
+# ----------------------------------Setup-----------------------------------------------------------------------------
 
     - name: Create XLAB-import-test-integration
       scale_computing.hypercore.api:
@@ -70,14 +70,15 @@
         vm_name: XLAB-import-test-integration
       register: source_vm
 
+# ----------------------------------Job-----------------------------------------------------------------------------
     - name: Export XLAB-import-test-integration to SMB
       scale_computing.hypercore.vm_export:
         vm_name: XLAB-import-test-integration
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
       register: output
     - ansible.builtin.assert:
         that:
@@ -88,10 +89,10 @@
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
       register: import_vm
     - ansible.builtin.assert:
         that:
@@ -116,10 +117,10 @@
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported-cloud-init
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
         cloud_init:
           user_data: |
             is_this: yes
@@ -156,24 +157,38 @@
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
       register: import_vm
     - ansible.builtin.assert:
         that:
           - import_vm is not changed
           - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported - already exists."
 
+    - name: Retrieve XLAB-import-test-integration-imported Idempotence
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-import-test-integration-imported
+      register: imported_info
+    - ansible.builtin.assert:
+        that:
+          - imported_info.records | length == 1
+          - imported_info.records.0.vcpu == source_vm.records.0.vcpu
+          - imported_info.records.0.tags == source_vm.records.0.tags
+          - imported_info.records.0.boot_devices | length != source_vm.records.0.boot_devices | length
+          - imported_info.records.0.disks | length ==  source_vm.records.0.disks | length
+          - imported_info.records.0.nics | length ==  source_vm.records.0.nics | length
+          - imported_info.records.0.node_affinity == source_vm.records.0.node_affinity
+
     - name: Import XLAB-import-test-integration from SMB, add cloud_init Idempotence
       scale_computing.hypercore.vm_import:
         vm_name: XLAB-import-test-integration-imported-cloud-init
         smb:
-          server: "10.5.11.179"
-          path: /users/integration-test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
         cloud_init:
           user_data: |
             is_this: yes
@@ -190,6 +205,20 @@
           - import_vm is not changed
           - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported-cloud-init - already exists."
 
+    - name: Retrieve XLAB-import-test-integration-imported-cloud-init Idempotence
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-import-test-integration-imported-cloud-init
+      register: imported_info
+    - ansible.builtin.assert:
+        that:
+          - imported_info.records | length == 1
+          - imported_info.records.0.vcpu == source_vm.records.0.vcpu
+          - imported_info.records.0.tags == source_vm.records.0.tags
+          - imported_info.records.0.boot_devices | length != source_vm.records.0.boot_devices | length
+          - imported_info.records.0.disks | length !=  source_vm.records.0.disks | length
+          - imported_info.records.0.nics | length ==  source_vm.records.0.nics | length
+          - imported_info.records.0.node_affinity == source_vm.records.0.node_affinity
+
 # ----------------------------------Cleanup------------------------------------------------------------------------
 
     - name: Delete XLAB-import-test-integration VMs
@@ -199,7 +228,6 @@
         - XLAB-import-test-integration
         - XLAB-import-test-integration-imported
         - XLAB-import-test-integration-imported-cloud-init
-        - XLAB-vm_clone_CI-test-cloud_init-clone
     - ansible.builtin.assert:
         that:
           - output is changed

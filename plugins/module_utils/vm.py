@@ -262,7 +262,8 @@ class VM(PayloadMapper):
         if not is_export:
             payload["template"]["name"] = ansible_dict["vm_name"]
         if ansible_dict["smb"]:
-            pathURI = f"smb://{ansible_dict['smb']['username']}:{ansible_dict['smb']['password']}@{ansible_dict['smb']['server']}/{ansible_dict['smb']['path']}"
+            # ATM we request path to start with '/'
+            pathURI = f"smb://{ansible_dict['smb']['username']}:{ansible_dict['smb']['password']}@{ansible_dict['smb']['server']}{ansible_dict['smb']['path']}"
             payload[key] = {"pathURI": pathURI}
             if ansible_dict["smb"]["file_name"]:
                 payload[key]["definitionFileName"] = ansible_dict["smb"]["file_name"]

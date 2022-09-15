@@ -11,7 +11,7 @@
         vm_name: XLAB-export-test-integration
         state: absent
 
-# ----------------------------------Job-----------------------------------------------------------------------------
+# ----------------------------------Setup-----------------------------------------------------------------------------
 
     - name: Create XLAB-export-test-integration
       scale_computing.hypercore.api:
@@ -61,14 +61,15 @@
       scale_computing.hypercore.task_wait:
         task_tag: "{{vm_created.record}}"
 
+# ----------------------------------Job-----------------------------------------------------------------------------
     - name: Export XLAB-export-test-integration to SMB
       scale_computing.hypercore.vm_export:
         vm_name: XLAB-export-test-integration
         smb:
-          server: "10.5.11.179"
-          path: /users/test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-export"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
           file_name: my_file.xml
       register: output
     - ansible.builtin.assert:
@@ -83,10 +84,10 @@
       scale_computing.hypercore.vm_export:
         vm_name: XLAB-export-test-integration
         smb:
-          server: "10.5.11.179"
-          path: /users/test
-          username: example1
-          password: badpass
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-export"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
           file_name: my_file.xml
       register: output
     - ansible.builtin.assert:
