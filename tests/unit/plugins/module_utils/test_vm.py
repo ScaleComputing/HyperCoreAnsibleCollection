@@ -1720,3 +1720,123 @@ class TestManageVMParams:
         )
 
         assert before == ManageVMParams._build_before_diff(vm_before, module)
+
+    def test_set_vm_params(self, create_module, rest_client, mocker):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="old_name",
+                vm_name_new="new_name",
+                description="Updated description",
+                tags=["Xlab"],
+                memory=512,
+                vcpu=4,
+                power_state="started",
+                snapshot_schedule="",
+            ),
+            check_mode=False,
+        )
+        rest_client.update_record.return_value = {"taskTag": "1234"}
+        vm_before = VM(
+            uuid="vm_uuid",
+            node_uuid="vm_node_uuid",
+            name="old_name",
+            tags=["Xlab"],
+            description="description",
+            memory=512,
+            power_state="started",
+            vcpu=2,
+            snapshot_schedule="",
+        )
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.TaskTag.wait_task"
+        )
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.get_or_fail"
+        ).return_value = [
+            VM(
+                uuid="vm_uuid",
+                node_uuid="vm_node_uuid",
+                name="new_name",
+                tags=["Xlab"],
+                description="Updated description",
+                memory=512,
+                power_state="started",
+                vcpu=4,
+                snapshot_schedule="",
+            ),
+        ]
+
+        changed, reboot_needed, diff = ManageVMParams.set_vm_params(
+            module, rest_client, vm_before
+        )
+
+        assert changed is True
+        assert reboot_needed is True
+        assert diff == {
+            "before": {
+                "vm_name": "old_name",
+                "description": "description",
+                "tags": ["Xlab"],
+                "memory": 512,
+                "vcpu": 2,
+                "power_state": "started",
+                "snapshot_schedule": "",
+            },
+            "after": {
+                "vm_name": "new_name",
+                "description": "Updated description",
+                "tags": ["Xlab"],
+                "memory": 512,
+                "vcpu": 4,
+                "power_state": "started",
+                "snapshot_schedule": "",
+            },
+        }
+
+    def test_run_no_change(self, create_module, rest_client, mocker):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="old_name",
+                vm_name_new=None,
+                description="description",
+                tags=["Xlab"],
+                memory=512,
+                vcpu=2,
+                power_state="started",
+                snapshot_schedule="",
+            ),
+            check_mode=True,
+        )
+
+        vm_before = VM(
+            uuid="vm_uuid",
+            node_uuid="vm_node_uuid",
+            name="old_name",
+            tags=["Xlab"],
+            description="description",
+            memory=512,
+            power_state="started",
+            vcpu=2,
+            snapshot_schedule="",
+        )
+
+        changed, reboot_needed, diff = ManageVMParams.set_vm_params(
+            module, rest_client, vm_before
+        )
+
+        assert changed is False
+        assert reboot_needed is False
+        assert diff == {
+            "before": None,
+            "after": None,
+        }

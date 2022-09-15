@@ -8,7 +8,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-
 DOCUMENTATION = r"""
 module: vm
 
@@ -30,27 +29,41 @@ options:
       - Serves as unique identifier across endpoint C(VirDomain).
     type: str
     required: True
+  vm_name_new:
+    description:
+      - If the VM already exists, VM's new name.
+      - Only relevant if C(state==present).
+    type: str
   description:
     description:
       - VM's description.
+      - Only relevant if C(state==present).
+        value.
     type: str
   memory:
     description:
       - VM's physical memory in bytes.
-      - Required if C(state=present).
+      - Required if C(state=present). If C(state=absent), memory isn't relevant.
     type: int
   vcpu:
     description:
       - Number of Central processing units on the VM.
-      - Required if C(state=present).
+      - Required if C(state=present). If C(state=absent), vcpu isn't relevant.
     type: int
   power_state:
     description:
       - VM's Desired power state.
       - If not specified, the VM will be running by default.
+      - PAUSE and LIVEMIGRATE are possible in REST API, but module will not expose them.
+        PAUSE is marked as internal, LIVEMIGRATE requires to specify destination node. It can be done with api module).
     choices: [ start, shutdown, stop, reboot, reset ]
     type: str
     default: start
+  snapshot_schedule:
+    description:
+      - The name of an existing snapshot_schedule to assign to VM.
+      - VM can have 0 or 1 snapshot schedules assigned.
+    type: str
   state:
     description:
       - Desired state of the VM.
@@ -132,6 +145,42 @@ options:
       - Ordered list of boot devices (disks and nics) you want to set
     type: list
     elements: dict
+    suboptions:
+      type:
+        type: str
+        description:
+          - The type of device we want to set the boot order to.
+          - If setting the boot order for nic, type should be equal to nic.
+          - If setting the boot order for disk, type should be equal to one of the specific types, listed below.
+        choices: [ nic, ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
+        required: true
+      disk_slot:
+        type: int
+        description:
+          - If setting the boot device order of disk, that is C(type==virtio_disk), C(type==ide_disk),
+            C(type==scsi_disk), C(type==ide_floppy) or C(type==nvram) disk_slot required to specify.
+          - If setting the boot device order of CD-ROM, that is C(type==ide_cdrom), at least one of C(iso_name)
+            or C(disk_slot) is required.
+          - If C(type==nic), disk_slot is not relevant.
+          - At least one of C(disk_slot), C(nic_vlan) and C(iso_name) is required to identify the vm device to which
+            we're setting the boot order.
+      nic_vlan:
+        type: int
+        description:
+          - Nic's vlan.
+          - If C(type==nic), C(nic_vlan) is required to specify.
+          - Otherwise, C(nic_vlan) is not relevant.
+          - At least one of C(disk_slot), C(nic_vlan) and C(iso_name) is required to identify the vm device to which
+            we're setting the boot order.
+      iso_name:
+        type: str
+        description:
+          - The name of ISO image that CD-ROM device is attached to.
+          - Only relevant if C(type==ide_cdrom). If C(type==cdrom), at least one of C(iso_name) or C(disk_slot) is
+            required to identify CD-ROM device.
+          - Otherwise, C(iso_name) is not relevant.
+          - At least one of C(disk_slot), C(nic_vlan) and C(iso_name) is required to identify the vm device to which
+            we're setting the boot order.
   attach_guest_tools_iso:
     description:
       - If supported by operating system, create an extra device to attach the Scale Guest OS tools ISO.
@@ -192,6 +241,12 @@ EXAMPLES = r"""
         - expression: 2
       meta_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
   register: result
+
+- name: Delete the VM
+  scale_computing.hypercore.vm: &delete-vm
+    vm_name: demo-VM
+    state: absent
+  register: result
 """
 
 RETURN = r"""
@@ -250,6 +305,14 @@ record:
         backplane_ip: 10.0.0.3
         lan_ip: 10.0.0.4
         peer_id: 2
+    snapshot_schedule: my-snapshot-schedule
+reboot_needed:
+  description:
+      - Info if reboot is needed after VM parameters update.
+  returned: success
+  type: bool
+  sample:
+      reboot_needed: true
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -257,56 +320,83 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.vm import VM
+from ..module_utils.vm import VM, ManageVMParams
 from ..module_utils.task_tag import TaskTag
-from ..module_utils.errors import DeviceNotUnique
+
+
+def _update_boot_order(module, rest_client, vm, existing_boot_order):
+    if module.params["boot_devices"] is not None:
+        # set_boot_devices return bool whether the order has been changed or not
+        boot_order_changed = vm.set_boot_devices(
+            module.params["boot_devices"],
+            module,
+            rest_client,
+            existing_boot_order,
+        )
+        return boot_order_changed
+    return False
 
 
 def ensure_absent(module, rest_client):
+    reboot_needed = False
     vm = VM.get_by_name(module.params, rest_client)
     if vm:
         if vm.power_state != "shutdown":  # First, shut it off and then delete
             vm.update_vm_power_state(module, rest_client, "stop")
-        # raise ValueError(vm.to_ansible())
         task_tag = rest_client.delete_record(
             "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid), module.check_mode
         )
         TaskTag.wait_task(rest_client, task_tag)
         output = vm.to_ansible()
-        return True, [output], dict(before=output, after=None)
-    return False, [], dict()
+        return True, [output], dict(before=output, after=None), reboot_needed
+    return False, [], dict(), reboot_needed
 
 
 def ensure_present(module, rest_client):
     vm_before = VM.get_by_name(module.params, rest_client)
     if vm_before:
-        raise DeviceNotUnique("VM with name {0}".format(module.params["vm_name"]))
-    new_vm = VM.from_ansible(module.params)
-    task_tag = rest_client.create_record(
-        "/rest/v1/VirDomain",
-        new_vm.post_vm_payload(rest_client, module.params),
-        module.check_mode,
-    )
-    TaskTag.wait_task(rest_client, task_tag)
-    (
-        vm_created,
-        boot_devices_uuid_created,
-        boot_deviced_created,
-    ) = VM.get_vm_and_boot_devices(module.params, rest_client)
-    if module.params["boot_devices"]:
-        vm_created.set_boot_devices(
-            module.params["boot_devices"],
-            module,
-            rest_client,
-            boot_devices_uuid_created,
+        before = vm_before.to_ansible()  # for output
+        existing_boot_order = vm_before.get_boot_device_order()
+        changed_boot_order = _update_boot_order(
+            module, rest_client, vm_before, existing_boot_order
         )
-    if module.params["power_state"] != "shutdown":
-        vm_created.update_vm_power_state(
-            module, rest_client, module.params["power_state"]
+        # ManageVMParams.set_vm_params has to be executed only after setting the boot order,
+        # since boot order cannot be set when the vm is running.
+        # set_vm_params updates VM's name, description, tags, memory, number of CPU,
+        # changed the power state and/or assigns the snapshot schedule to the VM
+        changed_params, reboot_needed, diff = ManageVMParams.set_vm_params(
+            module, rest_client, vm_before
         )
-    vm_after = VM.get_by_name(module.params, rest_client)
+        changed = changed_boot_order or changed_params
+        # TODO (tjazsch): Add setter for disks
+        # TODO (tjazsch): Add setter for nics
+        name_field = "vm_name_new" if module.params["vm_name_new"] else "vm_name"
+    else:
+        before = None  # for output
+        # Create new VM object
+        new_vm = VM.from_ansible(module.params)
+        # Define the payload and create the VM
+        payload = new_vm.post_vm_payload(rest_client, module.params)
+        task_tag = rest_client.create_record(
+            "/rest/v1/VirDomain",
+            payload,
+            module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, task_tag)
+        # Set boot order
+        vm_created = VM.get_by_name(module.params, rest_client)
+        existing_boot_order = vm_created.get_boot_device_order()
+        _update_boot_order(module, rest_client, vm_created, existing_boot_order)
+        # Set power state
+        if module.params["power_state"] != "shutdown":
+            vm_created.update_vm_power_state(
+                module, rest_client, module.params["power_state"]
+            )
+        changed, reboot_needed = True, False
+        name_field = "vm_name"
+    vm_after = VM.get_by_name(module.params, rest_client, name_field=name_field)
     after = vm_after.to_ansible()
-    return True, [after], dict(before=None, after=after)
+    return changed, [after], dict(before=before, after=after), reboot_needed
 
 
 def run(module, rest_client):
@@ -323,6 +413,9 @@ def main():
             vm_name=dict(
                 type="str",
                 required=True,
+            ),
+            vm_name_new=dict(
+                type="str",
             ),
             description=dict(
                 type="str",
@@ -414,6 +507,30 @@ def main():
             boot_devices=dict(
                 type="list",
                 elements="dict",
+                options=dict(
+                    type=dict(
+                        type="str",
+                        choices=[
+                            "nic",
+                            "ide_cdrom",
+                            "virtio_disk",
+                            "ide_disk",
+                            "scsi_disk",
+                            "ide_floppy",
+                            "nvram",
+                        ],
+                        required=True,
+                    ),
+                    disk_slot=dict(
+                        type="int",
+                    ),
+                    nic_vlan=dict(
+                        type="int",
+                    ),
+                    iso_name=dict(
+                        type="str",
+                    ),
+                ),
             ),
             attach_guest_tools_iso=dict(type="bool", default=False),
             cloud_init=dict(
@@ -423,6 +540,9 @@ def main():
                     user_data=dict(type="dict"),
                     meta_data=dict(type="dict"),
                 ),
+            ),
+            snapshot_schedule=dict(
+                type="str",
             ),
         ),
         required_if=[
@@ -446,8 +566,10 @@ def main():
         password = module.params["cluster_instance"]["password"]
         client = Client(host, username, password)
         rest_client = RestClient(client)
-        changed, record, diff = run(module, rest_client)
-        module.exit_json(changed=changed, record=record, diff=diff)
+        changed, record, diff, reboot_needed = run(module, rest_client)
+        module.exit_json(
+            changed=changed, record=record, diff=diff, reboot_needed=reboot_needed
+        )
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

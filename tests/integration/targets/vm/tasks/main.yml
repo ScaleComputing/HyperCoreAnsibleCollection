@@ -5,15 +5,9 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   block:
-    - name: retrieve all VMs
-      scale_computing.hypercore.vm_info:
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result.records != []
 
     - name: Delete the VM with name vm-integration-test-vm, if it exists from before
-      scale_computing.hypercore.vm: &vm-delete
+      scale_computing.hypercore.vm: &delete-vm
         vm_name: vm-integration-test-vm
         state: absent
       register: result
@@ -21,8 +15,8 @@
     - name: Create project directory /tmp (if it doesn't exist already)
       file: state=directory path=/tmp
 
-    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-current.iso
-      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-current.iso
+    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-vm-integration.iso
+      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-vm-integration.iso
 
     - name: Delete the ISO image (if it may exist)
       scale_computing.hypercore.iso: &delete-iso
@@ -33,7 +27,7 @@
     - name: Upload ISO image TinyCore-current.iso to HyperCore API
       scale_computing.hypercore.iso:
         name: "TinyCore-vm-integration.iso"
-        source: "/tmp/TinyCore-current.iso"
+        source: "/tmp/TinyCore-vm-integration.iso"
         state: present
       register: result
 
@@ -43,7 +37,7 @@
         description: Demo VM
         state: present
         tags:
-          - my-group
+          - Xlab
           - mytag1
           - mytag2
         memory: "{{ '512 MB' | human_to_bytes }}"
@@ -80,7 +74,7 @@
         that:
           - vm_created.record.0.description == "Demo VM"
           - vm_created.record.0.memory == 536870912
-          - vm_created.record.0.tags == ["my-group", "mytag1", "mytag2"]
+          - vm_created.record.0.tags == ["Xlab", "mytag1", "mytag2"]
           - vm_created.record.0.vcpu == 2
           - vm_created.record.0.vm_name == "vm-integration-test-vm"
           - vm_created.record.0.disks | length == 2
@@ -96,40 +90,93 @@
           - vm_created.record.0.boot_devices.1.vlan == 0
           - vm_created.record.0.power_state == "started"
 
-    - name: Find the newly created VM by name
-      scale_computing.hypercore.vm_info: &find-vm-by-name
+    - name: Create the exact same vm
+      scale_computing.hypercore.vm: *create-vm
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is not changed
+
+    - name: Delete snapshot schedule (if it exists from before)
+      scale_computing.hypercore.snapshot_schedule: &delete-snapshot-schedule
+        name: demo-snap-schedule
+        state: absent
+
+    - name: Setup snapshot schedule
+      scale_computing.hypercore.snapshot_schedule:
+        name: demo-snap-schedule
+        state: present
+        recurrences:
+          - name: weekly-tuesday
+            frequency: "FREQ=WEEKLY;INTERVAL=1;BYDAY=TU"  # RFC-2445
+            start: "2010-01-01 00:00:00"
+            local_retention: "{{ 10 * 7*24*60*60 }}"  # 10 days, unit seconds
+      register: snapshot_schedule
+
+    - name: Update the VM
+      scale_computing.hypercore.vm: &update-vm
+        vm_name: vm-integration-test-vm
+        description: Demo VM - updated
+        tags:
+          - Xlab
+        vcpu: 3
+        memory:  "{{ '1024 MB' | human_to_bytes }}"
+        power_state: stop
+        snapshot_schedule: "{{ snapshot_schedule.record[0].name }}"
+        state: present
+        # TODO (tjazsch): Add setters for disks and nics
+        # At the moment, setting disks and nics to arbitrary value doesn't change anything.
+        # This will be adressed in the following PRs.
+        disks: []
+        nics: []
+        boot_devices: []
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is changed
+          - result.reboot_needed == true
+
+    # TODO (tjazsch): Add more tests when disks and nics are finished
+    - name: Check VM's params changed
+      scale_computing.hypercore.vm_info: &find-vm-by-name-updated
         vm_name: vm-integration-test-vm
       register: result
     - ansible.builtin.assert:
         that:
-          - result.records.0.vm_name == "vm-integration-test-vm"
+          - result.records[0].vm_name == "vm-integration-test-vm"
+          - result.records[0].description == "Demo VM - updated"
+          - result.records[0].tags == ["Xlab"]
+          - result.records[0].vcpu == 3
+          - result.records[0].memory == 1073741824
+          - result.records[0].power_state == "stopped"
+          - result.records[0].snapshot_schedule == snapshot_schedule.record[0].name
 
-    - name: Create the exact same vm
-      scale_computing.hypercore.vm: *create-vm
+    - name: Update the VM (idempotency check)
+      scale_computing.hypercore.vm: *update-vm
       register: result
-      ignore_errors: True
     - ansible.builtin.assert:
         that:
-          - result is not changed
-          - result.msg == 'Device is not unique - VM with name vm-integration-test-vm - already exists'
-          - result is failed
+        - result is not changed
 
     - name: Delete the VM with name vm-integration-test-vm
-      scale_computing.hypercore.vm: *vm-delete
+      scale_computing.hypercore.vm: *delete-vm
       register: result
+
+    - name: Delete snapshot schedule
+      scale_computing.hypercore.snapshot_schedule: *delete-snapshot-schedule
 
     - name: Delete the ISO image
       scale_computing.hypercore.iso: *delete-iso
       register: result
 
-    - name: Delete locally installed ISO image from /tmp/TinyCore-current.iso
+    - name: Delete locally installed ISO image from /tmp/TinyCore-vm-integration.iso
       ansible.builtin.file:
-        path: /tmp/TinyCore-current.iso
+        path: /tmp/TinyCore-vm-integration.iso
         state: absent
       register: file_deleted
 
     - name: Assert that record has been deleted
-      scale_computing.hypercore.vm_info: *find-vm-by-name
+      scale_computing.hypercore.vm_info: *find-vm-by-name-updated
       register: result
     - ansible.builtin.assert:
         that:
