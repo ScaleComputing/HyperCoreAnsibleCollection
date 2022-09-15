@@ -5,8 +5,32 @@
     SC_PASSWORD: "{{ sc_password }}"
 
 # ----------------------------------Cleanup------------------------------------------------------------------------
-
   block:
+  # First set power_state to STOP, can't delete VM if it's running.
+  # We ignore errors here, this is only cleanup incase VMs are still present from previous tests.
+    - name: Retrieve XLAB-vm_clone_CI-test-running
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_clone-CI_test-running
+      register: source_running_info
+      ignore_errors: True
+
+    - name: set XLAB-vm_clone-CI_test-running to power_state SHUTDOWN
+      scale_computing.hypercore.api:
+        action: post_list
+        endpoint: /rest/v1/VirDomain/action
+        data:
+          virDomainUUID: "{{ source_running_info.records.0.uuid }}"
+          actionType: STOP
+          nodeUUID: ""
+          cause: INTERNAL
+      register: set_to_run_task
+      ignore_errors: True
+
+    - name: Wait for the VM to be set to SHUTDOWN
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ set_to_run_task.record }}"
+      ignore_errors: True
+
     - name: Delete XLAB-vm_clone-CI_test
       scale_computing.hypercore.vm: &delete-XLAB-vm_clone_CI-test
         vm_name: "{{ item }}"
@@ -15,12 +39,12 @@
         vcpu: 2
       loop:
         - XLAB-vm_clone-CI_test
+        - XLAB-vm_clone-CI_test-running
         - XLAB-vm_clone_CI-test-clone
         - XLAB-vm_clone_CI-test-cloud_init-clone
-        - XLAB-clone-while-running-test-clone
+        - XLAB-vm_clone-while-running-test-clone
 
-# ----------------------------------Job-----------------------------------------------------------------------------
-
+# ----------------------------------Setup-----------------------------------------------------------------------------
     - name: Create XLAB-vm_clone-CI_test
       scale_computing.hypercore.api:
         action: post
@@ -59,6 +83,73 @@
         that:
           - source_info.records | length == 1
 
+    - name: Create XLAB-vm_clone-CI_test-running
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/VirDomain
+        data:
+          dom:
+            name: XLAB-vm_clone-CI_test-running
+            tags: Xlab,CI,test,vm_clone,running
+            mem: 512100100
+            numVCPU: 2
+            blockDevs:
+              - type: VIRTIO_DISK
+                capacity: 8100100100
+                name: jc1-disk-0
+            netDevs:
+              - type: RTL8139
+                vlan: 0
+                connected: true
+          options:
+            attachGuestToolsISO: False
+      register: vm_created_running
+    - ansible.builtin.assert:
+        that:
+          - vm_created_running is succeeded
+          - vm_created_running is changed
+
+    - name: Wait for the VM running to be created
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ vm_created_running.record }}"
+
+    - name: Retrieve XLAB-vm_clone_CI-test-running
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_clone-CI_test-running
+      register: source_running_info
+    - ansible.builtin.assert:
+        that:
+          - source_running_info.records | length == 1
+
+    - name: set XLAB-vm_clone-CI_test-running to power_state running
+      scale_computing.hypercore.api:
+        action: post_list
+        endpoint: /rest/v1/VirDomain/action
+        data:
+          virDomainUUID: "{{ source_running_info.records.0.uuid }}"
+          actionType: START
+          nodeUUID: ""
+          cause: INTERNAL
+      register: set_to_run_task
+    - ansible.builtin.assert:
+        that:
+          - set_to_run_task is succeeded
+          - set_to_run_task is changed
+
+    - name: Wait for the VM to be set to running
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ set_to_run_task.record }}"
+  
+    - name: Retrieve XLAB-vm_clone_CI-test-running
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_clone-CI_test-running
+      register: source_running_info
+    - ansible.builtin.assert:
+        that:
+          - source_running_info.records | length == 1
+          - source_running_info.records.0.power_state == "started"
+
+# ----------------------------------Job-----------------------------------------------------------------------------
     - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-clone
       scale_computing.hypercore.vm_clone:
         vm_name: XLAB-vm_clone_CI-test-clone
@@ -117,29 +208,28 @@
           - source_info.records.0.nics | length == cloned_cloud_init_info.records.0.nics | length
           - source_info.records.0.node_affinity == cloned_cloud_init_info.records.0.node_affinity
 
-    - name: Retrieve XLAB-demo-VM-smb-server
+    - name: Retrieve XLAB-vm_clone-CI_test-running
       scale_computing.hypercore.vm_info:
-        vm_name: XLAB-demo-VM-smb-server
+        vm_name: XLAB-vm_clone-CI_test-running
       register: demo_server_info
     - ansible.builtin.assert:
         that:
           - demo_server_info.records | length == 1
           - demo_server_info.records.0.power_state == "started"
 
-  # Not the best solution, for power_state changes we need to send array instead of dict (raw api not supporting)
-    - name: Clone XLAB-demo-VM-smb-server into XLAB-clone-while-running-test-clone
+    - name: Clone XLAB-vm_clone-CI_test-running into XLAB-vm_clone-while-running-test-clone
       scale_computing.hypercore.vm_clone:
-        vm_name: XLAB-clone-while-running-test-clone
-        source_vm_name: XLAB-demo-VM-smb-server
+        vm_name: XLAB-vm_clone-while-running-test-clone
+        source_vm_name: XLAB-vm_clone-CI_test-running
       register: output
     - ansible.builtin.assert:
         that:
           - output is changed
-          - output.msg == "Virtual machine - XLAB-demo-VM-smb-server - cloning complete to - XLAB-clone-while-running-test-clone."
+          - output.msg == "Virtual machine - XLAB-vm_clone-CI_test-running - cloning complete to - XLAB-vm_clone-while-running-test-clone."
 
-    - name: Retrieve XLAB-clone-while-running-test-clone
+    - name: Retrieve XLAB-vm_clone-while-running-test-clone
       scale_computing.hypercore.vm_info:
-        vm_name: XLAB-clone-while-running-test-clone
+        vm_name: XLAB-vm_clone-while-running-test-clone
       register: cloned_while_running_info
     - ansible.builtin.assert:
         that:
@@ -164,6 +254,21 @@
           - output is not changed
           - output.msg == "Virtual machine XLAB-vm_clone_CI-test-clone already exists."
 
+    - name: Retrieve XLAB-vm_clone_CI-test-clone
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_clone_CI-test-clone
+      register: cloned_info
+    - ansible.builtin.assert:
+        that:
+          - cloned_info.records | length == 1
+          - source_info.records.0.vcpu == cloned_info.records.0.vcpu
+          - source_info.records.0.tags != cloned_info.records.0.tags
+          - source_info.records.0.boot_devices | length == cloned_info.records.0.boot_devices | length
+          - source_info.records.0.disks | length ==  cloned_info.records.0.disks | length
+          - source_info.records.0.nics | length ==  cloned_info.records.0.nics | length
+          - source_info.records.0.node_affinity == cloned_info.records.0.node_affinity
+
+
     - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-cloud_init-clone Idempotence
       scale_computing.hypercore.vm_clone:
         vm_name: XLAB-vm_clone_CI-test-cloud_init-clone
@@ -182,25 +287,73 @@
           - output is not changed
           - output.msg == "Virtual machine XLAB-vm_clone_CI-test-cloud_init-clone already exists."
 
-    - name: Clone XLAB-demo-VM-smb-server into XLAB-clone-while-running-test-clone Idempotence
+    - name: Retrieve XLAB-vm_clone_CI-test-cloud_init-clone
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_clone_CI-test-cloud_init-clone
+      register: cloned_cloud_init_info
+    - ansible.builtin.assert:
+        that:
+          - cloned_cloud_init_info.records | length == 1
+          - source_info.records.0.vcpu == cloned_cloud_init_info.records.0.vcpu
+          - source_info.records.0.tags == cloned_cloud_init_info.records.0.tags
+          - source_info.records.0.boot_devices | length == cloned_cloud_init_info.records.0.boot_devices | length
+          - source_info.records.0.disks | length != cloned_cloud_init_info.records.0.disks | length
+          - source_info.records.0.nics | length == cloned_cloud_init_info.records.0.nics | length
+          - source_info.records.0.node_affinity == cloned_cloud_init_info.records.0.node_affinity
+
+    - name: Clone XLAB-vm_clone-CI_test-running into XLAB-vm_clone-while-running-test-clone Idempotence
       scale_computing.hypercore.vm_clone:
-        vm_name: XLAB-clone-while-running-test-clone
-        source_vm_name: XLAB-demo-VM-smb-server
+        vm_name: XLAB-vm_clone-while-running-test-clone
+        source_vm_name: XLAB-vm_clone-CI_test-running
       register: output
     - ansible.builtin.assert:
         that:
           - output is not changed
-          - output.msg == "Virtual machine XLAB-clone-while-running-test-clone already exists."
+          - output.msg == "Virtual machine XLAB-vm_clone-while-running-test-clone already exists."
+  
+    - name: Retrieve XLAB-vm_clone-while-running-test-clone
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_clone-while-running-test-clone
+      register: cloned_while_running_info
+    - ansible.builtin.assert:
+        that:
+          - cloned_while_running_info.records | length == 1
+          - demo_server_info.records.0.vcpu == cloned_while_running_info.records.0.vcpu
+          - demo_server_info.records.0.tags == cloned_while_running_info.records.0.tags
+          - demo_server_info.records.0.boot_devices | length == cloned_while_running_info.records.0.boot_devices | length
+          - demo_server_info.records.0.disks | length == cloned_while_running_info.records.0.disks | length
+          - demo_server_info.records.0.nics | length == cloned_while_running_info.records.0.nics | length
+          - demo_server_info.records.0.node_affinity != cloned_while_running_info.records.0.node_affinity
+
 # ----------------------------------Cleanup------------------------------------------------------------------------
+    - name: set XLAB-vm_clone-CI_test-running to power_state SHUTDOWN
+      scale_computing.hypercore.api:
+        action: post_list
+        endpoint: /rest/v1/VirDomain/action
+        data:
+          virDomainUUID: "{{ source_running_info.records.0.uuid }}"
+          actionType: STOP
+          nodeUUID: ""
+          cause: INTERNAL
+      register: set_to_run_task
+    - ansible.builtin.assert:
+        that:
+          - set_to_run_task is succeeded
+          - set_to_run_task is changed
+
+    - name: Wait for the VM to be set to SHUTDOWN
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ set_to_run_task.record }}"
 
     - name: Delete XLAB-vm_clone-CI_test end test
       scale_computing.hypercore.vm: *delete-XLAB-vm_clone_CI-test
       register: output
       loop:
         - XLAB-vm_clone-CI_test
+        - XLAB-vm_clone-CI_test-running
         - XLAB-vm_clone_CI-test-clone
         - XLAB-vm_clone_CI-test-cloud_init-clone
-        - XLAB-clone-while-running-test-clone
+        - XLAB-vm_clone-while-running-test-clone
     - ansible.builtin.assert:
         that:
           - output is changed

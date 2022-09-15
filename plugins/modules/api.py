@@ -33,6 +33,7 @@ options:
       - patch
       - delete
       - get
+      - post_list
   data:
     type: dict
     description:
@@ -44,6 +45,7 @@ options:
         certain fields may be necessary and have to be specified here. For other columns if not specified here, they
         may be assigned the default value automatically.
       - If I(action==delete), data option is going to be ignored.
+      - If I(action==post_list), data will be send as list instead of dict.
   endpoint:
     description:
       - The raw endpoint that we want to perform post, patch or delete operation on.
@@ -208,6 +210,16 @@ def post_record(module, rest_client):
     return True, task_tag
 
 
+def post_list_record(module, rest_client):
+    task_tag = rest_client.create_record(
+        endpoint=module.params["endpoint"],
+        payload=[module.params["data"]],
+        check_mode=module.check_mode,
+    )
+    TaskTag.wait_task(rest_client, task_tag)
+    return True, task_tag
+
+
 def delete_record(module, rest_client):
     if module.params["data"]:
         module.warn("Payload will get ignored when deleting an action.")
@@ -240,6 +252,8 @@ def run(module, rest_client):
         return patch_record(module, rest_client)
     elif action == "post":  # POST method
         return post_record(module, rest_client)
+    elif action == "post_list":  # POST method, but sends list instead of dict
+        return post_list_record(module, rest_client)
     elif action == "get":  # GET method
         return get_records(module, rest_client)
     return delete_record(module, rest_client)  # DELETE methodx
@@ -255,7 +269,7 @@ def main():
             ),
             action=dict(
                 type="str",
-                choices=["post", "patch", "delete", "get"],
+                choices=["post", "patch", "delete", "get", "post_list"],
                 required=True,
             ),
             endpoint=dict(
