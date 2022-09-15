@@ -18,5 +18,4 @@ build_ignore:
 - tests
 # files used during local testing/building
 - ansible.cfg
-- sample*
 - examples
