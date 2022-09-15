@@ -15,7 +15,12 @@ from ..module_utils.nic import Nic
 from ..module_utils.disk import Disk
 from ..module_utils.node import Node
 from ..module_utils.iso import ISO
-from ..module_utils.utils import PayloadMapper, filter_dict, transform_query
+from ..module_utils.utils import (
+    PayloadMapper,
+    filter_dict,
+    transform_query,
+    is_superset,
+)
 from ..module_utils.utils import (
     get_query,
     filter_results,
@@ -49,6 +54,7 @@ FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     started="START",
 )
 
+
 DEFAULT_DISK_CDROM_PAYLOAD = dict(
     cacheMode="WRITETHROUGH",
     path="",
@@ -62,6 +68,7 @@ DEFAULT_DISK_OTHER_PAYLOAD = dict(
     path="",
     uuid="primaryDrive",
 )
+
 
 DEFAULT_MACHINE_TYPE = "scale-7.2"
 VM_PAYLOAD_KEYS = [
@@ -361,7 +368,7 @@ class VM(PayloadMapper):
             blockDevs=[disk.to_hypercore() for disk in self.disk_list],
             netDevs=[nic.to_hypercore() for nic in self.nic_list],
             bootDevices=self.boot_devices,
-            tags=",".join(self.tags),
+            tags=",".join(self.tags) if self.tags is not None else "",
             uuid=self.uuid,
             attachGuestToolsISO=self.attach_guest_tools_iso,
         )
@@ -809,3 +816,186 @@ class ManageVMParams(VM):
                 reboot_needed,
                 dict(before=None, after=None),
             )
+
+
+class ManageVMDisks:
+    @staticmethod
+    def get_vm_by_name(module, rest_client):
+        """
+        Wrapps VM's method get_by_name. Additionally, it raises exception if vm isn't found
+        Returns vm object and list of ansible disks (this combo is commonly used in this module).
+        """
+        # If there's no VM with such name, error is raised automatically
+        vm = VM.get_by_name(module.params, rest_client, must_exist=True)
+        return vm, [disk.to_ansible() for disk in vm.disks]
+
+    @staticmethod
+    def _create_block_device(module, rest_client, vm, desired_disk):
+        # vm is instance of VM, desired_disk is instance of Disk
+        payload = desired_disk.post_payload(vm)
+        task_tag = rest_client.create_record(
+            "/rest/v1/VirDomainBlockDevice",
+            payload,
+            module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+        return task_tag["createdUUID"]
+
+    @staticmethod
+    def iso_image_management(module, rest_client, iso, uuid, attach):
+        # iso is instance of ISO, uuid is uuid of block device
+        # Attach is boolean. If true, you're attaching an image.
+        # If false, it means you're detaching an image.
+        payload = iso.attach_iso_payload() if attach else iso.detach_iso_payload()
+        task_tag = rest_client.update_record(
+            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
+            payload,
+            module.check_mode,
+        )
+        # Not returning anything, since it isn't used in code.
+        # Disk's uuid is stored in task_tag if relevant in the future.
+        TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+
+    @staticmethod
+    def _update_block_device(module, rest_client, desired_disk, existing_disk, vm):
+        payload = desired_disk.patch_payload(vm, existing_disk)
+        task_tag = rest_client.update_record(
+            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
+            payload,
+            module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+
+    @classmethod
+    def _delete_not_used_disks(cls, module, rest_client, changed, disk_key):
+        updated_vm, updated_ansible_disks = cls.get_vm_by_name(module, rest_client)
+        # Ensure all disk that aren't listed in items don't exist in VM (ensure absent)
+        for updated_ansible_disk in updated_ansible_disks:
+            existing_disk = Disk.from_ansible(updated_ansible_disk)
+            to_delete = True
+            for ansible_desired_disk in module.params[disk_key]:
+                desired_disk = Disk.from_ansible(ansible_desired_disk)
+                if (
+                    desired_disk.slot == existing_disk.slot
+                    and desired_disk.type == existing_disk.type
+                ):
+                    to_delete = False
+            if to_delete:
+                task_tag = rest_client.delete_record(
+                    "{0}/{1}".format(
+                        "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
+                    ),
+                    module.check_mode,
+                )
+                TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+                changed = True
+        return changed
+
+    @staticmethod
+    def _force_remove_all_disks(module, rest_client, vm, disks_before):
+        # It's important to check if items is equal to empty list and empty list only (no None-s)
+        # This method is going to be called in vm_disk class only.
+        if module.params["items"] != []:
+            raise ScaleComputingError(
+                "If force set to 1, items should be set to empty list"
+            )
+        # Delete all disks
+        for existing_disk in vm.disks:
+            task_tag = rest_client.delete_record(
+                "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
+                module.check_mode,
+            )
+            TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+        return True, [], dict(before=disks_before, after=[])
+
+    @staticmethod
+    def _called_from_vm_disk(module_path):
+        if module_path == "scale_computing.hypercore.vm_disk":
+            return True
+        elif module_path == "scale_computing.hypercore.vm":
+            return False
+        raise ScaleComputingError(
+            "Setting disks is currently only supported in the following modules:"
+            "scale_computing.hypercore.vm_disk, scale_computing.hypercore.vm"
+        )
+
+    @classmethod
+    def ensure_present_or_set(cls, module, rest_client, module_path):
+        # At the moment, this method is called in modules vm_disk and vm
+        # Module path is here to distinguish from which module ensure_present_or_set was called from
+        changed = False
+        called_from_vm_disk = cls._called_from_vm_disk(module_path)
+        disk_key = "items" if called_from_vm_disk else "disks"
+        vm_before, disks_before = cls.get_vm_by_name(module, rest_client)
+        if (
+            called_from_vm_disk
+            and module.params["state"] == "set"
+            and module.params["force"] == 1
+        ):
+            return cls._force_remove_all_disks(
+                module, rest_client, vm_before, disks_before
+            )
+        for ansible_desired_disk in module.params[disk_key]:
+            # For the given VM, disk can be uniquely identified with disk_slot and type or
+            # just name, if not empty string
+            disk_query = filter_dict(ansible_desired_disk, "disk_slot", "type")
+            ansible_existing_disk = vm_before.get_specific_disk(disk_query)
+            # raise ValueError(ansible_existing_disk)
+            desired_disk = Disk.from_ansible(ansible_desired_disk)
+            if ansible_desired_disk["type"] == "ide_cdrom":
+                # ISO image detachment
+                # Check if ide_cdrom disk already exists
+                if (
+                    ansible_existing_disk
+                    and ansible_existing_disk["iso_name"]
+                    != ansible_desired_disk["iso_name"]
+                ):
+                    existing_disk = Disk.from_ansible(ansible_existing_disk)
+                    uuid = existing_disk.uuid
+                elif (
+                    ansible_existing_disk
+                    and ansible_existing_disk["iso_name"]
+                    == ansible_desired_disk["iso_name"]
+                ):
+                    # cdrom with such iso_name already exists
+                    continue
+                else:
+                    # Create new ide_cdrom disk
+                    uuid = cls._create_block_device(
+                        module, rest_client, vm_before, desired_disk
+                    )
+                # Attach ISO image
+                # If ISO image's name is specified, it's assumed you want to attach ISO image
+                name = ansible_desired_disk["iso_name"]
+                iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
+                cls.iso_image_management(module, rest_client, iso, uuid, attach=True)
+                changed = True
+            else:
+                if ansible_existing_disk:
+                    existing_disk = Disk.from_ansible(ansible_existing_disk)
+                    # Check superset for idempotency
+                    ansible_desired_disk_filtered = {
+                        k: v
+                        for k, v in desired_disk.to_ansible().items()
+                        if v is not None
+                    }
+                    if is_superset(
+                        ansible_existing_disk, ansible_desired_disk_filtered
+                    ):
+                        # There's nothing to do - all properties are already set the way we want them to be
+                        continue
+
+                    cls._update_block_device(
+                        module, rest_client, desired_disk, existing_disk, vm_before
+                    )
+                else:
+                    cls._create_block_device(
+                        module, rest_client, vm_before, desired_disk
+                    )
+                changed = True
+        if module.params["state"] == "set" or not called_from_vm_disk:
+            changed = cls._delete_not_used_disks(module, rest_client, changed, disk_key)
+        if called_from_vm_disk:
+            vm_after, disks_after = cls.get_vm_by_name(module, rest_client)
+            return changed, disks_after, dict(before=disks_before, after=disks_after)
+        return changed
