@@ -25,7 +25,7 @@ options:
   vm_name:
     description:
       - VM's name.
-      - Serves as unique identifier across endpoint C(VirDomain).
+      - Serves as unique identifier across endpoint U(VirDomain).
       - If specified, the VM with that name will get returned. Otherwise, all VMs are going to get returned.
     type: str
 """
@@ -97,6 +97,7 @@ records:
         backplane_ip: 10.0.0.3
         lan_ip: 10.0.0.4
         peer_id: 2
+    snapshot_schedule: demo-snapshot-schedule
 """
 
 from ansible.module_utils.basic import AnsibleModule
