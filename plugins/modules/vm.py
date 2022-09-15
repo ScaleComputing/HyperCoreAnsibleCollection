@@ -243,7 +243,7 @@ EXAMPLES = r"""
   register: result
 
 - name: Delete the VM
-  scale_computing.hypercore.vm: &delete-vm
+  scale_computing.hypercore.vm:
     vm_name: demo-VM
     state: absent
   register: result
@@ -320,11 +320,18 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.vm import VM, ManageVMParams
+from ..module_utils.vm import (
+    VM,
+    ManageVMParams,
+    ManageVMDisks,
+)
 from ..module_utils.task_tag import TaskTag
 
+MODULE_PATH = "scale_computing.hypercore.vm"
+POSSIBLE_STATES_TO_SET_VM_DEVICES = ["started", "shutdown"]
 
-def _update_boot_order(module, rest_client, vm, existing_boot_order):
+
+def _set_boot_order(module, rest_client, vm, existing_boot_order):
     if module.params["boot_devices"] is not None:
         # set_boot_devices return bool whether the order has been changed or not
         boot_order_changed = vm.set_boot_devices(
@@ -337,38 +344,36 @@ def _update_boot_order(module, rest_client, vm, existing_boot_order):
     return False
 
 
-def ensure_absent(module, rest_client):
-    reboot_needed = False
-    vm = VM.get_by_name(module.params, rest_client)
-    if vm:
-        if vm.power_state != "shutdown":  # First, shut it off and then delete
-            vm.update_vm_power_state(module, rest_client, "stop")
-        task_tag = rest_client.delete_record(
-            "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid), module.check_mode
-        )
-        TaskTag.wait_task(rest_client, task_tag)
-        output = vm.to_ansible()
-        return True, [output], dict(before=output, after=None), reboot_needed
-    return False, [], dict(), reboot_needed
+def _set_disks(module, rest_client):
+    # Set disks. Nics will be also added here
+    return ManageVMDisks.ensure_present_or_set(module, rest_client, MODULE_PATH)
+
+
+def _set_vm_params(module, rest_client, vm):
+    changed_params, reboot_needed, diff = ManageVMParams.set_vm_params(
+        module, rest_client, vm
+    )
+    return changed_params, reboot_needed
 
 
 def ensure_present(module, rest_client):
     vm_before = VM.get_by_name(module.params, rest_client)
     if vm_before:
         before = vm_before.to_ansible()  # for output
+        # set disks
+        changed_disks = _set_disks(module, rest_client)
+        # Set boot order
         existing_boot_order = vm_before.get_boot_device_order()
-        changed_boot_order = _update_boot_order(
+        changed_order = _set_boot_order(
             module, rest_client, vm_before, existing_boot_order
         )
+        # Set vm params
         # ManageVMParams.set_vm_params has to be executed only after setting the boot order,
         # since boot order cannot be set when the vm is running.
         # set_vm_params updates VM's name, description, tags, memory, number of CPU,
         # changed the power state and/or assigns the snapshot schedule to the VM
-        changed_params, reboot_needed, diff = ManageVMParams.set_vm_params(
-            module, rest_client, vm_before
-        )
-        changed = changed_boot_order or changed_params
-        # TODO (tjazsch): Add setter for disks
+        changed_params, reboot_needed = _set_vm_params(module, rest_client, vm_before)
+        changed = any((changed_order, changed_params, changed_disks))
         # TODO (tjazsch): Add setter for nics
         name_field = "vm_name_new" if module.params["vm_name_new"] else "vm_name"
     else:
@@ -386,7 +391,7 @@ def ensure_present(module, rest_client):
         # Set boot order
         vm_created = VM.get_by_name(module.params, rest_client)
         existing_boot_order = vm_created.get_boot_device_order()
-        _update_boot_order(module, rest_client, vm_created, existing_boot_order)
+        _set_boot_order(module, rest_client, vm_created, existing_boot_order)
         # Set power state
         if module.params["power_state"] != "shutdown":
             vm_created.update_vm_power_state(
@@ -403,6 +408,21 @@ def run(module, rest_client):
     if module.params["state"] == "absent":
         return ensure_absent(module, rest_client)
     return ensure_present(module, rest_client)
+
+
+def ensure_absent(module, rest_client):
+    reboot_needed = False
+    vm = VM.get_by_name(module.params, rest_client)
+    if vm:
+        if vm.power_state != "shutdown":  # First, shut it off and then delete
+            vm.update_vm_power_state(module, rest_client, "stop")
+        task_tag = rest_client.delete_record(
+            "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid), module.check_mode
+        )
+        TaskTag.wait_task(rest_client, task_tag)
+        output = vm.to_ansible()
+        return True, [output], dict(before=output, after=None), reboot_needed
+    return False, [], dict(), reboot_needed
 
 
 def main():

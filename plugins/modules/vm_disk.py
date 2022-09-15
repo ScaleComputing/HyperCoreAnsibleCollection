@@ -209,151 +209,19 @@ from ..module_utils import arguments
 from ..module_utils.errors import ScaleComputingError
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.vm import VM
+from ..module_utils.vm import ManageVMDisks
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.disk import Disk
 from ..module_utils.iso import ISO
-from ..module_utils.utils import is_superset, filter_dict
+from ..module_utils.utils import filter_dict
 
 
-def get_vm_by_name(module, rest_client):
-    """
-    Wrapps VM's method get_by_name. Additionally, it raises exception if vm isn't found
-    Returns vm object and list of ansible disks (this combo is commonly used in this module).
-    """
-    # If there's no VM with such name, error is raised automatically
-    vm = VM.get_by_name(module.params, rest_client, must_exist=True)
-    return vm, [disk.to_ansible() for disk in vm.disks]
-
-
-def create_block_device(module, rest_client, vm, desired_disk):
-    # vm is instance of VM, desired_disk is instance of Disk
-    payload = desired_disk.post_payload(vm)
-    task_tag = rest_client.create_record(
-        "/rest/v1/VirDomainBlockDevice",
-        payload,
-        module.check_mode,
-    )
-    TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-    return task_tag["createdUUID"]
-
-
-def iso_image_management(module, rest_client, iso, uuid, attach):
-    # iso is instance of ISO, uuid is uuid of block device
-    # Attach is boolean. If true, you're attaching an image.
-    # If false, it means you're detaching an image.
-    payload = iso.attach_iso_payload() if attach else iso.detach_iso_payload()
-    task_tag = rest_client.update_record(
-        "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
-        payload,
-        module.check_mode,
-    )
-    # Not returning anything, since it isn't used in code.
-    # Disk's uuid is stored in task_tag if relevant in the future.
-    TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-
-
-def force_remove_all_disks(module, rest_client, vm, disks_before):
-    # It's important to check if items is equal to empty list and empty list only (no None-s)
-    if module.params["items"] != []:
-        raise ScaleComputingError(
-            "If force set to 1, items should be set to empty list"
-        )
-    # Delete all disks
-    for existing_disk in vm.disks:
-        task_tag = rest_client.delete_record(
-            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
-            module.check_mode,
-        )
-        TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-    return True, [], dict(before=disks_before, after=[])
-
-
-def update_block_device(module, rest_client, desired_disk, existing_disk, vm):
-    payload = desired_disk.patch_payload(vm, existing_disk)
-    task_tag = rest_client.update_record(
-        "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
-        payload,
-        module.check_mode,
-    )
-    TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-
-
-def delete_not_used_disks(module, rest_client, changed):
-    updated_vm, updated_ansible_disks = get_vm_by_name(module, rest_client)
-    # Ensure all disk that aren't listed in items don't exist in VM (ensure absent)
-    for updated_ansible_disk in updated_ansible_disks:
-        existing_disk = Disk.from_ansible(updated_ansible_disk)
-        to_delete = True
-        for ansible_desired_disk in module.params["items"]:
-            desired_disk = Disk.from_ansible(ansible_desired_disk)
-            if (
-                desired_disk.slot == existing_disk.slot
-                and desired_disk.type == existing_disk.type
-            ):
-                to_delete = False
-        if to_delete:
-            task_tag = rest_client.delete_record(
-                "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
-                module.check_mode,
-            )
-            TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-            changed = True
-    return changed
-
-
-def ensure_present_or_set(module, rest_client):
-    changed = False
-    vm_before, disks_before = get_vm_by_name(module, rest_client)
-    if module.params["state"] == "set" and module.params["force"] == 1:
-        return force_remove_all_disks(module, rest_client, vm_before, disks_before)
-    for ansible_desired_disk in module.params["items"]:
-        # For the given VM, disk can be uniquely identified with disk_slot and type or
-        # just name, if not empty string
-        disk_query = filter_dict(ansible_desired_disk, "disk_slot", "type")
-        ansible_existing_disk = vm_before.get_specific_disk(disk_query)
-        desired_disk = Disk.from_ansible(ansible_desired_disk)
-        if ansible_desired_disk["type"] == "ide_cdrom":
-            # ISO image detachment
-            # Check if ide_cdrom disk already exists
-            if ansible_existing_disk:
-                existing_disk = Disk.from_ansible(ansible_existing_disk)
-                uuid = existing_disk.uuid
-            else:
-                # Create new ide_cdrom disk
-                uuid = create_block_device(module, rest_client, vm_before, desired_disk)
-            # Attach ISO image
-            # If ISO image's name is specified, it's assumed you want to attach ISO image
-            name = ansible_desired_disk["iso_name"]
-            iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
-            iso_image_management(module, rest_client, iso, uuid, attach=True)
-            changed = True
-        else:
-            if ansible_existing_disk:
-                existing_disk = Disk.from_ansible(ansible_existing_disk)
-                # Check superset for idempotency
-                ansible_desired_disk_filtered = {
-                    k: v for k, v in desired_disk.to_ansible().items() if v is not None
-                }
-                if is_superset(ansible_existing_disk, ansible_desired_disk_filtered):
-                    # There's nothing to do - all properties are already set the way we want them to be
-                    continue
-
-                update_block_device(
-                    module, rest_client, desired_disk, existing_disk, vm_before
-                )
-            else:
-                create_block_device(module, rest_client, vm_before, desired_disk)
-            changed = True
-    if module.params["state"] == "set":
-        changed = delete_not_used_disks(module, rest_client, changed)
-    vm_after, disks_after = get_vm_by_name(module, rest_client)
-    return changed, disks_after, dict(before=disks_before, after=disks_after)
+MODULE_PATH = "scale_computing.hypercore.vm_disk"
 
 
 def ensure_absent(module, rest_client):
     changed = False
-    vm_before, disks_before = get_vm_by_name(module, rest_client)
+    vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
     for ansible_desired_disk in module.params["items"]:
         disk_query = filter_dict(ansible_desired_disk, "disk_slot", "type")
         ansible_existing_disk = vm_before.get_specific_disk(disk_query)
@@ -371,7 +239,9 @@ def ensure_absent(module, rest_client):
             else:
                 raise ScaleComputingError("Don't know which ISO image to detach")
             iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
-            iso_image_management(module, rest_client, iso, uuid, attach=False)
+            ManageVMDisks.iso_image_management(
+                module, rest_client, iso, uuid, attach=False
+            )
         else:
             task_tag = rest_client.delete_record(
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
@@ -380,14 +250,16 @@ def ensure_absent(module, rest_client):
             TaskTag.wait_task(rest_client, task_tag, module.check_mode)
             changed = True
 
-    vm_after, disks_after = get_vm_by_name(module, rest_client)
+    vm_after, disks_after = ManageVMDisks.get_vm_by_name(module, rest_client)
     return changed, disks_after, dict(before=disks_before, after=disks_after)
 
 
 def run(module, rest_client):
+    # ensure_absent is located in modules/vm_disk.py, since it's only used here
+    # ensure_present_or_set is located in module_utils/vm.py, since it's also used in module vm.
     if module.params["state"] == "absent":
         return ensure_absent(module, rest_client)
-    return ensure_present_or_set(module, rest_client)
+    return ManageVMDisks.ensure_present_or_set(module, rest_client, MODULE_PATH)
 
 
 def main():

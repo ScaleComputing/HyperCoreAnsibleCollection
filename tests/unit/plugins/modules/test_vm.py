@@ -311,6 +311,168 @@ class TestEnsureAbsent:
 
 
 class TestEnsurePresent:
+    def test_ensure_present_create_record(
+        self, create_module, rest_client, task_wait, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="VM-name-unique",
+                vm_name_new=None,
+                description="description",
+                memory=42000,
+                vcpu=3,
+                power_state="shutdown",
+                state="present",
+                tags=["group"],
+                disks=[],
+                nics=[],
+                boot_devices=[],
+                attach_guest_tools_iso=None,
+                cloud_init=dict(
+                    user_data=None,
+                    meta_data=None,
+                ),
+            ),
+        )
+
+        rest_client.get_record.side_effect = [
+            None,  # vm_before does not exist
+            dict(  # vm_created
+                uuid="id",
+                nodeUUID="",
+                name="VM-name-unique",
+                tags="group",
+                description="description",
+                mem=42000,
+                state="SHUTDOWN",
+                numVCPU=2,
+                netDevs=[],
+                blockDevs=[],
+                bootDevices=[],
+                attachGuestToolsISO=False,
+                operatingSystem=None,
+                affinityStrategy={
+                    "strictAffinity": False,
+                    "preferredNodeUUID": "",
+                    "backupNodeUUID": "",
+                },
+                snapshotScheduleUUID="snapshot-id",
+            ),
+            dict(  # vm_after
+                uuid="id",
+                nodeUUID="",
+                name="VM-name-unique",
+                tags="group",
+                description="description",
+                mem=42000,
+                state="SHUTDOWN",
+                numVCPU=2,
+                netDevs=[],
+                blockDevs=[],
+                bootDevices=[],
+                attachGuestToolsISO=False,
+                operatingSystem=None,
+                affinityStrategy={
+                    "strictAffinity": False,
+                    "preferredNodeUUID": "",
+                    "backupNodeUUID": "",
+                },
+                snapshotScheduleUUID="snapshot-id",
+            ),
+        ]
+
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None  # in VM.get_by_name
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None  # in VM.get_by_name
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.post_vm_payload"
+        )  # we don't need to generate payload since we also mock create record
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.ManageVMParams.set_vm_params"
+        ).return_value = (True, True, dict())
+        rest_client.create_record.return_value = {
+            "taskTag": 123,
+            "createdUUID": "",
+        }
+        result = vm.ensure_present(module, rest_client)
+        assert result == (
+            True,
+            [
+                {
+                    "attach_guest_tools_iso": False,
+                    "boot_devices": [],
+                    "description": "description",
+                    "disks": [],
+                    "memory": 42000,
+                    "nics": [],
+                    "node_affinity": {
+                        "backup_node": {
+                            "backplane_ip": "",
+                            "lan_ip": "",
+                            "node_uuid": "",
+                            "peer_id": None,
+                        },
+                        "preferred_node": {
+                            "backplane_ip": "",
+                            "lan_ip": "",
+                            "node_uuid": "",
+                            "peer_id": None,
+                        },
+                        "strict_affinity": False,
+                    },
+                    "operating_system": None,
+                    "power_state": "shutdown",
+                    "snapshot_schedule": "",
+                    "tags": ["group"],
+                    "uuid": "id",
+                    "vcpu": 2,
+                    "vm_name": "VM-name-unique",
+                }
+            ],
+            {
+                "after": {
+                    "attach_guest_tools_iso": False,
+                    "boot_devices": [],
+                    "description": "description",
+                    "disks": [],
+                    "memory": 42000,
+                    "nics": [],
+                    "node_affinity": {
+                        "backup_node": {
+                            "backplane_ip": "",
+                            "lan_ip": "",
+                            "node_uuid": "",
+                            "peer_id": None,
+                        },
+                        "preferred_node": {
+                            "backplane_ip": "",
+                            "lan_ip": "",
+                            "node_uuid": "",
+                            "peer_id": None,
+                        },
+                        "strict_affinity": False,
+                    },
+                    "operating_system": None,
+                    "power_state": "shutdown",
+                    "snapshot_schedule": "",
+                    "tags": ["group"],
+                    "uuid": "id",
+                    "vcpu": 2,
+                    "vm_name": "VM-name-unique",
+                },
+                "before": None,
+            },
+            False,
+        )
+
     def test_ensure_present_update_record_manage_vm_params(
         self, create_module, rest_client, task_wait, mocker
     ):
@@ -340,8 +502,8 @@ class TestEnsurePresent:
             ),
         )
 
-        rest_client.get_record.side_effect = [
-            dict(
+        rest_client.get_record.side_effect = [  # in VM.get_by_name
+            dict(  # vm_before
                 uuid="id",
                 nodeUUID="",
                 name="VM-name-unique",
@@ -362,7 +524,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="snapshot-id",
             ),
-            dict(
+            dict(  # vm_after
                 uuid="id",
                 nodeUUID="",
                 name="VM-name-updated",
@@ -386,17 +548,20 @@ class TestEnsurePresent:
         ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
-        ).return_value = None
+        ).return_value = None  # in VM.get_by_name
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
-        ).return_value = None
+        ).return_value = None  # in VM.get_by_name
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.ManageVMParams.set_vm_params"
-        ).return_value = (True, True, dict())
-        rest_client.create_record.return_value = {
-            "taskTag": 123,
-            "createdUUID": "",
-        }
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
+        ).return_value = (True, True)
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
+        ).return_value = True
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
+        ).return_value = False
+
         result = vm.ensure_present(module, rest_client)
         assert result == (
             True,
@@ -577,8 +742,14 @@ class TestEnsurePresent:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.ManageVMParams.set_vm_params"
-        ).return_value = (False, False, dict())
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
+        ).return_value = (False, False)
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
+        ).return_value = False
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
+        ).return_value = False
 
         result = vm.ensure_present(module, rest_client)
         changed = result[0]
@@ -704,13 +875,15 @@ class TestEnsurePresent:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.ManageVMParams.set_vm_params"
-        ).return_value = (False, False, dict())
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
+        ).return_value = (False, False)
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
+        ).return_value = True
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
+        ).return_value = True
 
-        rest_client.update_record.return_value = {
-            "taskTag": 124,
-            "createdUUID": "",
-        }
         result = vm.ensure_present(module, rest_client)
         assert result == (
             True,
