@@ -317,7 +317,7 @@ def run(module, rest_client):
 
 def main():
     module = AnsibleModule(
-        supports_check_mode=True,  # False ATM
+        supports_check_mode=False,  # False ATM
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             vm_name=dict(
