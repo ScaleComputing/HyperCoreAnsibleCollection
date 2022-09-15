@@ -130,6 +130,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
 from ..module_utils.node import Node
 from ..module_utils.utils import get_query
+from ..module_utils.task_tag import TaskTag
 
 
 def get_node_uuid(module, node, rest_client):
@@ -215,7 +216,8 @@ def run(module, rest_client):
         }
     }
     endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
-    rest_client.update_record(endpoint, payload, module.check_mode)
+    task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
+    TaskTag.wait_task(rest_client, task_tag)
     vm_after = VM.get_by_name(module.params, rest_client, must_exist=True)
     if module.check_mode:
         vm_after.node_affinity = dict(

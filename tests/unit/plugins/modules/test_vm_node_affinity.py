@@ -297,6 +297,9 @@ class TestRun:
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.set_parameters_for_payload"
         ).return_value = (True, "preferred_node_uuid", "backup_node_uuid")
         mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.TaskTag.wait_task"
+        )
+        mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.VM.get_by_name"
         ).return_value = VM(
             uuid="vm_uuid",
