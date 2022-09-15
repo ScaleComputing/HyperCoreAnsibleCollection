@@ -13,7 +13,7 @@
         memory: 536870912
         vcpu: 2
 
-# ----------------------------------Job-----------------------------------------------------------------------------
+# ----------------------------------Setup-----------------------------------------------------------------------------
 
     - name: Create XLAB-export-test-integration
       scale_computing.hypercore.api:
@@ -63,6 +63,7 @@
       scale_computing.hypercore.task_wait:
         task_tag: "{{vm_created.record}}"
 
+# ----------------------------------Job-----------------------------------------------------------------------------
     - name: Export XLAB-export-test-integration to SMB
       scale_computing.hypercore.vm_export:
         vm_name: XLAB-export-test-integration

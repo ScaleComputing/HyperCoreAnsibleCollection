@@ -1091,7 +1091,6 @@ class TestVMExport:
                 + "password"
                 + "@"
                 + "10.5.11.170"
-                + "/"
                 + "/user",
                 definitionFileName="my_file.xml",
             ),
@@ -1175,7 +1174,6 @@ class TestVMImport:
                 + "password"
                 + "@"
                 + "10.5.11.170"
-                + "/"
                 + "/user",
                 definitionFileName="my_file.xml",
             ),
