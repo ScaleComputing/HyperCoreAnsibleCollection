@@ -14,10 +14,12 @@ module: vm_node_affinity
 
 author:
   - Polona Mihalič (@PolonaM)
-short_description: Update virtual machine's node affinity
+short_description: Update virtual machine node affinity
 description:
-  - Module updates selected virtual machine's node affinity.
-  - If any of the node isn't set, it will be overwritten with empty string.
+  - Module updates selected virtual machine node affinity.
+  - If I(strict_affinity) is set to True, VM will only run on I(preferred_node) or I(backup_node)
+  - If node isn't set, the old value of the node will be kept.
+  - If node is set to empty string, the existing value of the node will be deleted.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -25,23 +27,22 @@ seealso: []
 options:
   vm_name:
     description:
-      - Virtual machine name
-      - Used to identify selected virtual machine by name
+      - Virtual machine name.
+      - Used to identify selected virtual machine by name.
     type: str
     required: True
   strict_affinity:
     description:
-      - Enable or disable strict enforcement of affinity strategy. The VirDomain will only run on preferred or backup node.
-      - If strict_affinity is set to true and nodes are not provided, the preferred_node's uuid will be set to node_uuid provided in VM.
+      - Enable or disable strict enforcement of affinity strategy.
+      - If I(preferred_node) and I(backup_node) are not set (in task or in VM) and I(strict_affinity) is set to True, the task will FAIL.
     type: bool
     required: True
   preferred_node:
     description:
-      - Preferred node to run the VirDomain
-      - Can be set by node_uuid, backplane_ip, lan_ip or peer_id
-      - One of the options should be enough. In case that all are set, logical AND operation will be used.
-        Task will return FAIL in case, that node can not be uniquely identified.
-      - In case if node isn't provided, old value is deleted (except for the corner cases described above).
+      - Preferred node to run the VM
+      - Can be set by I(node_uuid), I(backplane_ip), I(lan_ip) or I(peer_id)
+      - One of the options should be enough. In case that all are set, logical AND operation is used.
+        Task will FAIL in case that node can not be uniquely identified.
     type: dict
     suboptions:
       node_uuid:
@@ -59,10 +60,9 @@ options:
   backup_node:
     description:
       - Backup node in the event that preferred_node is unavailable
-      - Can be set by node_uuid, backplane_ip, lan_ip or peer_id
-      - One of the options should be enough. In case that all are set, logical AND operation will be used.
-        Task will return FAIL in case, that node can not be uniquely identified.
-      - In case if node isn't provided, old value is deleted.
+      - Can be set by I(node_uuid), I(backplane_ip), I(lan_ip) or I(peer_id)
+      - One of the options should be enough. In case that all are set, logical AND operation is used.
+        Task will FAIL in case that node can not be uniquely identified.
     type: dict
     suboptions:
       node_uuid:
@@ -89,7 +89,7 @@ EXAMPLES = r"""
     backup_node:
       node_uuid: "3dd52913-4e60-46fa-8ac6-07ba0b2155d2"
 
-- name: Set VM node affinity by backplane IP, lan IP, or peer ID
+- name: Set VM node affinity by backplane IP, lan IP, and peer ID
   scale_computing.hypercore.vm_node_affinity:
     vm_name: demo-vm
     strict_affinity: true
@@ -105,7 +105,7 @@ EXAMPLES = r"""
 - name: Set strict affinity to false and delete the nodes
   scale_computing.hypercore.vm_node_affinity:
     vm_name: demo-vm
-    strict_affinity: true
+    strict_affinity: false
     preferred_node:
       node_uuid: ""
     backup_node:

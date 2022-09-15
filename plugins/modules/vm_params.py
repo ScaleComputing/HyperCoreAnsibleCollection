@@ -15,7 +15,9 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Manage VM's parameters
 description:
-  - Update VM's name, description, tags, memory, number of CPU.
+  - Update VM's name, description, tags, memory, number of CPUs.
+  - Change VM's power state.
+  - Assign snapshot schedule to the VM.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -23,13 +25,13 @@ seealso: []
 options:
   vm_name:
     description:
-      - Virtual machine's name.
+      - VM's name.
       - Serves as unique identifier.
     type: str
     required: true
   vm_name_new:
     description:
-      - Virtual machine's new name.
+      - VM's new name.
     type: str
   description:
     description:
@@ -44,18 +46,17 @@ options:
   memory:
     description:
       - Amount of memory reserved, in bytes.
-      - May only be modified if the domain is in the VirDomainState.SHUTOFF or VirDomainState.CRASHED states
+      - May only be modified if VM is in C(SHUTOFF) or C(CRASHED) state.
     type: int
   vcpu:
     description:
       - Number of allotted virtual CPUs.
-      - May only be modified if the domain is in the SHUTOFF or CRASHED states
+      - May only be modified if VM is in C(SHUTOFF) or C(CRASHED) state.
     type: int
   power_state:
     description:
-      - Desired VM state
-      - PAUSE and LIVEMIGRATE are possible in REST API, but module will not expose them.
-        PAUSE is marked as internal, LIVEMIGRATE requires to specify destination node. It can be done with raw api module).
+      - Desired VM state.
+      - States C(PAUSE) and C(LIVEMIGRATE) are not exposed in this module (this can be done with raw api module).
     choices: [ start, shutdown, stop, reboot, reset ]
     type: str
   snapshot_schedule:
@@ -80,6 +81,13 @@ EXAMPLES = r"""
     vcpu: 2
     power_state: shutdown
     snapshot_schedule: demo-snap-schedule
+
+- name: Delete description, tags and snapshot_schedule
+  scale_computing.hypercore.vm_params:
+    vm_name: demo-vm
+    description: ""
+    tags: [""]
+    snapshot_schedule: ""
 """
 
 
