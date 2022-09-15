@@ -264,7 +264,7 @@ def run(module, rest_client):
 
 def main():
     module = AnsibleModule(
-        supports_check_mode=True,
+        supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             vm_name=dict(
