@@ -181,7 +181,7 @@
         vm_name: vm-integration-test-disks
         items: [ ]
         state: set
-        force: 1
+        force: True
       register: result
     - ansible.builtin.assert:
         that:

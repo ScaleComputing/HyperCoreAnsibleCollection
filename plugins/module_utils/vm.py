@@ -897,7 +897,7 @@ class ManageVMDisks:
         # This method is going to be called in vm_disk class only.
         if module.params["items"] != []:
             raise ScaleComputingError(
-                "If force set to 1, items should be set to empty list"
+                "If force set to true, items should be set to empty list"
             )
         # Delete all disks
         for existing_disk in vm.disks:
@@ -930,7 +930,7 @@ class ManageVMDisks:
         if (
             called_from_vm_disk
             and module.params["state"] == "set"
-            and module.params["force"] == 1
+            and module.params["force"]
         ):
             return cls._force_remove_all_disks(
                 module, rest_client, vm_before, disks_before

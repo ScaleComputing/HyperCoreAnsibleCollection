@@ -33,11 +33,10 @@ options:
     required: true
   force:
     description:
-      - If set to 1 and C(state==set), all disk interfaces are going to be removed.
+      - If set to true and C(state==set), all disk interfaces are going to be removed.
       - Additionally, items should be set to C([]) (see example below) when deleting all disks
-    type: int
-    choices: [ 0, 1 ]
-    default: 0
+    type: bool
+    default: false
   state:
     description:
       - The desired state of the disk object.
@@ -115,7 +114,7 @@ EXAMPLES = r"""
     vm_name: demo-vm
     items: []
     state: set
-    force: 1
+    force: true
 
 - name: Remove one disk
   scale_computing.hypercore.vm_disk:
@@ -277,9 +276,8 @@ def main():
                 required=True,
             ),
             force=dict(
-                type="int",
-                choices=[0, 1],
-                default=0,
+                type="bool",
+                default=False,
             ),
             items=dict(
                 type="list",
