@@ -39,6 +39,7 @@ options:
     description:
       - Configuration to be used by cloud-init (Linux) or cloudbase-init (Windows).
       - When non-empty will create an extra ISO device attached to VirDomain as a NoCloud datasource.
+      - There has to be cloud-config comment present at the beginning of cloud_init file or raw yaml.
     required: false
     type: dict
     suboptions:
@@ -69,6 +70,7 @@ EXAMPLES = r"""
     cloud_init:
       user_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
       meta_data: |
+        #cloud-config
         valid:
           yaml: 3
           expression: 4
