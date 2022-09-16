@@ -17,6 +17,7 @@ description:
   - Inventory uses tags to group VMs and to add variables to inventory.
   - VM can be added to multiple groups.
   - Available tags - ansible_group=, ansible_user=, ansible_port=, ansible_ssh_private_key_file=.
+  - Does not support caching.
 version_added: 0.0.1
 seealso: []
 options:
