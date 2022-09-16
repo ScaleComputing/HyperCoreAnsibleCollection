@@ -2246,7 +2246,7 @@ class TestManageVMDisks:
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="virtio_disk")],
                 state="present",
-                force=0,
+                force=False,
             )
         )
 
@@ -2312,7 +2312,7 @@ class TestManageVMDisks:
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=2, type="ide_cdrom")],
                 state="present",
-                force=0,
+                force=False,
             )
         )
 
@@ -2502,7 +2502,7 @@ class TestManageVMDisks:
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=356, type="virtio_disk")],
                 state="present",
-                force=0,
+                force=False,
             )
         )
         rest_client.get_record.side_effect = [
@@ -2625,7 +2625,7 @@ class TestManageVMDisks:
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=4200, type="virtio_disk")],
                 state="present",
-                force=0,
+                force=False,
             )
         )
         rest_client.get_record.side_effect = [
@@ -2772,7 +2772,7 @@ class TestManageVMDisks:
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=5000, type="virtio_disk")],
                 state="present",
-                force=0,
+                force=False,
             )
         )
         rest_client.get_record.side_effect = [
@@ -2923,7 +2923,7 @@ class TestManageVMDisks:
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="ide_cdrom", iso_name="iso-name")],
                 state="present",
-                force=0,
+                force=False,
             )
         )
         rest_client.get_record.side_effect = [
@@ -3084,7 +3084,7 @@ class TestManageVMDisks:
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="ide_cdrom", iso_name="iso-name")],
                 state="present",
-                force=0,
+                force=False,
             )
         )
         rest_client.get_record.side_effect = [
@@ -3222,7 +3222,7 @@ class TestManageVMDisks:
                 vm_name="VM-name",
                 items=[],
                 state="set",
-                force=1,
+                force=True,
             )
         )
 
@@ -3306,7 +3306,7 @@ class TestManageVMDisks:
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
-                force=0,
+                force=False,
             )
         )
 
