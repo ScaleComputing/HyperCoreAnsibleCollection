@@ -28,19 +28,19 @@
     - name: Create project directory /tmp (if it doesn't exist already)
       file: state=directory path=/tmp
 
-    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-current.iso
-      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-current.iso
+    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-vm-boot-devices-integration.iso
+      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-vm-boot-devices-integration.iso
 
     - name: Delete the ISO image (if it may exist from before)
       scale_computing.hypercore.iso:
-        name: "TinyCore-current.iso"
+        name: "TinyCore-vm-boot-devices-integration.iso"
         state: absent
       register: result
 
-    - name: Upload ISO image TinyCore-current.iso to HyperCore API
+    - name: Upload ISO image TinyCore-vm-boot-devices-integration.iso to HyperCore API
       scale_computing.hypercore.iso:
-        name: "TinyCore-current.iso"
-        source: "/tmp/TinyCore-current.iso"
+        name: "TinyCore-vm-boot-devices-integration.iso"
+        source: "/tmp/TinyCore-vm-boot-devices-integration.iso"
         state: present
       register: result
 
@@ -57,7 +57,7 @@
           - disk_slot: 2
             type: ide_cdrom
             size: "{{ '5 GB' | human_to_bytes }}"
-            iso_name: "TinyCore-current.iso"
+            iso_name: "TinyCore-vm-boot-devices-integration.iso"
         state: set
       register: created_disks
 
@@ -154,7 +154,7 @@
         vm_name: vm-integration-test-boot_devices
         items:
           - type: ide_cdrom
-            iso_name: TinyCore-current.iso
+            iso_name: TinyCore-vm-boot-devices-integration.iso
         state: present
         first: true
       register: result
@@ -178,13 +178,13 @@
 
     - name: Delete the ISO image from the API
       scale_computing.hypercore.iso:
-        name: "TinyCore-current.iso"
+        name: "TinyCore-vm-boot-devices-integration.iso"
         state: absent
       register: result
 
-    - name: Delete locally installed ISO image from /tmp/TinyCore-current.iso
+    - name: Delete locally installed ISO image from /tmp/TinyCore-vm-boot-devices-integration.iso
       ansible.builtin.file:
-        path: /tmp/TinyCore-current.iso
+        path: /tmp/TinyCore-vm-boot-devices-integration.iso
         state: absent
       register: file_deleted
     - ansible.builtin.assert:

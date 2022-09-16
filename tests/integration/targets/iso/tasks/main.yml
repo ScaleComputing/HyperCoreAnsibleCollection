@@ -23,32 +23,32 @@
     - name: Create project directory /tmp (if it doesn't exist already)
       file: state=directory path=/tmp
 
-    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-current.iso
-      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-current.iso
+    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-iso-integration.iso
+      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-iso-integration.iso
 
     - name: Delete the ISO image (if it may exist)
       scale_computing.hypercore.iso: &iso-delete
-        name: "TinyCore-current.iso"
+        name: "TinyCore-iso-integration.iso"
         state: absent
       register: result
 
-    - name: Upload ISO image TinyCore-current.iso to HyperCore API
+    - name: Upload ISO image TinyCore-iso-integration.iso to HyperCore API
       scale_computing.hypercore.iso: &iso-upload
-        name: "TinyCore-current.iso"
-        source: "/tmp/TinyCore-current.iso"
+        name: "TinyCore-iso-integration.iso"
+        source: "/tmp/TinyCore-iso-integration.iso"
         state: present
       register: result
 
     - name: Assert that ISO image has been uploaded and that the image is ready for insertion
       scale_computing.hypercore.iso_info:
-        name: TinyCore-current.iso
+        name: TinyCore-iso-integration.iso
       register: result
     - ansible.builtin.assert:
         that:
           - "{{result.records.0.ready_for_insert}} is true"
 
 
-    - name: Upload ISO image TinyCore-current.iso to HyperCore API (test idempotence)
+    - name: Upload ISO image TinyCore-iso-integration.iso to HyperCore API (test idempotence)
       scale_computing.hypercore.iso: *iso-upload
       register: result
     - ansible.builtin.assert:
@@ -61,24 +61,24 @@
 
     - name: Verify that deletion was successful
       scale_computing.hypercore.iso_info:
-        name: TinyCore-current.iso
+        name: TinyCore-iso-integration.iso
       register: result
     - ansible.builtin.assert:
         that:
           - result.records == []
 
-    - name: Delete locally installed ISO image from /tmp/TinyCore-current.iso
+    - name: Delete locally installed ISO image from /tmp/TinyCore-iso-integration.iso
       ansible.builtin.file:
-        path: /tmp/TinyCore-current.iso
+        path: /tmp/TinyCore-iso-integration.iso
         state: absent
       register: file_deleted
     - ansible.builtin.assert:
         that:
           file_deleted is changed
 
-    - name: Assert that TinyCore-current.iso is not in iso_info result any more
+    - name: Assert that TinyCore-iso-integration.iso is not in iso_info result any more
       scale_computing.hypercore.iso_info:
-        name: TinyCore-current.iso
+        name: TinyCore-iso-integration.iso
       register: result
     - ansible.builtin.assert:
         that:
