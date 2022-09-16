@@ -191,6 +191,7 @@ options:
       - Configuration to be used by cloud-init (Linux) or cloudbase-init (Windows).
       - When non-empty will create an extra ISO device attached to VirDomain as a NoCloud datasource.
       - Only relevant if C(state==present).
+      - There has to be cloud-config comment present at the beginning of cloud_init file or raw yaml.
     type: dict
     suboptions:
       user_data:
@@ -236,6 +237,7 @@ EXAMPLES = r"""
         nic_vlan: 0
     cloud_init:
       user_data: |
+        #cloud-config
         valid:
         - yaml: 1
         - expression: 2
