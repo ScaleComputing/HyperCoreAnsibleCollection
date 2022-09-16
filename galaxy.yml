@@ -4,15 +4,19 @@ name: hypercore
 version: 0.0.1
 readme: README.md
 authors:
-  - your name <example@domain.com>
-description: your collection description
-license: []
-tags: []
+  - XLAB Steampunk <steampunk@xlab.si>
+description: Manage ScaleComputing HyperCore cluster
+license_file: LICENSE
+tags:
+  - scale_computing
+  - hypercore
+  - infrastructure
+  - virtualization
 dependencies: {}
-repository: http://example.com/repository
-documentation: http://docs.example.com
-homepage: http://example.com
-issues: http://example.com/issue/tracker
+repository: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
+# documentation: http://docs.example.com
+homepage: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
+issues: https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues
 build_ignore:
   - .idea
   - .gitignore
