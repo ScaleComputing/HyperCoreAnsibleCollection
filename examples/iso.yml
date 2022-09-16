@@ -1,11 +1,12 @@
+---
 - name: Upload ISO image from http link to HyperCore
   hosts: localhost
   connection: local
-  gather_facts: False
+  gather_facts: false
   vars:
     iso_url: http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso
     iso_filename: "{{ iso_url | split('/') | last }}"
-    iso_remove_old_image: False
+    iso_remove_old_image: false
 
   tasks:
     # ------------------------------------------------------
