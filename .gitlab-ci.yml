@@ -1,4 +1,5 @@
-image: python:3.8.12-slim-buster  # TODO gitlab registry
+---
+image: python:3.8.12-slim-buster # TODO gitlab registry
 
 # TODO reuse Makefile - "make sanity", and docker dind.
 
@@ -9,13 +10,13 @@ variables:
 
 stages:
   - test
-  - build  # build collection tar.gz
-  - deploy  # push collection tar.gz to galaxy
+  - build # build collection tar.gz
+  - deploy # push collection tar.gz to galaxy
 
 before_script:
-  - pip3 install -r sanity.requirements -r test.requirements
+  - pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
   - apt update
-  - apt install -y git shellcheck
+  - apt install -y git shellcheck make
 
 coverage:
   stage: test
@@ -33,13 +34,15 @@ coverage:
     - ansible-test coverage html --requirements
     - ansible-test coverage report --omit 'tests/*' --show-missing
     - ls -al tests/output/reports/coverage
-    - popd
     #
     # Move artifacts back to initial dir, so they can be collected by gitlab.
-    - mkdir -p tests/output/reports/coverage
-    - cp -a /work-dir/ansible_collections/scale_computing/hypercore/tests/output/reports/coverage/ tests/output/reports/coverage/
-    - ls -al tests/output/reports/coverage
+    - popd
+    - ART_DIR=tests/output/reports/coverage/
+    - mkdir -p $ART_DIR
+    - cp -a /work-dir/ansible_collections/scale_computing/hypercore/$ART_DIR $ART_DIR
+    - ls -al $ART_DIR
   artifacts:
+    name: hypercore_html_coverage
     paths:
       - tests/output/reports/coverage
     expose_as: html_coverage
@@ -57,9 +60,34 @@ sanity:
     #
     # Same as "make sanity"
     # TODO reuse Makefile
-    - black -t py27 --check --diff --color plugins tests/unit
+    - black -t py38 --check --diff --color plugins tests/unit
+    - ansible-lint
     - flake8 --exclude tests/output/
     - ansible-test sanity
+
+docs:
+  stage: test
+  image: python:3.8.12-slim-buster
+  script:
+    # ansible-test needs special directory structure.
+    - mkdir -p /work-dir/ansible_collections/scale_computing/
+    - cp -a ./  /work-dir/ansible_collections/scale_computing/hypercore
+    - pushd /work-dir/ansible_collections/scale_computing/hypercore
+    #
+    - make docs
+    #
+    # Move artifacts back to initial dir, so they can be collected by gitlab.
+    - popd
+    - ART_DIR=docs/build/html
+    - mkdir -p $ART_DIR
+    - cp -a /work-dir/ansible_collections/scale_computing/hypercore/$ART_DIR $ART_DIR
+    - ls -al $ART_DIR
+  artifacts:
+    name: hypercore_html_docs
+    paths:
+      - docs/build/html/
+    expose_as: html_docs
+    expire_in: 10 week
 
 integration:
   stage: test

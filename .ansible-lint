@@ -1,0 +1,7 @@
+---
+# .ansible-lint
+# yml file
+exclude_paths:
+  - sample_*.yml
+  - tests
+  - examples/cloud-init-user-data-example.yml
