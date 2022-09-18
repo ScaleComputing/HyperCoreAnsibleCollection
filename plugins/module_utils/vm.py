@@ -104,7 +104,7 @@ REBOOT_LOOKUP = dict(
     memory=True,
     vcpu=True,
     power_state=False,
-    snapshot_schedule=True,
+    snapshot_schedule=False,
 )
 
 
@@ -733,8 +733,6 @@ class ManageVMParams(VM):
         if module.check_mode:
             if module.params["vm_name_new"]:
                 after["vm_name"] = module.params["vm_name_new"]
-            else:
-                after["vm_name"] = module.params["vm_name"]
             if module.params["description"] is not None:
                 after["description"] = module.params["description"]
             if module.params["tags"] is not None:
@@ -754,7 +752,8 @@ class ManageVMParams(VM):
             else module.params["vm_name"]
         }
         vm = VM.get_or_fail(query, rest_client)[0]
-        after["vm_name"] = vm.name
+        if module.params["vm_name_new"]:
+            after["vm_name"] = vm.name
         if module.params["description"] is not None:
             after["description"] = vm.description
         if module.params["tags"] is not None:
@@ -771,7 +770,9 @@ class ManageVMParams(VM):
 
     @staticmethod
     def _build_before_diff(vm, module):
-        before = {"vm_name": vm.name}
+        before = {}
+        if module.params["vm_name_new"]:
+            before["vm_name"] = vm.name
         if module.params["description"] is not None:
             before["description"] = vm.description
         if module.params["tags"] is not None:
