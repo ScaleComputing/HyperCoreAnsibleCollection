@@ -142,7 +142,7 @@
   - ansible.builtin.assert:
       that:
         - output is changed
-        - output.reboot_needed == true
+        - output.reboot_needed == false
 
   - name: Check VMs params changed
     scale_computing.hypercore.vm_info:
