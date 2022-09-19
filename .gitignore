@@ -2,6 +2,7 @@
 *.pyc
 tests/output
 *.tar.gz
+child-pipeline-gitlab-ci.yml
 
 # integration_config.yml contains connection info for the
 # developer instance, including credentials

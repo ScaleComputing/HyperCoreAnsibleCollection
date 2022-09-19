@@ -10,6 +10,8 @@ variables:
 
 stages:
   - test
+  - test-child-pipeline-generator
+  - test-child-pipeline-trigger
   - build # build collection tar.gz
   - deploy # push collection tar.gz to galaxy
 
@@ -20,6 +22,7 @@ before_script:
 
 coverage:
   stage: test
+  needs: []
   image: python:3.8.12-slim-buster
   script:
     - pip install ansible-core==2.13.1
@@ -50,6 +53,7 @@ coverage:
 
 sanity:
   stage: test
+  needs: []
   image: python:3.8.12-slim-buster
   script:
     - pip install ansible-core==2.13.1
@@ -67,6 +71,7 @@ sanity:
 
 docs:
   stage: test
+  needs: []
   image: python:3.8.12-slim-buster
   script:
     # ansible-test needs special directory structure.
@@ -89,8 +94,12 @@ docs:
     expose_as: html_docs
     expire_in: 10 week
 
+# This takes about 30 minutes
+# Run it manually if serial integration tests execution is needed.
 integration:
   stage: test
+  needs: []
+  when: manual
   image: python:3.8.12-slim-buster
   # we have a single HC3 cluster, so run at most one "ansible-test integration" at a time.
   resource_group: hc3_cluster_0
@@ -114,3 +123,25 @@ integration:
       EOF
     - cat tests/integration/integration_config.yml
     - ansible-test integration
+
+generate-child-pipeline:
+  stage: test-child-pipeline-generator
+  needs: []
+  image: python:3.8.12-slim-buster
+  script:
+    - pip install jinja2
+    - python3 ./ci-infra/gitlab-dynamic-pipeline/generate_integration_pipeline.py
+    - cat child-pipeline-gitlab-ci.yml
+  artifacts:
+    paths:
+      - child-pipeline-gitlab-ci.yml
+
+trigger-child-pipeline:
+  stage: test-child-pipeline-trigger
+  needs:
+    - generate-child-pipeline
+  trigger:
+    include:
+      - artifact: child-pipeline-gitlab-ci.yml
+        job: generate-child-pipeline
+    strategy: depend
