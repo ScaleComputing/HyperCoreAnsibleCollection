@@ -152,64 +152,12 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.vm import VM
+from ..module_utils.vm import VM, ManageVMNics
 from ..module_utils.nic import Nic
 from ..module_utils.state import NicState
 
 
-def ensure_present_or_set(module, rest_client):
-    before = []
-    after = []
-    changed = False
-    virtual_machine_obj_list = VM.get_or_fail(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )
-    if module.params["items"]:
-        for nic in module.params["items"]:
-            nic["vm_uuid"] = virtual_machine_obj_list[0].uuid
-            nic = Nic.from_ansible(ansible_data=nic)
-            existing_hc3_nic, existing_hc3_nic_with_new = virtual_machine_obj_list[
-                0
-            ].find_nic(
-                vlan=nic.vlan, mac=nic.mac, vlan_new=nic.vlan_new, mac_new=nic.mac_new
-            )
-            if (
-                existing_hc3_nic_with_new
-                and existing_hc3_nic_with_new.is_update_needed(nic)
-            ):  # Update existing with vlan_new or mac_new - corner case
-                changed, before, after = Nic.send_update_nic_request_to_hypercore(
-                    rest_client, nic, existing_hc3_nic_with_new, before, after
-                )
-            elif (
-                existing_hc3_nic
-                and not existing_hc3_nic_with_new
-                and existing_hc3_nic.is_update_needed(nic)
-            ):  # Update existing
-                changed, before, after = Nic.send_update_nic_request_to_hypercore(
-                    rest_client, nic, existing_hc3_nic, before, after
-                )
-            # Create new
-            elif not existing_hc3_nic and not existing_hc3_nic_with_new:
-                changed, before, after = Nic.send_create_nic_request_to_hypercore(
-                    rest_client=rest_client, new_nic=nic, before=before, after=after
-                )
-    elif module.params["items"] == []:  # empty set in ansible, delete all
-        for nic in virtual_machine_obj_list[0].nic_list:
-            before.append(nic.to_ansible())
-    else:
-        raise errors.MissingValueAnsible(
-            "items, cannot be null, empty must be set to []"
-        )
-    updated_virtual_machine = VM.get(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )[0]
-    if module.params["state"] == NicState.set:
-        # Check if any nics need to be deleted from the vm
-        if updated_virtual_machine.delete_unused_nics_to_hypercore_vm(
-            module.params, rest_client
-        ):
-            changed = True
-    return changed, after, dict(before=before, after=after)
+MODULE_PATH = "scale_computing.hypercore.vm_nic"
 
 
 def ensure_absent(module, rest_client):
@@ -232,20 +180,42 @@ def ensure_absent(module, rest_client):
                 vlan=nic.vlan, mac=nic.mac, vlan_new=nic.vlan_new, mac_new=nic.mac_new
             )
             if existing_hc3_nic:  # Delete nic
-                changed, before, after = Nic.send_delete_nic_request_to_hypercore(
+                (
+                    changed,
+                    before,
+                    after,
+                    reboot,
+                ) = ManageVMNics.send_delete_nic_request_to_hypercore(
+                    virtual_machine_obj_list[0],
+                    module,
                     rest_client=rest_client,
                     nic_to_delete=existing_hc3_nic,
                     before=before,
                     after=after,
                 )
-    return changed, after, dict(before=before, after=after)
+                if reboot:
+                    virtual_machine_obj_list[0].reboot = reboot
+    return (
+        changed,
+        after,
+        dict(before=before, after=after),
+        virtual_machine_obj_list[0].reboot,
+    )
 
 
 def run(module, rest_client):
+    virtual_machine_obj_list = VM.get(
+        query={"name": module.params["vm_name"]}, rest_client=rest_client
+    )
     if module.params["state"] in [NicState.present, NicState.set]:
-        return ensure_present_or_set(module, rest_client)
+        changed, records, diff, reboot = ManageVMNics.ensure_present_or_set(
+            module, rest_client, MODULE_PATH
+        )
     else:
-        return ensure_absent(module, rest_client)
+        changed, records, diff, reboot = ensure_absent(module, rest_client)
+    if virtual_machine_obj_list[0]:
+        virtual_machine_obj_list[0].vm_power_up(module, rest_client)
+    return changed, records, diff, reboot
 
 
 def main():
@@ -306,8 +276,10 @@ def main():
 
         client = Client(host, username, password)
         rest_client = RestClient(client=client)
-        changed, records, diff = run(module, rest_client)
-        module.exit_json(changed=changed, records=records, diff=diff)
+        changed, records, diff, reboot = run(module, rest_client)
+        module.exit_json(
+            changed=changed, records=records, diff=diff, vm_rebooted=reboot
+        )
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

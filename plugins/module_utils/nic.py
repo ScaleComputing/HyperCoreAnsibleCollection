@@ -10,7 +10,6 @@ __metaclass__ = type
 
 from ..module_utils.type import NicType
 from ..module_utils.utils import PayloadMapper
-from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
 
 
@@ -29,53 +28,37 @@ class Nic(PayloadMapper):
 
     def __eq__(self, other):
         if self.vlan_new is not None and not self.mac_new:
-            return (
-                self.vlan_new == other.vlan
-                and self.type == other.type
-                and self.vm_uuid == other.vm_uuid
-            )
+            return self.vlan_new == other.vlan and self.type == other.type
         elif other.vlan_new is not None and not other.mac_new:
-            return (
-                self.vlan == other.vlan_new
-                and self.type == other.type
-                and self.vm_uuid == other.vm_uuid
-            )
+            return self.vlan == other.vlan_new and self.type == other.type
         elif self.mac_new and self.vlan_new is None:
             return (
                 self.vlan == other.vlan
                 and self.type == other.type
-                and self.vm_uuid == other.vm_uuid
                 and self.mac_new == other.mac
             )
         elif other.mac_new and other.vlan_new is None:
             return (
                 self.vlan == other.vlan
                 and self.type == other.type
-                and self.vm_uuid == other.vm_uuid
                 and self.mac == other.mac_new
             )
         elif self.vlan_new is not None and self.mac_new:
             return (
                 self.vlan_new == other.vlan
                 and self.type == other.type
-                and self.vm_uuid == other.vm_uuid
                 and self.mac_new == other.mac
             )
         elif other.vlan_new is not None and other.mac_new:
             return (
                 self.vlan == other.vlan_new
                 and self.type == other.type
-                and self.vm_uuid == other.vm_uuid
                 and self.mac == other.mac_new
             )
-        return (
-            self.vlan == other.vlan
-            and self.type == other.type
-            and self.vm_uuid == other.vm_uuid
-        )
+        return self.vlan == other.vlan and self.type == other.type
 
     @classmethod
-    def handle_nic_type(cls, nic_type):
+    def _handle_nic_type(cls, nic_type):
         if nic_type:
             if nic_type.upper() == NicType.INTEL_E1000:
                 actual_nic_type = nic_type.upper()  # INTEL_E1000
@@ -93,7 +76,7 @@ class Nic(PayloadMapper):
             obj = Nic()
             obj.uuid = hypercore_data["uuid"]
             obj.vm_uuid = hypercore_data["virDomainUUID"]
-            obj.type = Nic.handle_nic_type(hypercore_data["type"])
+            obj.type = Nic._handle_nic_type(hypercore_data["type"])
             obj.mac = hypercore_data["macAddress"]
             obj.vlan = hypercore_data["vlan"]
             obj.connected = hypercore_data["connected"]
@@ -106,81 +89,12 @@ class Nic(PayloadMapper):
     def from_ansible(cls, ansible_data):
         obj = Nic()
         obj.vm_uuid = ansible_data.get("vm_uuid", None)
-        obj.type = Nic.handle_nic_type(ansible_data.get("type", None))
+        obj.type = Nic._handle_nic_type(ansible_data.get("type", None))
         obj.mac = ansible_data.get("mac", None)
         obj.mac_new = ansible_data.get("mac_new", None)
         obj.vlan = ansible_data.get("vlan", 0)
         obj.vlan_new = ansible_data.get("vlan_new", None)
         return obj
-
-    @classmethod
-    def get_by_uuid(cls, rest_client, nic_uuid):
-        return Nic.from_hypercore(
-            rest_client.get_record(
-                "/rest/v1/VirDomainNetDevice", query={"uuid": nic_uuid}, must_exist=True
-            )
-        )
-
-    @classmethod
-    def send_update_nic_request_to_hypercore(
-        cls, rest_client, new_nic, existing_nic, before, after
-    ):
-        if new_nic is None or existing_nic is None:
-            raise errors.MissingFunctionParameter(
-                "new_nic or existing_nic - nic.py - update_nic_to_hypercore()"
-            )
-        before.append(existing_nic.to_ansible())
-        data = new_nic.to_hypercore()
-        response = rest_client.update_record(
-            endpoint="/rest/v1/VirDomainNetDevice/" + existing_nic.uuid,
-            payload=data,
-            check_mode=False,
-        )
-        new_nic_obj = Nic.get_by_uuid(
-            rest_client=rest_client, nic_uuid=existing_nic.uuid
-        )
-        after.append(new_nic_obj.to_ansible())
-        TaskTag.wait_task(rest_client=rest_client, task=response)
-        return True, before, after
-
-    @classmethod
-    def send_create_nic_request_to_hypercore(cls, rest_client, new_nic, before, after):
-        if new_nic is None:
-            raise errors.MissingFunctionParameter(
-                "new_nic - nic.py - create_nic_to_hypercore()"
-            )
-        before.append(None)
-        data = new_nic.to_hypercore()
-        response = rest_client.create_record(
-            endpoint="/rest/v1/VirDomainNetDevice", payload=data, check_mode=False
-        )
-        new_nic_obj = Nic.get_by_uuid(
-            rest_client=rest_client, nic_uuid=response["createdUUID"]
-        )
-        after.append(new_nic_obj.to_ansible())
-        TaskTag.wait_task(rest_client=rest_client, task=response)
-        return True, before, after
-
-    @classmethod
-    def send_delete_nic_request_to_hypercore(
-        cls, rest_client, nic_to_delete, before, after
-    ):
-        if nic_to_delete is None:
-            raise errors.MissingFunctionParameter(
-                "nic_to_delete - nic.py - delete_nic_to_hypercore()"
-            )
-        before.append(nic_to_delete.to_ansible())
-        response = rest_client.delete_record(
-            endpoint="/rest/v1/VirDomainNetDevice/" + nic_to_delete.uuid,
-            check_mode=False,
-        )
-        after.append(None)
-        TaskTag.wait_task(rest_client=rest_client, task=response)
-        return True, before, after
-
-    # Compares hc3 nic to ansible nic
-    def is_update_needed(self, ansible_nic):
-        return not (self == ansible_nic)
 
     def to_hypercore(self):
         nic_dict = {
@@ -212,3 +126,7 @@ class Nic(PayloadMapper):
             "ipv4_addresses": self.ipv4Addresses,
         }
         return nic_info_dict
+
+    # Compares hc3 nic to ansible nic
+    def is_update_needed(self, ansible_nic):
+        return not (self == ansible_nic)

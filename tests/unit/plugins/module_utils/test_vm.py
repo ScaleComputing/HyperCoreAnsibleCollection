@@ -10,11 +10,13 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm impor
     VM,
     ManageVMParams,
     ManageVMDisks,
+    ManageVMNics,
 )
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import (
     ScaleComputingError,
 )
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.disk import Disk
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.iso import ISO
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.snapshot_schedule import (
@@ -748,7 +750,7 @@ class TestVM:
             "uuid": "",
         }
 
-    def test_update_boot_device_order(self, create_module, rest_client, task_wait):
+    def test_update_boot_device_order(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -759,20 +761,51 @@ class TestVM:
                 vm_name="VM-name",
             )
         )
-
-        uuid = "vm-id"
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        vm = VM.from_hypercore(
+            {
+                "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "nodeUUID": "",
+                "name": "XLAB_test_vm",
+                "blockDevs": [],
+                "netDevs": [],
+                "stats": "bla",
+                "tags": "XLAB,test",
+                "description": "test vm",
+                "mem": 23424234,
+                "state": "RUNNING",
+                "numVCPU": 2,
+                "bootDevices": [],
+                "operatingSystem": "windows",
+                "affinityStrategy": {
+                    "strictAffinity": False,
+                    "preferredNodeUUID": "",
+                    "backupNodeUUID": "",
+                },
+                "snapshotScheduleUUID": "",
+            },
+            rest_client,
+        )
         boot_order = ["device1-id", "device2-id"]
-
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
         rest_client.update_record.return_value = {
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
-        VM.update_boot_device_order(module, rest_client, uuid, boot_order)
+        VM.update_boot_device_order(module, rest_client, vm, boot_order)
         rest_client.update_record.assert_called_with(
-            "/rest/v1/VirDomain/vm-id",
+            "/rest/v1/VirDomain/7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             dict(
                 bootDevices=["device1-id", "device2-id"],
-                uuid="vm-id",
+                uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             ),
             False,
         )
@@ -873,10 +906,11 @@ class TestNic:
         virtual_machine = VM.get(
             query={"name": module.params["vm_name"]}, rest_client=rest_client
         )[0]
+        nic_key = "items"
         results = virtual_machine.delete_unused_nics_to_hypercore_vm(
-            module.params, rest_client
+            module, rest_client, nic_key
         )
-        assert results is False
+        assert results == (False, False)
 
     def test_delete_unused_nics_to_hypercore_vm_when_one_nic_deleted(
         self, create_module, rest_client, mocker
@@ -930,13 +964,18 @@ class TestNic:
         ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
         rest_client.delete_record.return_value = {"taskTag": "1234"}
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
         virtual_machine = VM.get(
             query={"name": module.params["vm_name"]}, rest_client=rest_client
         )[0]
+        nic_key = "items"
         results = virtual_machine.delete_unused_nics_to_hypercore_vm(
-            module.params, rest_client
+            module, rest_client, nic_key
         )
-        assert results is True
+        assert results == (True, True)
 
     def test_delete_unused_nics_to_hypercore_vm_when_multiple_nic_deleted(
         self, create_module, rest_client, mocker
@@ -998,6 +1037,10 @@ class TestNic:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
         rest_client.delete_record.side_effect = [
             {"taskTag": "1234"},
             {"taskTag": "5678"},
@@ -1005,10 +1048,11 @@ class TestNic:
         virtual_machine = VM.get(
             query={"name": module.params["vm_name"]}, rest_client=rest_client
         )[0]
+        nic_key = "items"
         results = virtual_machine.delete_unused_nics_to_hypercore_vm(
-            module.params, rest_client
+            module, rest_client, nic_key
         )
-        assert results is True
+        assert results == (True, True)
 
     def test_find_nic_vlan(self, rest_client, mocker):
         mocker.patch(
@@ -2231,7 +2275,7 @@ class TestManageVMDisks:
             False,
         )
 
-        assert result is None
+        assert result is False
 
     def test_delete_not_used_disks_no_deletion(
         self, create_module, rest_client, mocker
@@ -2247,10 +2291,11 @@ class TestManageVMDisks:
                 items=[dict(disk_slot=1, type="virtio_disk")],
                 state="present",
                 force=False,
-            )
+            ),
+            check_mode=False,
         )
 
-        rest_client.get_record.return_value = {
+        vm = rest_client.get_record.return_value = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "name": "XLAB_test_vm",
             "blockDevs": [
@@ -2294,7 +2339,7 @@ class TestManageVMDisks:
         changed = False
         disk_key = "items"
         changed = ManageVMDisks._delete_not_used_disks(
-            module, rest_client, changed, disk_key
+            module, rest_client, VM.from_hypercore(vm, rest_client), changed, disk_key
         )
         rest_client.delete_record.assert_not_called()
         assert not changed
@@ -2316,7 +2361,7 @@ class TestManageVMDisks:
             )
         )
 
-        rest_client.get_record.return_value = {
+        vm = rest_client.get_record.return_value = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "name": "XLAB_test_vm",
             "blockDevs": [
@@ -2365,7 +2410,7 @@ class TestManageVMDisks:
         ).return_value = None
         disk_key = "items"
         changed = ManageVMDisks._delete_not_used_disks(
-            module, rest_client, changed, disk_key
+            module, rest_client, VM.from_hypercore(vm, rest_client), changed, disk_key
         )
         rest_client.delete_record.assert_called_with(
             "/rest/v1/VirDomainBlockDevice/disk-id",
@@ -2468,6 +2513,7 @@ class TestManageVMDisks:
                 ],
                 after=[],
             ),
+            True,
         )
 
     def test_force_remove_all_disks_items_not_empty_list(
@@ -2610,6 +2656,7 @@ class TestManageVMDisks:
                 ],
                 "before": [],
             },
+            True,
         )
 
     def test_ensure_present_update_test_idempotency(
@@ -2757,6 +2804,7 @@ class TestManageVMDisks:
                     }
                 ],
             },
+            False,
         )
 
     def test_ensure_present_update_record(
@@ -2908,6 +2956,7 @@ class TestManageVMDisks:
                     }
                 ],
             },
+            True,
         )
 
     def test_ensure_present_attach_iso_cdrom_existing(
@@ -3069,6 +3118,7 @@ class TestManageVMDisks:
                     }
                 ],
             },
+            False,
         )
 
     def test_ensure_present_attach_iso_cdrom_absent(
@@ -3205,6 +3255,7 @@ class TestManageVMDisks:
                 ],
                 "before": [],
             },
+            True,
         )
 
     # ensure_present uses only a subset of code of ensure_set. So not testing ensure set again, setting the created
@@ -3291,6 +3342,7 @@ class TestManageVMDisks:
                     }
                 ],
             },
+            True,
         )
 
     def test_ensure_set_remove_unused_disk(
@@ -3437,4 +3489,1456 @@ class TestManageVMDisks:
                     }
                 ],
             },
+            True,
+        )
+
+
+class TestManageVMNics:
+    def test_init_from_ansible_data(self):
+        ansible_data = dict(
+            # uuid="my-uuid",  # always missing in ansible data?
+            # many other fields can be missing too - more tests
+            vlan=10,
+            type="virtio",
+            mac="12:00:00:00:00:00",
+            connected=True,  # ATM ansible module does not allow setting connected flag
+            # ipv4Addresses=['10.0.0.10', '10.0.1.10'],
+        )
+        nic = Nic.from_ansible(ansible_data)
+        assert 10 == nic.vlan
+        assert "virtio" == nic.type  # TODO fix, use enum
+        assert "12:00:00:00:00:00" == nic.mac
+        # ATM ansible module does not allow setting connected flag
+        assert nic.connected is None
+        assert [] == nic.ipv4Addresses
+
+    @classmethod
+    def _get_nic_from_hypercore(cls):
+        hc3_data = dict(
+            uuid="my-nic-uuid",
+            virDomainUUID="my-vm-uuid",
+            vlan=10,
+            type="VIRTIO",
+            macAddress="12:00:00:00:00:00",
+            connected=True,
+            ipv4Addresses=["10.0.0.10", "10.0.1.10"],
+            # more fields?
+        )
+        return Nic.from_hypercore(hc3_data)
+
+    @classmethod
+    def _get_nic_1(cls):
+        return Nic.from_hypercore(
+            {
+                "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "vlan": 1,
+                "type": "virtio",
+                "macAddress": "00-00-00-00-00",
+                "connected": True,
+                "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            }
+        )
+
+    @classmethod
+    def _get_nic_1_dict(cls):
+        return dict(
+            uuid="6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            virDomainUUID="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            vlan=1,
+            type="virtio",
+            macAddress="00-00-00-00-00",
+            connected=True,
+            ipv4Addresses=["10.0.0.1", "10.0.0.2"],
+        )
+
+    @classmethod
+    def _get_nic_1_updated(cls):
+        return Nic.from_hypercore(
+            {
+                "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+                "vlan": 1,
+                "type": "INTEL_E1000",
+                "macAddress": "00-00-00-00-00",
+                "connected": True,
+                "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            }
+        )
+
+    @classmethod
+    def _get_nic_1_updated_dict(cls):
+        return {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "INTEL_E1000",
+            "macAddress": "00-00-00-00-00",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+
+    def test_get_by_uuid(self, rest_client):
+        nic = dict(
+            uuid="my-nic-uuid",
+            virDomainUUID="my-vm-uuid",
+            vlan=10,
+            type="VIRTIO",
+            macAddress="12:00:00:00:00:00",
+            connected=True,
+            ipv4Addresses=["10.0.0.10", "10.0.1.10"],
+            # more fields?
+        )
+        nic_dict = nic
+        rest_client.get_record.return_value = nic_dict
+        results = ManageVMNics.get_by_uuid(
+            rest_client=rest_client, nic_uuid="my-nic-uuid"
+        )
+        print(results)
+        nic_dict = Nic.from_hypercore(nic_dict).to_hypercore()
+        assert results.to_hypercore() == nic_dict
+
+    def test_send_update_nic_to_hypercore(self, rest_client, create_module, mocker):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="set",
+            ),
+            check_mode=False,
+        )
+        existing_nic = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "virtio",
+            "macAddress": "00-00-00-00-00",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+        new_nic = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "INTEL_E1000",
+            "macAddress": "00-00-00-00-00",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        rest_client.update_record.return_value = {"taskTag": "1234"}
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
+        rest_client.get_record.side_effect = [
+            {"state": "Done"},
+            new_nic,
+            {"state": "Done"},
+        ]
+        results = ManageVMNics.send_update_nic_request_to_hypercore(
+            module,
+            VM.from_hypercore(self._get_empty_test_vm(), rest_client),
+            rest_client=rest_client,
+            new_nic=Nic.from_hypercore(new_nic),
+            existing_nic=Nic.from_hypercore(existing_nic),
+            before=[],
+            after=[],
+        )
+        existing_nic = Nic.from_hypercore(existing_nic)
+        new_nic = Nic.from_hypercore(new_nic)
+        assert results == (
+            True,
+            [existing_nic.to_ansible()],
+            [new_nic.to_ansible()],
+            True,
+        )
+
+    def test_update_nic_when_one_nic_updated(self, rest_client, create_module, mocker):
+        before = []
+        after = []
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="set",
+            ),
+            check_mode=False,
+        )
+        new_nic = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "vlan_new": 3,
+            "macAddress": "12:34:56:78:AB",
+            "connected": True,
+            "type": "virtio",
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+        existing_nic = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "macAddress": "12:34:56:78:AB",
+            "connected": True,
+            "type": "virtio",
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+        new_nic_obj = Nic.from_hypercore(hypercore_data=new_nic)
+        existing_nic_obj = Nic.from_hypercore(hypercore_data=existing_nic)
+        new_nic_data = new_nic_obj.to_ansible()
+        existing_nic_data = existing_nic_obj.to_ansible()
+        rest_client.update_record.return_value = {"taskTag": "1234"}
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
+        rest_client.get_record.side_effect = [
+            {"taskTag": "1234", "state": "Done"},
+            new_nic,
+            {"taskTag": "1234", "state": "Done"},
+        ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        before.append(existing_nic_data)
+        after.append(new_nic_data)
+        changed = True
+        results = ManageVMNics.send_update_nic_request_to_hypercore(
+            module,
+            VM.from_hypercore(self._get_empty_test_vm(), rest_client),
+            rest_client,
+            new_nic_obj,
+            existing_nic_obj,
+            before,
+            after,
+        )
+        assert results == (changed, before, after, True)
+
+    def test_send_create_nic_to_hypercore(self, rest_client, create_module, mocker):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="set",
+            ),
+            check_mode=False,
+        )
+        new_nic = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "virtio",
+            "macAddress": "00-00-00-00-00",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "state": "COMPLETED",
+        }
+        rest_client.get_record.side_effect = [
+            {"state": "Done"},
+            new_nic,
+            {"state": "Done"},
+        ]
+        results = ManageVMNics.send_create_nic_request_to_hypercore(
+            module,
+            VM.from_hypercore(self._get_empty_test_vm(), rest_client),
+            rest_client=rest_client,
+            new_nic=Nic.from_hypercore(new_nic),
+            before=[],
+            after=[],
+        )
+        print(results)
+        print((True, [None], [Nic.from_hypercore(new_nic).to_ansible()]))
+        assert results == (
+            True,
+            [None],
+            [Nic.from_hypercore(new_nic).to_ansible()],
+            True,
+        )
+
+    def test_send_delete_nic_request_to_hypercore(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="set",
+            ),
+            check_mode=False,
+        )
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
+        nic_to_delete = Nic.from_hypercore(self._get_nic_1_dict())
+        rest_client.delete_record.return_value = {"taskTag": "1234"}
+        rest_client.get_record.side_effect = [{"state": "Done"}, {"state": "Done"}]
+        results = ManageVMNics.send_delete_nic_request_to_hypercore(
+            VM.from_hypercore(self._get_empty_test_vm(), rest_client),
+            module,
+            rest_client=rest_client,
+            nic_to_delete=nic_to_delete,
+            before=[],
+            after=[],
+        )
+        print(results)
+        assert results == (True, [nic_to_delete.to_ansible()], [None], True)
+
+    @classmethod
+    def _get_empty_test_vm(cls):
+        return {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+            "snapshotScheduleUUID": "snapshot_schedule_uuid",
+        }
+
+    @classmethod
+    def _get_test_vm(cls):
+        nic_dict_1 = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "virtio",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        nic_dict_2 = {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "RTL8139",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        return {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [nic_dict_1, nic_dict_2],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+            "snapshotScheduleUUID": "snapshot_schedule_uuid",
+        }
+
+    @classmethod
+    def _get_test_vm_updated(cls):
+        nic_dict_1 = {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 3,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        nic_dict_2 = {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 4,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+        return {
+            "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "nodeUUID": "",
+            "name": "XLAB_test_vm",
+            "blockDevs": [],
+            "netDevs": [nic_dict_1, nic_dict_2],
+            "stats": "bla",
+            "tags": "XLAB,test",
+            "description": "test vm",
+            "mem": 23424234,
+            "state": "RUNNING",
+            "numVCPU": 2,
+            "bootDevices": [],
+            "operatingSystem": "windows",
+            "affinityStrategy": {
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+            "snapshotScheduleUUID": "snapshot_schedule_uuid",
+        }
+
+    @classmethod
+    def _get_nic_2_updated(cls):
+        return {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+
+    @classmethod
+    def _get_nic_2(cls):
+        return {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "RTL8139",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+
+    @classmethod
+    def _get_nic_1_updated_vlan(cls):
+        return {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 3,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+
+    @classmethod
+    def _get_nic_2_updated_vlan(cls):
+        return {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 4,
+            "type": "INTEL_E1000",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+            "macAddress": "00-00-00-00-00",
+        }
+
+    @classmethod
+    def _get_nic_1_updated_mac(cls):
+        return {
+            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 1,
+            "type": "INTEL_E1000",
+            "macAddress": "12-34-56-78-AB",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+
+    @classmethod
+    def _get_nic_2_updated_mac(cls):
+        return {
+            "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+            "virDomainUUID": "8542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            "vlan": 2,
+            "type": "INTEL_E1000",
+            "macAddress": "AB-CD-EF-GH-12",
+            "connected": True,
+            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
+        }
+
+    def test_ensure_present_or_set_when_no_change_and_state_set(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="set",
+            )
+        )
+        rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+        assert results == (False, [], {"before": [], "after": []}, False)
+
+    def test_ensure_present_or_set_when_no_change_and_state_present(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="present",
+            )
+        )
+        rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (False, [], {"before": [], "after": []}, False)
+
+    def test_ensure_present_or_set_when_changed_create_nics_and_state_set(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[{"vlan": 1, "type": "virtio"}, {"vlan": 2, "type": "RTL8139"}],
+                state="set",
+            )
+        )
+        rest_client.create_record.side_effect = [
+            {"taskTag": "1234", "state": "COMPLETED"},
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "1234", "state": "COMPLETED"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        rest_client.get_record.side_effect = [
+            {"state": ""},
+            self._get_nic_1_dict(),
+            {"state": ""},
+            {"state": ""},
+            self._get_nic_2(),
+            {"state": ""},
+        ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "virtio",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "RTL8139",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [None, None],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+            True,
+        )
+
+    def test_ensure_present_or_set_when_changed_create_nics_and_state_present(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[{"vlan": 1, "type": "virtio"}, {"vlan": 2, "type": "RTL8139"}],
+                state="present",
+            )
+        )
+        rest_client.create_record.side_effect = [
+            {"taskTag": "1234", "state": "COMPLETED"},
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "1234", "state": "COMPLETED"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        rest_client.get_record.side_effect = [
+            {"state": ""},
+            self._get_nic_1_dict(),
+            {"state": ""},
+            {"state": ""},
+            self._get_nic_2(),
+            {"state": ""},
+        ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "virtio",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "RTL8139",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [None, None],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+            True,
+        )
+
+    def test_ensure_present_or_set_when_changed_delete_all_and_state_set(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[],
+                state="set",
+            )
+        )
+        rest_client.delete_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (
+            True,
+            [],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+                "after": [],
+            },
+            True,
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_type_and_state_present(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000"},
+                    {"vlan": 2, "type": "INTEL_E1000"},
+                ],
+                state="present",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
+        rest_client.get_record.side_effect = [
+            {"state": ""},
+            self._get_nic_1_updated_dict(),
+            {"state": ""},
+            {"state": ""},
+            self._get_nic_2_updated(),
+            {"state": ""},
+        ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "INTEL_E1000",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "INTEL_E1000",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "INTEL_E1000",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "INTEL_E1000",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+            True,
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_type_and_state_set(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000"},
+                    {"vlan": 2, "type": "INTEL_E1000"},
+                ],
+                state="set",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
+        rest_client.get_record.side_effect = [
+            {"taskTag": "1234", "state": "COMPLETE"},
+            self._get_nic_1_updated_dict(),
+            {"taskTag": "1234", "state": "COMPLETE"},
+            {"taskTag": "1234", "state": "COMPLETE"},
+            self._get_nic_2_updated(),
+            {"taskTag": "1234", "state": "COMPLETE"},
+        ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "INTEL_E1000",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "INTEL_E1000",
+                    "mac": "00-00-00-00-00",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "INTEL_E1000",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "INTEL_E1000",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+            True,
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_vlan_and_state_present(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000", "vlan_new": 3},
+                    {"vlan": 2, "type": "INTEL_E1000", "vlan_new": 4},
+                ],
+                state="present",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.get_record.side_effect = [
+            {"state": ""},
+            self._get_nic_1_updated_vlan(),
+            {"state": ""},
+            {"state": ""},
+            self._get_nic_2_updated_vlan(),
+            {"state": ""},
+        ]
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 3,
+                    "type": "INTEL_E1000",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    "mac": "00-00-00-00-00",
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 4,
+                    "type": "INTEL_E1000",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    "mac": "00-00-00-00-00",
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 3,
+                        "type": "INTEL_E1000",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 4,
+                        "type": "INTEL_E1000",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+            },
+            True,
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_vlan_and_state_set(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000", "vlan_new": 3},
+                    {"vlan": 2, "type": "INTEL_E1000", "vlan_new": 4},
+                ],
+                state="set",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.side_effect = [
+            [self._get_test_vm()],
+            [self._get_test_vm_updated()],
+        ]
+        rest_client.create_record.return_value = {
+            "taskTag": "123",
+            "state": "COMPLETED",
+        }
+        rest_client.get_record.side_effect = [
+            {"state": ""},
+            self._get_nic_1_updated_vlan(),
+            {"state": ""},
+            {"state": ""},
+            self._get_nic_2_updated_vlan(),
+            {"state": ""},
+        ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 3,
+                    "type": "INTEL_E1000",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    "mac": "00-00-00-00-00",
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 4,
+                    "type": "INTEL_E1000",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    "mac": "00-00-00-00-00",
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 3,
+                        "type": "INTEL_E1000",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 4,
+                        "type": "INTEL_E1000",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+            },
+            True,
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_mac_and_state_present(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000", "mac_new": "12-34-56-78-AB"},
+                    {"vlan": 2, "type": "INTEL_E1000", "mac_new": "AB-CD-EF-GH-12"},
+                ],
+                state="present",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
+        rest_client.get_record.side_effect = [
+            {"state": ""},
+            self._get_nic_1_updated_mac(),
+            {"state": ""},
+            {"state": ""},
+            self._get_nic_2_updated_mac(),
+            {"state": ""},
+        ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "INTEL_E1000",
+                    "mac": "12-34-56-78-AB",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "INTEL_E1000",
+                    "mac": "AB-CD-EF-GH-12",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                        "mac": "00-00-00-00-00",
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "INTEL_E1000",
+                        "mac": "12-34-56-78-AB",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "INTEL_E1000",
+                        "mac": "AB-CD-EF-GH-12",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+            True,
+        )
+
+    def test_ensure_present_or_set_when_changed_nic_mac_and_state_set(
+        self, rest_client, create_module, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB_test_vm",
+                items=[
+                    {"vlan": 1, "type": "INTEL_E1000", "mac_new": "12-34-56-78-AB"},
+                    {"vlan": 2, "type": "INTEL_E1000", "mac_new": "AB-CD-EF-GH-12"},
+                ],
+                state="set",
+            )
+        )
+        rest_client.update_record.side_effect = [
+            {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+            {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
+        ]
+        rest_client.list_records.return_value = [self._get_test_vm()]
+        rest_client.create_record.return_value = {
+            "taskTag": "1234",
+            "state": "COMPLETED",
+        }
+        rest_client.get_record.side_effect = [
+            {"state": ""},
+            self._get_nic_1_updated_mac(),
+            {"state": ""},
+            {"state": ""},
+            self._get_nic_2_updated_mac(),
+            {"state": ""},
+        ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        module_path = "scale_computing.hypercore.vm_nic"
+        results = ManageVMNics.ensure_present_or_set(
+            module=module, rest_client=rest_client, module_path=module_path
+        )
+
+        assert results == (
+            True,
+            [
+                {
+                    "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 1,
+                    "type": "INTEL_E1000",
+                    "mac": "12-34-56-78-AB",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+                {
+                    "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                    "vlan": 2,
+                    "type": "INTEL_E1000",
+                    "mac": "AB-CD-EF-GH-12",
+                    "connected": True,
+                    "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                },
+            ],
+            {
+                "before": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "virtio",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "RTL8139",
+                        "mac": "00-00-00-00-00",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+                "after": [
+                    {
+                        "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 1,
+                        "type": "INTEL_E1000",
+                        "mac": "12-34-56-78-AB",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                    {
+                        "uuid": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab",
+                        "vlan": 2,
+                        "type": "INTEL_E1000",
+                        "mac": "AB-CD-EF-GH-12",
+                        "connected": True,
+                        "ipv4_addresses": ["10.0.0.1", "10.0.0.2"],
+                    },
+                ],
+            },
+            True,
         )

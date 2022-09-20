@@ -190,12 +190,12 @@ def ensure_absent(module, rest_client):
         uuid = vm_device["uuid"]
         boot_order = deepcopy(boot_devices_before)
         boot_order.remove(uuid)
-        VM.update_boot_device_order(module, rest_client, vm_before.uuid, boot_order)
+        VM.update_boot_device_order(module, rest_client, vm_before, boot_order)
         changed = True
     vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
         module.params, rest_client
     )
-    return changed, after, dict(before=before, after=after)
+    return changed, after, dict(before=before, after=after), vm_before.reboot
 
 
 def ensure_present(module, rest_client):
@@ -219,14 +219,12 @@ def ensure_present(module, rest_client):
                 desired_boot_order = boot_devices_before + [uuid]
         if desired_boot_order == boot_devices_before:
             continue
-        VM.update_boot_device_order(
-            module, rest_client, vm_before.uuid, desired_boot_order
-        )
+        VM.update_boot_device_order(module, rest_client, vm_before, desired_boot_order)
         changed = True
     vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
         module.params, rest_client
     )
-    return changed, after, dict(before=before, after=after)
+    return changed, after, dict(before=before, after=after), vm_before.reboot
 
 
 def ensure_set(module, rest_client):
@@ -239,15 +237,22 @@ def ensure_set(module, rest_client):
     vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
         module.params, rest_client
     )
-    return changed, after, dict(before=before, after=after)
+    return changed, after, dict(before=before, after=after), vm_before.reboot
 
 
 def run(module, rest_client):
+    vm, boot_devices_before, before = VM.get_vm_and_boot_devices(
+        module.params, rest_client
+    )
     if module.params["state"] == "absent":
-        return ensure_absent(module, rest_client)
+        changed, after, diff, reboot = ensure_absent(module, rest_client)
     elif module.params["state"] == "set":
-        return ensure_set(module, rest_client)
-    return ensure_present(module, rest_client)
+        changed, after, diff, reboot = ensure_set(module, rest_client)
+    else:
+        changed, after, diff, reboot = ensure_present(module, rest_client)
+    if vm:
+        vm.vm_power_up(module, rest_client)
+    return changed, after, diff, reboot
 
 
 def main():
@@ -306,8 +311,8 @@ def main():
         password = module.params["cluster_instance"]["password"]
         client = Client(host, username, password)
         rest_client = RestClient(client)
-        changed, record, diff = run(module, rest_client)
-        module.exit_json(changed=changed, record=record, diff=diff)
+        changed, record, diff, reboot = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff, vm_rebooted=reboot)
     except ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

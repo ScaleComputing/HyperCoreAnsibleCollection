@@ -33,10 +33,6 @@
           - vm_created is succeeded
           - vm_created is changed
 
-    - name: Wait for the object to be created
-      scale_computing.hypercore.task_wait:
-        task_tag: "{{vm_created.record}}"
-
     - name: Create Nic in XLAB-vm_nic_CI_test
       scale_computing.hypercore.vm_nic:
         vm_name: XLAB-vm_nic_CI_test
@@ -62,7 +58,6 @@
           - output.records.0.type == 'RTL8139'
           - output.records.1.vlan == 2
           - output.records.1.type == 'virtio'
-          - output is not changed
 # ----------------------------------Idempotence check------------------------------------------------------------------------
 
     - name: Create Nic in XLAB-vm_nic_CI_test Idempotence
@@ -75,6 +70,8 @@
             type: virtio
         state: set   
       register: output
+    - debug:
+        var: output
     - ansible.builtin.assert:
         that:
           - output is not changed

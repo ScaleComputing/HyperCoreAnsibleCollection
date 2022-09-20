@@ -21,7 +21,7 @@
     scale_computing.hypercore.vm:
       vm_name: XLAB-vm_params_CI_test
       description: VM for testing vm_params module
-      power_state: stop
+      power_state: start
       state: present
       tags: 
         - Xlab
@@ -67,7 +67,7 @@
   - ansible.builtin.assert:
       that:
         - output is changed
-        - output.reboot_needed == true
+        - output.vm_rebooted is true
 
   - name: Check VMs params changed
     scale_computing.hypercore.vm_info:
@@ -112,7 +112,7 @@
   - ansible.builtin.assert:
       that:
         - output is changed
-        - output.reboot_needed == false
+        - output.vm_rebooted is false
   
   - name: Check VMs name changed
     scale_computing.hypercore.vm_info:
@@ -142,7 +142,7 @@
   - ansible.builtin.assert:
       that:
         - output is changed
-        - output.reboot_needed == false
+        - output.vm_rebooted is false
 
   - name: Check VMs params changed
     scale_computing.hypercore.vm_info:
@@ -160,7 +160,7 @@
   - ansible.builtin.assert:
       that:
         - output is not changed
-        - output.reboot_needed == false
+        - output.vm_rebooted is false
   
   - name: Check VMs params aren't changed
     scale_computing.hypercore.vm_info:

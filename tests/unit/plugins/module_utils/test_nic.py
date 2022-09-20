@@ -12,6 +12,9 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import (
+    ManageVMNics,
+)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -108,91 +111,6 @@ class TestNic:
         # assert below detects a difference, but does not tell back which key/value is problem.
         assert expected_data == ansible_data
 
-    def test_get_by_uuid(self, rest_client):
-        nic = dict(
-            uuid="my-nic-uuid",
-            virDomainUUID="my-vm-uuid",
-            vlan=10,
-            type="VIRTIO",
-            macAddress="12:00:00:00:00:00",
-            connected=True,
-            ipv4Addresses=["10.0.0.10", "10.0.1.10"],
-            # more fields?
-        )
-        nic_dict = nic
-        rest_client.get_record.return_value = nic_dict
-        results = Nic.get_by_uuid(rest_client=rest_client, nic_uuid="my-nic-uuid")
-        print(results)
-        nic_dict = Nic.from_hypercore(nic_dict).to_hypercore()
-        assert results.to_hypercore() == nic_dict
-
-    def test_send_update_nic_to_hypercore(self, rest_client, task_wait):
-        existing_nic = {
-            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
-            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "vlan": 1,
-            "type": "virtio",
-            "macAddress": "00-00-00-00-00",
-            "connected": True,
-            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
-        }
-        new_nic = {
-            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
-            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "vlan": 1,
-            "type": "INTEL_E1000",
-            "macAddress": "00-00-00-00-00",
-            "connected": True,
-            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
-        }
-        rest_client.update_record.return_value = {"taskTag": "1234"}
-        rest_client.get_record.side_effect = [new_nic, {"state": "Done"}]
-        results = Nic.send_update_nic_request_to_hypercore(
-            rest_client=rest_client,
-            new_nic=Nic.from_hypercore(new_nic),
-            existing_nic=Nic.from_hypercore(existing_nic),
-            before=[],
-            after=[],
-        )
-        existing_nic = Nic.from_hypercore(existing_nic)
-        new_nic = Nic.from_hypercore(new_nic)
-        assert results == (True, [existing_nic.to_ansible()], [new_nic.to_ansible()])
-
-    def test_send_create_nic_to_hypercore(self, rest_client, task_wait):
-        new_nic = {
-            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
-            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "vlan": 1,
-            "type": "virtio",
-            "macAddress": "00-00-00-00-00",
-            "connected": True,
-            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
-        }
-        rest_client.create_record.return_value = {
-            "taskTag": "1234",
-            "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
-        }
-        rest_client.get_record.side_effect = [new_nic, {"state": "Done"}]
-        results = Nic.send_create_nic_request_to_hypercore(
-            rest_client=rest_client,
-            new_nic=Nic.from_hypercore(new_nic),
-            before=[],
-            after=[],
-        )
-        print(results)
-        print((True, [None], [Nic.from_hypercore(new_nic).to_ansible()]))
-        assert results == (True, [None], [Nic.from_hypercore(new_nic).to_ansible()])
-
-    def test_send_delete_nic_request_to_hypercore(self, rest_client, task_wait):
-        nic_to_delete = self._get_nic_1()
-        rest_client.delete_record.return_value = {"taskTag": "1234"}
-        rest_client.get_record.side_effect = [{"state": "Done"}]
-        results = Nic.send_delete_nic_request_to_hypercore(
-            rest_client=rest_client, nic_to_delete=nic_to_delete, before=[], after=[]
-        )
-        print(results)
-        assert results == (True, [nic_to_delete.to_ansible()], [None])
-
 
 class TestNicCompare:
     def test_compare_same(self):
@@ -262,7 +180,7 @@ class TestNicCompare:
         )
         results = existing_nic.is_update_needed(new_nic)
         assert results is True
-        results = new_nic.is_update_needed(existing_nic)
+        results = ManageVMNics.is_update_needed(new_nic, existing_nic)
         assert results is True
 
     def test_compare_vlan_new_self(self):
@@ -285,7 +203,7 @@ class TestNicCompare:
                 "type": "virtio",
             }
         )
-        results = new_nic.is_update_needed(existing_nic)
+        results = existing_nic.is_update_needed(new_nic)
         assert results is True
 
     def test_compare_mac_new(self):
@@ -309,8 +227,6 @@ class TestNicCompare:
             }
         )
         results = existing_nic.is_update_needed(new_nic)
-        assert results is True
-        results = new_nic.is_update_needed(existing_nic)
         assert results is True
 
     def test_compare_mac_new_and_vlan_new(self):
@@ -336,8 +252,6 @@ class TestNicCompare:
         )
         results = existing_nic.is_update_needed(new_nic)
         assert results is True
-        results = new_nic.is_update_needed(existing_nic)
-        assert results is True
 
     def test_compare_vlan_new_same(self):
         existing_nic = Nic.from_hypercore(
@@ -361,8 +275,6 @@ class TestNicCompare:
         )
         results = existing_nic.is_update_needed(new_nic)
         assert results is False
-        results = new_nic.is_update_needed(existing_nic)
-        assert results is False
 
     def test_compare_mac_new_same(self):
         existing_nic = Nic.from_hypercore(
@@ -385,8 +297,6 @@ class TestNicCompare:
             }
         )
         results = existing_nic.is_update_needed(new_nic)
-        assert results is False
-        results = new_nic.is_update_needed(existing_nic)
         assert results is False
 
     def test_compare_mac_new_and_vlan_new_same(self):
@@ -412,43 +322,3 @@ class TestNicCompare:
         )
         results = existing_nic.is_update_needed(new_nic)
         assert results is False
-        results = new_nic.is_update_needed(existing_nic)
-        assert results is False
-
-
-class TestUpdateNic:
-    def test_update_nic_when_one_nic_updated(self, rest_client, task_wait):
-        before = []
-        after = []
-        new_nic = {
-            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
-            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "vlan": 1,
-            "vlan_new": 3,
-            "macAddress": "12:34:56:78:AB",
-            "connected": True,
-            "type": "virtio",
-            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
-        }
-        existing_nic = {
-            "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
-            "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-            "vlan": 1,
-            "macAddress": "12:34:56:78:AB",
-            "connected": True,
-            "type": "virtio",
-            "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
-        }
-        new_nic_obj = Nic.from_hypercore(hypercore_data=new_nic)
-        existing_nic_obj = Nic.from_hypercore(hypercore_data=existing_nic)
-        new_nic_data = new_nic_obj.to_ansible()
-        existing_nic_data = existing_nic_obj.to_ansible()
-        rest_client.update_record.return_value = {"taskTag": "1234"}
-        rest_client.get_record.return_value = new_nic
-        before.append(existing_nic_data)
-        after.append(new_nic_data)
-        changed = True
-        results = Nic.send_update_nic_request_to_hypercore(
-            rest_client, new_nic_obj, existing_nic_obj, before, after
-        )
-        assert results == (changed, before, after)
