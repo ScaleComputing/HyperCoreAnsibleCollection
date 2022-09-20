@@ -172,6 +172,7 @@ class TestEnsureAbsent:
                     }
                 ],
             },
+            False,
         )
 
     def test_ensure_absent_uuid_not_in_boot_devices(
@@ -276,7 +277,7 @@ class TestEnsureAbsent:
         ).return_value = None
         result = vm_boot_devices.ensure_absent(module, rest_client)
         rest_client.update_record.assert_not_called()
-        assert result == (False, [], {"after": [], "before": []})
+        assert result == (False, [], {"after": [], "before": []}, False)
 
     def test_ensure_absent_update_successful(
         self, create_module, rest_client, task_wait, mocker
@@ -405,6 +406,7 @@ class TestEnsureAbsent:
                     }
                 ],
             },
+            True,
         )
 
 
@@ -511,7 +513,7 @@ class TestEnsurePresent:
         ).return_value = None
         result = vm_boot_devices.ensure_present(module, rest_client)
         rest_client.update_record.assert_not_called()
-        assert result == (False, [], {"after": [], "before": []})
+        assert result == (False, [], {"after": [], "before": []}, False)
 
     def test_ensure_present_item_first(
         self, create_module, rest_client, task_wait, mocker
@@ -656,6 +658,7 @@ class TestEnsurePresent:
                 ],
                 "before": [],
             },
+            True,
         )
 
     def test_ensure_present_item_not_first_boot_order_already_present(
@@ -814,6 +817,7 @@ class TestEnsurePresent:
                     }
                 ],
             },
+            False,
         )
 
     def test_ensure_present_item_not_first_boot_order_updated(
@@ -958,6 +962,7 @@ class TestEnsurePresent:
                 ],
                 "before": [],
             },
+            True,
         )
 
 
@@ -1064,7 +1069,7 @@ class TestEnsureSet:
         ).return_value = None
         result = vm_boot_devices.ensure_set(module, rest_client)
         rest_client.update_record.assert_not_called()
-        assert result == (False, [], {"after": [], "before": []})
+        assert result == (False, [], {"after": [], "before": []}, False)
 
     def test_ensure_set_source_object_present(
         self, create_module, rest_client, task_wait, mocker
@@ -1220,4 +1225,5 @@ class TestEnsureSet:
                 ],
                 "before": [],
             },
+            True,
         )

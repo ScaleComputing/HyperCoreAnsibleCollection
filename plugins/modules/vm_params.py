@@ -92,13 +92,13 @@ EXAMPLES = r"""
 
 
 RETURN = r"""
-reboot_needed:
+vm_rebooted:
   description:
-      - Info if reboot is needed after VM parameters update.
+      - Info if reboot of the VM was performed.
   returned: success
   type: bool
   sample:
-      reboot_needed: true
+      vm_rebooted: true
 """
 
 
@@ -114,8 +114,10 @@ from ..module_utils.vm import VM, ManageVMParams
 def run(module, rest_client):
     vm = VM.get_by_name(module.params, rest_client, must_exist=True)
     # Update VM's name, description, tags, memory, number of CPUs, power_state and/or assign snapshot schedule.
-    changed, reboot_needed, diff = ManageVMParams.set_vm_params(module, rest_client, vm)
-    return changed, reboot_needed, diff
+    changed, reboot, diff = ManageVMParams.set_vm_params(module, rest_client, vm)
+    if vm and module.params["power_state"] not in ["shutdown", "stop"]:
+        vm.vm_power_up(module, rest_client)
+    return changed, reboot, diff
 
 
 def main():
@@ -156,8 +158,8 @@ def main():
         password = module.params["cluster_instance"]["password"]
         client = Client(host, username, password)
         rest_client = RestClient(client)
-        changed, reboot_needed, diff = run(module, rest_client)
-        module.exit_json(changed=changed, reboot_needed=reboot_needed, diff=diff)
+        changed, reboot, diff = run(module, rest_client)
+        module.exit_json(changed=changed, vm_rebooted=reboot, diff=diff)
     except ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

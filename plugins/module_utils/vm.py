@@ -21,6 +21,7 @@ from ..module_utils.utils import (
     transform_query,
     is_superset,
 )
+from ..module_utils.state import NicState
 from ..module_utils.utils import (
     get_query,
     filter_results,
@@ -130,6 +131,7 @@ class VM(PayloadMapper):
         operating_system=None,
         node_affinity=None,
         snapshot_schedule=None,
+        reboot=False,
     ):
 
         self.operating_system = operating_system
@@ -147,6 +149,7 @@ class VM(PayloadMapper):
         self.attach_guest_tools_iso = attach_guest_tools_iso
         self.node_affinity = node_affinity
         self.snapshot_schedule = snapshot_schedule  # name of the snapshot_schedule
+        self.reboot = reboot
 
     @property
     def nic_list(self):
@@ -426,7 +429,6 @@ class VM(PayloadMapper):
         return existing_hypercore_nic, existing_hypercore_nic_with_new
 
     def find_disk(self, slot):
-        # TODO we need to find by (name, disk_type, disk_slot).
         all_slots = [disk.slot for disk in self.disk_list]
         if all_slots.count(slot) > 1:
             raise DeviceNotUnique("disk - vm.py - find_disk()")
@@ -479,22 +481,24 @@ class VM(PayloadMapper):
             disks_payload.insert(0, DEFAULT_DISK_CDROM_PAYLOAD)
         vm_hypercore_dict["blockDevs"] = disks_payload
 
-    def delete_unused_nics_to_hypercore_vm(self, ansible_dict, rest_client):
+    def delete_unused_nics_to_hypercore_vm(self, module, rest_client, nic_key):
         changed = False
+        reboot = False
         ansible_nic_uuid_list = [
             nic["vlan_new"]
             if ("vlan_new" in nic.keys() and nic["vlan_new"])
             else nic["vlan"]
-            for nic in ansible_dict["items"] or []
+            for nic in module.params[nic_key] or []
         ]
         for nic in self.nic_list:
             if nic.vlan not in ansible_nic_uuid_list:
+                self.vm_shutdown(module, rest_client, reboot)
                 response = rest_client.delete_record(
                     endpoint="/rest/v1/VirDomainNetDevice/" + nic.uuid, check_mode=False
                 )
                 TaskTag.wait_task(rest_client, response)
                 changed = True
-        return changed
+        return changed, self.reboot
 
     def export_vm(self, rest_client, ansible_dict):
         data = VM.create_export_or_import_vm_payload(
@@ -590,11 +594,12 @@ class VM(PayloadMapper):
         return boot_order
 
     @staticmethod
-    def update_boot_device_order(module, rest_client, uuid, boot_order):
+    def update_boot_device_order(module, rest_client, vm, boot_order):
         # uuid is vm's uuid. boot_order is the desired order we want to set to boot devices
+        vm.vm_shutdown(module, rest_client)
         task_tag = rest_client.update_record(
-            "{0}/{1}".format("/rest/v1/VirDomain", uuid),
-            dict(bootDevices=boot_order, uuid=uuid),
+            "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid),
+            dict(bootDevices=boot_order, uuid=vm.uuid),
             module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag)
@@ -604,9 +609,7 @@ class VM(PayloadMapper):
     ):
         desired_boot_order = self.set_boot_devices_order(boot_items)
         if desired_boot_order != previous_boot_order:
-            VM.update_boot_device_order(
-                module, rest_client, self.uuid, desired_boot_order
-            )
+            VM.update_boot_device_order(module, rest_client, self, desired_boot_order)
             changed = True
         return changed
 
@@ -657,6 +660,31 @@ class VM(PayloadMapper):
     def get_boot_device_order(self):
         return [boot_device.uuid for boot_device in self.boot_devices]
 
+    @staticmethod
+    def called_from_vm_module(module_path):
+        # if module_path == "scale_computing.hypercore.vm_disk":
+        #     return True
+        if module_path == "scale_computing.hypercore.vm":
+            return True
+        elif module_path in (
+            "scale_computing.hypercore.vm_disk",
+            "scale_computing.hypercore.vm_nic",
+        ):
+            return False
+        raise ScaleComputingError(
+            "Setting disks and/or is currently only supported in two of the following modules:"
+            "scale_computing.hypercore.vm_disk, scale_computing.hypercore.vm, scale_computing.hypercore.vm_nic"
+        )
+
+    def vm_shutdown(self, module, rest_client, reboot=False):
+        if self.power_state == "started":
+            self.update_vm_power_state(module, rest_client, "stop")
+            self.reboot = True
+
+    def vm_power_up(self, module, rest_client):
+        if self.reboot:
+            self.update_vm_power_state(module, rest_client, "start")
+
 
 class ManageVMParams(VM):
     @staticmethod
@@ -688,6 +716,16 @@ class ManageVMParams(VM):
         return payload
 
     @staticmethod
+    def _needs_reboot(module, changed):
+        for param in module.params:
+            if (
+                module.params[param] is not None and param in REBOOT_LOOKUP
+            ):  # skip not provided parameters and cluster_instance
+                if REBOOT_LOOKUP[param] and changed[param]:
+                    return True
+        return False
+
+    @staticmethod
     def _to_be_changed(vm, module):
         changed_params = {}
         if module.params["vm_name_new"]:
@@ -716,16 +754,6 @@ class ManageVMParams(VM):
                 vm.snapshot_schedule != module.params["snapshot_schedule"]
             )
         return any(changed_params.values()), changed_params
-
-    @staticmethod
-    def _needs_reboot(module, changed):
-        for param in module.params:
-            if (
-                module.params[param] is not None and param in REBOOT_LOOKUP
-            ):  # skip not provided parameters and cluster_instance
-                if REBOOT_LOOKUP[param] and changed[param]:
-                    return True
-        return False
 
     @staticmethod
     def _build_after_diff(module, rest_client):
@@ -801,20 +829,20 @@ class ManageVMParams(VM):
                 vm.update_vm_power_state(
                     module, rest_client, module.params["power_state"]
                 )
-            reboot_needed = ManageVMParams._needs_reboot(module, changed_parameters)
+            if ManageVMParams._needs_reboot(module, changed_parameters):
+                vm.vm_shutdown(module, rest_client)
             return (
                 True,
-                reboot_needed,
+                vm.reboot,
                 dict(
                     before=ManageVMParams._build_before_diff(vm, module),
                     after=ManageVMParams._build_after_diff(module, rest_client),
                 ),
             )
         else:
-            reboot_needed = False
             return (
                 False,
-                reboot_needed,
+                False,
                 dict(before=None, after=None),
             )
 
@@ -834,6 +862,7 @@ class ManageVMDisks:
     def _create_block_device(module, rest_client, vm, desired_disk):
         # vm is instance of VM, desired_disk is instance of Disk
         payload = desired_disk.post_payload(vm)
+        vm.vm_shutdown(module, rest_client)
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomainBlockDevice",
             payload,
@@ -860,15 +889,17 @@ class ManageVMDisks:
     @staticmethod
     def _update_block_device(module, rest_client, desired_disk, existing_disk, vm):
         payload = desired_disk.patch_payload(vm, existing_disk)
+        vm.vm_shutdown(module, rest_client)
         task_tag = rest_client.update_record(
             "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
             payload,
             module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+        return vm.reboot
 
     @classmethod
-    def _delete_not_used_disks(cls, module, rest_client, changed, disk_key):
+    def _delete_not_used_disks(cls, module, rest_client, vm, changed, disk_key):
         updated_vm, updated_ansible_disks = cls.get_vm_by_name(module, rest_client)
         # Ensure all disk that aren't listed in items don't exist in VM (ensure absent)
         for updated_ansible_disk in updated_ansible_disks:
@@ -882,6 +913,8 @@ class ManageVMDisks:
                 ):
                     to_delete = False
             if to_delete:
+                # VM needs to be stopped before delete action
+                vm.vm_shutdown(module, rest_client)
                 task_tag = rest_client.delete_record(
                     "{0}/{1}".format(
                         "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
@@ -902,30 +935,20 @@ class ManageVMDisks:
             )
         # Delete all disks
         for existing_disk in vm.disks:
+            vm.vm_shutdown(module, rest_client)
             task_tag = rest_client.delete_record(
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
                 module.check_mode,
             )
             TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-        return True, [], dict(before=disks_before, after=[])
-
-    @staticmethod
-    def _called_from_vm_disk(module_path):
-        if module_path == "scale_computing.hypercore.vm_disk":
-            return True
-        elif module_path == "scale_computing.hypercore.vm":
-            return False
-        raise ScaleComputingError(
-            "Setting disks is currently only supported in the following modules:"
-            "scale_computing.hypercore.vm_disk, scale_computing.hypercore.vm"
-        )
+        return True, [], dict(before=disks_before, after=[]), vm.reboot
 
     @classmethod
     def ensure_present_or_set(cls, module, rest_client, module_path):
         # At the moment, this method is called in modules vm_disk and vm
         # Module path is here to distinguish from which module ensure_present_or_set was called from
         changed = False
-        called_from_vm_disk = cls._called_from_vm_disk(module_path)
+        called_from_vm_disk = not VM.called_from_vm_module(module_path)
         disk_key = "items" if called_from_vm_disk else "disks"
         vm_before, disks_before = cls.get_vm_by_name(module, rest_client)
         if (
@@ -941,7 +964,6 @@ class ManageVMDisks:
             # just name, if not empty string
             disk_query = filter_dict(ansible_desired_disk, "disk_slot", "type")
             ansible_existing_disk = vm_before.get_specific_disk(disk_query)
-            # raise ValueError(ansible_existing_disk)
             desired_disk = Disk.from_ansible(ansible_desired_disk)
             if ansible_desired_disk["type"] == "ide_cdrom":
                 # ISO image detachment
@@ -995,8 +1017,193 @@ class ManageVMDisks:
                     )
                 changed = True
         if module.params["state"] == "set" or not called_from_vm_disk:
-            changed = cls._delete_not_used_disks(module, rest_client, changed, disk_key)
+            changed = cls._delete_not_used_disks(
+                module, rest_client, vm_before, changed, disk_key
+            )
         if called_from_vm_disk:
             vm_after, disks_after = cls.get_vm_by_name(module, rest_client)
-            return changed, disks_after, dict(before=disks_before, after=disks_after)
-        return changed
+            return (
+                changed,
+                disks_after,
+                dict(before=disks_before, after=disks_after),
+                vm_before.reboot,
+            )
+        return changed, vm_before.reboot
+
+
+class ManageVMNics(Nic):
+    @classmethod
+    def get_by_uuid(cls, rest_client, nic_uuid):
+        return Nic.from_hypercore(
+            rest_client.get_record(
+                "/rest/v1/VirDomainNetDevice", query={"uuid": nic_uuid}, must_exist=True
+            )
+        )
+
+    @classmethod
+    def send_update_nic_request_to_hypercore(
+        cls,
+        module,
+        virtual_machine_obj,
+        rest_client,
+        new_nic,
+        existing_nic,
+        before,
+        after,
+    ):
+        if new_nic is None or existing_nic is None:
+            raise errors.MissingFunctionParameter(
+                "new_nic or existing_nic - nic.py - update_nic_to_hypercore()"
+            )
+        before.append(existing_nic.to_ansible())
+        data = new_nic.to_hypercore()
+        virtual_machine_obj.vm_shutdown(module, rest_client)
+        response = rest_client.update_record(
+            endpoint="/rest/v1/VirDomainNetDevice/" + existing_nic.uuid,
+            payload=data,
+            check_mode=False,
+        )
+        new_nic_obj = ManageVMNics.get_by_uuid(
+            rest_client=rest_client, nic_uuid=existing_nic.uuid
+        )
+        after.append(new_nic_obj.to_ansible())
+        TaskTag.wait_task(rest_client=rest_client, task=response)
+        return True, before, after, virtual_machine_obj.reboot
+
+    @classmethod
+    def send_create_nic_request_to_hypercore(
+        cls, module, virtual_machine_obj, rest_client, new_nic, before, after
+    ):
+        if new_nic is None:
+            raise errors.MissingFunctionParameter(
+                "new_nic - nic.py - create_nic_to_hypercore()"
+            )
+        before.append(None)
+        data = new_nic.to_hypercore()
+        virtual_machine_obj.vm_shutdown(module, rest_client)
+        response = rest_client.create_record(
+            endpoint="/rest/v1/VirDomainNetDevice", payload=data, check_mode=False
+        )
+        new_nic_obj = ManageVMNics.get_by_uuid(
+            rest_client=rest_client, nic_uuid=response["createdUUID"]
+        )
+        after.append(new_nic_obj.to_ansible())
+        TaskTag.wait_task(rest_client=rest_client, task=response)
+        return True, before, after, virtual_machine_obj.reboot
+
+    @classmethod
+    def send_delete_nic_request_to_hypercore(
+        cls, virtual_machine_obj, module, rest_client, nic_to_delete, before, after
+    ):
+        if nic_to_delete is None:
+            raise errors.MissingFunctionParameter(
+                "nic_to_delete - nic.py - delete_nic_to_hypercore()"
+            )
+        before.append(nic_to_delete.to_ansible())
+        virtual_machine_obj.vm_shutdown(module, rest_client)
+        response = rest_client.delete_record(
+            endpoint="/rest/v1/VirDomainNetDevice/" + nic_to_delete.uuid,
+            check_mode=False,
+        )
+        after.append(None)
+        TaskTag.wait_task(rest_client=rest_client, task=response)
+        return True, before, after, virtual_machine_obj.reboot
+
+    @classmethod
+    def ensure_present_or_set(cls, module, rest_client, module_path):
+        before = []
+        after = []
+        changed = False
+        called_from_vm_nic = not VM.called_from_vm_module(module_path)
+        nic_key = "items" if called_from_vm_nic else "nics"
+        virtual_machine_obj_list = VM.get_or_fail(
+            query={"name": module.params["vm_name"]}, rest_client=rest_client
+        )
+        if module.params[nic_key]:
+            for nic in module.params[nic_key]:
+                nic["vm_uuid"] = virtual_machine_obj_list[0].uuid
+                nic = Nic.from_ansible(ansible_data=nic)
+                existing_hc3_nic, existing_hc3_nic_with_new = virtual_machine_obj_list[
+                    0
+                ].find_nic(
+                    vlan=nic.vlan,
+                    mac=nic.mac,
+                    vlan_new=nic.vlan_new,
+                    mac_new=nic.mac_new,
+                )
+                if existing_hc3_nic_with_new and Nic.is_update_needed(
+                    existing_hc3_nic_with_new, nic
+                ):  # Update existing with vlan_new or mac_new - corner case
+                    (
+                        changed,
+                        before,
+                        after,
+                        reboot,
+                    ) = ManageVMNics.send_update_nic_request_to_hypercore(
+                        module,
+                        virtual_machine_obj_list[0],
+                        rest_client,
+                        nic,
+                        existing_hc3_nic_with_new,
+                        before,
+                        after,
+                    )
+                elif (
+                    existing_hc3_nic  # Nic
+                    and not existing_hc3_nic_with_new  # None
+                    and Nic.is_update_needed(existing_hc3_nic, nic)  # True
+                ):  # Update existing
+                    (
+                        changed,
+                        before,
+                        after,
+                        reboot,
+                    ) = ManageVMNics.send_update_nic_request_to_hypercore(
+                        module,
+                        virtual_machine_obj_list[0],
+                        rest_client,
+                        nic,
+                        existing_hc3_nic,
+                        before,
+                        after,
+                    )
+                # Create new
+                elif not existing_hc3_nic and not existing_hc3_nic_with_new:
+                    (
+                        changed,
+                        before,
+                        after,
+                        reboot,
+                    ) = ManageVMNics.send_create_nic_request_to_hypercore(
+                        module,
+                        virtual_machine_obj_list[0],
+                        rest_client=rest_client,
+                        new_nic=nic,
+                        before=before,
+                        after=after,
+                    )
+        elif module.params[nic_key] == []:  # empty set in ansible, delete all
+            for nic in virtual_machine_obj_list[0].nic_list:
+                before.append(nic.to_ansible())
+        else:
+            raise errors.MissingValueAnsible(
+                "items, cannot be null, empty must be set to []"
+            )
+        updated_virtual_machine = VM.get(
+            query={"name": module.params["vm_name"]}, rest_client=rest_client
+        )[0]
+        if module.params["state"] == NicState.set or not called_from_vm_nic:
+            # Check if any nics need to be deleted from the vm
+            if updated_virtual_machine.delete_unused_nics_to_hypercore_vm(
+                module, rest_client, nic_key
+            )[0]:
+                changed = True
+                virtual_machine_obj_list[0].reboot = True
+        if called_from_vm_nic:
+            return (
+                changed,
+                after,
+                dict(before=before, after=after),
+                virtual_machine_obj_list[0].reboot,
+            )
+        return changed, virtual_machine_obj_list[0].reboot

@@ -93,6 +93,7 @@ class TestEnsureAbsent:
                 "after": [],
                 "before": [],
             },
+            False,
         )
 
     def test_ensure_absent_delete_record(
@@ -196,6 +197,7 @@ class TestEnsureAbsent:
                     }
                 ],
             },
+            True,
         )
 
     def test_ensure_absent_cdrom_name_in_desired_disk_and_query(
@@ -290,6 +292,7 @@ class TestEnsureAbsent:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         results = vm_disk.ensure_absent(module, rest_client)
+        print(results)
         assert results == (
             False,
             [],
@@ -311,6 +314,7 @@ class TestEnsureAbsent:
                     }
                 ],
             },
+            False,
         )
 
     def test_ensure_absent_cdrom_no_name_error(

@@ -14,10 +14,10 @@ module: vm
 author:
   - Domen Dobnikar (@domen_dobnikar)
   - Tjaž Eržen (@tjazsch)
-short_description: Create VM
+short_description: Create, update or delete VM.
 description:
-  - Module creates a new virtual machine alongside with disks, nics, boot order and cloud init data. After creation,
-    the VM is also put into the specified power state.
+  - Create and update the VM with set disks, nics and boot order.
+  - Delete the VM.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -308,13 +308,13 @@ record:
         lan_ip: 10.0.0.4
         peer_id: 2
     snapshot_schedule: my-snapshot-schedule
-reboot_needed:
+vm_rebooted:
   description:
-      - Info if reboot is needed after VM parameters update.
+      - Info if reboot of the VM was performed.
   returned: success
   type: bool
   sample:
-      reboot_needed: true
+      vm_rebooted: true
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -326,11 +326,11 @@ from ..module_utils.vm import (
     VM,
     ManageVMParams,
     ManageVMDisks,
+    ManageVMNics,
 )
 from ..module_utils.task_tag import TaskTag
 
 MODULE_PATH = "scale_computing.hypercore.vm"
-POSSIBLE_STATES_TO_SET_VM_DEVICES = ["started", "shutdown"]
 
 
 def _set_boot_order(module, rest_client, vm, existing_boot_order):
@@ -342,31 +342,32 @@ def _set_boot_order(module, rest_client, vm, existing_boot_order):
             rest_client,
             existing_boot_order,
         )
-        return boot_order_changed
-    return False
+        return boot_order_changed, vm.reboot
+    return False, vm.reboot
 
 
 def _set_disks(module, rest_client):
-    # Set disks. Nics will be also added here
     return ManageVMDisks.ensure_present_or_set(module, rest_client, MODULE_PATH)
 
 
+def _set_nics(module, rest_client):
+    return ManageVMNics.ensure_present_or_set(module, rest_client, MODULE_PATH)
+
+
 def _set_vm_params(module, rest_client, vm):
-    changed_params, reboot_needed, diff = ManageVMParams.set_vm_params(
-        module, rest_client, vm
-    )
-    return changed_params, reboot_needed
+    changed_params, reboot, diff = ManageVMParams.set_vm_params(module, rest_client, vm)
+    return changed_params, reboot
 
 
 def ensure_present(module, rest_client):
     vm_before = VM.get_by_name(module.params, rest_client)
+    reboot = False
     if vm_before:
         before = vm_before.to_ansible()  # for output
-        # set disks
-        changed_disks = _set_disks(module, rest_client)
-        # Set boot order
+        changed_disks, reboot_disk = _set_disks(module, rest_client)
+        changed_nics, reboot_nic = _set_nics(module, rest_client)
         existing_boot_order = vm_before.get_boot_device_order()
-        changed_order = _set_boot_order(
+        changed_order, reboot_boot_order = _set_boot_order(
             module, rest_client, vm_before, existing_boot_order
         )
         # Set vm params
@@ -374,9 +375,9 @@ def ensure_present(module, rest_client):
         # since boot order cannot be set when the vm is running.
         # set_vm_params updates VM's name, description, tags, memory, number of CPU,
         # changed the power state and/or assigns the snapshot schedule to the VM
-        changed_params, reboot_needed = _set_vm_params(module, rest_client, vm_before)
-        changed = any((changed_order, changed_params, changed_disks))
-        # TODO (tjazsch): Add setter for nics
+        changed_params, reboot_params = _set_vm_params(module, rest_client, vm_before)
+        changed = any((changed_order, changed_params, changed_disks, changed_nics))
+        reboot = any((reboot_disk, reboot_nic, reboot_boot_order, reboot_params))
         name_field = "vm_name_new" if module.params["vm_name_new"] else "vm_name"
     else:
         before = None  # for output
@@ -399,11 +400,14 @@ def ensure_present(module, rest_client):
             vm_created.update_vm_power_state(
                 module, rest_client, module.params["power_state"]
             )
-        changed, reboot_needed = True, False
+        changed = True
         name_field = "vm_name"
     vm_after = VM.get_by_name(module.params, rest_client, name_field=name_field)
     after = vm_after.to_ansible()
-    return changed, [after], dict(before=before, after=after), reboot_needed
+    if reboot:
+        vm_after.reboot = reboot
+        vm_after.vm_power_up(module, rest_client)
+    return changed, [after], dict(before=before, after=after), reboot
 
 
 def run(module, rest_client):
@@ -413,7 +417,7 @@ def run(module, rest_client):
 
 
 def ensure_absent(module, rest_client):
-    reboot_needed = False
+    reboot = False
     vm = VM.get_by_name(module.params, rest_client)
     if vm:
         if vm.power_state != "shutdown":  # First, shut it off and then delete
@@ -423,8 +427,8 @@ def ensure_absent(module, rest_client):
         )
         TaskTag.wait_task(rest_client, task_tag)
         output = vm.to_ansible()
-        return True, [output], dict(before=output, after=None), reboot_needed
-    return False, [], dict(), reboot_needed
+        return True, [output], dict(before=output, after=None), reboot
+    return False, [], dict(), reboot
 
 
 def main():
@@ -588,10 +592,8 @@ def main():
         password = module.params["cluster_instance"]["password"]
         client = Client(host, username, password)
         rest_client = RestClient(client)
-        changed, record, diff, reboot_needed = run(module, rest_client)
-        module.exit_json(
-            changed=changed, record=record, diff=diff, reboot_needed=reboot_needed
-        )
+        changed, record, diff, reboot = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff, vm_rebooted=reboot)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

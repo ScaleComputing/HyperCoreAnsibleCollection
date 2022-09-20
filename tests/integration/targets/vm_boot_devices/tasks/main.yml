@@ -16,6 +16,7 @@
         vm_name: vm-integration-test-boot_devices
         description: Demo VM
         tags:
+          - "Xlab"
           - "Integration test"
         memory: "{{ '512 MB' | human_to_bytes }}"
         vcpu: 2

@@ -557,10 +557,13 @@ class TestEnsurePresent:
         ).return_value = (True, True)
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
-        ).return_value = True
+        ).return_value = (True, True)
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics"
+        ).return_value = (True, True)
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
-        ).return_value = False
+        ).return_value = (False, False)
 
         result = vm.ensure_present(module, rest_client)
         assert result == (
@@ -746,10 +749,13 @@ class TestEnsurePresent:
         ).return_value = (False, False)
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
-        ).return_value = False
+        ).return_value = (False, False)
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
-        ).return_value = False
+        ).return_value = (False, False)
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics"
+        ).return_value = (False, False)
 
         result = vm.ensure_present(module, rest_client)
         changed = result[0]
@@ -879,10 +885,13 @@ class TestEnsurePresent:
         ).return_value = (False, False)
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
-        ).return_value = True
+        ).return_value = (True, True)
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
-        ).return_value = True
+        ).return_value = (True, True)
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics"
+        ).return_value = (False, False)
 
         result = vm.ensure_present(module, rest_client)
         assert result == (
@@ -1023,7 +1032,7 @@ class TestEnsurePresent:
                     "vm_name": "VM-name-unique",
                 },
             },
-            False,
+            True,
         )
 
     def test_ensure_present_create_vm_no_boot_devices_power_state_is_shutdown(
