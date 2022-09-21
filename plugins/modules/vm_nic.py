@@ -193,8 +193,6 @@ def ensure_absent(module, rest_client):
                     before=before,
                     after=after,
                 )
-                if reboot:
-                    virtual_machine_obj_list[0].reboot = reboot
     return (
         changed,
         after,
