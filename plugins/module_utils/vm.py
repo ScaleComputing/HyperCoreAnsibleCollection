@@ -823,14 +823,15 @@ class ManageVMParams(VM):
             endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
             task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
             TaskTag.wait_task(rest_client, task_tag)
-            # power_state needs different endpoint
-            # Wait_task in update_vm_power_state doesn't handle check_mode
-            if module.params["power_state"] and not module.check_mode:
-                vm.update_vm_power_state(
-                    module, rest_client, module.params["power_state"]
-                )
             if ManageVMParams._needs_reboot(module, changed_parameters):
                 vm.vm_shutdown(module, rest_client)
+            else:
+                # power_state needs different endpoint
+                # Wait_task in update_vm_power_state doesn't handle check_mode
+                if module.params["power_state"] and not module.check_mode:
+                    vm.update_vm_power_state(
+                        module, rest_client, module.params["power_state"]
+                    )
             return (
                 True,
                 vm.reboot,
