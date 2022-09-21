@@ -52,10 +52,8 @@ options:
     type: int
   power_state:
     description:
-      - VM's Desired power state.
-      - If not specified, the VM will be running by default.
-      - PAUSE and LIVEMIGRATE are possible in REST API, but module will not expose them.
-        PAUSE is marked as internal, LIVEMIGRATE requires to specify destination node. It can be done with api module).
+      - Desired VM state.
+      - States C(PAUSE) and C(LIVEMIGRATE) are not exposed in this module (this can be done with raw api module).
     choices: [ start, shutdown, stop, reboot, reset ]
     type: str
     default: start
