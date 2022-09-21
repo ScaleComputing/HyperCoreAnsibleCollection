@@ -700,11 +700,15 @@ class VM(PayloadMapper):
         # Sends a shutdown request and waits for VM to responde.
         # Send GET request every 10 seconds.
         # Returns True if successful, False if unsuccessful
-        if self.power_state in ["stopped", "shutdown"]:
+        # Get fresh VM data, there is an error if VM is not running and shutdown request is sent.
+        vm_fresh_data = rest_client.get_record(
+            f"/rest/v1/VirDomain/{self.uuid}", must_exist=True
+        )
+        if vm_fresh_data["state"] in ["SHUTOFF", "SHUTDOWN"]:
             return True
         if (
             "unit_test" not in module.params
-            and self.power_state == "started"
+            and vm_fresh_data["state"] == "RUNNING"
             and module.params["shutdown_timeout"]
             and not self.was_shutdown_tried
         ):

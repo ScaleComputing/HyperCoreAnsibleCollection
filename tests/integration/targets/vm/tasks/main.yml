@@ -140,6 +140,7 @@
         state: present
         memory: "{{ '512 MB' | human_to_bytes }}"
         vcpu: 2
+        force_reboot: true
         disks:
           - type: ide_cdrom
             disk_slot: 0
@@ -203,6 +204,7 @@
         state: present
         memory: "{{ '512 MB' | human_to_bytes }}"
         vcpu: 2
+        force_reboot: true
         disks:
           - type: ide_cdrom
             disk_slot: 0
