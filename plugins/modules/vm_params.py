@@ -115,7 +115,7 @@ def run(module, rest_client):
     vm = VM.get_by_name(module.params, rest_client, must_exist=True)
     # Update VM's name, description, tags, memory, number of CPUs, power_state and/or assign snapshot schedule.
     changed, reboot, diff = ManageVMParams.set_vm_params(module, rest_client, vm)
-    if vm and module.params["power_state"] not in ["shutdown", "stop"]:
+    if module.params["power_state"] not in ["shutdown", "stop"]:
         vm.vm_power_up(module, rest_client)
     return changed, reboot, diff
 
