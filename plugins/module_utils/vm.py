@@ -700,6 +700,8 @@ class VM(PayloadMapper):
         # Sends a shutdown request and waits for VM to responde.
         # Send GET request every 10 seconds.
         # Returns True if successful, False if unsuccessful
+        if self.power_state in ["stopped", "shutdown"]:
+            return True
         if (
             "unit_test" not in module.params
             and self.power_state == "started"
