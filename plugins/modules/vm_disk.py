@@ -242,15 +242,13 @@ def ensure_absent(module, rest_client):
                 module, rest_client, iso, uuid, attach=False
             )
         else:
-            reboot = vm_before.vm_shutdown(module, rest_client)
+            vm_before.vm_shutdown(module, rest_client)
             task_tag = rest_client.delete_record(
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
                 module.check_mode,
             )
             TaskTag.wait_task(rest_client, task_tag, module.check_mode)
             changed = True
-            if reboot:
-                vm_before.reboot = reboot
     vm_after, disks_after = ManageVMDisks.get_vm_by_name(module, rest_client)
     return (
         changed,
