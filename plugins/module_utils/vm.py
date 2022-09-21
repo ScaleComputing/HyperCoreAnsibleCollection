@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import base64
+from time import sleep, time
 
 from ..module_utils.errors import DeviceNotUnique
 from ..module_utils.nic import Nic
@@ -131,7 +132,8 @@ class VM(PayloadMapper):
         operating_system=None,
         node_affinity=None,
         snapshot_schedule=None,
-        reboot=False,
+        reboot=False,  # Is reboot needed
+        was_shutdown_tried=False,  # Has shutdown request already been tried
     ):
 
         self.operating_system = operating_system
@@ -150,6 +152,7 @@ class VM(PayloadMapper):
         self.node_affinity = node_affinity
         self.snapshot_schedule = snapshot_schedule  # name of the snapshot_schedule
         self.reboot = reboot
+        self.was_shutdown_tried = was_shutdown_tried
 
     @property
     def nic_list(self):
@@ -483,7 +486,6 @@ class VM(PayloadMapper):
 
     def delete_unused_nics_to_hypercore_vm(self, module, rest_client, nic_key):
         changed = False
-        reboot = False
         ansible_nic_uuid_list = [
             nic["vlan_new"]
             if ("vlan_new" in nic.keys() and nic["vlan_new"])
@@ -492,7 +494,7 @@ class VM(PayloadMapper):
         ]
         for nic in self.nic_list:
             if nic.vlan not in ansible_nic_uuid_list:
-                self.vm_shutdown(module, rest_client, reboot)
+                self.do_shutdown_steps(module, rest_client)
                 response = rest_client.delete_record(
                     endpoint="/rest/v1/VirDomainNetDevice/" + nic.uuid, check_mode=False
                 )
@@ -596,7 +598,7 @@ class VM(PayloadMapper):
     @staticmethod
     def update_boot_device_order(module, rest_client, vm, boot_order):
         # uuid is vm's uuid. boot_order is the desired order we want to set to boot devices
-        vm.vm_shutdown(module, rest_client)
+        vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
             "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid),
             dict(bootDevices=boot_order, uuid=vm.uuid),
@@ -676,14 +678,62 @@ class VM(PayloadMapper):
             "scale_computing.hypercore.vm_disk, scale_computing.hypercore.vm, scale_computing.hypercore.vm_nic"
         )
 
-    def vm_shutdown(self, module, rest_client, reboot=False):
-        if self.power_state == "started":
+    def vm_shutdown_forced(self, module, rest_client, reboot=False):
+        # forces a VM power off, only if force_shutdown is true from ansbile.
+        # Returns True if successful, False if unsuccessful
+        if "force_reboot" not in module.params:
+            raise errors.ScaleComputingError(
+                "Force shutdown is not supported by this module."
+            )
+        if (
+            self.power_state == "started"
+            and module.params["force_reboot"]
+            and self.was_shutdown_tried
+            and not self.reboot
+        ):
             self.update_vm_power_state(module, rest_client, "stop")
             self.reboot = True
+            return True
+        return False
+
+    def wait_shutdown(self, module, rest_client):
+        # Sends a shutdown request and waits for VM to responde.
+        # Send GET request every 10 seconds.
+        # Returns True if successful, False if unsuccessful
+        if (
+            "unit_test" not in module.params
+            and self.power_state == "started"
+            and module.params["shutdown_timeout"]
+            and not self.was_shutdown_tried
+        ):
+            self.update_vm_power_state(module, rest_client, "shutdown")
+            self.was_shutdown_tried = True
+            shutdown_timeout = module.params["shutdown_timeout"] * 60
+            start = time()
+            while 1:
+                vm = rest_client.get_record(
+                    f"/rest/v1/VirDomain/{self.uuid}", must_exist=True
+                )
+                current_time = time() - start
+                if vm["state"] in ["SHUTDOWN", "SHUTOFF"]:
+                    self.reboot = True
+                    return True
+                if current_time >= shutdown_timeout:
+                    return False
+                sleep(10)
+        return False
 
     def vm_power_up(self, module, rest_client):
+        # Powers up a VM in case it was shutdown during module action.
         if self.reboot:
             self.update_vm_power_state(module, rest_client, "start")
+
+    def do_shutdown_steps(self, module, rest_client):
+        if not self.wait_shutdown(module, rest_client):
+            if not self.vm_shutdown_forced(module, rest_client):
+                raise errors.ScaleComputingError(
+                    f"VM - {self.name} - needs to be powered off and is not responding to a shutdown request."
+                )
 
 
 class ManageVMParams(VM):
@@ -830,7 +880,7 @@ class ManageVMParams(VM):
                     module, rest_client, module.params["power_state"]
                 )
             if ManageVMParams._needs_reboot(module, changed_parameters):
-                vm.vm_shutdown(module, rest_client)
+                vm.do_shutdown_steps(module, rest_client)
             return (
                 True,
                 vm.reboot,
@@ -862,7 +912,7 @@ class ManageVMDisks:
     def _create_block_device(module, rest_client, vm, desired_disk):
         # vm is instance of VM, desired_disk is instance of Disk
         payload = desired_disk.post_payload(vm)
-        vm.vm_shutdown(module, rest_client)
+        vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomainBlockDevice",
             payload,
@@ -889,7 +939,7 @@ class ManageVMDisks:
     @staticmethod
     def _update_block_device(module, rest_client, desired_disk, existing_disk, vm):
         payload = desired_disk.patch_payload(vm, existing_disk)
-        vm.vm_shutdown(module, rest_client)
+        vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
             "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
             payload,
@@ -914,7 +964,7 @@ class ManageVMDisks:
                     to_delete = False
             if to_delete:
                 # VM needs to be stopped before delete action
-                vm.vm_shutdown(module, rest_client)
+                vm.do_shutdown_steps(module, rest_client)
                 task_tag = rest_client.delete_record(
                     "{0}/{1}".format(
                         "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
@@ -935,7 +985,7 @@ class ManageVMDisks:
             )
         # Delete all disks
         for existing_disk in vm.disks:
-            vm.vm_shutdown(module, rest_client)
+            vm.do_shutdown_steps(module, rest_client)
             task_tag = rest_client.delete_record(
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
                 module.check_mode,
@@ -1057,7 +1107,7 @@ class ManageVMNics(Nic):
             )
         before.append(existing_nic.to_ansible())
         data = new_nic.to_hypercore()
-        virtual_machine_obj.vm_shutdown(module, rest_client)
+        virtual_machine_obj.do_shutdown_steps(module, rest_client)
         response = rest_client.update_record(
             endpoint="/rest/v1/VirDomainNetDevice/" + existing_nic.uuid,
             payload=data,
@@ -1080,7 +1130,7 @@ class ManageVMNics(Nic):
             )
         before.append(None)
         data = new_nic.to_hypercore()
-        virtual_machine_obj.vm_shutdown(module, rest_client)
+        virtual_machine_obj.do_shutdown_steps(module, rest_client)
         response = rest_client.create_record(
             endpoint="/rest/v1/VirDomainNetDevice", payload=data, check_mode=False
         )
@@ -1100,7 +1150,7 @@ class ManageVMNics(Nic):
                 "nic_to_delete - nic.py - delete_nic_to_hypercore()"
             )
         before.append(nic_to_delete.to_ansible())
-        virtual_machine_obj.vm_shutdown(module, rest_client)
+        virtual_machine_obj.do_shutdown_steps(module, rest_client)
         response = rest_client.delete_record(
             endpoint="/rest/v1/VirDomainNetDevice/" + nic_to_delete.uuid,
             check_mode=False,

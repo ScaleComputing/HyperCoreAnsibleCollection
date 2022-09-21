@@ -37,6 +37,19 @@ options:
     description:
       - VM's description.
     type: str
+  force_reboot:
+    description:
+      - Can VM be forced to power off and on.
+      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
+      - Before this is utilized, a shutdown request is sent.
+    type: bool
+    default: false
+  shutdown_timeout:
+    description:
+      - How long does ansible controller wait for VMs response to a shutdown request.
+      - In minutes.
+    type: int
+    default: 5
   tags:
     description:
       - User-modifiable words for organizing a group of VMs. Multiple tags should be provided as list.
@@ -73,6 +86,8 @@ EXAMPLES = r"""
     vm_name: demo-vm
     vm_name_new: renamed-vm
     description: test vm params
+    force_reboot: true
+    shutdown_timeout: 10
     tags:
       - Group-name
       - tag1
@@ -134,6 +149,14 @@ def main():
             ),
             description=dict(
                 type="str",
+            ),
+            force_reboot=dict(
+                type="bool",
+                default=False,
+            ),
+            shutdown_timeout=dict(
+                type="int",
+                default=5,
             ),
             tags=dict(type="list", elements="str"),
             memory=dict(

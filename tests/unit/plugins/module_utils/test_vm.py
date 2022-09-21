@@ -758,6 +758,7 @@ class TestVM:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -767,6 +768,9 @@ class TestVM:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         vm = VM.from_hypercore(
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -871,6 +875,7 @@ class TestNic:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
             )
@@ -922,6 +927,7 @@ class TestNic:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
             )
@@ -962,6 +968,9 @@ class TestNic:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         rest_client.list_records.return_value = [vm_dict]
         rest_client.delete_record.return_value = {"taskTag": "1234"}
         rest_client.create_record.return_value = {
@@ -975,7 +984,7 @@ class TestNic:
         results = virtual_machine.delete_unused_nics_to_hypercore_vm(
             module, rest_client, nic_key
         )
-        assert results == (True, True)
+        assert results == (True, False)
 
     def test_delete_unused_nics_to_hypercore_vm_when_multiple_nic_deleted(
         self, create_module, rest_client, mocker
@@ -987,6 +996,7 @@ class TestNic:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
             )
@@ -1036,6 +1046,9 @@ class TestNic:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         rest_client.list_records.return_value = [vm_dict]
         rest_client.create_record.return_value = {
             "taskTag": "1234",
@@ -1052,7 +1065,7 @@ class TestNic:
         results = virtual_machine.delete_unused_nics_to_hypercore_vm(
             module, rest_client, nic_key
         )
-        assert results == (True, True)
+        assert results == (True, False)
 
     def test_find_nic_vlan(self, rest_client, mocker):
         mocker.patch(
@@ -1413,6 +1426,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-unique-name",
                 vm_name_new="VM-unique-name-updated",
                 description="",
@@ -1443,6 +1457,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-unique-name",
                 vm_name_new="VM-unique-name-updated",
                 description="Updated parameters",
@@ -1481,6 +1496,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated parameters",
@@ -1520,6 +1536,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="",
@@ -1559,6 +1576,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new=None,
                 description="",
@@ -1599,6 +1617,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated parameters",
@@ -1630,6 +1649,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated parameters",
@@ -1655,6 +1675,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated description",
@@ -1703,6 +1724,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated description",
@@ -1735,6 +1757,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated description",
@@ -1778,6 +1801,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated description",
@@ -1819,13 +1843,15 @@ class TestManageVMParams:
                 snapshot_schedule="",
             ),
         ]
-
-        changed, reboot_needed, diff = ManageVMParams.set_vm_params(
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
+        changed, rebooted, diff = ManageVMParams.set_vm_params(
             module, rest_client, vm_before
         )
 
         assert changed is True
-        assert reboot_needed is True
+        assert rebooted is False
         assert diff == {
             "before": {
                 "vm_name": "old_name",
@@ -1855,6 +1881,7 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="old_name",
                 vm_name_new=None,
                 description="description",
@@ -1900,6 +1927,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -1988,6 +2016,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2099,7 +2128,7 @@ class TestManageVMDisks:
             ],
         )
 
-    def test_create_block_device(self, create_module, rest_client, vm, task_wait):
+    def test_create_block_device(self, create_module, rest_client, vm, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -2107,6 +2136,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2129,7 +2159,9 @@ class TestManageVMDisks:
             "taskTag": "123",
             "createdUUID": "disk-id",
         }
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         result = ManageVMDisks._create_block_device(
             module, rest_client, vm, desired_disk
         )
@@ -2156,6 +2188,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2190,6 +2223,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2216,7 +2250,7 @@ class TestManageVMDisks:
         )
         assert result is None
 
-    def test_update_block_device(self, create_module, rest_client, task_wait):
+    def test_update_block_device(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -2224,6 +2258,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2255,12 +2290,17 @@ class TestManageVMDisks:
             mount_points=[],
             read_only=False,
         )
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
+        rest_client.update_record.return_value = {
+            "taskTag": "123",
+            "state": "COMPLETED",
+        }
         vm = VM(name="vm-name", memory=42, vcpu=2, uuid="id")
         result = ManageVMDisks._update_block_device(
             module, rest_client, desired_disk, existing_disk, vm
         )
-
         rest_client.update_record.assert_called_with(
             "/rest/v1/VirDomainBlockDevice/id",
             {
@@ -2287,6 +2327,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="virtio_disk")],
                 state="present",
@@ -2336,6 +2377,9 @@ class TestManageVMDisks:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         changed = False
         disk_key = "items"
         changed = ManageVMDisks._delete_not_used_disks(
@@ -2354,6 +2398,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=2, type="ide_cdrom")],
                 state="present",
@@ -2408,6 +2453,9 @@ class TestManageVMDisks:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         disk_key = "items"
         changed = ManageVMDisks._delete_not_used_disks(
             module, rest_client, VM.from_hypercore(vm, rest_client), changed, disk_key
@@ -2419,7 +2467,7 @@ class TestManageVMDisks:
         assert changed
 
     def test_force_remove_all_disks_disks_present(
-        self, create_module, rest_client, task_wait
+        self, create_module, rest_client, mocker
     ):
         module = create_module(
             params=dict(
@@ -2428,6 +2476,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
                 items=[],
             )
@@ -2488,7 +2537,9 @@ class TestManageVMDisks:
                 "createdUUID": "",
             },
         ]
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         result = ManageVMDisks._force_remove_all_disks(
             module, rest_client, vm, disks_before
         )
@@ -2513,7 +2564,7 @@ class TestManageVMDisks:
                 ],
                 after=[],
             ),
-            True,
+            False,
         )
 
     def test_force_remove_all_disks_items_not_empty_list(
@@ -2526,6 +2577,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
                 items=None,
             )
@@ -2545,6 +2597,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=356, type="virtio_disk")],
                 state="present",
@@ -2619,6 +2672,9 @@ class TestManageVMDisks:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         module_path = "scale_computing.hypercore.vm_disk"
         results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
         assert results == (
@@ -2656,7 +2712,7 @@ class TestManageVMDisks:
                 ],
                 "before": [],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_update_test_idempotency(
@@ -2669,6 +2725,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=4200, type="virtio_disk")],
                 state="present",
@@ -2817,6 +2874,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=5000, type="virtio_disk")],
                 state="present",
@@ -2905,6 +2963,9 @@ class TestManageVMDisks:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         module_path = "scale_computing.hypercore.vm_disk"
         results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
         assert results == (
@@ -2956,7 +3017,7 @@ class TestManageVMDisks:
                     }
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_attach_iso_cdrom_existing(
@@ -2969,6 +3030,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="ide_cdrom", iso_name="iso-name")],
                 state="present",
@@ -3131,6 +3193,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="ide_cdrom", iso_name="iso-name")],
                 state="present",
@@ -3218,6 +3281,9 @@ class TestManageVMDisks:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
         results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
         assert results == (
@@ -3255,7 +3321,7 @@ class TestManageVMDisks:
                 ],
                 "before": [],
             },
-            True,
+            False,
         )
 
     # ensure_present uses only a subset of code of ensure_set. So not testing ensure set again, setting the created
@@ -3270,6 +3336,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name",
                 items=[],
                 state="set",
@@ -3319,6 +3386,9 @@ class TestManageVMDisks:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
         result = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
         assert result == (
@@ -3342,7 +3412,7 @@ class TestManageVMDisks:
                     }
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_set_remove_unused_disk(
@@ -3355,6 +3425,7 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -3465,6 +3536,9 @@ class TestManageVMDisks:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
         result = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
 
@@ -3489,7 +3563,7 @@ class TestManageVMDisks:
                     }
                 ],
             },
-            True,
+            False,
         )
 
 
@@ -3606,6 +3680,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -3636,13 +3711,15 @@ class TestManageVMNics:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         rest_client.update_record.return_value = {"taskTag": "1234"}
         rest_client.create_record.return_value = {
             "taskTag": "1234",
             "state": "COMPLETED",
         }
         rest_client.get_record.side_effect = [
-            {"state": "Done"},
             new_nic,
             {"state": "Done"},
         ]
@@ -3661,7 +3738,7 @@ class TestManageVMNics:
             True,
             [existing_nic.to_ansible()],
             [new_nic.to_ansible()],
-            True,
+            False,
         )
 
     def test_update_nic_when_one_nic_updated(self, rest_client, create_module, mocker):
@@ -3674,6 +3751,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -3709,7 +3787,6 @@ class TestManageVMNics:
             "state": "COMPLETED",
         }
         rest_client.get_record.side_effect = [
-            {"taskTag": "1234", "state": "Done"},
             new_nic,
             {"taskTag": "1234", "state": "Done"},
         ]
@@ -3718,6 +3795,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         before.append(existing_nic_data)
         after.append(new_nic_data)
@@ -3731,7 +3811,7 @@ class TestManageVMNics:
             before,
             after,
         )
-        assert results == (changed, before, after, True)
+        assert results == (changed, before, after, False)
 
     def test_send_create_nic_to_hypercore(self, rest_client, create_module, mocker):
         module = create_module(
@@ -3741,6 +3821,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -3762,13 +3843,15 @@ class TestManageVMNics:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         rest_client.create_record.return_value = {
             "taskTag": "1234",
             "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
             "state": "COMPLETED",
         }
         rest_client.get_record.side_effect = [
-            {"state": "Done"},
             new_nic,
             {"state": "Done"},
         ]
@@ -3786,7 +3869,7 @@ class TestManageVMNics:
             True,
             [None],
             [Nic.from_hypercore(new_nic).to_ansible()],
-            True,
+            False,
         )
 
     def test_send_delete_nic_request_to_hypercore(
@@ -3799,6 +3882,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -3811,13 +3895,16 @@ class TestManageVMNics:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         rest_client.create_record.return_value = {
             "taskTag": "1234",
             "state": "COMPLETED",
         }
         nic_to_delete = Nic.from_hypercore(self._get_nic_1_dict())
         rest_client.delete_record.return_value = {"taskTag": "1234"}
-        rest_client.get_record.side_effect = [{"state": "Done"}, {"state": "Done"}]
+        rest_client.get_record.side_effect = [self._get_nic_1_dict(), {"state": "Done"}]
         results = ManageVMNics.send_delete_nic_request_to_hypercore(
             VM.from_hypercore(self._get_empty_test_vm(), rest_client),
             module,
@@ -3827,7 +3914,7 @@ class TestManageVMNics:
             after=[],
         )
         print(results)
-        assert results == (True, [nic_to_delete.to_ansible()], [None], True)
+        assert results == (True, [nic_to_delete.to_ansible()], [None], False)
 
     @classmethod
     def _get_empty_test_vm(cls):
@@ -4019,6 +4106,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -4047,6 +4135,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="present",
@@ -4076,22 +4165,19 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[{"vlan": 1, "type": "virtio"}, {"vlan": 2, "type": "RTL8139"}],
                 state="set",
             )
         )
         rest_client.create_record.side_effect = [
-            {"taskTag": "1234", "state": "COMPLETED"},
             {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
-            {"taskTag": "1234", "state": "COMPLETED"},
             {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
         ]
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
         rest_client.get_record.side_effect = [
-            {"state": ""},
             self._get_nic_1_dict(),
-            {"state": ""},
             {"state": ""},
             self._get_nic_2(),
             {"state": ""},
@@ -4101,6 +4187,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
@@ -4148,7 +4237,7 @@ class TestManageVMNics:
                     },
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_or_set_when_changed_create_nics_and_state_present(
@@ -4161,22 +4250,19 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[{"vlan": 1, "type": "virtio"}, {"vlan": 2, "type": "RTL8139"}],
                 state="present",
             )
         )
         rest_client.create_record.side_effect = [
-            {"taskTag": "1234", "state": "COMPLETED"},
             {"taskTag": "1234", "createdUUID": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
-            {"taskTag": "1234", "state": "COMPLETED"},
             {"taskTag": "5678", "createdUUID": "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"},
         ]
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
         rest_client.get_record.side_effect = [
-            {"state": ""},
             self._get_nic_1_dict(),
-            {"state": ""},
             {"state": ""},
             self._get_nic_2(),
             {"state": ""},
@@ -4186,6 +4272,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
@@ -4233,7 +4322,7 @@ class TestManageVMNics:
                     },
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_or_set_when_changed_delete_all_and_state_set(
@@ -4246,6 +4335,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -4265,6 +4355,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
@@ -4308,6 +4401,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000"},
@@ -4326,9 +4420,7 @@ class TestManageVMNics:
             "state": "COMPLETED",
         }
         rest_client.get_record.side_effect = [
-            {"state": ""},
             self._get_nic_1_updated_dict(),
-            {"state": ""},
             {"state": ""},
             self._get_nic_2_updated(),
             {"state": ""},
@@ -4338,6 +4430,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
@@ -4402,7 +4497,7 @@ class TestManageVMNics:
                     },
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_or_set_when_changed_nic_type_and_state_set(
@@ -4415,6 +4510,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000"},
@@ -4433,9 +4529,7 @@ class TestManageVMNics:
             "state": "COMPLETED",
         }
         rest_client.get_record.side_effect = [
-            {"taskTag": "1234", "state": "COMPLETE"},
             self._get_nic_1_updated_dict(),
-            {"taskTag": "1234", "state": "COMPLETE"},
             {"taskTag": "1234", "state": "COMPLETE"},
             self._get_nic_2_updated(),
             {"taskTag": "1234", "state": "COMPLETE"},
@@ -4445,6 +4539,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
@@ -4509,7 +4606,7 @@ class TestManageVMNics:
                     },
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_or_set_when_changed_nic_vlan_and_state_present(
@@ -4522,6 +4619,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000", "vlan_new": 3},
@@ -4536,9 +4634,7 @@ class TestManageVMNics:
         ]
         rest_client.list_records.return_value = [self._get_test_vm()]
         rest_client.get_record.side_effect = [
-            {"state": ""},
             self._get_nic_1_updated_vlan(),
-            {"state": ""},
             {"state": ""},
             self._get_nic_2_updated_vlan(),
             {"state": ""},
@@ -4552,6 +4648,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
@@ -4616,7 +4715,7 @@ class TestManageVMNics:
                     },
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_or_set_when_changed_nic_vlan_and_state_set(
@@ -4629,6 +4728,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000", "vlan_new": 3},
@@ -4650,9 +4750,7 @@ class TestManageVMNics:
             "state": "COMPLETED",
         }
         rest_client.get_record.side_effect = [
-            {"state": ""},
             self._get_nic_1_updated_vlan(),
-            {"state": ""},
             {"state": ""},
             self._get_nic_2_updated_vlan(),
             {"state": ""},
@@ -4662,6 +4760,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
@@ -4726,7 +4827,7 @@ class TestManageVMNics:
                     },
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_or_set_when_changed_nic_mac_and_state_present(
@@ -4739,6 +4840,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000", "mac_new": "12-34-56-78-AB"},
@@ -4757,9 +4859,7 @@ class TestManageVMNics:
             "state": "COMPLETED",
         }
         rest_client.get_record.side_effect = [
-            {"state": ""},
             self._get_nic_1_updated_mac(),
-            {"state": ""},
             {"state": ""},
             self._get_nic_2_updated_mac(),
             {"state": ""},
@@ -4769,6 +4869,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
@@ -4833,7 +4936,7 @@ class TestManageVMNics:
                     },
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_or_set_when_changed_nic_mac_and_state_set(
@@ -4846,6 +4949,7 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000", "mac_new": "12-34-56-78-AB"},
@@ -4864,9 +4968,7 @@ class TestManageVMNics:
             "state": "COMPLETED",
         }
         rest_client.get_record.side_effect = [
-            {"state": ""},
             self._get_nic_1_updated_mac(),
-            {"state": ""},
             {"state": ""},
             self._get_nic_2_updated_mac(),
             {"state": ""},
@@ -4876,6 +4978,9 @@ class TestManageVMNics:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
@@ -4940,5 +5045,5 @@ class TestManageVMNics:
                     },
                 ],
             },
-            True,
+            False,
         )

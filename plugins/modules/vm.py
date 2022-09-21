@@ -45,6 +45,19 @@ options:
       - VM's physical memory in bytes.
       - Required if C(state=present). If C(state=absent), memory isn't relevant.
     type: int
+  force_reboot:
+    description:
+      - Can VM be forced to power off and on.
+      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
+      - Before this is utilized, a shutdown request is sent.
+    type: bool
+    default: false
+  shutdown_timeout:
+    description:
+      - How long does ansible controller wait for VMs response to a shutdown request.
+      - In minutes.
+    type: int
+    default: 5
   vcpu:
     description:
       - Number of Central processing units on the VM.
@@ -220,6 +233,8 @@ EXAMPLES = r"""
     vcpu: 2
     attach_guest_tools_iso: true
     power_state: start
+    force_reboot: true
+    shutdown_timeout: 10
     disks:
       - type: virtio_disk
         disk_slot: 0
@@ -470,6 +485,14 @@ def main():
                     "absent",
                 ],
                 required=True,
+            ),
+            force_reboot=dict(
+                type="bool",
+                default=False,
+            ),
+            shutdown_timeout=dict(
+                type="int",
+                default=5,
             ),
             tags=dict(type="list", elements="str"),
             disks=dict(

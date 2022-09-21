@@ -30,6 +30,7 @@ class TestEnsureAbsent:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=356, type="virtio_disk")],
                 state="present",
@@ -106,6 +107,9 @@ class TestEnsureAbsent:
                     username="admin",
                     password="admin",
                 ),
+                shutdown_timeout=10,
+                force_reboot=False,
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="virtio_disk")],
                 state="present",
@@ -175,6 +179,9 @@ class TestEnsureAbsent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         results = vm_disk.ensure_absent(module, rest_client)
         assert results == (
             True,
@@ -197,7 +204,7 @@ class TestEnsureAbsent:
                     }
                 ],
             },
-            True,
+            False,
         )
 
     def test_ensure_absent_cdrom_name_in_desired_disk_and_query(
@@ -210,6 +217,7 @@ class TestEnsureAbsent:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="ide_cdrom", iso_name="iso-name")],
                 state="present",
@@ -327,6 +335,7 @@ class TestEnsureAbsent:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="ide_cdrom")],
                 state="present",

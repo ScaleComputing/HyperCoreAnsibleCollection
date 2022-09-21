@@ -25,6 +25,7 @@ class TestEnsureAbsent:
                     password="admin",
                 ),
                 vm_name="VM-unique-name",
+                unit_test=True,
                 description=None,
                 memory=42,
                 vcpu=2,
@@ -155,6 +156,7 @@ class TestEnsureAbsent:
                     password="admin",
                 ),
                 vm_name="VM-unique-name",
+                unit_test=True,
                 description=None,
                 memory=42,
                 vcpu=2,
@@ -287,6 +289,7 @@ class TestEnsureAbsent:
                     password="admin",
                 ),
                 name="VM-unique-name",
+                unit_test=True,
                 description=None,
                 memory=42,
                 vcpu=2,
@@ -321,6 +324,7 @@ class TestEnsurePresent:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name-unique",
                 vm_name_new=None,
                 description="description",
@@ -483,6 +487,7 @@ class TestEnsurePresent:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name-unique",
                 vm_name_new="VM-name-updated",
                 description="desc-updated",
@@ -676,6 +681,7 @@ class TestEnsurePresent:
                     password="admin",
                 ),
                 vm_name="VM-name-unique",
+                unit_test=True,
                 vm_name_new="VM-name-updated",
                 description="desc-updated",
                 memory=42000,
@@ -771,6 +777,7 @@ class TestEnsurePresent:
                     username="admin",
                     password="admin",
                 ),
+                unit_test=True,
                 vm_name="VM-name-unique",
                 description="desc",
                 memory=42,
@@ -1046,6 +1053,7 @@ class TestEnsurePresent:
                     password="admin",
                 ),
                 vm_name="VM-name-unique",
+                unit_test=True,
                 description="desc",
                 memory=42,
                 vcpu=2,
@@ -1199,6 +1207,9 @@ class TestEnsurePresent:
                     username="admin",
                     password="admin",
                 ),
+                shutdown_timeout=10,
+                force_reboot=False,
+                unit_test=True,
                 vm_name="VM-name-unique",
                 description="desc",
                 memory=42,
@@ -1308,6 +1319,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+        ).return_value = True
         rest_client.create_record.return_value = {
             "taskTag": 123,
             "createdUUID": "",
@@ -1455,6 +1469,7 @@ class TestEnsurePresent:
                     password="admin",
                 ),
                 vm_name="VM-name-unique",
+                unit_test=True,
                 description="desc",
                 memory=42,
                 vcpu=2,
@@ -1681,6 +1696,7 @@ class TestMain:
             ),
             vm_name="VM-name-unique",
             state="present",
+            unit_test=True,
         )
         success, result = run_main(vm, params)
         assert success is False
