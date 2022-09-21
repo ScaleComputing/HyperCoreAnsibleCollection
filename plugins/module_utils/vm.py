@@ -707,8 +707,7 @@ class VM(PayloadMapper):
         if vm_fresh_data["state"] in ["SHUTOFF", "SHUTDOWN"]:
             return True
         if (
-            "unit_test" not in module.params
-            and vm_fresh_data["state"] == "RUNNING"
+            vm_fresh_data["state"] == "RUNNING"
             and module.params["shutdown_timeout"]
             and not self.was_shutdown_tried
         ):

@@ -31,7 +31,6 @@ class TestEnsureAbsent:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
                 items=[
                     dict(
@@ -187,7 +186,6 @@ class TestEnsureAbsent:
                     password="admin",
                 ),
                 vm_name="VM-name",
-                unit_test=True,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -294,7 +292,6 @@ class TestEnsureAbsent:
                 vm_name="VM-name",
                 shutdown_timeout=10,
                 force_reboot=False,
-                unit_test=True,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -429,7 +426,6 @@ class TestEnsurePresent:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
                 items=[
                     dict(
@@ -537,7 +533,6 @@ class TestEnsurePresent:
                 vm_name="VM-name",
                 shutdown_timeout=10,
                 force_reboot=False,
-                unit_test=True,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -687,7 +682,6 @@ class TestEnsurePresent:
                     password="admin",
                 ),
                 vm_name="VM-name",
-                unit_test=True,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -849,7 +843,6 @@ class TestEnsurePresent:
                 vm_name="VM-name",
                 shutdown_timeout=10,
                 force_reboot=False,
-                unit_test=True,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -1000,7 +993,6 @@ class TestEnsureSet:
                     password="admin",
                 ),
                 vm_name="VM-name",
-                unit_test=True,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -1107,7 +1099,6 @@ class TestEnsureSet:
                 vm_name="VM-name",
                 shutdown_timeout=10,
                 force_reboot=False,
-                unit_test=True,
                 items=[
                     dict(
                         type="virtio_disk",

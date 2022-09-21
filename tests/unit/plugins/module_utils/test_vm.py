@@ -758,7 +758,6 @@ class TestVM:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -769,7 +768,7 @@ class TestVM:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         vm = VM.from_hypercore(
             {
@@ -875,7 +874,6 @@ class TestNic:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
             )
@@ -927,7 +925,6 @@ class TestNic:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
             )
@@ -969,7 +966,7 @@ class TestNic:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         rest_client.list_records.return_value = [vm_dict]
         rest_client.delete_record.return_value = {"taskTag": "1234"}
@@ -996,7 +993,6 @@ class TestNic:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
             )
@@ -1047,7 +1043,7 @@ class TestNic:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         rest_client.list_records.return_value = [vm_dict]
         rest_client.create_record.return_value = {
@@ -1426,7 +1422,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-unique-name",
                 vm_name_new="VM-unique-name-updated",
                 description="",
@@ -1457,7 +1452,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-unique-name",
                 vm_name_new="VM-unique-name-updated",
                 description="Updated parameters",
@@ -1496,7 +1490,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated parameters",
@@ -1536,7 +1529,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="",
@@ -1576,7 +1568,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new=None,
                 description="",
@@ -1617,7 +1608,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated parameters",
@@ -1649,7 +1639,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated parameters",
@@ -1675,7 +1664,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated description",
@@ -1724,7 +1712,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated description",
@@ -1757,7 +1744,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated description",
@@ -1801,7 +1787,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new="new_name",
                 description="Updated description",
@@ -1844,7 +1829,7 @@ class TestManageVMParams:
             ),
         ]
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         changed, rebooted, diff = ManageVMParams.set_vm_params(
             module, rest_client, vm_before
@@ -1881,7 +1866,6 @@ class TestManageVMParams:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="old_name",
                 vm_name_new=None,
                 description="description",
@@ -1927,7 +1911,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2016,7 +1999,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2136,7 +2118,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2160,7 +2141,7 @@ class TestManageVMDisks:
             "createdUUID": "disk-id",
         }
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         result = ManageVMDisks._create_block_device(
             module, rest_client, vm, desired_disk
@@ -2188,7 +2169,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2223,7 +2203,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2258,7 +2237,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
             )
         )
@@ -2291,7 +2269,7 @@ class TestManageVMDisks:
             read_only=False,
         )
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         rest_client.update_record.return_value = {
             "taskTag": "123",
@@ -2327,7 +2305,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="virtio_disk")],
                 state="present",
@@ -2398,7 +2375,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=2, type="ide_cdrom")],
                 state="present",
@@ -2454,7 +2430,7 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         disk_key = "items"
         changed = ManageVMDisks._delete_not_used_disks(
@@ -2476,7 +2452,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
                 items=[],
             )
@@ -2538,7 +2513,7 @@ class TestManageVMDisks:
             },
         ]
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         result = ManageVMDisks._force_remove_all_disks(
             module, rest_client, vm, disks_before
@@ -2577,7 +2552,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
                 items=None,
             )
@@ -2597,7 +2571,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=356, type="virtio_disk")],
                 state="present",
@@ -2673,7 +2646,7 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         module_path = "scale_computing.hypercore.vm_disk"
         results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
@@ -2725,7 +2698,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=4200, type="virtio_disk")],
                 state="present",
@@ -2874,7 +2846,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, size=5000, type="virtio_disk")],
                 state="present",
@@ -2964,7 +2935,7 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.vm_shutdown_forced"
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         module_path = "scale_computing.hypercore.vm_disk"
         results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
@@ -3030,7 +3001,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="ide_cdrom", iso_name="iso-name")],
                 state="present",
@@ -3193,7 +3163,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[dict(disk_slot=1, type="ide_cdrom", iso_name="iso-name")],
                 state="present",
@@ -3336,7 +3305,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="VM-name",
                 items=[],
                 state="set",
@@ -3425,7 +3393,6 @@ class TestManageVMDisks:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -3680,7 +3647,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -3751,7 +3717,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -3821,7 +3786,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -3882,7 +3846,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -4106,7 +4069,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -4135,7 +4097,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="present",
@@ -4165,7 +4126,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[{"vlan": 1, "type": "virtio"}, {"vlan": 2, "type": "RTL8139"}],
                 state="set",
@@ -4250,7 +4210,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[{"vlan": 1, "type": "virtio"}, {"vlan": 2, "type": "RTL8139"}],
                 state="present",
@@ -4335,7 +4294,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[],
                 state="set",
@@ -4401,7 +4359,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000"},
@@ -4510,7 +4467,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000"},
@@ -4619,7 +4575,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000", "vlan_new": 3},
@@ -4728,7 +4683,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000", "vlan_new": 3},
@@ -4840,7 +4794,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000", "mac_new": "12-34-56-78-AB"},
@@ -4949,7 +4902,6 @@ class TestManageVMNics:
                     username="admin",
                     password="admin",
                 ),
-                unit_test=True,
                 vm_name="XLAB_test_vm",
                 items=[
                     {"vlan": 1, "type": "INTEL_E1000", "mac_new": "12-34-56-78-AB"},
