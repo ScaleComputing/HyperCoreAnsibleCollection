@@ -160,4 +160,4 @@ build-tar-gz:
     - ansible-galaxy collection build
   artifacts:
     paths:
-    - scale_computing-hypercore-*.tar.gz
+      - scale_computing-hypercore-*.tar.gz
