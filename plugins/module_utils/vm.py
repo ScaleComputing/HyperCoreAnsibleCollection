@@ -685,9 +685,14 @@ class VM(PayloadMapper):
             raise errors.ScaleComputingError(
                 "Force shutdown is not supported by this module."
             )
+        # Get fresh VM data, in case vm_params changed power state.
+        vm_fresh_data = rest_client.get_record(
+            f"/rest/v1/VirDomain/{self.uuid}", must_exist=True
+        )
+        if vm_fresh_data["state"] in ["SHUTOFF", "SHUTDOWN"]:
+            return True
         if (
-            self.power_state == "started"
-            and module.params["force_reboot"]
+            module.params["force_reboot"]
             and self.was_shutdown_tried
             and not self.reboot
         ):
@@ -878,14 +883,15 @@ class ManageVMParams(VM):
             endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
             task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
             TaskTag.wait_task(rest_client, task_tag)
-            # power_state needs different endpoint
-            # Wait_task in update_vm_power_state doesn't handle check_mode
-            if module.params["power_state"] and not module.check_mode:
-                vm.update_vm_power_state(
-                    module, rest_client, module.params["power_state"]
-                )
             if ManageVMParams._needs_reboot(module, changed_parameters):
                 vm.do_shutdown_steps(module, rest_client)
+            else:
+                # power_state needs different endpoint
+                # Wait_task in update_vm_power_state doesn't handle check_mode
+                if module.params["power_state"] and not module.check_mode:
+                    vm.update_vm_power_state(
+                        module, rest_client, module.params["power_state"]
+                    )
             return (
                 True,
                 vm.reboot,

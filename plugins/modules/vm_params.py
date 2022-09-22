@@ -136,6 +136,8 @@ def run(module, rest_client):
         # VM will be powered on in case if reboot is needed and module.params["power_state"] in ["start", "reboot", "reset"]
         # if reboot is not needed, vm_power_up doesn't do anything
         vm.vm_power_up(module, rest_client)
+    else:
+      reboot = False
     return changed, reboot, diff
 
 
