@@ -137,7 +137,7 @@ def run(module, rest_client):
         # if reboot is not needed, vm_power_up doesn't do anything
         vm.vm_power_up(module, rest_client)
     else:
-      reboot = False
+        reboot = False
     return changed, reboot, diff
 
 
