@@ -662,7 +662,7 @@ class TestEnsurePresent:
                     "vm_name": "VM-name-unique",
                 },
             },
-            True,
+            False,
         )
 
     def test_ensure_present_update_record_no_changes(
