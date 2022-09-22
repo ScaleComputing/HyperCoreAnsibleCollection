@@ -9,7 +9,7 @@
 
     - name: Delete XLAB-vm_nic_CI_test
       scale_computing.hypercore.vm: &delete-XLAB-vm_nic_CI_test
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         state: absent
       register: result
 
@@ -21,7 +21,7 @@
         endpoint: /rest/v1/VirDomain
         data:
           dom:
-            name: XLAB-vm_nic_CI_test
+            name: XLAB-vm_nic_CI_test_a
             tags: Xlab,CI,test,vm_nic
             mem: 512100100
             numVCPU: 2
@@ -35,7 +35,7 @@
 
     - name: Create Nic in XLAB-vm_nic_CI_test
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - vlan: 1
             type: RTL8139
@@ -49,7 +49,7 @@
 
     - name: Retrieve all Nics on XLAB-vm_nic_CI_test
       scale_computing.hypercore.vm_nic_info: &Retrieve-all-Nics-on-demo-vm
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
       register: output
     - ansible.builtin.assert:
         that:
@@ -62,7 +62,7 @@
 
     - name: Create Nic in XLAB-vm_nic_CI_test Idempotence
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - vlan: 1
             type: RTL8139
@@ -80,7 +80,7 @@
 
     - name: Delete Nic in XLAB-vm_nic_CI_test
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - vlan: 2
             type: virtio
