@@ -48,8 +48,8 @@ options:
     description:
       - How long does ansible controller wait for VMs response to a shutdown request.
       - In seconds.
-    type: int
-    default: 5
+    type: float
+    default: 300
   tags:
     description:
       - User-modifiable words for organizing a group of VMs. Multiple tags should be provided as list.
@@ -87,7 +87,7 @@ EXAMPLES = r"""
     vm_name_new: renamed-vm
     description: test vm params
     force_reboot: true
-    shutdown_timeout: {{ '5minutes' | community.general.to_time_unit('seconds') }}
+    shutdown_timeout: "{{ '5minutes' | community.general.to_time_unit('seconds') }}"
     tags:
       - Group-name
       - tag1

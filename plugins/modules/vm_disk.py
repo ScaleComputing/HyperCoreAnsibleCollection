@@ -54,8 +54,8 @@ options:
     description:
       - How long does ansible controller wait for VMs response to a shutdown request.
       - In seconds.
-    type: int
-    default: 5
+    type: float
+    default: 300
   items:
     description:
       - The disk items we want to change.
@@ -117,7 +117,7 @@ EXAMPLES = r"""
   scale_computing.hypercore.vm_disk:
     vm_name: demo-vm
     force_reboot: true
-    shutdown_timeout: {{ '5minutes' | community.general.to_time_unit('seconds') }}
+    shutdown_timeout: "{{ '5minutes' | community.general.to_time_unit('seconds') }}"
     items:
       - disk_slot: 0
         type: virtio_disk
@@ -311,7 +311,7 @@ def main():
                 default=False,
             ),
             shutdown_timeout=dict(
-                type="int",
+                type="float",
                 default=300,
             ),
             items=dict(

@@ -56,8 +56,8 @@ options:
     description:
       - How long does ansible controller wait for VMs response to a shutdown request.
       - In seconds.
-    type: int
-    default: 5
+    type: float
+    default: 300
   vcpu:
     description:
       - Number of Central processing units on the VM.
@@ -232,7 +232,7 @@ EXAMPLES = r"""
     attach_guest_tools_iso: true
     power_state: start
     force_reboot: true
-    shutdown_timeout: {{ '5minutes' | community.general.to_time_unit('seconds') }}
+    shutdown_timeout: "{{ '5minutes' | community.general.to_time_unit('seconds') }}"
     disks:
       - type: virtio_disk
         disk_slot: 0
@@ -489,7 +489,7 @@ def main():
                 default=False,
             ),
             shutdown_timeout=dict(
-                type="int",
+                type="float",
                 default=300,
             ),
             tags=dict(type="list", elements="str"),

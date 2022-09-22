@@ -45,8 +45,8 @@ options:
     description:
       - How long does ansible controller wait for VMs response to a shutdown request.
       - In seconds.
-    type: int
-    default: 5
+    type: float
+    default: 300
   items:
     description:
       - List of network interfaces.
@@ -88,7 +88,7 @@ EXAMPLES = r"""
   scale_computing.hypercore.vm_nic:
     vm_name: XLAB-demo-vm
     force_reboot: true
-    shutdown_timeout: {{ '5minutes' | community.general.to_time_unit('seconds') }}
+    shutdown_timeout: "{{ '5minutes' | community.general.to_time_unit('seconds') }}"
     items:
       - vlan: 0
         type: RTL8139
@@ -250,7 +250,7 @@ def main():
                 default=False,
             ),
             shutdown_timeout=dict(
-                type="int",
+                type="float",
                 default=300,
             ),
             items=dict(
