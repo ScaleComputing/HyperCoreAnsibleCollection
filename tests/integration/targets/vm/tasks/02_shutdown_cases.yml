@@ -186,23 +186,23 @@
 # TODO: Add shutdown request test.
 
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
-    - name: Delete the VM with name vm-shutdown-test
-      scale_computing.hypercore.vm: *delete-vm
-      register: result
+- name: Delete the VM with name vm-shutdown-test
+  scale_computing.hypercore.vm: *delete-vm
+  register: result
 
-    - name: Delete the ISO image
-      scale_computing.hypercore.iso: *delete-iso
-      register: result
+- name: Delete the ISO image
+  scale_computing.hypercore.iso: *delete-iso
+  register: result
 
-    - name: Delete locally installed ISO image from /tmp/TinyCore-vm-integration.iso
-      ansible.builtin.file:
-        path: /tmp/TinyCore-vm-integration.iso
-        state: absent
-      register: file_deleted
+- name: Delete locally installed ISO image from /tmp/TinyCore-vm-integration.iso
+  ansible.builtin.file:
+    path: /tmp/TinyCore-vm-integration.iso
+    state: absent
+  register: file_deleted
 
-    - name: Assert that record has been deleted
-      scale_computing.hypercore.vm_info: *get-vm-by-name
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result.records == []
+- name: Assert that record has been deleted
+  scale_computing.hypercore.vm_info: *get-vm-by-name
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.records == []
