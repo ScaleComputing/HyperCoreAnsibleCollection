@@ -7,15 +7,13 @@
   block:
   # ===================================================================
   # Prepare test VM with known initial state
-  - name: Delete XLAB-vm_params_CI_test (if it exists from before)
+  - name: Delete XLAB-vm_params_CI_test and XLAB-vm_params_CI_test - updated (if it exists from before)
     scale_computing.hypercore.vm: &delete-XLAB-vm_params_CI_test
-      vm_name: XLAB-vm_params_CI_test
+      vm_name: "{{ item }}"
       state: absent
-  
-  - name: Delete XLAB-vm_params_CI_test - updated (if it exists from before)
-    scale_computing.hypercore.vm: &delete-XLAB-vm_params_CI_test-updated
-      vm_name: XLAB-vm_params_CI_test - updated
-      state: absent
+    loop:
+      - XLAB-vm_params_CI_test
+      - XLAB-vm_params_CI_test - updated
 
   - name: Create XLAB-vm_params_CI_test
     scale_computing.hypercore.vm:
@@ -63,11 +61,12 @@
       memory:  "{{ '1024 MB' | human_to_bytes }}"
       power_state: stop
       snapshot_schedule: "{{ snapshot_schedule.record[0].name }}"
+      force_reboot: True
     register: output
   - ansible.builtin.assert:
       that:
         - output is changed
-        - output.vm_rebooted is true
+        - output.vm_rebooted is false
 
   - name: Check VMs params changed
     scale_computing.hypercore.vm_info:
@@ -217,8 +216,8 @@
   - name: Delete snapshot schedule
     scale_computing.hypercore.snapshot_schedule: *delete-snapshot-schedule
 
-  - name: Delete XLAB-vm_params_CI_test - updated
-    scale_computing.hypercore.vm: *delete-XLAB-vm_params_CI_test-updated
-
-  - name: Delete XLAB-vm_params_CI_test
+  - name: Delete XLAB-vm_params_CI_test and XLAB-vm_params_CI_test - updated (if it exists from before)
     scale_computing.hypercore.vm: *delete-XLAB-vm_params_CI_test
+    loop:
+      - XLAB-vm_params_CI_test
+      - XLAB-vm_params_CI_test - updated

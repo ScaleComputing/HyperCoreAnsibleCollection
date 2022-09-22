@@ -40,6 +40,19 @@ options:
       - If you want to assign the device the first order, set the value of C(first) to C(1).
     type: bool
     default: false
+  force_reboot:
+    description:
+      - Can VM be forced to power off and on.
+      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
+      - Before this is utilized, a shutdown request is sent.
+    type: bool
+    default: false
+  shutdown_timeout:
+    description:
+      - How long does ansible controller wait for VMs response to a shutdown request.
+      - In seconds.
+    type: float
+    default: 300
   items:
     description:
       - The boot devices items we want to change.
@@ -117,6 +130,8 @@ EXAMPLES = r"""
 - name: Set device as first boot device
   scale_computing.hypercore.vm_boot_devices:
     vm_name: name-of-desired-vm
+    force_reboot: true
+    shutdown_timeout: "{{ '5minutes' | community.general.to_time_unit('seconds') }}"
     items:
       - type: virtio_disk
         disk_slot: 2
@@ -272,6 +287,14 @@ def main():
             first=dict(
                 type="bool",
                 default=False,
+            ),
+            force_reboot=dict(
+                type="bool",
+                default=False,
+            ),
+            shutdown_timeout=dict(
+                type="float",
+                default=300,
             ),
             items=dict(
                 type="list",

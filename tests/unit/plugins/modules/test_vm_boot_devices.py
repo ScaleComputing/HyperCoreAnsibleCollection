@@ -290,6 +290,8 @@ class TestEnsureAbsent:
                     password="admin",
                 ),
                 vm_name="VM-name",
+                shutdown_timeout=10,
+                force_reboot=False,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -383,6 +385,9 @@ class TestEnsureAbsent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         result = vm_boot_devices.ensure_absent(module, rest_client)
         rest_client.update_record.assert_called_once()
         assert result == (
@@ -406,7 +411,7 @@ class TestEnsureAbsent:
                     }
                 ],
             },
-            True,
+            False,
         )
 
 
@@ -526,6 +531,8 @@ class TestEnsurePresent:
                     password="admin",
                 ),
                 vm_name="VM-name",
+                shutdown_timeout=10,
+                force_reboot=False,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -621,6 +628,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         result = vm_boot_devices.ensure_present(module, rest_client)
         rest_client.update_record.assert_called_once()
         assert result == (
@@ -658,7 +668,7 @@ class TestEnsurePresent:
                 ],
                 "before": [],
             },
-            True,
+            False,
         )
 
     def test_ensure_present_item_not_first_boot_order_already_present(
@@ -831,6 +841,8 @@ class TestEnsurePresent:
                     password="admin",
                 ),
                 vm_name="VM-name",
+                shutdown_timeout=10,
+                force_reboot=False,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -925,6 +937,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         result = vm_boot_devices.ensure_present(module, rest_client)
         rest_client.update_record.assert_called_once()
         assert result == (
@@ -962,7 +977,7 @@ class TestEnsurePresent:
                 ],
                 "before": [],
             },
-            True,
+            False,
         )
 
 
@@ -1082,6 +1097,8 @@ class TestEnsureSet:
                     password="admin",
                 ),
                 vm_name="VM-name",
+                shutdown_timeout=10,
+                force_reboot=False,
                 items=[
                     dict(
                         type="virtio_disk",
@@ -1188,6 +1205,9 @@ class TestEnsureSet:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         result = vm_boot_devices.ensure_set(module, rest_client)
         rest_client.update_record.assert_called_once()
         assert result == (
@@ -1225,5 +1245,5 @@ class TestEnsureSet:
                 ],
                 "before": [],
             },
-            True,
+            False,
         )

@@ -34,6 +34,19 @@ options:
       - Used to identify selected virtual machine by name.
     type: str
     required: true
+  force_reboot:
+    description:
+      - Can VM be forced to power off and on.
+      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
+      - Before this is utilized, a shutdown request is sent.
+    type: bool
+    default: false
+  shutdown_timeout:
+    description:
+      - How long does ansible controller wait for VMs response to a shutdown request.
+      - In seconds.
+    type: float
+    default: 300
   items:
     description:
       - List of network interfaces.
@@ -74,6 +87,8 @@ EXAMPLES = r"""
 - name: Set NIC interface
   scale_computing.hypercore.vm_nic:
     vm_name: XLAB-demo-vm
+    force_reboot: true
+    shutdown_timeout: "{{ '5minutes' | community.general.to_time_unit('seconds') }}"
     items:
       - vlan: 0
         type: RTL8139
@@ -193,8 +208,6 @@ def ensure_absent(module, rest_client):
                     before=before,
                     after=after,
                 )
-                if reboot:
-                    virtual_machine_obj_list[0].reboot = reboot
     return (
         changed,
         after,
@@ -231,6 +244,14 @@ def main():
             vm_name=dict(
                 type="str",
                 required=True,
+            ),
+            force_reboot=dict(
+                type="bool",
+                default=False,
+            ),
+            shutdown_timeout=dict(
+                type="float",
+                default=300,
             ),
             items=dict(
                 type="list",

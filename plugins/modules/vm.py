@@ -45,6 +45,19 @@ options:
       - VM's physical memory in bytes.
       - Required if C(state=present). If C(state=absent), memory isn't relevant.
     type: int
+  force_reboot:
+    description:
+      - Can VM be forced to power off and on.
+      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
+      - Before this is utilized, a shutdown request is sent.
+    type: bool
+    default: false
+  shutdown_timeout:
+    description:
+      - How long does ansible controller wait for VMs response to a shutdown request.
+      - In seconds.
+    type: float
+    default: 300
   vcpu:
     description:
       - Number of Central processing units on the VM.
@@ -218,6 +231,8 @@ EXAMPLES = r"""
     vcpu: 2
     attach_guest_tools_iso: true
     power_state: start
+    force_reboot: true
+    shutdown_timeout: "{{ '5minutes' | community.general.to_time_unit('seconds') }}"
     disks:
       - type: virtio_disk
         disk_slot: 0
@@ -402,10 +417,10 @@ def ensure_present(module, rest_client):
         name_field = "vm_name"
     vm_after = VM.get_by_name(module.params, rest_client, name_field=name_field)
     after = vm_after.to_ansible()
-    if reboot:
+    if reboot and module.params["power_state"] not in ["shutdown", "stop"]:
         vm_after.reboot = reboot
         vm_after.vm_power_up(module, rest_client)
-    return changed, [after], dict(before=before, after=after), reboot
+    return changed, [after], dict(before=before, after=after), vm_after.reboot
 
 
 def run(module, rest_client):
@@ -468,6 +483,14 @@ def main():
                     "absent",
                 ],
                 required=True,
+            ),
+            force_reboot=dict(
+                type="bool",
+                default=False,
+            ),
+            shutdown_timeout=dict(
+                type="float",
+                default=300,
             ),
             tags=dict(type="list", elements="str"),
             disks=dict(

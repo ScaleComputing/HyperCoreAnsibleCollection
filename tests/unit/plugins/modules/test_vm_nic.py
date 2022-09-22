@@ -121,6 +121,8 @@ class TestEnsureAbsent:
                 vm_name="XLAB_test_vm",
                 items=[{"vlan": 1}, {"vlan": 2}],
                 state="absent",
+                shutdown_timeout=10,
+                force_reboot=False,
             )
         )
         rest_client.delete_record.side_effect = [
@@ -132,6 +134,9 @@ class TestEnsureAbsent:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         rest_client.list_records.return_value = [self._get_test_vm()]
         rest_client.get_record.return_value = {"state": "COMPLETED"}
@@ -162,12 +167,12 @@ class TestEnsureAbsent:
                 ],
                 "after": [None, None],
             },
-            True,
+            False,
         )
 
 
 class TestMain:
-    def test_minimal_set_of_params(self, run_main_with_reboot):
+    def test_minimal_set_of_params(self, run_main_with_reboot, mocker):
         params = dict(
             cluster_instance=dict(
                 host="https://my.host.name", username="user", password="pass"
@@ -181,7 +186,9 @@ class TestMain:
         )
 
         success, results = run_main_with_reboot(vm_nic, params)
-
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         assert success is True
         assert results == {
             "changed": False,

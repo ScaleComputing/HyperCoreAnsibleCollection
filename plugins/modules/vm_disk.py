@@ -43,6 +43,19 @@ options:
     choices: [ present, absent, set ]
     type: str
     required: true
+  force_reboot:
+    description:
+      - Can VM be forced to power off and on.
+      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
+      - Before this is utilized, a shutdown request is sent.
+    type: bool
+    default: false
+  shutdown_timeout:
+    description:
+      - How long does ansible controller wait for VMs response to a shutdown request.
+      - In seconds.
+    type: float
+    default: 300
   items:
     description:
       - The disk items we want to change.
@@ -103,6 +116,8 @@ EXAMPLES = r"""
 - name: Set exact disk
   scale_computing.hypercore.vm_disk:
     vm_name: demo-vm
+    force_reboot: true
+    shutdown_timeout: "{{ '5minutes' | community.general.to_time_unit('seconds') }}"
     items:
       - disk_slot: 0
         type: virtio_disk
@@ -242,15 +257,13 @@ def ensure_absent(module, rest_client):
                 module, rest_client, iso, uuid, attach=False
             )
         else:
-            reboot = vm_before.vm_shutdown(module, rest_client)
+            vm_before.do_shutdown_steps(module, rest_client)
             task_tag = rest_client.delete_record(
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
                 module.check_mode,
             )
             TaskTag.wait_task(rest_client, task_tag, module.check_mode)
             changed = True
-            if reboot:
-                vm_before.reboot = reboot
     vm_after, disks_after = ManageVMDisks.get_vm_by_name(module, rest_client)
     return (
         changed,
@@ -292,6 +305,14 @@ def main():
             force=dict(
                 type="bool",
                 default=False,
+            ),
+            force_reboot=dict(
+                type="bool",
+                default=False,
+            ),
+            shutdown_timeout=dict(
+                type="float",
+                default=300,
             ),
             items=dict(
                 type="list",

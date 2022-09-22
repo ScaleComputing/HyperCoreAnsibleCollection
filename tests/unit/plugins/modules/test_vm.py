@@ -662,7 +662,7 @@ class TestEnsurePresent:
                     "vm_name": "VM-name-unique",
                 },
             },
-            True,
+            False,
         )
 
     def test_ensure_present_update_record_no_changes(
@@ -1199,6 +1199,8 @@ class TestEnsurePresent:
                     username="admin",
                     password="admin",
                 ),
+                shutdown_timeout=10,
+                force_reboot=False,
                 vm_name="VM-name-unique",
                 description="desc",
                 memory=42,
@@ -1308,6 +1310,9 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
+        ).return_value = True
         rest_client.create_record.return_value = {
             "taskTag": 123,
             "createdUUID": "",
