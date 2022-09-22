@@ -104,7 +104,7 @@
 
     - name: Delete Nic in XLAB-vm_nic_CI_test Idempotence
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - vlan: 2
             type: virtio
@@ -118,7 +118,7 @@
 
     - name: Create Nic on vlan 2 in XLAB-vm_nic_CI_test
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - vlan: 2
             type: virtio
@@ -144,7 +144,7 @@
 
     - name: Create Nic on vlan 2 in XLAB-vm_nic_CI_test Idempotence
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - vlan: 2
             type: virtio
@@ -158,7 +158,7 @@
 
     - name: Update Nic on vlan1 in XLAB-vm_nic_CI_test
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - vlan: 1
             type: virtio
@@ -187,7 +187,7 @@
 
     - name: Update Nic on vlan1 in XLAB-vm_nic_CI_test Idempotence
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - vlan: 1
             type: virtio
@@ -203,7 +203,7 @@
 
     - name: Delete all Nics in XLAB-vm_nic_CI_test successful
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items: []
         state: set        
       register: output
@@ -224,7 +224,7 @@
 
     - name: Delete all Nics in XLAB-vm_nic_CI_test successful Idempotence
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items: []
         state: set        
       register: output
@@ -236,7 +236,7 @@
 
     - name: Create Nic on vlan default 0, without specifying vlan in XLAB-vm_nic_CI_test
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - type: virtio
         state: present        
@@ -259,7 +259,7 @@
 
     - name: Create Nic on vlan default 0, without specifying vlan in XLAB-vm_nic_CI_test Idempotence
       scale_computing.hypercore.vm_nic:
-        vm_name: XLAB-vm_nic_CI_test
+        vm_name: XLAB-vm_nic_CI_test_a
         items:
           - type: virtio
         state: present        
