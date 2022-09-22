@@ -417,7 +417,7 @@ def ensure_present(module, rest_client):
         name_field = "vm_name"
     vm_after = VM.get_by_name(module.params, rest_client, name_field=name_field)
     after = vm_after.to_ansible()
-    if reboot:
+    if reboot and module.params["power_state"] not in ["shutdown", "stop"]:
         vm_after.reboot = reboot
         vm_after.vm_power_up(module, rest_client)
     return changed, [after], dict(before=before, after=after), reboot
