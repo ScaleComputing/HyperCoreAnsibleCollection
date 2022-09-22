@@ -420,7 +420,7 @@ def ensure_present(module, rest_client):
     if reboot and module.params["power_state"] not in ["shutdown", "stop"]:
         vm_after.reboot = reboot
         vm_after.vm_power_up(module, rest_client)
-    return changed, [after], dict(before=before, after=after), reboot
+    return changed, [after], dict(before=before, after=after), vm_after.reboot
 
 
 def run(module, rest_client):
