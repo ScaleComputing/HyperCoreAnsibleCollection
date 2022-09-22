@@ -61,6 +61,7 @@
       memory:  "{{ '1024 MB' | human_to_bytes }}"
       power_state: stop
       snapshot_schedule: "{{ snapshot_schedule.record[0].name }}"
+      force_reboot: True
     register: output
   - ansible.builtin.assert:
       that:
