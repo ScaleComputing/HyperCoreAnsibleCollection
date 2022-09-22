@@ -145,3 +145,19 @@ trigger-child-pipeline:
       - artifact: child-pipeline-gitlab-ci.yml
         job: generate-child-pipeline
     strategy: depend
+
+build-tar-gz:
+  stage: build
+  needs: []
+  image: python:3.8.12-slim-buster
+  only:
+    - develop
+    - master
+    - tags
+    - build-collection
+  script:
+    - pip install ansible-core==2.13.1
+    - ansible-galaxy collection build
+  artifacts:
+    paths:
+      - scale_computing-hypercore-*.tar.gz
