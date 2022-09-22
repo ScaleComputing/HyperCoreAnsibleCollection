@@ -718,7 +718,7 @@ class VM(PayloadMapper):
         ):
             self.update_vm_power_state(module, rest_client, "shutdown")
             self.was_shutdown_tried = True
-            shutdown_timeout = module.params["shutdown_timeout"] * 60
+            shutdown_timeout = module.params["shutdown_timeout"]
             start = time()
             while 1:
                 vm = rest_client.get_record(
