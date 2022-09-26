@@ -1,0 +1,12 @@
+# the first part of child-pipeline-gitlab-ci.yml file
+
+variables:
+  # SC_HOST: https://10.5.11.30  # provide value in gitlab CI/CD settings
+  SC_USERNAME: admin
+  # SC_PASSWORD:  # provide value in gitlab CI/CD settings
+
+before_script:
+  - pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+  - apt update
+  - apt install -y git shellcheck make
+# --------------------------------------------------------------

@@ -1,0 +1,233 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+# ----------------------------------Cleanup------------------------------------------------------------------------
+    - name: Delete XLAB-import-test-integration VMs
+      scale_computing.hypercore.vm: &delete-XLAB-vm_clone_CI-test
+        vm_name: "{{ item }}"
+        state: absent
+      loop:
+        - XLAB-import-test-integration
+        - XLAB-import-test-integration-imported
+        - XLAB-import-test-integration-imported-cloud-init
+
+# ----------------------------------Setup-----------------------------------------------------------------------------
+
+    - name: Create XLAB-import-test-integration
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/VirDomain
+        data:
+          dom:
+            name: XLAB-import-test-integration
+            tags: Xlab,CI,test
+            mem: 2147483648
+            numVCPU: 1
+            blockDevs:
+              - type: IDE_CDROM
+                capacity: 31457280
+                cacheMode: "WRITETHROUGH"
+                slot: 0
+                readOnly: false
+              - type: VIRTIO_DISK
+                capacity: 20000000000
+                allocation: 5265948672
+                cacheMode: "WRITETHROUGH"
+                slot: 0
+                mountPoints:
+                  - "/"
+                  - "/boot"
+                readOnly: false
+              - type: VIRTIO_DISK
+                capacity: 20000000000
+                allocation: 0
+                cacheMode: "NONE"
+                slot: 1
+                readOnly: false
+            netDevs:
+              - type: VIRTIO
+                vlan: 0
+                connected: true
+                ipv4Addresses:
+                  - "10.5.11.170"
+          options:
+            attachGuestToolsISO: true
+      register: vm_created
+    - ansible.builtin.assert:
+        that:
+          - vm_created is changed
+
+    - name: Wait for the object to be created
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{vm_created.record}}"
+
+    - name: Retrieve source VM
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-import-test-integration
+      register: source_vm
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+    - name: Export XLAB-import-test-integration to SMB
+      scale_computing.hypercore.vm_export:
+        vm_name: XLAB-import-test-integration
+        smb:
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+          - output.msg == "Virtual machine - XLAB-import-test-integration - export complete."
+
+    - name: Import XLAB-import-test-integration from SMB
+      scale_computing.hypercore.vm_import:
+        vm_name: XLAB-import-test-integration-imported
+        smb:
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
+      register: import_vm
+    - ansible.builtin.assert:
+        that:
+          - import_vm is changed
+          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported - import complete."
+
+    - name: Retrieve XLAB-import-test-integration-imported
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-import-test-integration-imported
+      register: imported_info
+    - ansible.builtin.assert:
+        that:
+          - imported_info.records | length == 1
+          - imported_info.records.0.vcpu == source_vm.records.0.vcpu
+          - imported_info.records.0.tags == source_vm.records.0.tags
+          - imported_info.records.0.boot_devices | length != source_vm.records.0.boot_devices | length
+          - imported_info.records.0.disks | length ==  source_vm.records.0.disks | length
+          - imported_info.records.0.nics | length ==  source_vm.records.0.nics | length
+          - imported_info.records.0.node_affinity == source_vm.records.0.node_affinity
+
+    - name: Import XLAB-import-test-integration from SMB, add cloud_init
+      scale_computing.hypercore.vm_import:
+        vm_name: XLAB-import-test-integration-imported-cloud-init
+        smb:
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
+        cloud_init:
+          user_data: |
+            is_this: yes
+            valid:
+              - yaml
+              - expression?
+          meta_data: |
+            this_data:
+              - is
+              - very meta
+      register: import_vm
+    - ansible.builtin.assert:
+        that:
+          - import_vm is changed
+          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported-cloud-init - import complete."
+
+    - name: Retrieve XLAB-import-test-integration-imported-cloud-init
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-import-test-integration-imported-cloud-init
+      register: imported_info
+    - ansible.builtin.assert:
+        that:
+          - imported_info.records | length == 1
+          - imported_info.records.0.vcpu == source_vm.records.0.vcpu
+          - imported_info.records.0.tags == source_vm.records.0.tags
+          - imported_info.records.0.boot_devices | length != source_vm.records.0.boot_devices | length
+          - imported_info.records.0.disks | length !=  source_vm.records.0.disks | length
+          - imported_info.records.0.nics | length ==  source_vm.records.0.nics | length
+          - imported_info.records.0.node_affinity == source_vm.records.0.node_affinity
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+
+    - name: Import XLAB-import-test-integration from SMB Idempotence
+      scale_computing.hypercore.vm_import:
+        vm_name: XLAB-import-test-integration-imported
+        smb:
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
+      register: import_vm
+    - ansible.builtin.assert:
+        that:
+          - import_vm is not changed
+          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported - already exists."
+
+    - name: Retrieve XLAB-import-test-integration-imported Idempotence
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-import-test-integration-imported
+      register: imported_info
+    - ansible.builtin.assert:
+        that:
+          - imported_info.records | length == 1
+          - imported_info.records.0.vcpu == source_vm.records.0.vcpu
+          - imported_info.records.0.tags == source_vm.records.0.tags
+          - imported_info.records.0.boot_devices | length != source_vm.records.0.boot_devices | length
+          - imported_info.records.0.disks | length ==  source_vm.records.0.disks | length
+          - imported_info.records.0.nics | length ==  source_vm.records.0.nics | length
+          - imported_info.records.0.node_affinity == source_vm.records.0.node_affinity
+
+    - name: Import XLAB-import-test-integration from SMB, add cloud_init Idempotence
+      scale_computing.hypercore.vm_import:
+        vm_name: XLAB-import-test-integration-imported-cloud-init
+        smb:
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-import"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
+        cloud_init:
+          user_data: |
+            is_this: yes
+            valid:
+              - yaml
+              - expression?
+          meta_data: |
+            this_data:
+              - is
+              - very meta
+      register: import_vm
+    - ansible.builtin.assert:
+        that:
+          - import_vm is not changed
+          - import_vm.msg == "Virtual machine - XLAB-import-test-integration-imported-cloud-init - already exists."
+
+    - name: Retrieve XLAB-import-test-integration-imported-cloud-init Idempotence
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-import-test-integration-imported-cloud-init
+      register: imported_info
+    - ansible.builtin.assert:
+        that:
+          - imported_info.records | length == 1
+          - imported_info.records.0.vcpu == source_vm.records.0.vcpu
+          - imported_info.records.0.tags == source_vm.records.0.tags
+          - imported_info.records.0.boot_devices | length != source_vm.records.0.boot_devices | length
+          - imported_info.records.0.disks | length !=  source_vm.records.0.disks | length
+          - imported_info.records.0.nics | length ==  source_vm.records.0.nics | length
+          - imported_info.records.0.node_affinity == source_vm.records.0.node_affinity
+
+# ----------------------------------Cleanup------------------------------------------------------------------------
+
+    - name: Delete XLAB-import-test-integration VMs
+      scale_computing.hypercore.vm: *delete-XLAB-vm_clone_CI-test
+      register: output
+      loop:
+        - XLAB-import-test-integration
+        - XLAB-import-test-integration-imported
+        - XLAB-import-test-integration-imported-cloud-init
+    - ansible.builtin.assert:
+        that:
+          - output is changed

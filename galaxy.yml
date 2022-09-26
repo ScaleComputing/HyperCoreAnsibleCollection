@@ -1,0 +1,26 @@
+---
+namespace: scale_computing
+name: hypercore
+version: 0.0.1
+readme: README.md
+authors:
+  - XLAB Steampunk <steampunk@xlab.si>
+description: Manage ScaleComputing HyperCore cluster
+license_file: LICENSE
+tags:
+  - scale_computing
+  - hypercore
+  - infrastructure
+  - virtualization
+dependencies: {}
+repository: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
+# documentation: http://docs.example.com
+homepage: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
+issues: https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues
+build_ignore:
+  - .idea
+  - .gitignore
+  - tests
+  # files used during local testing/building
+  - ansible.cfg
+  - examples

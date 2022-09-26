@@ -1,0 +1,371 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    # ===================================================================
+    # Prepare test VM with known initial state
+    - name: Delete XLAB-vm_node_affinity_CI_test
+      scale_computing.hypercore.vm: &delete-XLAB-vm_node_affinity_CI_test
+        vm_name: XLAB-vm_node_affinity_CI_test
+        state: absent
+      register: result
+
+    - name: Create XLAB-vm_node_affinity_CI_test
+      scale_computing.hypercore.vm:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        description: Demo VM
+        power_state: stop
+        state: present
+        tags:
+          - 'Xlab'
+          - 'CI'
+          - 'test'
+        memory: 536870912
+        vcpu: 2
+        disks: [ ]
+        nics: [ ]
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is changed
+
+    # ===================================================================
+    # Check affinity is false by default
+    - name: Check that affinity is false by default
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    - name: List all nodes
+      scale_computing.hypercore.node_info:
+      register: nodes
+    - ansible.builtin.assert:
+        that:
+          - nodes is succeeded
+          - nodes.records != []
+
+    - name: Set VM node affinity to false - indempotence
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: false
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is not changed
+          - "'Node affinity already set to desired values' in output.msg"
+    
+    - name: Check that affinity is not changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    # ===================================================================
+    # Set affinity to specific nodes
+    # TODO check different preferred_node/backup_node
+    - name: Set VM node affinity by node_uuid
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: true
+        preferred_node:
+          node_uuid: "{{ nodes.records[0].node_uuid }}"
+        backup_node:
+          node_uuid: "{{ nodes.records[0].node_uuid }}"
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is changed
+          - "'Node affinity successfully updated' in output.msg"
+
+    - name: Check that affinity is changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: changed
+    - ansible.builtin.assert:
+        that:
+          - changed.records[0].node_affinity.strict_affinity == true
+          - changed.records[0].node_affinity.preferred_node.node_uuid == nodes.records[0].node_uuid
+          - changed.records[0].node_affinity.backup_node.node_uuid == nodes.records[0].node_uuid
+
+    - name: Set VM node affinity with the same parameters - indempotence
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: true
+        preferred_node:
+          backplane_ip: "{{ nodes.records[0].backplane_ip }}"
+          lan_ip: "{{ nodes.records[0].lan_ip }}"
+          peer_id: "{{ nodes.records[0].peer_id }}"
+        backup_node:
+          node_uuid: "{{ nodes.records[0].node_uuid }}"
+          backplane_ip: "{{ nodes.records[0].backplane_ip }}"
+          lan_ip: "{{ nodes.records[0].lan_ip }}"
+          peer_id: "{{ nodes.records[0].peer_id }}"
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is not changed
+          - "'Node affinity already set to desired values' in output.msg"
+    
+    - name: Check that affinity is not changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == true
+          - output.records[0].node_affinity.preferred_node.node_uuid == changed.records[0].node_affinity.preferred_node.node_uuid
+          - output.records[0].node_affinity.backup_node.node_uuid == changed.records[0].node_affinity.backup_node.node_uuid
+    
+    # ===================================================================
+    # Check omitted preferred_node/backup_node results in keeping the preferred_node/backup_node.
+    - name: Set VM node affinity to false, nodes not provided
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: false
+        preferred_node:
+          node_uuid: Null
+        backup_node:
+          node_uuid: Null
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is changed
+          - "'Node affinity successfully updated' in output.msg"
+    
+    - name: Check that affinity is changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == changed.records[0].node_affinity.preferred_node.node_uuid
+          - output.records[0].node_affinity.backup_node.node_uuid == changed.records[0].node_affinity.backup_node.node_uuid
+
+    - name: Set VM node affinity to false, nodes not provided - idempotence
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: false
+        preferred_node:
+          node_uuid: Null
+        backup_node:
+          node_uuid: Null
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is not changed
+          - "'Node affinity already set to desired values' in output.msg"
+
+    - name: Check that affinity is not changed - idempotence
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == changed.records[0].node_affinity.preferred_node.node_uuid
+          - output.records[0].node_affinity.backup_node.node_uuid == changed.records[0].node_affinity.backup_node.node_uuid
+
+    # ===================================================================
+    # Check empty string for preferred_node/backup_node clears preferred_node/backup_node.
+    - name: Set VM node affinity - empty string
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: false
+        preferred_node:
+          node_uuid: ""
+        backup_node:
+          node_uuid: ""
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is changed
+          - "'Node affinity successfully updated' in output.msg"
+
+    - name: Check that affinity is changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    - name: Set VM node affinity - empty string - idempotence
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: false
+        preferred_node:
+          node_uuid: ""
+        backup_node:
+          node_uuid: ""
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is succeeded
+          - output is not changed
+          - "'Node affinity already set to desired values' in output.msg"
+
+    - name: Check that affinity is not changed - idempotence
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    # ===================================================================
+    # Strict affinity true with empty nodes - this is forbidden, such VM could not be started.
+    - name: Set strict_affinity to true, nodes not provided
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: true
+      register: output
+      ignore_errors: true
+    - ansible.builtin.assert:
+        that:
+          - output is failed
+          - output is not changed
+          - "'Invalid set of parameters - strict affinity set to true and nodes not provided' in output.msg"
+    
+    - name: Check that affinity is not changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    # ===================================================================
+    # Node not found - invalid attribute value was specified
+    - name: Node node_uuid not found
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: true
+        preferred_node:
+          node_uuid: "{{ nodes.records[0].node_uuid }}"
+        backup_node:
+          node_uuid: "does_not_exist"
+      ignore_errors: true
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is failed
+          - output is not changed
+          - "'No records from endpoint /rest/v1/Node' in output.msg"
+
+    - name: Check that affinity is not changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    - name: Node backplane_ip not found
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: true
+        preferred_node:
+          node_uuid: "{{ nodes.records[0].node_uuid }}"
+        backup_node:
+          backplane_ip: "does_not_exist"
+      ignore_errors: true
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is failed
+          - output is not changed
+          - "'No records from endpoint /rest/v1/Node' in output.msg"
+
+    - name: Check that affinity is not changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    - name: Node lan_ip not found
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: true
+        preferred_node:
+          node_uuid: "{{ nodes.records[0].node_uuid }}"
+        backup_node:
+          lan_ip: "does_not_exist"
+      ignore_errors: true
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is failed
+          - output is not changed
+          - "'No records from endpoint /rest/v1/Node' in output.msg"
+
+    - name: Check that affinity is not changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    - name: Node peer_id not found
+      scale_computing.hypercore.vm_node_affinity:
+        vm_name: XLAB-vm_node_affinity_CI_test
+        strict_affinity: true
+        preferred_node:
+          node_uuid: "{{ nodes.records[0].node_uuid }}"
+        backup_node:
+          peer_id: 0000
+      ignore_errors: true
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is failed
+          - output is not changed
+          - "'No records from endpoint /rest/v1/Node' in output.msg"
+
+    - name: Check that affinity is not changed
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_node_affinity_CI_test
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output.records[0].node_affinity.strict_affinity == false
+          - output.records[0].node_affinity.preferred_node.node_uuid == ""
+          - output.records[0].node_affinity.backup_node.node_uuid == ""
+
+    # ===================================================================
+    - name: Delete XLAB-vm_node_affinity_CI_test
+      scale_computing.hypercore.vm: *delete-XLAB-vm_node_affinity_CI_test

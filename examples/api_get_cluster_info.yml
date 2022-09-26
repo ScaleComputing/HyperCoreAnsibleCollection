@@ -1,0 +1,23 @@
+---
+- name: Example api module - retrieve cluster info
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+  # ------------------------------------------------------
+    - name: GET to /Cluster endpoint
+      scale_computing.hypercore.api:
+        endpoint: rest/v1/Cluster
+        action: get
+      register: cluster_result
+
+    - name: Show cluster info - complete API response
+      debug:
+        var: cluster_result.record
+
+    - name: Show cluster version
+      debug:
+        msg:
+          - Cluster name is '{{ cluster_result.record[0].clusterName }}'
+          - Cluster SW version is '{{ cluster_result.record[0].icosVersion }}'

@@ -1,0 +1,105 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+# ----------------------------------Cleanup------------------------------------------------------------------------
+    - name: Delete XLAB-export-test-integration
+      scale_computing.hypercore.vm: &delete-XLAB-export-test-integration
+        vm_name: XLAB-export-test-integration
+        state: absent
+
+# ----------------------------------Setup-----------------------------------------------------------------------------
+
+    - name: Create XLAB-export-test-integration
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/VirDomain
+        data:
+          dom:
+            name: XLAB-export-test-integration
+            tags: Xlab,CI,test
+            mem: 2147483648
+            numVCPU: 1
+            blockDevs:
+              - type: IDE_CDROM
+                capacity: 31457280
+                cacheMode: "WRITETHROUGH"
+                slot: 0
+                readOnly: false
+              - type: VIRTIO_DISK
+                capacity: 20000000000
+                allocation: 5265948672
+                cacheMode: "WRITETHROUGH"
+                slot: 0
+                mountPoints:
+                  - "/"
+                  - "/boot"
+                readOnly: false
+              - type: VIRTIO_DISK
+                capacity: 20000000000
+                allocation: 0
+                cacheMode: "NONE"
+                slot: 1
+                readOnly: false
+            netDevs:
+              - type: VIRTIO
+                vlan: 0
+                connected: true
+                ipv4Addresses:
+                  - "10.5.11.170"
+          options:
+            attachGuestToolsISO: true
+      register: vm_created
+    - ansible.builtin.assert:
+        that:
+          - vm_created is changed
+
+    - name: Wait for the object to be created
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{vm_created.record}}"
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+    - name: Export XLAB-export-test-integration to SMB
+      scale_computing.hypercore.vm_export:
+        vm_name: XLAB-export-test-integration
+        smb:
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-export"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
+          file_name: my_file.xml
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+          - output.msg == "Virtual machine - XLAB-export-test-integration - export complete."
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+# User controls SMB, we can't check if VM is already exported, idempotence check will always be changed is TRUE
+
+    - name: Export XLAB-export-test-integration to SMB Idempotence
+      scale_computing.hypercore.vm_export:
+        vm_name: XLAB-export-test-integration
+        smb:
+          server: "{{ smb_server }}"
+          path: "{{ smb_share }}/integration-test-vm-export"
+          username: "{{ smb_username }}"
+          password: "{{ smb_password }}"
+          file_name: my_file.xml
+      register: output
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+          - output.msg == "Virtual machine - XLAB-export-test-integration - export complete."
+
+# ----------------------------------Cleanup------------------------------------------------------------------------
+
+    - name: Delete XLAB-export-test-integration
+      scale_computing.hypercore.vm: *delete-XLAB-export-test-integration
+      register: vm_deleted
+    - ansible.builtin.assert:
+        that:
+          - vm_deleted is changed
