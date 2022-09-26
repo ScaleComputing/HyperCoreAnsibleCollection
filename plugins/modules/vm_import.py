@@ -13,21 +13,18 @@ module: vm_import
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Plugin handles import of the virtual machine.
+short_description: Handles import of the virtual machine
 description:
-  - Plugin enables import of the virtual machine, from a specified location.
-  - Use either smb or http_uri, they are mutually exclusive.
+  - Use vm_import to import virtual machine, from a specified location.
+  - Use either I(smb) or I(http_uri), which are mutually exclusive.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.vm_name
+  - scale_computing.hypercore.cloud_init
 seealso: []
 options:
-  vm_name:
-    description:
-      - Virtual machine name.
-      - Used to identify selected virtual machine by name.
-    type: str
-    required: true
+
   smb:
     description:
       - SMB server, access and location data.
@@ -76,23 +73,8 @@ options:
         description:
           - File name to be imported from the specified URI location.
         required: true
-  cloud_init:
-    description:
-      - Configuration to be used by cloud-init (Linux) or cloudbase-init (Windows).
-      - When non-empty will create an extra ISO device attached to VirDomain as a NoCloud datasource.
-      - There has to be cloud-config comment present at the beginning of cloud_init file or raw yaml.
-    type: dict
-    suboptions:
-      user_data:
-        description:
-          - Configuration user-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
-          - Valid YAML syntax.
-        type: str
-      meta_data:
-        type: str
-        description:
-          - Configuration meta-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
-          - Valid YAML syntax.
+notes:
+  - C(check_mode) is not supported.
 """
 
 EXAMPLES = r"""

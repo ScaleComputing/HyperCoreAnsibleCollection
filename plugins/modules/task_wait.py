@@ -14,13 +14,13 @@ module: task_wait
 
 author:
   - Tjaž Eržen (@tjazsch)
-short_description: Wait for the object with given task_tag to be created.
+short_description: Wait for a HyperCore TaskTag to be finished.
 description:
-  - Helper module, which waits till the object with the given task_tag is actually created
-  - Usually used within a context of a larger role. Whenever POST, PATCH or DELETE method is applied on the HyperCore
-    object, a dict in with keys createdUUID and taskTag is returned. Depending on taskTag's status, the object's
+  - A helper module, which waits until the object with a given task_tag is actually created/updated/deleted .
+  - Used within a context of a larger role. Whenever C(POST), C(PATCH) or C(DELETE) method is applied on the HyperCore
+    object, a dict in with keys C(createdUUID) and C(taskTag) is returned. Depending on taskTag's status, the object's
     request might be still in queue or may be already executed. This module ensures that the object's request is not
-    on queue anymore.
+    on queue anymore, and execution is finished.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -29,7 +29,7 @@ options:
   task_tag:
     type: dict
     description:
-      - Result when calling POST, PATCH or DELETE method on the HyperCore object.
+      - Result when calling C(POST), C(PATCH) or C(DELETE) method on the HyperCore object.
     required: true
 """
 
@@ -46,7 +46,7 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - True module will always return false, null, null,
+    - The module will always return false, null, null,
   returned: success
   type: list
   sample:

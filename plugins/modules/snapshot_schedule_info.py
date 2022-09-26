@@ -13,13 +13,14 @@ module: snapshot_schedule_info
 
 author:
   - Tjaž Eržen (@tjazsch)
-short_description: Retireve information about an automated VM snapshot schedule.
+short_description: Retrieve information about an automated VM snapshot schedule.
 description:
-  - Retireve information about an automated VM snapshot schedule.
+  - Retrieve information about an automated VM snapshot schedule on HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
-seealso: []
+seealso:
+  - module: scale_computing.hypercore.snapshot_schedule
 options:
   name:
     description:
@@ -45,7 +46,7 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - Records from the HyperCore API on the endpoint /rest/v1/VirDomainSnapshotSchedule.
+    - Records from the HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
   returned: success
   type: dict
   sample:

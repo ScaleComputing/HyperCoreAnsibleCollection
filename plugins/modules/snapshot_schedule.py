@@ -15,12 +15,13 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: Manage snap schedule to configure the desired schedule of snapshot creation.
 description:
-  - Create and delete an automated VM snapshot schedule on HyperCore endpoint /rest/v1/VirDomainSnapshotSchedule.
+  - Create and delete an automated VM snapshot schedule on HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:
   - module: scale_computing.hypercore.snapshot_schedule_info
+  - module: scale_computing.hypercore.vm_replication
 options:
   name:
     description:
@@ -31,7 +32,7 @@ options:
   state:
     description:
       - The desired state of the snapshot schedule object.
-      - C(absent) to ensure the snapshot schedule will be absent from the API and C(present) to ensure
+      - Use C(absent) to ensure the snapshot schedule will be absent from the API and C(present) to ensure
         snapshot schedule will remain present on the API.
     type: str
     choices: [ present, absent ]
@@ -52,8 +53,8 @@ options:
         type: str
         description:
           - The frequency of the recurrence.
-          - The value must comply with I(RFC-2445).
-          - A valid example is "FREQ=WEEKLY;INTERVAL=1;BYDAY=TU".
+          - The value must comply with L(RFC-2445,https://www.rfc-editor.org/rfc/rfc2445).
+          - A valid example is C(FREQ=WEEKLY;INTERVAL=1;BYDAY=TU).
         required: true
       start:
         type: str
@@ -70,7 +71,9 @@ options:
         description:
           - Remote retention time in seconds.
           - If either not set or set to either C(0) or C(None), remote_retention will be assigned
-            local_retention's value.
+            I(local_retention)'s value.
+notes:
+  - C(check_mode) is not supported.
 """
 
 
@@ -91,7 +94,7 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - The created or deleted record from the HyperCore API on the endpoint /rest/v1/VirDomainSnapshotSchedule.
+    - The created or deleted record from the HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
   returned: success
   type: dict
   sample:

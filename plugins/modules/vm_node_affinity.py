@@ -14,33 +14,34 @@ module: vm_node_affinity
 
 author:
   - Polona Mihalič (@PolonaM)
-short_description: Update virtual machine node affinity
+short_description: Update virtual machine's node affinity
 description:
   - Module updates selected virtual machine node affinity.
-  - If I(strict_affinity) is set to True, VM will only run on I(preferred_node) or I(backup_node)
-  - If node isn't set, the old value of the node will be kept.
-  - If node is set to empty string, the existing value of the node will be deleted.
+    I(preferred_node) or I(backup_node) can be configured for each VM.
+    The term I(node) later in this text means either I(preferred_node) or I(backup_node).
+  - The I(node) can be selected by one or more parameters - I(node_uuid), I(backplane_ip), I(lan_ip) and/or I(peer_id).
+    If I(node) is selected by multiple parameters, then all parameters must match,
+    e.g. module internally performs logical C(AND) when searching for matching I(node) UUID.
+  - If I(strict_affinity) is set to C(true), VM will only run on I(preferred_node) or I(backup_node).
+  - If I(node) is not set, the old value of the I(node.node_uuid) will be kept.
+  - If I(node.node_uuid) is set to empty string, the existing value of the I(node.node_uuid) will be deleted.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
-seealso: []
+  - scale_computing.hypercore.vm_name
+seealso:
+  - module: scale_computing.hypercore.node_info
 options:
-  vm_name:
-    description:
-      - Virtual machine name.
-      - Used to identify selected virtual machine by name.
-    type: str
-    required: True
   strict_affinity:
     description:
       - Enable or disable strict enforcement of affinity strategy.
-      - If I(preferred_node) and I(backup_node) are not set (in task or in VM) and I(strict_affinity) is set to True, the task will FAIL.
+      - If C(preferred_node) and C(backup_node) are not set (in task or in VM) and C(strict_affinity) is set to True, the task will FAIL.
     type: bool
     required: True
   preferred_node:
     description:
       - Preferred node to run the VM
-      - Can be set by I(node_uuid), I(backplane_ip), I(lan_ip) or I(peer_id)
+      - Can be set by C(node_uuid), C(backplane_ip), C(lan_ip) or C(peer_id)
       - One of the options should be enough. In case that all are set, logical AND operation is used.
         Task will FAIL in case that node can not be uniquely identified.
     type: dict
@@ -60,7 +61,7 @@ options:
   backup_node:
     description:
       - Backup node in the event that preferred_node is unavailable
-      - Can be set by I(node_uuid), I(backplane_ip), I(lan_ip) or I(peer_id)
+      - Can be set by C(node_uuid), C(backplane_ip), C(lan_ip) or C(peer_id)
       - One of the options should be enough. In case that all are set, logical AND operation is used.
         Task will FAIL in case that node can not be uniquely identified.
     type: dict
@@ -77,6 +78,8 @@ options:
       peer_id:
         description: Peer ID of the backup node
         type: int
+notes:
+  - C(check_mode) is not supported.
 """
 
 EXAMPLES = r"""

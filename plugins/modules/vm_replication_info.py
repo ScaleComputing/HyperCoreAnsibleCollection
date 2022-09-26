@@ -14,9 +14,9 @@ module: vm_replication_info
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Returns info about replication on a specific virtual machine.
+short_description: Returns info about replication of a specific VM
 description:
-  - Returns info about replication on a specific virtual machine, if replication is configured.
+  - Returns information about replication of a specific virtual machine, if replication is configured.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance

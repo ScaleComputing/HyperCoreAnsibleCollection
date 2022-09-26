@@ -13,36 +13,31 @@ module: vm_nic_info
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Returns info about nic.
+short_description: Returns info about NIC
 description:
-  - Returns info about all or specific nic on a selected virtual device.
+  - Returns the information about all or a specific NIC on a selected virtual machine.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.vm_name
 seealso: []
 options:
-  vm_name:
-    description:
-      - Virtual machine name
-      - Used to identify selected virtual machine by name
-    type: str
-    required: true
   vlan:
     description:
-      - Vlan on which network interface is operating on
-      - Used to identify specific network interface
-      - If included only network interface with the specified vlan will be returned
+      - VLAN on which network interface is operating on.
+      - Used to identify specific network interface.
+      - If included only network interface with the specified VLAN will be returned.
     type: int
 """
 
 EXAMPLES = r"""
-- name: Retrieve nic info on vlan 15
+- name: Retrieve NIC info on VLAN 15
   scale_computing.hypercore.vm_nic_info:
     vm_name: 'XLAB-demo-vm'
     vlan: 15
   register: testout
 
-- name: Retrieve nic info on all vlans
+- name: Retrieve NIC info on all vlans
   scale_computing.hypercore.vm_nic_info:
     vm_name: 'XLAB-demo-vm'
   register: testout
@@ -51,7 +46,7 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - A list of nics records.
+    - A list of NICs records.
   returned: success
   type: list
   sample:
