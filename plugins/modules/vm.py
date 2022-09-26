@@ -14,59 +14,58 @@ module: vm
 author:
   - Domen Dobnikar (@domen_dobnikar)
   - Tjaž Eržen (@tjazsch)
-short_description: Create, update or delete VM.
+short_description: Create, update or delete a VM.
 description:
-  - Create and update the VM with set disks, nics and boot order.
-  - Delete the VM.
+  - Use this module to create, update or delete a VM. When creating or
+    updating a VM, setting the disks, network nics and boot order is possible.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
-seealso: []
+  - scale_computing.hypercore.vm_name
+  - scale_computing.hypercore.cloud_init
+  - scale_computing.hypercore.force_reboot
+seealso:
+  - module: scale_computing.hypercore.vm_info
+  - module: scale_computing.hypercore.vm_params
+  - module: scale_computing.hypercore.vm_boot_devices
+  - module: scale_computing.hypercore.vm_disk
+  - module: scale_computing.hypercore.vm_nic
+
+  - module: scale_computing.hypercore.vm_node_affinity
+  - module: scale_computing.hypercore.vm_replication
+
+  - module: scale_computing.hypercore.vm_clone
+  - module: scale_computing.hypercore.vm_import
+  - module: scale_computing.hypercore.vm_export
 options:
-  vm_name:
-    description:
-      - VM's name.
-      - Serves as unique identifier across endpoint C(VirDomain).
-    type: str
-    required: True
   vm_name_new:
     description:
+      - Use it to rename a VM.
       - If the VM already exists, VM's new name.
-      - Only relevant if C(state==present).
+      - Only relevant if I(state=present).
     type: str
   description:
     description:
       - VM's description.
-      - Only relevant if C(state==present).
+      - Only relevant if I(state=present).
         value.
     type: str
   memory:
     description:
       - VM's physical memory in bytes.
-      - Required if C(state=present). If C(state=absent), memory isn't relevant.
+      - Required if I(state=present). Irrelevant if I(state=absent).
     type: int
-  force_reboot:
-    description:
-      - Can VM be forced to power off and on.
-      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
-      - Before this is utilized, a shutdown request is sent.
-    type: bool
-    default: false
-  shutdown_timeout:
-    description:
-      - How long does ansible controller wait for VMs response to a shutdown request.
-      - In seconds.
-    type: float
-    default: 300
+
   vcpu:
     description:
       - Number of Central processing units on the VM.
-      - Required if C(state=present). If C(state=absent), vcpu isn't relevant.
+      - Required if I(state=present). If I(state=absent), vcpu is not relevant.
     type: int
   power_state:
     description:
       - Desired VM state.
-      - States C(PAUSE) and C(LIVEMIGRATE) are not exposed in this module (this can be done with raw api module).
+      - States C(PAUSE) and C(LIVEMIGRATE) are not exposed in this module
+        (this can be done with raw api module).
     choices: [ start, shutdown, stop, reboot, reset ]
     type: str
     default: start
@@ -90,7 +89,7 @@ options:
   disks:
     description:
       - List of disks we want to create.
-      - Required if C(state=present).
+      - Required if I(state=present).
     default: []
     suboptions:
       disk_slot:
@@ -106,7 +105,7 @@ options:
         type: str
         description:
           - The bus type the VM will use.
-          - If C(type==ide_cdrom), it's assumed you want to attach ISO image to cdrom disk. In that
+          - If I(type=ide_cdrom), it's assumed you want to attach ISO image to cdrom disk. In that
             case, field iso_name is required.
         choices: [ ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
         required: true
@@ -114,8 +113,8 @@ options:
         type: str
         description:
           - The name of the ISO image we want to attach to the CD-ROM.
-          - Required if C(type==ide_cdrom)
-          - Only relevant if C(type==ide_cdrom).
+          - Required if I(type=ide_cdrom)
+          - Only relevant if I(type=ide_cdrom).
       cache_mode:
         type: str
         description:
@@ -126,7 +125,7 @@ options:
   nics:
     description:
       - List of network interfaces we want to create.
-      - Required if C(state=present).
+      - Required if I(state=present).
     type: list
     elements: dict
     default: []
@@ -162,59 +161,44 @@ options:
         description:
           - The type of device we want to set the boot order to.
           - If setting the boot order for nic, type should be equal to nic.
-          - If setting the boot order for disk, type should be equal to one of the specific types, listed below.
+          - If setting the boot order for disk, type should be equal to one of
+            the specific types, listed below.
         choices: [ nic, ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
         required: true
       disk_slot:
         type: int
         description:
-          - If setting the boot device order of disk, that is C(type==virtio_disk), C(type==ide_disk),
-            C(type==scsi_disk), C(type==ide_floppy) or C(type==nvram) disk_slot required to specify.
-          - If setting the boot device order of CD-ROM, that is C(type==ide_cdrom), at least one of C(iso_name)
-            or C(disk_slot) is required.
-          - If C(type==nic), disk_slot is not relevant.
-          - At least one of C(disk_slot), C(nic_vlan) and C(iso_name) is required to identify the vm device to which
-            we're setting the boot order.
+          - If setting the boot device order of disk, that is I(type=virtio_disk), I(type=ide_disk),
+            I(type=scsi_disk), I(type=ide_floppy) or I(type=nvram) disk_slot is required.
+          - If setting the boot device order of CD-ROM, that is I(type=ide_cdrom), at least
+            one of I(iso_name) or I(disk_slot) is required.
+          - If I(type=nic), disk_slot is not relevant.
+          - At least one of I(disk_slot), I(nic_vlan) and I(iso_name) is required to identify
+            the VM device to which we're setting the boot order.
       nic_vlan:
         type: int
         description:
           - Nic's vlan.
-          - If C(type==nic), C(nic_vlan) is required to specify.
-          - Otherwise, C(nic_vlan) is not relevant.
-          - At least one of C(disk_slot), C(nic_vlan) and C(iso_name) is required to identify the vm device to which
-            we're setting the boot order.
+          - If I(type=nic), I(nic_vlan) is required.
+          - Otherwise, I(nic_vlan) is not relevant.
+          - At least one of I(disk_slot), I(nic_vlan) and I(iso_name) is required to
+            identify the vm device to which we're setting the boot order.
       iso_name:
         type: str
         description:
           - The name of ISO image that CD-ROM device is attached to.
-          - Only relevant if C(type==ide_cdrom). If C(type==cdrom), at least one of C(iso_name) or C(disk_slot) is
+          - Only relevant if I(type=ide_cdrom). If I(type=cdrom), at least one of I(iso_name) or I(disk_slot) is
             required to identify CD-ROM device.
-          - Otherwise, C(iso_name) is not relevant.
-          - At least one of C(disk_slot), C(nic_vlan) and C(iso_name) is required to identify the vm device to which
+          - Otherwise, I(iso_name) is not relevant.
+          - At least one of I(disk_slot), I(nic_vlan) and i(iso_name) is required to identify the vm device to which
             we're setting the boot order.
   attach_guest_tools_iso:
     description:
       - If supported by operating system, create an extra device to attach the Scale Guest OS tools ISO.
     default: false
     type: bool
-  cloud_init:
-    description:
-      - Configuration to be used by cloud-init (Linux) or cloudbase-init (Windows).
-      - When non-empty will create an extra ISO device attached to VirDomain as a NoCloud datasource.
-      - Only relevant if C(state==present).
-      - There has to be cloud-config comment present at the beginning of cloud_init file or raw yaml.
-    type: dict
-    suboptions:
-      user_data:
-        description:
-          - Configuration user-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
-          - Valid YAML syntax.
-        type: dict
-      meta_data:
-        type: dict
-        description:
-          - Configuration meta-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
-          - Valid YAML syntax.
+notes:
+  - C(check_mode) is not supported.
 """
 
 EXAMPLES = r"""
@@ -584,8 +568,8 @@ def main():
                 type="dict",
                 default={},
                 options=dict(
-                    user_data=dict(type="dict"),
-                    meta_data=dict(type="dict"),
+                    user_data=dict(type="str"),
+                    meta_data=dict(type="str"),
                 ),
             ),
             snapshot_schedule=dict(

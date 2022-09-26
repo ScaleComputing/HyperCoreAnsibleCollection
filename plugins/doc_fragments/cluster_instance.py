@@ -19,7 +19,7 @@ options:
     suboptions:
       host:
         description:
-          - The HyperCore instance url.
+          - The HyperCore instance URL.
           - If not set, the value of the C(SC_URL) environment
             variable will be used.
           - For example "https://10.1.2.3:443".

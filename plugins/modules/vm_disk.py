@@ -15,47 +15,34 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: Manage VM's disks
 description:
-  - Add, delete or set disk to the VM.
-  - Force remove all VM's disks.
-  - Attach and/or detach ISO image to the VM by iso's name.
-  - Detach ISO image from the VM by disk's disk slot.
-  - Update existing disk.
+  Use this module to add, delete or set disks to the VM.
+  The module can also remove all disks from a VM,
+  attach and/or detach ISO image to the VM by ISO's name,
+  detach ISO image from the VM by disk's disk slot,
+  or update the existing disks (disk size etc.).
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.vm_name
+  - scale_computing.hypercore.force_reboot
 seealso: []
 options:
-  vm_name:
-    description:
-      - Virtual machine's name.
-      - Serves as unique identifier across all snapshot schedules.
-    type: str
-    required: true
   force:
     description:
-      - If set to true and C(state==set), all disk interfaces are going to be removed.
-      - Additionally, items should be set to C([]) (see example below) when deleting all disks
+      - A safeguard to prevent unintentional removal of all disks.
+      - To remove all disks, items should be set to I(items=[]) and state should be I(state=set) (see example below).
+      - In addition, the I(force=true) must be provided.
     type: bool
     default: false
   state:
     description:
-      - The desired state of the disk object.
+      - The desired state of the disks specified by I(items).
+      - With I(state=present) (or I(state=absent)), the disks in I(items) are added to VM, or removed from VM.
+        Individual disk is resized if needed.
+      - With I(state=set), the VM is reconfigured to have exactly such disks as specified by I(items).
     choices: [ present, absent, set ]
     type: str
     required: true
-  force_reboot:
-    description:
-      - Can VM be forced to power off and on.
-      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
-      - Before this is utilized, a shutdown request is sent.
-    type: bool
-    default: false
-  shutdown_timeout:
-    description:
-      - How long does ansible controller wait for VMs response to a shutdown request.
-      - In seconds.
-    type: float
-    default: 300
   items:
     description:
       - The disk items we want to change.
@@ -71,13 +58,13 @@ options:
       size:
         type: int
         description:
-          - Logical size of the device in bytes. Below is example of resizing and creating the disk.
+          - Logical size of the device in bytes. Can be used for resizing or creating the disk.
           - In case you're creating a disk, size needs to be specified.
       type:
         type: str
         description:
           - The bus type the VirDomainBlockDevice will use.
-          - If C(type==ide_cdrom), it's assumed you want to attach ISO image to cdrom disk. In that
+          - If I(type=ide_cdrom), it's assumed you want to attach ISO image to cdrom disk. In that
             case, field name is required.
         choices: [ ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
         required: true
@@ -109,6 +96,8 @@ options:
         description:
           - Only relevant if we want to update the disk parameters.
           - The type we want to assign the disk with.
+notes:
+  - C(check_mode) is not supported.
 """
 
 
@@ -199,7 +188,7 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - The modified record from the HyperCore API on the endpoint /rest/v1/VirDomainBlockDevice.
+    - The modified record from the HyperCore API endpoint C(/rest/v1/VirDomainBlockDevice).
   returned: success
   type: dict
   sample:

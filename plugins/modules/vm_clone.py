@@ -13,46 +13,27 @@ module: vm_clone
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Plugin handles cloning of the virtual machine.
+short_description: Handles cloning of the VM
 description:
-  - Plugin enables cloning of the specified virtual machine.
+  - Use M(scale_computing.hypercore.vm_clone) to clone a specified virtual machine.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.cloud_init
 seealso: []
 options:
   vm_name:
     description:
-      - Virtual machine name.
-      - Name of the clone.
-      - Used to identify a virtual machine by name.
+      - Name of the VM clone.
+      - Used to identify a clone of the virtual machine by name.
     type: str
     required: true
   source_vm_name:
     description:
-      - Virtual machine name.
-      - Name of the source virual machine, to be cloned.
+      - Name of the source virtual machine, to be cloned.
       - Used to identify selected virtual machine by name.
     type: str
     required: true
-  cloud_init:
-    description:
-      - Configuration to be used by cloud-init (Linux) or cloudbase-init (Windows).
-      - When non-empty will create an extra ISO device attached to VirDomain as a NoCloud datasource.
-      - There has to be cloud-config comment present at the beginning of cloud_init file or raw yaml.
-    required: false
-    type: dict
-    suboptions:
-      user_data:
-        description:
-          - Configuration user-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
-          - Valid YAML syntax.
-        type: str
-      meta_data:
-        type: str
-        description:
-          - Configuration meta-data to be used by cloud-init (Linux) or cloudbase-init (Windows).
-          - Valid YAML syntax.
   tags:
     description:
       - Virtual machine tags.
@@ -60,6 +41,8 @@ options:
     required: false
     type: list
     elements: str
+notes:
+  - C(check_mode) is not supported.
 """
 
 EXAMPLES = r"""

@@ -16,7 +16,9 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: API interaction with Scale Computing HyperCore
 description:
-  - Perform GET, POST, PATCH or DELETE requests on resource(s) from the given endpoint
+  - Perform a C(GET), C(POST), C(PATCH) or C(DELETE) request on resource(s) from the given endpoint.
+    The api module can be used to perform raw API calls whenever there is no
+    suitable concrete module or role implementation for a specific task.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -37,20 +39,20 @@ options:
   data:
     type: dict
     description:
-      - A Dict consists of resource's column names as keys (such as description, number, priority, and so on) and the
-        patching values as values (the value we want to change the column to).
-      - If I(action==patch), data we're updating the record with.
-      - If I(action==get), data with which we're going to additionally filter out the records.
-      - If I(action==post), data with which we're creating the resource. Note that for certain endpoints,
-        certain fields may be necessary and have to be specified here. For other columns if not specified here, they
-        may be assigned the default value automatically.
-      - If I(action==delete), data option is going to be ignored.
-      - If I(action==post_list), data will be send as list instead of dict.
+      - A Dict containing a data to be sent to HyperCore REST endpoint.
+      - If I(action=patch), data we're updating the resource with.
+      - If I(action=get), data option is going to be ignored.
+      - If I(action=post) the resource will be created from the data.
+      - If I(action=delete), data option is going to be ignored.
+      - If I(action=post_list), data will be send as list instead of dict.
   endpoint:
     description:
       - The raw endpoint that we want to perform post, patch or delete operation on.
     type: str
     required: true
+notes:
+  - C(check_mode) is not supported.
+
 """
 
 
@@ -157,8 +159,8 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - In case of C(action==get), the records from the specified endpoint. Below is example output for C(action==get).
-    - In case of C(action==post), C(action==patch) or C(action==delete), the task tag, returned from the HyperCore API.
+    - In case of I(action=get), the records from the specified endpoint. Below is example output for I(action=get).
+    - In case of I(action=post), I(action=patch) or I(action=delete), the task tag, returned from the HyperCore API.
   returned: success
   type: list
   sample:

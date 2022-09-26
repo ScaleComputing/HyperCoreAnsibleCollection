@@ -13,21 +13,15 @@ module: vm_export
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Plugin handles export of the virtual machine.
+short_description: Handles export of the virtual machine
 description:
-  - Plugin enables export of the virtual machine, to a specified location.
-  - Use either smb or http_uri, they are mutually exclusive.
+  - Use vm_export to export the virtual machine, to a specified location on a SMB server.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.vm_name
 seealso: []
 options:
-  vm_name:
-    description:
-      - Virtual machine name.
-      - Used to identify selected virtual machine by name.
-    type: str
-    required: true
   smb:
     description:
       - SMB server, access and location data.
@@ -61,6 +55,8 @@ options:
         description:
           - Password.
         required: true
+notes:
+  - C(check_mode) is not supported.
 """
 
 EXAMPLES = r"""

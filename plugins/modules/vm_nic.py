@@ -13,13 +13,18 @@ module: vm_nic
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Plugin handles actions over network interfaces.
+short_description: Handles actions over network interfaces
 description:
-  - Plugin enables actions over network interfaces on a specified virtual machine.
-  - Can create, update, delete specified network interfaces.
+  - Use vm_nics to perform actions over network interfaces (NIC) on a specified virtual machine.
+  - Can create, update or delete specified network interfaces.
+  - A single NIC can be identified by
+    - I(type) and I(vlan), or
+    - I(type) and I(mac)
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.vm_name
+  - scale_computing.hypercore.force_reboot
 seealso: []
 options:
   state:
@@ -28,25 +33,6 @@ options:
     choices: [ present, absent, set ]
     type: str
     required: True
-  vm_name:
-    description:
-      - Virtual machine name.
-      - Used to identify selected virtual machine by name.
-    type: str
-    required: true
-  force_reboot:
-    description:
-      - Can VM be forced to power off and on.
-      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
-      - Before this is utilized, a shutdown request is sent.
-    type: bool
-    default: false
-  shutdown_timeout:
-    description:
-      - How long does ansible controller wait for VMs response to a shutdown request.
-      - In seconds.
-    type: float
-    default: 300
   items:
     description:
       - List of network interfaces.
@@ -81,6 +67,8 @@ options:
         default: true
         description:
           - Is network interface connected or not.
+notes:
+  - C(check_mode) is not supported.
 """
 
 EXAMPLES = r"""

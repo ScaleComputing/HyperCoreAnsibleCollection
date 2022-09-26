@@ -17,7 +17,7 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: Retrieve ISO images
 description:
-  - Retrieve ISO images from endpoints /rest/v1/ISO
+  - Retrieve a list of ISO images from HyperCore API endpoint C(/rest/v1/ISO).
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -49,8 +49,8 @@ RETURN = r"""
 records:
   description:
     - ISO images for which we're performing the query.
-    - If name is specified, return will be at max 1 record, if the record exists, and 0, if it doesn't
-    - Otherwise, all iso images will be returned
+    - If I(name) is specified, the module will return exactly one record, if the record exists, and 0, if there is no matching name.
+    - If I(name) is not specified, all ISO images will be returned
   returned: success
   type: list
   sample:

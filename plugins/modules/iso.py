@@ -17,9 +17,8 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: Manage ISO images on HyperCore API
 description:
-  - Upload new ISO from ansible controller to HyperCore.
-  - Delete existing ISO images from HyperCore API.
-  - ISO image can be uploaded from shared (SMB) storage or HTTP link by downloading it first to ansible controller local disk.
+  - Use this module to upload a new ISO image from ansible controller to HyperCore or delete existing ISO images from HyperCore API.
+  - An ISO image can be uploaded from a shared (SMB) storage or from an HTTP link by downloading it first to the ansible controller's local disk.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -37,8 +36,8 @@ options:
     type: str
     description:
       - The desired state of iso object.
-      - If C(state=present), the module uploads new ISO image from ansible controller.
-      - If C(state=absent), the module deletes an existing ISO image from HyperCore API.
+      - If I(state=present), the module uploads new ISO image from ansible controller.
+      - If I(state=absent), the module deletes an existing ISO image from HyperCore API.
     choices:
       - present
       - absent
@@ -49,6 +48,8 @@ options:
       - Only relevant if you want to post an iso image to the HyperCore API (setting C(state=present)).
       - path to ISO image on ansible controller.
       - It must not be http or smb link
+notes:
+  - C(check_mode) is not supported.
 """
 
 

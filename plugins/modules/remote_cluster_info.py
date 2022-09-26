@@ -15,10 +15,13 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Retrieve a list of remote clusters.
 description:
-  - Retrieve a list of remote clusters from endpoint /rest/v1/RemoteClusterConnection.
+  - Retrieve a list of remote clusters from the HyperCore API endpoint C(/rest/v1/RemoteClusterConnection).
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+seealso:
+  - module: scale_computing.hypercore.vm_replication
+  - module: scale_computing.hypercore.snapshot_schedule
 options:
   remote_cluster:
     type: str

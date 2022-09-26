@@ -13,46 +13,32 @@ module: vm_boot_devices
 
 author:
   - Tjaž Eržen (@tjazsch)
-short_description: Manage HyperCore's boot devices
+short_description: Manage HyperCore VM's boot devices
 description:
-  - Add or remove list of devices from boot order (add to end of list).
-  - Set exact boot order of the devices.
-  - Set a specific list of devices as first, but leave everything else as it is.
+  - Use this module to add or remove a list of devices from boot order (add to end of list) or set the exact boot order of the devices.
+  - Can also be used to set a specific list of devices as first, but leave everything else as is.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.vm_name
+  - scale_computing.hypercore.force_reboot
 seealso: []
 options:
-  vm_name:
-    description:
-      - The name of the VM that we want to set the boot order to.
-    type: str
-    required: true
   state:
     description:
-      - The desired state of the disk object.
+      - The desired state of the boot devices specified by I(items).
+      - If I(present) devices specified by I(items) will be added to list of boot devices.
+      - If I(absent) devices specified by I(items) will be removed from the list of boot devices.
+      - If I(set) VM boot devices will be set exactly to devices specified by I(items).
     choices: [ present, absent, set ]
     type: str
     required: true
   first:
     description:
-      - Only relevant if C(state=present).
+      - Only relevant if I(state=present).
       - If you want to assign the device the first order, set the value of C(first) to C(1).
     type: bool
     default: false
-  force_reboot:
-    description:
-      - Can VM be forced to power off and on.
-      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
-      - Before this is utilized, a shutdown request is sent.
-    type: bool
-    default: false
-  shutdown_timeout:
-    description:
-      - How long does ansible controller wait for VMs response to a shutdown request.
-      - In seconds.
-    type: float
-    default: 300
   items:
     description:
       - The boot devices items we want to change.
@@ -64,37 +50,39 @@ options:
         type: str
         description:
           - The type of device we want to set the boot order to.
-          - If setting the boot order for nic, type should be equal to nic.
-          - If setting the boot order for disk, type should be equal to one of the specific types, listed below.
+          - If setting the boot order for NIC, I(type) should be equal to C(nic).
+          - If setting the boot order for disk, I(type) should be equal to one of the specific disk types, listed below.
         choices: [ nic, ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
         required: true
       disk_slot:
         type: int
         description:
-          - If setting the boot device order of disk, that is C(type==virtio_disk), C(type==ide_disk),
-            C(type==scsi_disk), C(type==ide_floppy) or C(type==nvram) disk slot is required to be specified.
-          - If setting the boot device order of CD-ROM, that is C(type==ide_cdrom), at least one of C(iso_name)
-            or C(disk_slot) is required.
-          - If C(type==nic), disk_slot is not relevant.
-          - At least one of C(disk_slot), C(nic_vlan) and C(iso_name) is required to identify the vm device to which
+          - If setting the boot device order of disk, that is I(type=virtio_disk), I(type=ide_disk),
+            I(type=scsi_disk), I(type=ide_floppy) or I(type=nvram) disk slot is required to be specified.
+          - If setting the boot device order of CD-ROM, that is I(type=ide_cdrom), at least one of I(iso_name)
+            or I(disk_slot) is required.
+          - If I(type=nic), disk_slot is not relevant.
+          - At least one of I(disk_slot), I(nic_vlan) and C(iso_name) is required to identify the VM device to which
             we're setting the boot order.
       nic_vlan:
         type: int
         description:
-          - Nic's vlan.
-          - If C(type==nic), C(nic_vlan) is required to specify.
-          - Otherwise, C(nic_vlan) is not relevant.
-          - At least one of C(disk_slot), C(nic_vlan) and C(iso_name) is required to identify the vm device to which
+          - NIC's vlan.
+          - If I(type=nic), I(nic_vlan) is required.
+          - Otherwise, I(nic_vlan) is not relevant.
+          - At least one of I(disk_slot), I(nic_vlan) or I(iso_name) is required to identify the VM device to which
             we're setting the boot order.
       iso_name:
         type: str
         description:
           - The name of ISO image that CD-ROM device is attached to.
-          - Only relevant if C(type==ide_cdrom). If C(type==cdrom), at least one of C(iso_name) or C(disk_slot) is
+          - Only relevant if I(type=ide_cdrom). If I(type=cdrom), at least one of I(iso_name) or I(disk_slot) is
             required to identify CD-ROM device.
-          - Otherwise, C(iso_name) is not relevant.
-          - At least one of C(disk_slot), C(nic_vlan) and C(iso_name) is required to identify the vm device to which
+          - Otherwise, I(iso_name) is not relevant.
+          - At least one of I(disk_slot), I(nic_vlan) and I(iso_name) is required to identify the VM device to which
             we're setting the boot order.
+notes:
+  - C(check_mode) is not supported.
 """
 
 EXAMPLES = r"""
@@ -165,8 +153,8 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - VM's device that we're assigning the boot order to (either disks, from endpoint /VirDomainBlockDevices, or
-      nics, from endpoint /VirDomainNetDevices).
+    - VM's device that we're assigning the boot order to, which can be either disks from the API endpoint C(/VirDomainBlockDevices), or
+      nics from the API endpoint C(/VirDomainNetDevices).
   returned: success
   type: dict
   sample:

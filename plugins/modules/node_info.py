@@ -19,6 +19,8 @@ description:
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+seealso:
+  - module: scale_computing.hypercore.vm_node_affinity
 """
 
 EXAMPLES = r"""

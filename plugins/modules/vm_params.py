@@ -15,20 +15,15 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Manage VM's parameters
 description:
-  - Update VM's name, description, tags, memory, number of CPUs.
-  - Change VM's power state.
-  - Assign snapshot schedule to the VM.
+  - Use vm_params to update VM's name, description, tags, memory, number of CPUs or change VM's power state.
+  - Can also be used to assign a snapshot schedule to the VM.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.vm_name
+  - scale_computing.hypercore.force_reboot
 seealso: []
 options:
-  vm_name:
-    description:
-      - VM's name.
-      - Serves as unique identifier.
-    type: str
-    required: true
   vm_name_new:
     description:
       - VM's new name.
@@ -37,19 +32,6 @@ options:
     description:
       - VM's description.
     type: str
-  force_reboot:
-    description:
-      - Can VM be forced to power off and on.
-      - Only used in instances where modifications to the VM require it to be powered off and VM does not responde to a shutdown request.
-      - Before this is utilized, a shutdown request is sent.
-    type: bool
-    default: false
-  shutdown_timeout:
-    description:
-      - How long does ansible controller wait for VMs response to a shutdown request.
-      - In seconds.
-    type: float
-    default: 300
   tags:
     description:
       - User-modifiable words for organizing a group of VMs. Multiple tags should be provided as list.
@@ -77,6 +59,8 @@ options:
       - The name of an existing snapshot_schedule to assign to VM.
       - VM can have 0 or 1 snapshot schedules assigned.
     type: str
+notes:
+  - C(check_mode) is not supported.
 """
 
 

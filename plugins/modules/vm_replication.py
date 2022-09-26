@@ -13,36 +13,31 @@ module: vm_replication
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Plugin handles actions over replications
+short_description: Handles VM replications
 description:
-  - Plugin enables actions over replications on a specified virtual machine
-  - Can start, pause and unpause replication on a specified virtual machine
+  - Use vm_replication to perform actions regarding the replication of a specified virtual machine (VM)
+    such as start, pause amd unpause replication of the VM.
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.vm_name
 seealso: []
 options:
   state:
     description:
-      - State defines which operation should plugin do over selected replication
-      - enable, disable, reenable
-      - Use enabled for initial replication setup.
-      - Use disabled to pause a configured replication.
-      - Use reenabled to unpause a configured replication (remote_cluster is optional in this case).
+      - State defines the desired state of the VM replication - C(enable), C(disable), C(reenable).
+      - Use C(enabled) for initial replication setup.
+      - Use C(disabled) to pause a configured replication.
+      - Use C(reenabled) to unpause a configured replication. I(remote_cluster) is optional in this case.
     choices: [ enabled, disabled, reenabled ]
-    type: str
-    required: True
-  vm_name:
-    description:
-      - Virtual machine name
-      - Used to identify selected virtual machine by name
     type: str
     required: True
   remote_cluster:
     description:
-      - remote cluster name
-      - Used to identify selected remote cluster by name
+      - Remote cluster name, used to identify the selected remote cluster by name.
     type: str
+notes:
+  - C(check_mode) is not supported.
 """
 
 EXAMPLES = r"""
