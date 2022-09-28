@@ -601,7 +601,7 @@ class VM(PayloadMapper):
         vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
             "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid),
-            dict(bootDevices=boot_order, uuid=vm.uuid),
+            dict(bootDevices=boot_order),
             module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag)
