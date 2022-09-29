@@ -4,13 +4,90 @@
     vm_name: "{{ item }}"
     state: absent
   loop:
-    - XLAB-test-vcpu   
-    - XLAB-test-vcpu-clone
+    - XLAB-test-vcpu-set
+    - XLAB-test-vcpu-on-create
 
 # ----------------------------------Setup-----------------------------------------------------------------------------
-- name: test vcpu to 0
+- name: Make source vm
   scale_computing.hypercore.vm:
-    vm_name: XLAB-test-vcpu   
+    vm_name: XLAB-test-vcpu-set 
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "blabla"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    power_state: stop
+    disks:
+    - type: virtio_disk
+      disk_slot: 0
+      size: "{{ '200 GB' | human_to_bytes }}"
+    nics:
+    - vlan: 0
+      type: virtio
+    boot_devices:
+    - type: virtio_disk
+      disk_slot: 0
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-vcpu-set
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-vcpu-set
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Change vcpu to 0
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-vcpu-set
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "retesting"
+    vcpu: 0
+    state: present
+    power_state: stop
+    disks:
+    - type: virtio_disk
+      disk_slot: 0
+      size: "{{ '200 GB' | human_to_bytes }}"
+    nics:
+    - vlan: 0
+      type: virtio
+    boot_devices:
+    - type: virtio_disk
+      disk_slot: 0
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+
+- name: output the HTTP request results
+  debug:
+    var: output
+
+- name: Retrieve XLAB-test-vcpu-set
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-vcpu-set
+  register: changed_info
+- ansible.builtin.assert:
+    that:
+      - changed_info.records | length == 1
+      - changed_info.records.0.vcpu == 0
+      - changed_info.records.0.power_state == "stopped"
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Make VM with 0 cpu
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-vcpu-on-create
     memory: "{{ '1 GB'|human_to_bytes}}"
     description: "blabla"
     tags:
@@ -35,9 +112,9 @@
       - output is changed
       - output is succeeded
 
-- name: Retrieve XLAB-test-vcpu 
+- name: Retrieve XLAB-test-vcpu-on-create
   scale_computing.hypercore.vm_info:
-    vm_name: XLAB-test-vcpu
+    vm_name: XLAB-test-vcpu-on-create
   register: source_info
 - ansible.builtin.assert:
     that:
@@ -45,89 +122,13 @@
       - source_info.records.0.vcpu == 0
       - source_info.records.0.power_state == "stopped"
 
-# ----------------------------------Job-----------------------------------------------------------------------------
-- name: clone vm test-vcpu - if not present
-  scale_computing.hypercore.vm_clone:
-    vm_name: XLAB-test-vcpu-clone
-    tags:
-      - Xlab
-    source_vm_name: XLAB-test-vcpu
-    cloud_init:
-      user_data: |
-        #cloud-config
-        apt_update: true
-        apt_upgrade: true
-        password: "BLABLA"
-        chpasswd: "BLABLA"
-        ssh_pwauth: True
-      meta_data: |
-        dsmode: local
-        network-interfaces: |
-          auto lo
-          iface lo inet loopback 
-          iface ens3 inet static
-            address 192.168.1.200
-            netmask 255.255.255.0
-            gateway 192.168.1.1
-            dns-nameservers 8.8.8.8
-        local-hostname: demo1
-  register: output
-- ansible.builtin.assert:
-    that:
-      - output is changed
-      - output is succeeded
-
-- name: Retrieve XLAB-test-vcpu-clone 
-  scale_computing.hypercore.vm_info:
-    vm_name: XLAB-test-vcpu-clone
-  register: cloned_info
-- ansible.builtin.assert:
-    that:
-      - cloned_info.records | length == 1
-      - cloned_info.records.0.vcpu == 0
-      - cloned_info.records.0.power_state == "stopped"
-
-- name: verify test-vcpu-clone desired configuration  
-  scale_computing.hypercore.vm:
-    vm_name: XLAB-test-vcpu-clone
-    memory: "{{ '1 GB'|human_to_bytes}}"
-    description: "retesting"
-    vcpu: 2
-    state: present
-    power_state: start
-    disks:
-    - type: virtio_disk
-      disk_slot: 0
-      size: "{{ '200 GB' | human_to_bytes }}"
-    nics:
-    - vlan: 0
-      type: virtio
-    boot_devices:
-    - type: virtio_disk
-      disk_slot: 0
-  register: output
-- ansible.builtin.assert:
-    that:
-      - output is changed
-      - output is succeeded
-
-- name: Retrieve XLAB-test-vcpu-clone 
-  scale_computing.hypercore.vm_info:
-    vm_name: XLAB-test-vcpu-clone
-  register: cloned_info
-- ansible.builtin.assert:
-    that:
-      - cloned_info.records | length == 1
-      - cloned_info.records.0.vcpu == 2
-      - cloned_info.records.0.power_state == "started"
-
 # ----------------------------------Cleanup------------------------------------------------------------------------
 - name: Delete XLAB-vm
   scale_computing.hypercore.vm: *delete-XLAB-vm
   register: output
   loop:
-    - XLAB-test-vcpu   
-    - XLAB-test-vcpu-clone
+    - XLAB-test-vcpu-set
+    - XLAB-test-vcpu-on-create
 - ansible.builtin.assert:
     that:
       - output is changed

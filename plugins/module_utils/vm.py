@@ -760,7 +760,7 @@ class ManageVMParams(VM):
             )  # tags is a list of strings
         if module.params["memory"]:
             payload["mem"] = module.params["memory"]
-        if module.params["vcpu"]:
+        if module.params["vcpu"] is not None:
             payload["numVCPU"] = module.params["vcpu"]
         if (
             module.params["snapshot_schedule"] is not None
@@ -798,7 +798,7 @@ class ManageVMParams(VM):
             changed_params["tags"] = vm.tags != module.params["tags"]
         if module.params["memory"]:
             changed_params["memory"] = vm.mem != module.params["memory"]
-        if module.params["vcpu"]:
+        if module.params["vcpu"] is not None:
             changed_params["vcpu"] = vm.numVCPU != module.params["vcpu"]
         if module.params["power_state"]:
             # This is comparison between two strings. This works because module.params["power_state"]
