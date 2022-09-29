@@ -6,7 +6,7 @@ jobs:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
     #env:
-    #  KEYCLOAK_API_CA_BUNDLE:
+    #  KEYCLOAK_API_CA_BUNDLE: x
     steps:
       - name: Checkout
         uses: actions/checkout@v3
