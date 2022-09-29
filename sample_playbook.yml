@@ -1,0 +1,21 @@
+- name: import from URI
+  hosts: localhost
+  tasks:
+  - name: import VM from URI
+    scale_computing.hypercore.vm:
+      cluster_instance:
+        host: 'https://10.5.11.30'
+        username: 'admin'
+        password: 'admin'
+      vm_name: test-vm-params
+      shutdown_timeout: 10
+      vcpu: 0
+      memory: 500
+      disks: []
+      nics: []
+      state: present
+    register: testout
+
+  - name: output the HTTP request results
+    debug:
+      var: testout
