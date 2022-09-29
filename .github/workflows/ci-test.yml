@@ -5,8 +5,8 @@ jobs:
   sanity-test:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
-    #env:
-    #  KEYCLOAK_API_CA_BUNDLE: x
+    env:
+      WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -15,12 +15,14 @@ jobs:
       - run: apt install -y git make
       - run: pip install ansible-core==2.13.1
         # ansible-test needs special directory structure.
-      - run: mkdir -p /work-dir/ansible_collections/scale_computing/
-      - run: cp -a ./  /work-dir/ansible_collections/scale_computing/hypercore
-      - run: pushd /work-dir/ansible_collections/scale_computing/hypercore
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
         # Same as "make sanity"
         # TODO reuse Makefile
-      - run: black -t py38 --check --diff --color plugins tests/unit
-      - run: ansible-lint
-      - run: flake8 --exclude tests/output/
+      - run: cd $WORKDIR && black -t py38 --check --diff --color plugins tests/unit
+      - run: cd $WORKDIR && ansible-lint
+      - run: cd $WORKDIR && flake8 --exclude tests/output/
+      - run: cd $WORKDIR && ansible-test sanity
+
+      - run: cd $WORKDIR
       - run: ansible-test sanity
