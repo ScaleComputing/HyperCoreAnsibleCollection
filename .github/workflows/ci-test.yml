@@ -1,12 +1,12 @@
 name: CI tests
 on:
   - push
+env:
+  WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 jobs:
   docs:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
-    env:
-      WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -23,8 +23,6 @@ jobs:
   sanity-test:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
-    env:
-      WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -45,8 +43,6 @@ jobs:
   units-test:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
-    env:
-      WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -66,8 +62,6 @@ jobs:
   integration-test:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
-    env:
-      WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
     steps:
       - name: Checkout
         uses: actions/checkout@v3
