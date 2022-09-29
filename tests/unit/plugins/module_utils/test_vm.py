@@ -808,7 +808,6 @@ class TestVM:
             "/rest/v1/VirDomain/7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             dict(
                 bootDevices=["device1-id", "device2-id"],
-                uuid="7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             ),
             False,
         )

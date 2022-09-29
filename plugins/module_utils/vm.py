@@ -601,7 +601,7 @@ class VM(PayloadMapper):
         vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
             "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid),
-            dict(bootDevices=boot_order, uuid=vm.uuid),
+            dict(bootDevices=boot_order),
             module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag)
@@ -883,7 +883,7 @@ class ManageVMParams(VM):
             endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
             task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
             TaskTag.wait_task(rest_client, task_tag)
-            if ManageVMParams._needs_reboot(module, changed_parameters):
+            if ManageVMParams._needs_reboot(module, changed_parameters) and vm.power_state not in ["stop", "stopped", "shutdown"]:
                 vm.do_shutdown_steps(module, rest_client)
             else:
                 # power_state needs different endpoint
