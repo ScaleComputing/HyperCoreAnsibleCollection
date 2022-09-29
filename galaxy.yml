@@ -5,7 +5,7 @@ version: 0.1.0
 readme: README.md
 authors:
   - XLAB Steampunk <steampunk@xlab.si>
-description: Manage ScaleComputing HyperCore cluster
+description: Manage Scale Computing HyperCore cluster
 license_file: LICENSE
 tags:
   - scale_computing
