@@ -6,4 +6,5 @@
 
   block:
     - include_tasks: issue_7_problem_with_power_state.yml
+    - include_tasks: issue_4_vcpu_set_to_0.yml
 # TODO: add more tasks here when more issues are fixed.
