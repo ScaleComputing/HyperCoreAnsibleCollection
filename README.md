@@ -25,143 +25,33 @@ This collection has been tested against HyperCore cluster API version v9.1.14.20
 
 ### Inventory plugins
 
-<!--start html content-->
-
-   <style type="text/css">
-   .tg  {border-collapse:collapse;border-spacing:0;}
-   .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-   overflow:hidden;padding:10px 5px;word-break:normal;}
-   .tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-   font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-   .tg .tg-cjtp{background-color:#ecf4ff;border-color:inherit;text-align:left;vertical-align:top}
-   .tg .tg-6e8n{background-color:#c0c0c0;border-color:inherit;font-weight:bold;text-align:left;vertical-align:top}
-   .tg .tg-fymr{border-color:inherit;font-weight:bold;text-align:left;vertical-align:top}
-   .tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
-   .tg .tg-fgdu{background-color:#ecf4ff;border-color:inherit;font-weight:bold;text-align:left;vertical-align:top}
-   </style>
-   <table class="tg">
-   <thead>
-   <tr>
-      <th class="tg-6e8n">Module name</th>
-      <th class="tg-6e8n">Description</th>
-   </tr>
-   </thead>
-   <tbody>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.hypercore</td>
-      <td class="tg-0pky">Inventory source to list HyperCore Virtual Machines.</td>
-   </tr>
-   </tbody>
-   </table>
-
-<!--end html content-->
+Name | Description
+--- | ---
+scale_computing.hypercore.hypercore | Inventory source to list HyperCore Virtual Machines.
 
 ### Modules
 
-<!--start html content-->
-
-   <style type="text/css">
-   .tg  {border-collapse:collapse;border-spacing:0;}
-   .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-   overflow:hidden;padding:10px 5px;word-break:normal;}
-   .tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
-   font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
-   .tg .tg-cjtp{background-color:#ecf4ff;border-color:inherit;text-align:left;vertical-align:top}
-   .tg .tg-6e8n{background-color:#c0c0c0;border-color:inherit;font-weight:bold;text-align:left;vertical-align:top}
-   .tg .tg-fymr{border-color:inherit;font-weight:bold;text-align:left;vertical-align:top}
-   .tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
-   .tg .tg-fgdu{background-color:#ecf4ff;border-color:inherit;font-weight:bold;text-align:left;vertical-align:top}
-   </style>
-   <table class="tg">
-   <thead>
-   <tr>
-      <th class="tg-6e8n">Module name</th>
-      <th class="tg-6e8n">Description</th>
-   </tr>
-   </thead>
-   <tbody>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.vm</td>
-      <td class="tg-0pky">Create, update or delete a virtual machine.</td>
-   </tr>
-   <tr>
-      <td class="tg-fgdu">scale_computing.hypercore.vm_info</td>
-      <td class="tg-cjtp">Get information about existing virtual machines.</td>
-   </tr>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.vm_params</td>
-      <td class="tg-0pky">Partialy update a virtual machine. Use when changing some of the properties of an existing VM.</td>
-   </tr>
-   <tr>
-      <td class="tg-fgdu">scale_computing.hypercore.vm_disk</td>
-      <td class="tg-cjtp">Update block devices on VM.</td>
-   </tr>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.vm_nic</td>
-      <td class="tg-0pky">Update network interfaces (NICs) on a VM.</td>
-   </tr>
-   <tr>
-      <td class="tg-fgdu">scale_computing.hypercore.vm_boot_devices</td>
-      <td class="tg-cjtp">Set up a boot order for the specified VM.</td>
-   </tr>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.vm_node_affinity</td>
-      <td class="tg-0pky">Set up node affinity for a specified VM.</td>
-   </tr>
-   <tr>
-      <td class="tg-fgdu">scale_computing.hypercore.node_info</td>
-      <td class="tg-cjtp">Get the list of all nodes on a cluster. Needed to set node affinities for VMs.</td>
-   </tr>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.remote_cluster_info</td>
-      <td class="tg-0pky">Get Information regarding remote replication clusters.</td>
-   </tr>
-   <tr>
-      <td class="tg-fgdu">scale_computing.hypercore.vm_replication</td>
-      <td class="tg-cjtp">Configure a VM replication.</td>
-   </tr>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.vm_replication_info</td>
-      <td class="tg-0pky">Get a VM replication configuration.</td>
-   </tr>
-   <tr>
-      <td class="tg-fgdu">scale_computing.hypercore.snapshot_schedule</td>
-      <td class="tg-cjtp">Configure a snapshot schedule.</td>
-   </tr>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.snapshot_schedule_info</td>
-      <td class="tg-0pky">Get the existing list of snapshot schedules.</td>
-   </tr>
-   <tr>
-      <td class="tg-fgdu">scale_computing.hypercore.iso</td>
-      <td class="tg-cjtp">Upload a new ISO image, or edit an existing one.</td>
-   </tr>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.iso_info</td>
-      <td class="tg-0pky">Get a list of available ISO images.</td>
-   </tr>
-   <tr>
-      <td class="tg-fgdu">scale_computing.hypercore.api</td>
-      <td class="tg-cjtp">Use to directly access to HyperCore API.</td>
-   </tr>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.vm_export</td>
-      <td class="tg-0pky">Export a VM to an SMB server. </td>
-   </tr>
-   <tr>
-      <td class="tg-fgdu">scale_computing.hypercore.vm_import</td>
-      <td class="tg-cjtp">Import a VM from an SMB or an HTTP URI.</td>
-   </tr>
-   <tr>
-      <td class="tg-fymr">scale_computing.hypercore.vm_clone</td>
-      <td class="tg-0pky">Clone a VM.</td>
-   </tr>
-   </tbody>
-   </table>
-
-<!--end html content-->
-
-
+Module name | Description
+--- | ---
+scale_computing.hypercore.vm | Create, update or delete a virtual machine.
+scale_computing.hypercore.vm_info | Get information about existing virtual machines.
+scale_computing.hypercore.vm_params | Partialy update a virtual machine. Use when changing some of the properties of an existing VM.
+scale_computing.hypercore.vm_disk | Update block devices on VM.
+scale_computing.hypercore.vm_nic | Update network interfaces (NICs) on a VM.
+scale_computing.hypercore.vm_boot_devices | Set up a boot order for the specified VM.
+scale_computing.hypercore.vm_node_affinity | Set up node affinity for a specified VM.
+scale_computing.hypercore.node_info | Get the list of all nodes on a cluster. Needed to set node affinities for VMs.
+scale_computing.hypercore.remote_cluster_info | Get Information regarding remote replication clusters.
+scale_computing.hypercore.vm_replication | Configure a VM replication.
+scale_computing.hypercore.vm_replication_info | Get a VM replication configuration.
+scale_computing.hypercore.snapshot_schedule | Configure a snapshot schedule.
+scale_computing.hypercore.snapshot_schedule_info | Get the existing list of snapshot schedules.
+scale_computing.hypercore.iso | Upload a new ISO image, or edit an existing one.
+scale_computing.hypercore.iso_info | Get a list of available ISO images.
+scale_computing.hypercore.api | Use to directly access to HyperCore API.
+scale_computing.hypercore.vm_export | Export a VM to an SMB server.
+scale_computing.hypercore.vm_import | Import a VM from an SMB or an HTTP URI.
+scale_computing.hypercore.vm_clone | Clone a VM.
 
 # Examples
 
