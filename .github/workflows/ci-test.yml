@@ -1,0 +1,26 @@
+name: CI tests
+on:
+  - push
+jobs:
+  sanity-test:
+    runs-on: [self-hosted]
+    container: python:3.10-slim-buster
+    #env:
+    #  KEYCLOAK_API_CA_BUNDLE:
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: apt update
+      - run: apt install -y git make
+      - run: pip install ansible-core==2.13.1
+        # ansible-test needs special directory structure.
+      - run: mkdir -p /work-dir/ansible_collections/scale_computing/
+      - run: cp -a ./  /work-dir/ansible_collections/scale_computing/hypercore
+      - run: pushd /work-dir/ansible_collections/scale_computing/hypercore
+        # Same as "make sanity"
+        # TODO reuse Makefile
+      - run: black -t py38 --check --diff --color plugins tests/unit
+      - run: ansible-lint
+      - run: flake8 --exclude tests/output/
+      - run: ansible-test sanity
