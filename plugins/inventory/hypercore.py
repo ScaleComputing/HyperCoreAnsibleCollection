@@ -286,8 +286,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                         ansible_host = nic["ipv4Addresses"][0]
                         break
                 for tag in tags:
-                    if tag.startswith("ansible_host="):
-                        ansible_host = tag[len("ansible_host=") :]
+                    if tag.startswith("ansible_host__"):
+                        ansible_host = tag[len("ansible_host__") :]
                 # User
                 inventory = self.add_user(inventory, ansible_user, vm["name"])
                 # Port
