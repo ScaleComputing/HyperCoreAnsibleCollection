@@ -16,7 +16,7 @@ description:
   - Builds an inventory containing VMs on Scale Computing HyperCore.
   - Inventory uses tags to group VMs and to add variables to inventory.
   - VM can be added to multiple groups.
-  - Available tags - ansible_group__, ansible_user__, ansible_port__, ansible_ssh_private_key_file__.
+  - Available tags - ansible_host__, ansible_group__, ansible_user__, ansible_port__, ansible_ssh_private_key_file__.
   - Does not support caching.
 version_added: 0.0.1
 seealso: []
