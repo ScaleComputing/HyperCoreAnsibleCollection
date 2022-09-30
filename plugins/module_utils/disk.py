@@ -11,6 +11,35 @@ __metaclass__ = type
 from ..module_utils.utils import PayloadMapper
 from ..module_utils import errors
 
+TIERING_PRIORITY_MAPPING_FROM_ANSIBLE = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 4,
+    4: 8,
+    5: 16,
+    6: 32,
+    7: 64,
+    8: 128,
+    9: 256,
+    10: 1024,
+    11: 10240
+}
+TIERING_PRIORITY_MAPPING_TO_ANSIBLE = {
+    0: 0,
+    1: 1,
+    2: 2,
+    4: 3,
+    8: 4,
+    16: 5,
+    32: 6,
+    64: 7,
+    128: 8,
+    256: 9,
+    1024: 10,
+    10240: 11
+}
+
 
 class Disk(PayloadMapper):
     def __init__(
@@ -64,7 +93,7 @@ class Disk(PayloadMapper):
             disk_slot=self.slot,
             iso_name=self.name,
             disable_snapshotting=self.disable_snapshotting,
-            tiering_priority_factor=self.tiering_priority_factor,
+            tiering_priority_factor=TIERING_PRIORITY_MAPPING_TO_ANSIBLE[self.tiering_priority_factor] if self.tiering_priority_factor is not None else None,
             mount_points=self.mount_points,
             read_only=self.read_only,
         )
@@ -113,7 +142,7 @@ class Disk(PayloadMapper):
             cache_mode=ansible_dict.get("cache_mode", None),
             name=ansible_dict.get("iso_name", None),
             disable_snapshotting=ansible_dict.get("disable_snapshotting", None),
-            tiering_priority_factor=ansible_dict.get("tiering_priority_factor", None),
+            tiering_priority_factor=TIERING_PRIORITY_MAPPING_FROM_ANSIBLE[ansible_dict["tiering_priority_factor"]] if ansible_dict.get("tiering_priority_factor", None) is not None else None,
             mount_points=ansible_dict.get("mount_points", None),
             read_only=ansible_dict.get("read_only", None),
             uuid=ansible_dict.get("uuid", None),
@@ -158,3 +187,10 @@ class Disk(PayloadMapper):
             tieringPriorityFactor=tiering_priority_factor,
             virDomainUUID=vm.uuid,
         )
+
+    def needs_reboot(self, desired_disk):
+        # Only a few actions over disks require reboot.
+        # Delete and change type.
+        if self.type != desired_disk.type:
+            return True
+        return False

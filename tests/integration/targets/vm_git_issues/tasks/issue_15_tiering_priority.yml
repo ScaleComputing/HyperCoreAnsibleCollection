@@ -1,0 +1,155 @@
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-vm
+  scale_computing.hypercore.vm: &delete-XLAB-vm
+    vm_name: "{{ item }}"
+    state: absent
+  loop:
+    - XLAB-test-tiering-priority
+    - XLAB-test-tiering-priority-running
+
+# ----------------------------------Setup-----------------------------------------------------------------------------
+- name: Create a source VM
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-test-tiering-priority
+        tags: Xlab,integration
+        mem: 512100100
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+            name: jc1-disk-0
+            slot: 0
+      options:
+        attachGuestToolsISO: false
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is changed
+      - vm_created is succeeded
+
+- name: Retrieve XLAB-test-tiering-priority
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-tiering-priority
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks.0.tiering_priority_factor == 0
+
+- name: Create a source running VM
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-tiering-priority-running
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "testing"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    power_state: start
+    disks:
+    - type: virtio_disk
+      disk_slot: 0
+      size: "{{ '200 GB' | human_to_bytes }}"
+    nics: []
+    boot_devices:
+    - type: virtio_disk
+      disk_slot: 0
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-tiering-priority-running
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-tiering-priority-running
+  register: source_running_info
+- ansible.builtin.assert:
+    that:
+      - source_running_info.records | length == 1
+      - source_running_info.records.0.power_state == "started"
+      - source_running_info.records.0.disks | length == 2
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Change tiering_priority_factor to 6
+  scale_computing.hypercore.vm_disk:
+    vm_name: XLAB-test-tiering-priority
+    state: present
+    items:
+    - type: virtio_disk
+      disk_slot: 0
+      tiering_priority_factor: 6
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+      - output.vm_rebooted is false
+
+- name: Retrieve XLAB-test-tiering-priority
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-tiering-priority
+  register: changed_info
+- ansible.builtin.assert:
+    that:
+      - changed_info.records | length == 1
+      - changed_info.records.0.power_state == "stopped"
+      - changed_info.records.0.disks.0.tiering_priority_factor == 6
+
+- name: Get actual tiering_priority values from hypercore without mapping
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/VirDomain/{{vm_created.record.createdUUID}}
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record.0.name == "XLAB-test-tiering-priority"
+      - result.record.0.blockDevs.0.tieringPriorityFactor == 32
+
+- name: Change tiering_priority_factor to 6 on running
+  scale_computing.hypercore.vm_disk:
+    vm_name: XLAB-test-tiering-priority-running
+    state: present
+    items:
+    - type: virtio_disk
+      disk_slot: 0
+      tiering_priority_factor: 6
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+      - output.vm_rebooted is false
+
+- name: Retrieve XLAB-test-tiering-priority-running
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-tiering-priority-running
+  register: changed_running_info
+- ansible.builtin.assert:
+    that:
+      - changed_running_info.records | length == 1
+      - changed_running_info.records.0.power_state == "started"
+      - changed_running_info.records.0.disks.1.tiering_priority_factor == 6
+
+- name: Get actual tiering_priority values from hypercore without mapping on running VM
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/VirDomain/{{ changed_running_info.records.0.uuid }}
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record.0.name == "XLAB-test-tiering-priority-running"
+      - result.record.0.blockDevs.1.tieringPriorityFactor == 32
+
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-vm
+  scale_computing.hypercore.vm: *delete-XLAB-vm
+  loop:
+    - XLAB-test-tiering-priority
+    - XLAB-test-tiering-priority-running

@@ -342,6 +342,7 @@ def main():
                     ),
                     tiering_priority_factor=dict(
                         type="int",
+                        choices=[0,1,2,3,4,5,6,7,8,9,10,11]
                     ),
                 ),
             ),
