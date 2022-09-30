@@ -87,7 +87,22 @@
         that:
           - cluster_connection_info is succeeded
           - cluster_connection_info.record | length > 0
-  
+
+# -------------------------------------------------------------------------
+# Test vm_replication_info for VM without replication
+    - name: Get replication info for one VM
+      scale_computing.hypercore.vm_replication_info:
+        vm_name: XLAB-vm_replication_info_CI_test
+      register: replication_info
+    - ansible.builtin.assert:
+        that:
+          - replication_info is succeeded
+          - replication_info is not changed
+          - replication_info.records | length == 1
+          - replication_info.records[0].vm_name == 'XLAB-vm_replication_info_CI_test'
+          - replication_info.records[0].state == 'enabled'
+          - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"
+
 # -------------------------------------------------------------------------
     - name: Create replication
       scale_computing.hypercore.api:
@@ -158,18 +173,3 @@
           - replication_info_all.records[1].state in ['enabled', 'disabled']
           - replication_info_all.records[1].remote_cluster
 
-    - name: Delete XLAB-vm_replication_info_CI_test
-      scale_computing.hypercore.vm: *delete-XLAB-vm_nic_CI_test
-      register: output
-    - ansible.builtin.assert:
-        that:
-          - output is succeeded
-          - output is changed
-
-    - name: Delete XLAB-vm2_replication_info_CI_test
-      scale_computing.hypercore.vm: *delete-XLAB-vm2_nic_CI_test
-      register: output
-    - ansible.builtin.assert:
-        that:
-          - output is succeeded
-          - output is changed
