@@ -22,19 +22,19 @@
 #            vlan: 0
 #            connected: true
       - name: ci-inventory-vm1
-        tags: Xlab,ci-inventory,ansible_disable,ansible_host=10.0.0.1,ansible_user__first,ansible_port__33
+        tags: Xlab,ci-inventory,ansible_disable,ansible_host__10.0.0.1,ansible_user__first,ansible_port__33
         mem: 512100100
         numVCPU: 1
       - name: ci-inventory-vm2
-        tags: Xlab,ci-inventory,ansible_disable,ansible_enable,ansible_host=10.0.0.2
+        tags: Xlab,ci-inventory,ansible_disable,ansible_enable,ansible_host__10.0.0.2
         mem: 512100100
         numVCPU: 1
       - name: ci-inventory-vm3
-        tags: Xlab,ci-inventory,ansible_enable,ansible_host=10.0.0.3,ansible_ssh_private_key_file__that_file.txt
+        tags: Xlab,ci-inventory,ansible_enable,ansible_host__10.0.0.3,ansible_ssh_private_key_file__that_file.txt
         mem: 512100100
         numVCPU: 1
       - name: ci-inventory-vm4
-        tags: Xlab,ci-inventory,ansible_enable,ansible_group__grp0,ansible_host=10.0.0.4
+        tags: Xlab,ci-inventory,ansible_enable,ansible_group__grp0,ansible_host__10.0.0.4
         mem: 512100100
         numVCPU: 1
       - name: ci-inventory-vm5
