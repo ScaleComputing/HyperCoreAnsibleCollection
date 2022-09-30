@@ -28,7 +28,7 @@ class TestDisk:
             cache_mode="none",
             iso_name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
@@ -60,7 +60,7 @@ class TestDisk:
             cache_mode="none",
             iso_name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
@@ -175,7 +175,7 @@ class TestDisk:
             cache_mode="none",
             iso_name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
