@@ -21,6 +21,17 @@ build_ignore:
   - .idea
   - .gitignore
   - tests
+  - docs
+  # all this should be under hacking/ or similar
+  - .ansible-lint
+  - .flake8
+  - ci-infra
+  - DEVELOPMENT.md
+  - docs.requirements
+  - sanity.requirements
+  - test.requirements
+  - Makefile
   # files used during local testing/building
   - ansible.cfg
   - examples
+  - .gitlab-ci.yml
