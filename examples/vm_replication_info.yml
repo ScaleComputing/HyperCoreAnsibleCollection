@@ -6,11 +6,11 @@
     vm_name: demo-vm
 
   tasks:
-  - name: Get replication info for VM {{ vm_name }}
-    scale_computing.hypercore.vm_replication_info:
-      vm_name: "{{ vm_name }}"
-    register: replication_info_result
+    - name: Get replication info for VM {{ vm_name }}
+      scale_computing.hypercore.vm_replication_info:
+        vm_name: "{{ vm_name }}"
+      register: replication_info_result
 
-  - name: Show the replication info status of {{ vm_name }} VM
-    debug:
-      var: replication_info_result
+    - name: Show the replication info status of {{ vm_name }} VM
+      debug:
+        var: replication_info_result

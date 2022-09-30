@@ -6,11 +6,11 @@
     vm_name: demo-vm
 
   tasks:
-  - name: Get info about VM {{ vm_name }}
-    scale_computing.hypercore.vm_info:
-      vm_name: "{{ vm_name }}"
-    register: vm_info_result
+    - name: Get info about VM {{ vm_name }}
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name }}"
+      register: vm_info_result
 
-  - name: Show the info about {{ vm_name }} VM
-    debug:
-      var: vm_info_result
+    - name: Show the info about {{ vm_name }} VM
+      debug:
+        var: vm_info_result
