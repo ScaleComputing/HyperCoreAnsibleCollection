@@ -118,7 +118,9 @@ class Disk(PayloadMapper):
                 disable_snapshotting=hypercore_dict["disableSnapshotting"],
                 tiering_priority_factor=TIERING_PRIORITY_MAPPING_FROM_HYPERCORE[
                     hypercore_dict["tieringPriorityFactor"]
-                ],
+                ]
+                if hypercore_dict["tieringPriorityFactor"] is not None
+                else None,
                 mount_points=hypercore_dict["mountPoints"],
                 read_only=hypercore_dict["readOnly"],
             )
