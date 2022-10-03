@@ -31,6 +31,7 @@ TIERING_PRIORITY_MAPPING_FROM_HYPERCORE = {
     2: 2,
     4: 3,
     8: 4,
+    12: 5,
     16: 5,
     32: 6,
     64: 7,
