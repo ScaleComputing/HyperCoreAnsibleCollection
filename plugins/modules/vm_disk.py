@@ -92,6 +92,7 @@ options:
           - tiering_priority_factor won't be relevant on cluster that only has a
             single tier - ie. only spinning disk or all flash.
         choices: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ]
+        default: 4
       type_new:
         type: str
         description:
@@ -342,7 +343,9 @@ def main():
                         type="str",
                     ),
                     tiering_priority_factor=dict(
-                        type="int", choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+                        type="int",
+                        choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+                        default=4,
                     ),
                 ),
             ),
