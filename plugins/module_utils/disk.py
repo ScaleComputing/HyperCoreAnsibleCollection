@@ -31,7 +31,6 @@ TIERING_PRIORITY_MAPPING_FROM_HYPERCORE = {
     2: 2,
     4: 3,
     8: 4,
-    12: 5,
     16: 5,
     32: 6,
     64: 7,
@@ -187,13 +186,8 @@ class Disk(PayloadMapper):
         )
 
     def patch_payload(self, vm, previous_disk):
-        if self.tiering_priority_factor:
-            tiering_priority_factor = self.tiering_priority_factor
-        else:
-            tiering_priority_factor = previous_disk.tiering_priority_factor
         return dict(
             {key: val for key, val in self.to_hypercore().items() if val},
-            tieringPriorityFactor=tiering_priority_factor,
             virDomainUUID=vm.uuid,
         )
 

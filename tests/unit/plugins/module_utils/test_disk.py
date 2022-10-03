@@ -310,7 +310,7 @@ class TestDisk:
             cache_mode="none",
             size=4200,
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             read_only=False,
         )
 
@@ -322,12 +322,10 @@ class TestDisk:
         )
 
         payload = disk.patch_payload(vm, previous_disk)
-
         assert payload == dict(
             type="IDE_CDROM",
             capacity=5000,
             slot=1,
             disableSnapshotting=True,
-            tieringPriorityFactor=8,
             virDomainUUID="id",
         )

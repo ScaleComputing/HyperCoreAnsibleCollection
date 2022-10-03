@@ -2249,7 +2249,7 @@ class TestManageVMDisks:
             size=5000,
             name="jc1-disk-0",
             disable_snapshotting=True,
-            tiering_priority_factor=64,
+            tiering_priority_factor=8,
             mount_points=[],
             read_only=False,
         )
@@ -2263,7 +2263,7 @@ class TestManageVMDisks:
             size=4200,
             name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
