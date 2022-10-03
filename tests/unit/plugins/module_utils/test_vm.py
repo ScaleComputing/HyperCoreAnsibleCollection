@@ -405,7 +405,7 @@ class TestVM:
                     uuid="id",
                     name="jc1-disk-0",
                     disable_snapshotting=False,
-                    tiering_priority_factor=8,
+                    tiering_priority_factor=4,
                     mount_points=[],
                     read_only=False,
                 ),
@@ -1306,7 +1306,7 @@ class TestVMImport:
                     size=4200,
                     name="jc1-disk-0",
                     disable_snapshotting=False,
-                    tiering_priority_factor=8,
+                    tiering_priority_factor=4,
                     mount_points=[],
                     read_only=False,
                 )
@@ -2052,7 +2052,7 @@ class TestManageVMDisks:
                     size=4200,
                     name="jc1-disk-0",
                     disable_snapshotting=False,
-                    tiering_priority_factor=8,
+                    tiering_priority_factor=4,
                     mount_points=[],
                     read_only=False,
                 )
@@ -2130,7 +2130,7 @@ class TestManageVMDisks:
             size=4200,
             name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
