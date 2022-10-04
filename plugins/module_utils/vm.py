@@ -1028,6 +1028,8 @@ class ManageVMDisks:
             disk_query = filter_dict(ansible_desired_disk, "disk_slot", "type")
             ansible_existing_disk = vm_before.get_specific_disk(disk_query)
             desired_disk = Disk.from_ansible(ansible_desired_disk)
+            if ansible_existing_disk["size"] > ansible_desired_disk["size"]:
+                raise errors.ScaleComputingError("Disk size can only be enlarged, never downsized.")
             if ansible_desired_disk["type"] == "ide_cdrom":
                 # ISO image detachment
                 # Check if ide_cdrom disk already exists

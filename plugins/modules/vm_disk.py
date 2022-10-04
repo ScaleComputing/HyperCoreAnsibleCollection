@@ -69,8 +69,9 @@ options:
       size:
         type: int
         description:
-          - Logical size of the device in bytes. Can be used for resizing or creating the disk.
+          - Logical size of the device in bytes. Can be used for enlarging or creating the disk.
           - In case you're creating a disk, size needs to be specified.
+          - Disk size can only be enlarged, never downsized.
       type:
         type: str
         description:

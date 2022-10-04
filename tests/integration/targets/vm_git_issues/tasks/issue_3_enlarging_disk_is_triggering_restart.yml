@@ -1,0 +1,181 @@
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-vm
+  scale_computing.hypercore.vm: &delete-XLAB-vm
+    vm_name: "{{ item }}"
+    state: absent
+  loop:
+    - XLAB-test-disk-enlarged
+    - XLAB-test-disk-enlarged-running
+
+# ----------------------------------Setup-----------------------------------------------------------------------------
+- name: Make source vm
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-disk-enlarged 
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "test"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    power_state: stop
+    disks:
+    - type: virtio_disk
+      disk_slot: 0
+      size: "{{ '200 GB' | human_to_bytes }}"
+    nics:
+    - vlan: 0
+      type: virtio
+    boot_devices:
+    - type: virtio_disk
+      disk_slot: 0
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-disk-enlarged
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-disk-enlarged
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.disks | length == 2
+      - source_info.records.0.disks.1.size == 214748364800
+      - source_info.records.0.power_state == "stopped"
+
+- name: Make source running vm
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-disk-enlarged-running 
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "test"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    power_state: start
+    disks:
+    - type: virtio_disk
+      disk_slot: 0
+      size: "{{ '200 GB' | human_to_bytes }}"
+    nics:
+    - vlan: 0
+      type: virtio
+    boot_devices:
+    - type: virtio_disk
+      disk_slot: 0
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-disk-enlarged-running
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-disk-enlarged-running
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.disks | length == 2
+      - source_info.records.0.disks.1.size == 214748364800
+      - source_info.records.0.power_state == "started"
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Change size to 250
+  scale_computing.hypercore.vm_disk:
+    vm_name: XLAB-test-disk-enlarged
+    state: present
+    items:
+      - disk_slot: 0
+        type: virtio_disk
+        size: "{{ '250 GB' | human_to_bytes }}"
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+      - output.vm_rebooted is false
+
+- name: Retrieve XLAB-test-disk-enlarged
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-disk-enlarged
+  register: changed_info
+- ansible.builtin.assert:
+    that:
+      - changed_info.records | length == 1
+      - changed_info.records.0.disks | length == 2
+      - changed_info.records.0.disks.1.size == 268435456000
+      - changed_info.records.0.power_state == "stopped"
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Change size to 250 on running
+  scale_computing.hypercore.vm_disk:
+    vm_name: XLAB-test-disk-enlarged-running
+    state: present
+    items:
+      - disk_slot: 0
+        type: virtio_disk
+        size: "{{ '250 GB' | human_to_bytes }}"
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+      - output.vm_rebooted is false
+
+- name: Retrieve XLAB-test-disk-enlarged-running
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-disk-enlarged-running
+  register: changed_info_running
+- ansible.builtin.assert:
+    that:
+      - changed_info_running.records | length == 1
+      - changed_info_running.records.0.disks | length == 2
+      - changed_info_running.records.0.disks.1.size == 268435456000
+      - changed_info_running.records.0.power_state == "started"
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Try to downsize
+  scale_computing.hypercore.vm_disk:
+    vm_name: XLAB-test-disk-enlarged
+    state: present
+    items:
+      - disk_slot: 0
+        type: virtio_disk
+        size: "{{ '200 GB' | human_to_bytes }}"
+  ignore_errors: True
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is not changed
+      - output is not succeeded
+
+- name: Try to downsize on running
+  scale_computing.hypercore.vm_disk:
+    vm_name: XLAB-test-disk-enlarged-running
+    state: present
+    items:
+      - disk_slot: 0
+        type: virtio_disk
+        size: "{{ '200 GB' | human_to_bytes }}"
+  ignore_errors: True
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is not changed
+      - output is not succeeded
+
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-vm
+  scale_computing.hypercore.vm: *delete-XLAB-vm
+  register: output
+  loop:
+    - XLAB-test-disk-enlarged
+    - XLAB-test-disk-enlarged-running
+- ansible.builtin.assert:
+    that:
+      - output is changed
