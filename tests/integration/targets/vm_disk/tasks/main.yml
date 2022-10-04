@@ -28,6 +28,7 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
           - result is changed
 
     - name: Create virtio disk in slot 0 with 5GB space
@@ -41,6 +42,8 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          - result is changed
           - result.record | length == 2  # One CDROM is added by default
           - result.record.1.type == "virtio_disk"
           - result.record.1.disk_slot == 0
@@ -55,6 +58,7 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
           - result is not changed
 
     - name: Resize the disk to 10GB (update)
@@ -68,6 +72,8 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          - result is changed
           - result.record | length == 2  # One CDROM is added by default
           - result.record.1.type == "virtio_disk"
           - result.record.1.disk_slot == 0
@@ -90,6 +96,8 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          - result is changed
           - result.record | length == 2  # One CDROM is added by default
           - result.record.1.type == "ide_disk"
           # Note: We had a single virtio disk before change.
@@ -101,6 +109,8 @@
           - result.record.1.tiering_priority_factor == 4
           - result.record.1.cache_mode == "writeback"
           - result.record.1.disable_snapshotting == false
+    # As the disk_slot changed, this task is NOT idempotent.
+    # We would need to add also disk_slot_new to get this idempotent.
 
     - name: Remove the previously updated disk
       scale_computing.hypercore.vm_disk:
@@ -112,6 +122,8 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          - result is changed
           - result.record | length == 1
           - result.record.0.type == "ide_cdrom"
 
@@ -146,6 +158,8 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          - result is changed
           - result.record.0.type == "ide_cdrom"
           - result.record.0.disk_slot == 0
           - result.record.0.iso_name == "TinyCore-vm-disk-integration.iso"
@@ -156,6 +170,8 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          - result is not changed
           - result.records.0.mounts.0.vm_name == "vm-integration-test-disks"
 
     - name: Detach ISO image from the disk
@@ -168,6 +184,8 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          # - result is changed
           - result.record.0.iso_name == ""
 
     - name: Assert that ISO image isn't mounted on vm-integration-test-disks anymore
@@ -176,6 +194,8 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          - result is not changed
           - result.records.0.mounts == []
 
     - name: Remove all previous disks and set new virtio disk with 5 GB space in slot 1
@@ -189,6 +209,7 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
           - result is changed
           - result.record | length == 1
           - result.record.0.type == "virtio_disk"
@@ -208,6 +229,7 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
           - result is changed
           - result.record == []
 
@@ -222,7 +244,7 @@
       register: file_deleted
     - ansible.builtin.assert:
         that:
-          file_deleted is changed
+          - file_deleted is changed
 
     - name: Delete the VM on which the tests were performed
       scale_computing.hypercore.vm: *vm-delete
