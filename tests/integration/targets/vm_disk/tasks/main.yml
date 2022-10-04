@@ -46,6 +46,9 @@
           - result.record.1.disk_slot == 0
           - result.record.1.size == 5368709120
           - result.record.1.iso_name == ""
+          - result.record.1.tiering_priority_factor == 4
+          - result.record.1.cache_mode == "none"
+          - result.record.1.disable_snapshotting == false
 
     - name: Create another virtio (test idempotence)
       scale_computing.hypercore.vm_disk: *create-virtio-disk
@@ -65,7 +68,14 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result.record | length == 2  # One CDROM is added by default
+          - result.record.1.type == "virtio_disk"
+          - result.record.1.disk_slot == 0
           - result.record.1.size == 10737418240
+          - result.record.1.iso_name == ""
+          - result.record.1.tiering_priority_factor == 4
+          - result.record.1.cache_mode == "none"
+          - result.record.1.disable_snapshotting == false
 
     - name: Update existing disk - resize, change type of the disk and cache_mode
       scale_computing.hypercore.vm_disk:
@@ -80,9 +90,17 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - result.record.1.size == 11918534246
+          - result.record | length == 2  # One CDROM is added by default
           - result.record.1.type == "ide_disk"
+          # Note: We had a single virtio disk before change.
+          # After change we have 2 IDE drives - CDROM and disk.
+          # => disk slot number just changed!
+          - result.record.1.disk_slot == 1
+          - result.record.1.size == 11918534246
+          - result.record.1.iso_name == ""
+          - result.record.1.tiering_priority_factor == 4
           - result.record.1.cache_mode == "writeback"
+          - result.record.1.disable_snapshotting == false
 
     - name: Remove the previously updated disk
       scale_computing.hypercore.vm_disk:
@@ -172,9 +190,14 @@
     - ansible.builtin.assert:
         that:
           - result is changed
+          - result.record | length == 1
           - result.record.0.type == "virtio_disk"
           - result.record.0.disk_slot == 1
           - result.record.0.size == 5368709120
+          - result.record.0.iso_name == ""
+          - result.record.0.tiering_priority_factor == 4
+          - result.record.0.cache_mode == "none"
+          - result.record.0.disable_snapshotting == false
 
     - name: Force remove all disks
       scale_computing.hypercore.vm_disk:
