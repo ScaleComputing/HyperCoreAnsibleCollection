@@ -30,9 +30,7 @@ TIERING_PRIORITY_MAPPING_FROM_HYPERCORE = {
     1: 1,
     2: 2,
     4: 3,
-    6: 4,
     8: 4,
-    12: 5,
     16: 5,
     32: 6,
     64: 7,
@@ -121,8 +119,9 @@ class Disk(PayloadMapper):
                 tiering_priority_factor=TIERING_PRIORITY_MAPPING_FROM_HYPERCORE[
                     hypercore_dict["tieringPriorityFactor"]
                 ]
-                if hypercore_dict["tieringPriorityFactor"] is not None
-                else None,
+                if hypercore_dict["tieringPriorityFactor"]
+                in TIERING_PRIORITY_MAPPING_FROM_HYPERCORE
+                else 4,  # Hypercore sometimes returns values outside the mapping table, so we set it to default.
                 mount_points=hypercore_dict["mountPoints"],
                 read_only=hypercore_dict["readOnly"],
             )
