@@ -20,6 +20,17 @@ description:
   attach and/or detach ISO image to the VM by ISO's name,
   detach ISO image from the VM by disk's disk slot,
   or update the existing disks (disk size etc.).
+
+  For a given VM, a particular disk is selected by combination of (I(type), I(disk_slot)).
+  I(disk_slot) means slot on bus (IDE, virtio or SCSI bus).
+
+  Changing disk I(type) can change its I(disk_slot).
+  For example, VM has one IDE CD-ROM and one virtio_disk.
+  The disk will have C(type=virtio_disk) and C(disk_slot=0),
+  and CD-ROM will have C(type=ide_cdrom) and C(disk_slot=0).
+  Changing disk I(type) to C(ide_disk) will as place disk on IDE bus,
+  after the CD-ROM, and disk will get C(disk_slot=1).
+
 version_added: 0.0.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -91,6 +102,8 @@ options:
           - Check the tiering documentation for best practices when modifying this.
           - tiering_priority_factor won't be relevant on cluster that only has a
             single tier - ie. only spinning disk or all flash.
+        choices: [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ]
+        default: 4
       type_new:
         type: str
         description:
@@ -342,6 +355,8 @@ def main():
                     ),
                     tiering_priority_factor=dict(
                         type="int",
+                        choices=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+                        default=4,
                     ),
                 ),
             ),

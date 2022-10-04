@@ -925,7 +925,6 @@ class ManageVMDisks:
     def _create_block_device(module, rest_client, vm, desired_disk):
         # vm is instance of VM, desired_disk is instance of Disk
         payload = desired_disk.post_payload(vm)
-        vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomainBlockDevice",
             payload,
@@ -952,7 +951,8 @@ class ManageVMDisks:
     @staticmethod
     def _update_block_device(module, rest_client, desired_disk, existing_disk, vm):
         payload = desired_disk.patch_payload(vm, existing_disk)
-        vm.do_shutdown_steps(module, rest_client)
+        if existing_disk.needs_reboot(desired_disk):
+            vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
             "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
             payload,
