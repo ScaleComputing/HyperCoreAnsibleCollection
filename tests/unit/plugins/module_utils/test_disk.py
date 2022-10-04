@@ -28,7 +28,7 @@ class TestDisk:
             cache_mode="none",
             iso_name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
@@ -41,7 +41,7 @@ class TestDisk:
             uuid="id",
             name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
@@ -60,7 +60,7 @@ class TestDisk:
             cache_mode="none",
             iso_name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
@@ -72,7 +72,7 @@ class TestDisk:
             size=4200,
             name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
             uuid="id",
@@ -91,7 +91,7 @@ class TestDisk:
             size=4200,
             name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
@@ -144,7 +144,7 @@ class TestDisk:
             size=4200,
             name="jc1-disk-0",
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             mount_points=[],
             read_only=False,
         )
@@ -195,7 +195,6 @@ class TestDisk:
         )
 
         disk_to_ansible = disk.to_ansible()
-
         assert disk_to_ansible == ansible_dict
 
     def test_equal(self):
@@ -244,7 +243,7 @@ class TestDisk:
             cache_mode="none",
             size=4200,
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             read_only=False,
         )
 
@@ -311,7 +310,7 @@ class TestDisk:
             cache_mode="none",
             size=4200,
             disable_snapshotting=False,
-            tiering_priority_factor=8,
+            tiering_priority_factor=4,
             read_only=False,
         )
 
@@ -323,12 +322,10 @@ class TestDisk:
         )
 
         payload = disk.patch_payload(vm, previous_disk)
-
         assert payload == dict(
             type="IDE_CDROM",
             capacity=5000,
             slot=1,
             disableSnapshotting=True,
-            tieringPriorityFactor=8,
             virDomainUUID="id",
         )

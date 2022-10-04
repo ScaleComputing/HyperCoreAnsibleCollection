@@ -11,6 +11,37 @@ __metaclass__ = type
 from ..module_utils.utils import PayloadMapper
 from ..module_utils import errors
 
+TIERING_PRIORITY_MAPPING_TO_HYPERCORE = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 4,
+    4: 8,
+    5: 16,
+    6: 32,
+    7: 64,
+    8: 128,
+    9: 256,
+    10: 1024,
+    11: 10240,
+}
+TIERING_PRIORITY_MAPPING_FROM_HYPERCORE = {
+    0: 0,
+    1: 1,
+    2: 2,
+    4: 3,
+    8: 4,
+    16: 5,
+    32: 6,
+    64: 7,
+    128: 8,
+    256: 9,
+    1024: 10,
+    10240: 11,
+}
+# default tiering priority is 8 on HyperCore side == 4 in ansible
+TIERING_PRIORITY_DEFAULT = 4
+
 
 class Disk(PayloadMapper):
     def __init__(
@@ -49,7 +80,11 @@ class Disk(PayloadMapper):
             slot=self.slot,
             name=self.name,
             disableSnapshotting=self.disable_snapshotting,
-            tieringPriorityFactor=self.tiering_priority_factor,
+            tieringPriorityFactor=TIERING_PRIORITY_MAPPING_TO_HYPERCORE[
+                self.tiering_priority_factor
+            ]
+            if self.tiering_priority_factor is not None
+            else None,
             mountPoints=self.mount_points,
             readOnly=self.read_only,
         )
@@ -83,7 +118,13 @@ class Disk(PayloadMapper):
                 slot=hypercore_dict["slot"],
                 name=hypercore_dict["name"],
                 disable_snapshotting=hypercore_dict["disableSnapshotting"],
-                tiering_priority_factor=hypercore_dict["tieringPriorityFactor"],
+                # Hypercore sometimes returns values outside the mapping table, so we set it to default.
+                tiering_priority_factor=TIERING_PRIORITY_MAPPING_FROM_HYPERCORE[
+                    hypercore_dict["tieringPriorityFactor"]
+                ]
+                if hypercore_dict["tieringPriorityFactor"]
+                in TIERING_PRIORITY_MAPPING_FROM_HYPERCORE
+                else TIERING_PRIORITY_DEFAULT,
                 mount_points=hypercore_dict["mountPoints"],
                 read_only=hypercore_dict["readOnly"],
             )
@@ -149,12 +190,14 @@ class Disk(PayloadMapper):
         )
 
     def patch_payload(self, vm, previous_disk):
-        if self.tiering_priority_factor:
-            tiering_priority_factor = self.tiering_priority_factor
-        else:
-            tiering_priority_factor = previous_disk.tiering_priority_factor
         return dict(
             {key: val for key, val in self.to_hypercore().items() if val},
-            tieringPriorityFactor=tiering_priority_factor,
             virDomainUUID=vm.uuid,
         )
+
+    def needs_reboot(self, desired_disk):
+        # Only a few actions over disks require reboot.
+        # Delete and change type.
+        if self.type != desired_disk.type:
+            return True
+        return False
