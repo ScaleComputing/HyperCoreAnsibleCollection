@@ -39,6 +39,8 @@ TIERING_PRIORITY_MAPPING_FROM_HYPERCORE = {
     1024: 10,
     10240: 11,
 }
+# default tiering priority is 8 on HyperCore side == 4 in ansible
+TIERING_PRIORITY_DEFAULT = 4
 
 
 class Disk(PayloadMapper):
@@ -116,12 +118,13 @@ class Disk(PayloadMapper):
                 slot=hypercore_dict["slot"],
                 name=hypercore_dict["name"],
                 disable_snapshotting=hypercore_dict["disableSnapshotting"],
+                # Hypercore sometimes returns values outside the mapping table, so we set it to default.
                 tiering_priority_factor=TIERING_PRIORITY_MAPPING_FROM_HYPERCORE[
                     hypercore_dict["tieringPriorityFactor"]
                 ]
                 if hypercore_dict["tieringPriorityFactor"]
                 in TIERING_PRIORITY_MAPPING_FROM_HYPERCORE
-                else 4,  # Hypercore sometimes returns values outside the mapping table, so we set it to default.
+                else TIERING_PRIORITY_DEFAULT,
                 mount_points=hypercore_dict["mountPoints"],
                 read_only=hypercore_dict["readOnly"],
             )
