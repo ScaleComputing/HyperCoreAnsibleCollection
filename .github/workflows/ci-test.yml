@@ -94,5 +94,4 @@ jobs:
           EOF
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
       # - run: cd $WORKDIR && cat tests/integration/integration_config.yml
-      - run: cd $WORKDIR && ansible-test integration vm_git_issues -v
       - run: cd $WORKDIR && ansible-test integration
