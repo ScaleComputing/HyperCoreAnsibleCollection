@@ -260,7 +260,6 @@ def ensure_absent(module, rest_client):
                 module, rest_client, iso, uuid, attach=False
             )
         else:
-            vm_before.do_shutdown_steps(module, rest_client)
             task_tag = rest_client.delete_record(
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
                 module.check_mode,
