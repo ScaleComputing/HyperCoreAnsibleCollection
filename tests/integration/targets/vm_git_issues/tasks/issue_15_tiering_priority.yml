@@ -39,7 +39,9 @@
     that:
       - source_info.records | length == 1
       - source_info.records.0.power_state == "stopped"
-      - source_info.records.0.disks.0.tiering_priority_factor == 0
+      # The value is 0 if test cluster does not support tiering,
+      # and 4 (default set by HyperCore side) if test cluster does support tiering.
+      - source_info.records.0.disks.0.tiering_priority_factor in [0, 4]
 
 - name: Create a source running VM
   scale_computing.hypercore.vm:
