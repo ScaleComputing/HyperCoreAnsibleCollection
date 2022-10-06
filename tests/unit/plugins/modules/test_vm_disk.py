@@ -299,7 +299,7 @@ class TestEnsureAbsent:
         results = vm_disk.ensure_absent(module, rest_client)
         print(results)
         assert results == (
-            True,
+            False,
             [],
             {
                 "after": [],
