@@ -121,7 +121,7 @@ class TestEnsurePresent:
                         frequency="FREQ=WEEKLY;INTERVAL=1;BYDAY=TU",
                         start="2010-01-01 00:00:00",
                         local_retention=604800,
-                        remote_retention=None
+                        remote_retention=None,
                     )
                 ],
             ),
@@ -155,7 +155,6 @@ class TestEnsurePresent:
                 },
             },
         )
-
 
     def test_ensure_present_snapshot_schedule_image_absent(
         self, create_module, rest_client
