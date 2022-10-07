@@ -602,28 +602,16 @@ class TestVM:
 
         post_vm_payload = vm.post_vm_payload(rest_client, {})
 
-        assert post_vm_payload == {
-            "dom": {
-                "blockDevs": [
-                    {
-                        "cacheMode": "WRITETHROUGH",
-                        "capacity": 0,
-                        "path": "",
-                        "type": "IDE_CDROM",
-                        "uuid": "cdrom",
-                    }
-                ],
-                "bootDevices": [],
-                "description": "desc",
-                "machineType": "scale-7.2",
-                "mem": 42,
-                "name": "VM-name",
-                "netDevs": [],
-                "numVCPU": 2,
-                "tags": "XLAB-test-tag1,XLAB-test-tag2",
-            },
-            "options": {"attachGuestToolsISO": False},
-        }
+        assert post_vm_payload == {'dom': {'blockDevs': [],
+         'bootDevices': [],
+         'description': 'desc',
+         'machineType': 'scale-7.2',
+         'mem': 42,
+         'name': 'VM-name',
+         'netDevs': [],
+         'numVCPU': 2,
+         'tags': 'XLAB-test-tag1,XLAB-test-tag2'},
+ 'options': {'attachGuestToolsISO': False}}
 
     def test_post_vm_payload_cloud_init_present(self, rest_client):
         vm = VM(
@@ -656,15 +644,7 @@ class TestVM:
                     "metaData": "Y2xvdWRfaW5pdC1tZXRhLWRhdGE=",
                     "userData": "Y2xvdWRfaW5pdC11c2VyLWRhdGE=",
                 },
-                "blockDevs": [
-                    {
-                        "cacheMode": "WRITETHROUGH",
-                        "capacity": 0,
-                        "path": "",
-                        "type": "IDE_CDROM",
-                        "uuid": "cdrom",
-                    }
-                ],
+                "blockDevs": [],
                 "bootDevices": [],
                 "description": "desc",
                 "machineType": "scale-7.2",
@@ -723,13 +703,6 @@ class TestVM:
             },
             "attachGuestToolsISO": False,
             "blockDevs": [
-                {
-                    "cacheMode": "WRITETHROUGH",
-                    "capacity": 0,
-                    "path": "",
-                    "type": "IDE_CDROM",
-                    "uuid": "cdrom",
-                },
                 {
                     "cacheMode": "NONE",
                     "capacity": 4200,

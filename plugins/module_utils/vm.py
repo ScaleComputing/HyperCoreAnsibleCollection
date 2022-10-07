@@ -460,7 +460,6 @@ class VM(PayloadMapper):
     @staticmethod
     def _post_vm_payload_set_disks(vm_hypercore_dict, rest_client):
         disks_payload = []
-        cdrom_exists = False
         primary_disk_set = False
         for disk in vm_hypercore_dict["blockDevs"]:
             disk_payload = dict()
@@ -474,14 +473,11 @@ class VM(PayloadMapper):
                 iso_name = disk["name"]
                 iso = ISO.get_by_name(dict(name=iso_name), rest_client, must_exist=True)
                 disk_payload["path"] = iso.path
-                cdrom_exists = True
             if not primary_disk_set and disk_payload["type"] != "IDE_CDROM":
                 # Assign the first disk to be the primary
                 disk_payload["uuid"] = DEFAULT_DISK_OTHER_PAYLOAD["uuid"]
                 primary_disk_set = True
             disks_payload.append(disk_payload)
-        if not cdrom_exists:
-            disks_payload.insert(0, DEFAULT_DISK_CDROM_PAYLOAD)
         vm_hypercore_dict["blockDevs"] = disks_payload
 
     def delete_unused_nics_to_hypercore_vm(self, module, rest_client, nic_key):
