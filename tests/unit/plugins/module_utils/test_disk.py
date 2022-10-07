@@ -228,7 +228,7 @@ class TestDisk:
 
         assert disk1 == disk2
 
-    def test_post_payload(self):
+    def test_post_and_patch_payload(self):
 
         vm = VM(
             uuid="id",
@@ -247,85 +247,12 @@ class TestDisk:
             read_only=False,
         )
 
-        payload = disk.post_payload(vm)
+        payload = disk.post_and_patch_payload(vm)
 
         assert payload == dict(
             type="VIRTIO_DISK",
             cacheMode="NONE",
             capacity=4200,
             tieringPriorityFactor=8,
-            virDomainUUID="id",
-        )
-
-    def test_patch_payload_tiering_priority_factor_present(self):
-
-        vm = VM(
-            uuid="id",
-            name="VM-name",
-            memory=42,
-            vcpu=2,
-        )
-
-        previous_disk = Disk(
-            type="virtio_disk",
-            slot=0,
-            cache_mode="none",
-            size=4200,
-            disable_snapshotting=False,
-            tiering_priority_factor=8,
-            read_only=False,
-        )
-
-        disk = Disk(
-            type="ide_cdrom",
-            slot=1,
-            size=5000,
-            disable_snapshotting=True,
-            tiering_priority_factor=2,
-        )
-
-        payload = disk.patch_payload(vm, previous_disk)
-
-        assert payload == dict(
-            type="IDE_CDROM",
-            capacity=5000,
-            slot=1,
-            disableSnapshotting=True,
-            tieringPriorityFactor=2,
-            virDomainUUID="id",
-        )
-
-    def test_patch_payload_tiering_priority_factor_absent(self):
-
-        vm = VM(
-            uuid="id",
-            name="VM-name",
-            memory=42,
-            vcpu=2,
-        )
-
-        previous_disk = Disk(
-            type="virtio_disk",
-            slot=0,
-            cache_mode="none",
-            size=4200,
-            disable_snapshotting=False,
-            tiering_priority_factor=4,
-            read_only=False,
-        )
-
-        disk = Disk(
-            type="ide_cdrom",
-            slot=1,
-            size=5000,
-            disable_snapshotting=True,
-        )
-
-        payload = disk.patch_payload(vm, previous_disk)
-        assert payload == dict(
-            type="IDE_CDROM",
-            capacity=5000,
-            slot=1,
-            disableSnapshotting=True,
             virDomainUUID="id",
         )

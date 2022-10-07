@@ -151,7 +151,7 @@ EXAMPLES = r"""
         size: "{{ '10.1 GB' | human_to_bytes }}"
     state: present
 
-- name: Example add an empty CD-ROM.
+- name: Add an empty CD-ROM.
   scale_computing.hypercore.vm_disk:
     vm_name: demo-vm
     items:
@@ -159,6 +159,14 @@ EXAMPLES = r"""
         type: ide_cdrom
         iso_name: ""
     state: present
+
+- name: Remove empty CD-ROM.
+  scale_computing.hypercore.vm_disk:
+    vm_name: demo-vm
+    items:
+      - disk_slot: 0
+        type: ide_cdrom
+    state: absent
 
 - name: Attach existing ISO image to existing VM
   scale_computing.hypercore.vm_disk:
@@ -258,24 +266,25 @@ def ensure_absent(module, rest_client):
         uuid = existing_disk.uuid
         if ansible_desired_disk["type"] == "ide_cdrom":
             # Detach ISO image and don't delete the disk
+            name = ""
             if ansible_desired_disk.get("iso_name", None):
                 name = ansible_desired_disk["iso_name"]
             elif existing_disk.name:
                 name = existing_disk.name
-            else:
-                raise ScaleComputingError("Don't know which ISO image to detach")
-            iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
-            ManageVMDisks.iso_image_management(
-                module, rest_client, iso, uuid, attach=False
-            )
-        else:
-            vm_before.do_shutdown_steps(module, rest_client)
-            task_tag = rest_client.delete_record(
-                "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
-                module.check_mode,
-            )
-            TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-            changed = True
+            if name:
+                # Detach the ISO image
+                iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
+                ManageVMDisks.iso_image_management(
+                    module, rest_client, iso, uuid, attach=False
+                )
+        # Remove the disk
+        vm_before.do_shutdown_steps(module, rest_client)
+        task_tag = rest_client.delete_record(
+            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
+            module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+        changed = True
     vm_after, disks_after = ManageVMDisks.get_vm_by_name(module, rest_client)
     return (
         changed,

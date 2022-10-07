@@ -156,7 +156,6 @@
         items:
           - disk_slot: 0
             type: ide_cdrom
-            size: "{{ '5 GB' | human_to_bytes }}"
             iso_name: "TinyCore-vm-disk-integration.iso"
         state: present
       register: result
@@ -178,7 +177,7 @@
           - result is not changed
           - result.records.0.mounts.0.vm_name == "vm-integration-test-disks"
 
-    - name: Detach ISO image from the disk
+    - name: Detach ISO image from the disk and delete the CD-ROM
       scale_computing.hypercore.vm_disk:
         vm_name: vm-integration-test-disks
         items:
@@ -190,7 +189,7 @@
         that:
           - result is succeeded
           # - result is changed
-          - result.record.0.iso_name == ""
+          - result.record == []
 
     - name: Assert that ISO image isn't mounted on vm-integration-test-disks anymore
       scale_computing.hypercore.iso_info:
@@ -223,6 +222,25 @@
           - result.record.0.tiering_priority_factor == 4
           - result.record.0.cache_mode == "none"
           - result.record.0.disable_snapshotting == false
+
+    - name: Set empty CD-ROM
+      scale_computing.hypercore.vm_disk:
+        vm_name: vm-integration-test-disks
+        items:
+          - disk_slot: 0
+            type: ide_cdrom
+            iso_name: ""
+        state: set
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is changed
+          - result.record | length == 1
+          - result.record.0.type == "ide_cdrom"
+          - result.record.0.disk_slot == 0
+          - result.record.0.size == 0  # size is always 0 when creating CD-ROM
+          - result.record.0.iso_name == ""
 
     - name: Force remove all disks
       scale_computing.hypercore.vm_disk:
