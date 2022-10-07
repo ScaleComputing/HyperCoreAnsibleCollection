@@ -21,7 +21,7 @@ description:
     object, a dict in with keys C(createdUUID) and C(taskTag) is returned. Depending on taskTag's status, the object's
     request might be still in queue or may be already executed. This module ensures that the object's request is not
     on queue anymore, and execution is finished.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso: []

@@ -16,7 +16,7 @@ author:
 short_description: Returns information about the nodes in a cluster.
 description:
   - Returns information about the nodes in a cluster.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:

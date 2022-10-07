@@ -20,7 +20,7 @@ description:
   - A single NIC can be identified by
     - I(type) and I(vlan), or
     - I(type) and I(mac)
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name

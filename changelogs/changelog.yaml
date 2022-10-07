@@ -1,0 +1,78 @@
+ancestor: null
+releases:
+  1.0.0:
+    changes:
+      release_summary: Initial release
+    fragments:
+    - initial_release.yml
+    modules:
+    - description: API interaction with Scale Computing HyperCore
+      name: api
+      namespace: ''
+    - description: Manage ISO images on HyperCore API
+      name: iso
+      namespace: ''
+    - description: Retrieve ISO images
+      name: iso_info
+      namespace: ''
+    - description: Returns information about the nodes in a cluster.
+      name: node_info
+      namespace: ''
+    - description: Retrieve a list of remote clusters.
+      name: remote_cluster_info
+      namespace: ''
+    - description: Manage snap schedule to configure the desired schedule of snapshot
+        creation.
+      name: snapshot_schedule
+      namespace: ''
+    - description: Retrieve information about an automated VM snapshot schedule.
+      name: snapshot_schedule_info
+      namespace: ''
+    - description: Wait for a HyperCore TaskTag to be finished.
+      name: task_wait
+      namespace: ''
+    - description: Create, update or delete a VM.
+      name: vm
+      namespace: ''
+    - description: Manage HyperCore VM's boot devices
+      name: vm_boot_devices
+      namespace: ''
+    - description: Handles cloning of the VM
+      name: vm_clone
+      namespace: ''
+    - description: Manage VM's disks
+      name: vm_disk
+      namespace: ''
+    - description: Handles export of the virtual machine
+      name: vm_export
+      namespace: ''
+    - description: Handles import of the virtual machine
+      name: vm_import
+      namespace: ''
+    - description: Retrieve information about the VMs.
+      name: vm_info
+      namespace: ''
+    - description: Handles actions over network interfaces
+      name: vm_nic
+      namespace: ''
+    - description: Returns info about NIC
+      name: vm_nic_info
+      namespace: ''
+    - description: Update virtual machine's node affinity
+      name: vm_node_affinity
+      namespace: ''
+    - description: Manage VM's parameters
+      name: vm_params
+      namespace: ''
+    - description: Handles VM replications
+      name: vm_replication
+      namespace: ''
+    - description: Returns info about replication of a specific VM
+      name: vm_replication_info
+      namespace: ''
+    plugins:
+      inventory:
+      - description: Inventory source for Scale Computing HyperCore.
+        name: hypercore
+        namespace: null
+    release_date: '2022-10-07'
