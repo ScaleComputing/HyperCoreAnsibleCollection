@@ -277,6 +277,7 @@ def ensure_absent(module, rest_client):
                 ManageVMDisks.iso_image_management(
                     module, rest_client, iso, uuid, attach=False
                 )
+                changed = True
         # Remove the disk
         vm_before.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.delete_record(

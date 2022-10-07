@@ -172,8 +172,6 @@ class TestSnapshotSchedule:
                     start="2010-01-01 00:00:00",
                     local_retention=6048000,
                     remote_retention=6048000,
-                    replication=True,
-                    uuid="id",
                 )
             ],
         )
@@ -188,8 +186,6 @@ class TestSnapshotSchedule:
                     start="2010-01-01 00:00:00",
                     local_retention=6048000,
                     remote_retention=6048000,
-                    replication=True,
-                    uuid="id",
                 )
             ],
         )

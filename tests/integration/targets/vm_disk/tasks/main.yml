@@ -188,7 +188,7 @@
     - ansible.builtin.assert:
         that:
           - result is succeeded
-          # - result is changed
+          - result is changed
           - result.record == []
 
     - name: Assert that ISO image isn't mounted on vm-integration-test-disks anymore
