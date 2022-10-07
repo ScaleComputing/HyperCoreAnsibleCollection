@@ -604,15 +604,7 @@ class TestVM:
 
         assert post_vm_payload == {
             "dom": {
-                "blockDevs": [
-                    {
-                        "cacheMode": "WRITETHROUGH",
-                        "capacity": 0,
-                        "path": "",
-                        "type": "IDE_CDROM",
-                        "uuid": "cdrom",
-                    }
-                ],
+                "blockDevs": [],
                 "bootDevices": [],
                 "description": "desc",
                 "machineType": "scale-7.2",
@@ -656,15 +648,7 @@ class TestVM:
                     "metaData": "Y2xvdWRfaW5pdC1tZXRhLWRhdGE=",
                     "userData": "Y2xvdWRfaW5pdC11c2VyLWRhdGE=",
                 },
-                "blockDevs": [
-                    {
-                        "cacheMode": "WRITETHROUGH",
-                        "capacity": 0,
-                        "path": "",
-                        "type": "IDE_CDROM",
-                        "uuid": "cdrom",
-                    }
-                ],
+                "blockDevs": [],
                 "bootDevices": [],
                 "description": "desc",
                 "machineType": "scale-7.2",
@@ -723,13 +707,6 @@ class TestVM:
             },
             "attachGuestToolsISO": False,
             "blockDevs": [
-                {
-                    "cacheMode": "WRITETHROUGH",
-                    "capacity": 0,
-                    "path": "",
-                    "type": "IDE_CDROM",
-                    "uuid": "cdrom",
-                },
                 {
                     "cacheMode": "NONE",
                     "capacity": 4200,
@@ -2147,15 +2124,19 @@ class TestManageVMDisks:
         )
         rest_client.create_record.assert_called_with(
             "/rest/v1/VirDomainBlockDevice",
-            dict(
-                uuid="id",
-                virDomainUUID="id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                name="jc1-disk-0",
-                tieringPriorityFactor=8,
-            ),
+            {
+                "cacheMode": "NONE",
+                "capacity": 4200,
+                "disableSnapshotting": False,
+                "mountPoints": [],
+                "name": "jc1-disk-0",
+                "readOnly": False,
+                "slot": 0,
+                "tieringPriorityFactor": 8,
+                "type": "VIRTIO_DISK",
+                "uuid": "id",
+                "virDomainUUID": "id",
+            },
             False,
         )
         assert result == "disk-id"
@@ -2283,7 +2264,11 @@ class TestManageVMDisks:
             {
                 "cacheMode": "NONE",
                 "capacity": 4200,
+                "disableSnapshotting": False,
+                "mountPoints": [],
                 "name": "jc1-disk-0",
+                "readOnly": False,
+                "slot": 0,
                 "tieringPriorityFactor": 8,
                 "type": "VIRTIO_DISK",
                 "uuid": "id",

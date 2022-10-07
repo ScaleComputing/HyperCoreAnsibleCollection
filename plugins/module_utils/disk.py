@@ -181,17 +181,11 @@ class Disk(PayloadMapper):
     def __str__(self):
         return super().__str__()
 
-    def post_payload(self, vm):
-        # vm is object of class VM
+    def post_and_patch_payload(self, vm):
+        # vm is instance of class VM
         # vm will always have uuid property in the playbook
         return dict(
-            {key: val for key, val in self.to_hypercore().items() if val},
-            virDomainUUID=vm.uuid,
-        )
-
-    def patch_payload(self, vm, previous_disk):
-        return dict(
-            {key: val for key, val in self.to_hypercore().items() if val},
+            {key: val for key, val in self.to_hypercore().items() if val is not None},
             virDomainUUID=vm.uuid,
         )
 
