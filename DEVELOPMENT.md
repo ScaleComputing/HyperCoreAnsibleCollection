@@ -13,7 +13,7 @@ pip install --upgrade pip
 # but version from 2.9.x up should work
 pip install ansible-core
 
-git clone ssh://git@gitlab.xlab.si:13022/scale-ansible-collection/scale-computing-hc3-ansible-collection.git hypercore
+git clone git@github.com:ScaleComputing/HyperCoreAnsibleCollection.git hypercore
 cd hypercore
 
 # Install community.general collection, since we like to have stdout_callback=community.general.yaml in ansible.cfg

@@ -15,9 +15,9 @@ The examples are run from localhost (`ansible-playbook -i localhost,` part),
 and playbooks contain `connection: local`.
 This allows to use environ variables from local shell environment.
 
-If ansible will execute an example via SSH connection (e.g. without `connection: local`),
-then you need to add to examples environment section with `SC_HOST` and other environment variables.
-In [iso_info.yml](iso_info.yml) is this included as an example.
+If ansible executes an example via SSH connection (e.g. without `connection: local`),
+then you need to add to example environment section with `SC_HOST` and other environment variables.
+For example please see file [iso_info.yml](iso_info.yml).
 
 ## Modules iso, iso_info
 
@@ -30,6 +30,20 @@ ansible-playbook -i localhost, examples/iso.yml
 
 # Remove old TinyCore-current.iso if present, to force re-upload
 ansible-playbook -i localhost, -e iso_remove_old_image=True examples/iso.yml
+```
+
+## Module vm__info
+
+```shell
+# Show info about specific VM
+ansible-playbook -i localhost, -e vm_name=demo-vm examples/vm_info.yml
+```
+
+## Module vm_replication_info
+
+```shell
+# Show info about specific VM replication settings
+ansible-playbook -i localhost, -e vm_name=demo-vm examples/vm_replication_info.yml
 ```
 
 ## Module api

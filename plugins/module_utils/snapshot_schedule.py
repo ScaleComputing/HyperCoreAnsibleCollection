@@ -17,7 +17,7 @@ class SnapshotSchedule(PayloadMapper):
     def __init__(self, name, uuid=None, recurrences=None):
         self.name = name
         self.uuid = uuid
-        # recurrences is list whose elements are instances of class Recurrence.
+        # recurrences represents list whose elements are instances of class Recurrence.
         self.recurrences = recurrences
 
     @classmethod
@@ -188,6 +188,8 @@ class Recurrence(PayloadMapper):
     def __eq__(self, other):
         """One SnapshotSchedule is equal to another if it has ALL attributes exactly the same"""
         # Used only in tests.
+        # Note that replication is also present is the SnapshotSchedule object when performing GET request.
+        # However, since replication cannot be inserted from ansible, it's not compared here.
         return all(
             (
                 self.name == other.name,
@@ -195,8 +197,6 @@ class Recurrence(PayloadMapper):
                 self.start == other.start,
                 self.local_retention == other.local_retention,
                 self.remote_retention == other.remote_retention,
-                self.replication == other.replication,
-                self.uuid == other.uuid,
             )
         )
 

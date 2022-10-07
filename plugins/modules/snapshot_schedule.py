@@ -118,17 +118,27 @@ from ..module_utils.snapshot_schedule import SnapshotSchedule
 
 
 def ensure_present(module, rest_client):
-    snapshot_schedule = SnapshotSchedule.get_by_name(module.params, rest_client)
+    snapshot_schedule_before = SnapshotSchedule.get_by_name(module.params, rest_client)
+    changed = False
     # Create record returns dict where taskTag's value is empty string. Not waiting for the task to end using TaskTag
-    if snapshot_schedule:
-        before = snapshot_schedule.to_ansible()
-        rest_client.update_record(
-            "{0}/{1}".format(
-                "/rest/v1/VirDomainSnapshotSchedule", snapshot_schedule.uuid
-            ),
-            snapshot_schedule.create_patch_payload(module.params["recurrences"]),
-            module.check_mode,
-        )
+    if snapshot_schedule_before:
+        before = snapshot_schedule_before.to_ansible()
+        snapshot_schedule_desired = SnapshotSchedule.from_ansible(module.params)
+        if (
+            snapshot_schedule_desired.recurrences
+            != snapshot_schedule_before.recurrences
+        ):
+            # If desired and recurrence rules before differ, snapshot schedule has to be updated
+            rest_client.update_record(
+                "{0}/{1}".format(
+                    "/rest/v1/VirDomainSnapshotSchedule", snapshot_schedule_before.uuid
+                ),
+                snapshot_schedule_before.create_patch_payload(
+                    module.params["recurrences"]
+                ),
+                module.check_mode,
+            )
+            changed = True
     else:
         before = None
         new_snapshot_schedule = SnapshotSchedule.from_ansible(module.params)
@@ -137,8 +147,9 @@ def ensure_present(module, rest_client):
             new_snapshot_schedule.create_post_payload(),
             module.check_mode,
         )
+        changed = True
     after = SnapshotSchedule.get_by_name(module.params, rest_client).to_ansible()
-    return True, [after], dict(before=before, after=after)
+    return changed, [after], dict(before=before, after=after)
 
 
 def ensure_absent(module, rest_client):

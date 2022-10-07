@@ -195,7 +195,7 @@ class TestEnsureAbsent:
                         "mount_points": [],
                         "read_only": False,
                         "size": 4200,
-                        "tiering_priority_factor": 8,
+                        "tiering_priority_factor": 4,
                         "type": "virtio_disk",
                         "uuid": "id",
                         "vm_uuid": "vm-id",
@@ -299,7 +299,7 @@ class TestEnsureAbsent:
         results = vm_disk.ensure_absent(module, rest_client)
         print(results)
         assert results == (
-            False,
+            True,
             [],
             {
                 "after": [],
@@ -312,7 +312,7 @@ class TestEnsureAbsent:
                         "mount_points": [],
                         "read_only": False,
                         "size": 4200,
-                        "tiering_priority_factor": 8,
+                        "tiering_priority_factor": 4,
                         "type": "ide_cdrom",
                         "uuid": "id",
                         "vm_uuid": "vm-id",

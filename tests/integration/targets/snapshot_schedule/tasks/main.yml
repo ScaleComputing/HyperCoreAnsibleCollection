@@ -27,7 +27,7 @@
       register: result
 
     - name: Setup (create) snapshot schedule
-      scale_computing.hypercore.snapshot_schedule:
+      scale_computing.hypercore.snapshot_schedule: &create-snapshot-schedule
         name: demo-snap-schedule
         state: present
         recurrences:
@@ -48,6 +48,13 @@
     - ansible.builtin.assert:
         that:
           - result.records.0.name == "demo-snap-schedule"
+
+    - name: Setup (create) snapshot schedule (idempotency)
+      scale_computing.hypercore.snapshot_schedule: *create-snapshot-schedule
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is not changed
 
     - name: Update snapshot schedule
       scale_computing.hypercore.snapshot_schedule:

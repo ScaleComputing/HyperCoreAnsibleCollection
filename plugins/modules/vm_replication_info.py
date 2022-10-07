@@ -73,11 +73,14 @@ def run(module, rest_client):
         virtual_machine_obj_list = VM.get_or_fail(
             query={"name": module.params["vm_name"]}, rest_client=rest_client
         )
-        replication = Replication.get(
+        replication_list = Replication.get(
             query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
             rest_client=rest_client,
-        )[0]
-        records = [replication.to_ansible()]
+        )
+        if not replication_list:
+            # No replication found for specified VM
+            return False, []
+        records = [replication_list[0].to_ansible()]
     return False, records
 
 

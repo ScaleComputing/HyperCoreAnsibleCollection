@@ -601,7 +601,7 @@ class VM(PayloadMapper):
         vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
             "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid),
-            dict(bootDevices=boot_order, uuid=vm.uuid),
+            dict(bootDevices=boot_order),
             module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag)
@@ -760,7 +760,7 @@ class ManageVMParams(VM):
             )  # tags is a list of strings
         if module.params["memory"]:
             payload["mem"] = module.params["memory"]
-        if module.params["vcpu"]:
+        if module.params["vcpu"] is not None:
             payload["numVCPU"] = module.params["vcpu"]
         if (
             module.params["snapshot_schedule"] is not None
@@ -798,7 +798,7 @@ class ManageVMParams(VM):
             changed_params["tags"] = vm.tags != module.params["tags"]
         if module.params["memory"]:
             changed_params["memory"] = vm.mem != module.params["memory"]
-        if module.params["vcpu"]:
+        if module.params["vcpu"] is not None:
             changed_params["vcpu"] = vm.numVCPU != module.params["vcpu"]
         if module.params["power_state"]:
             # This is comparison between two strings. This works because module.params["power_state"]
@@ -883,7 +883,9 @@ class ManageVMParams(VM):
             endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
             task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
             TaskTag.wait_task(rest_client, task_tag)
-            if ManageVMParams._needs_reboot(module, changed_parameters):
+            if ManageVMParams._needs_reboot(
+                module, changed_parameters
+            ) and vm.power_state not in ["stop", "stopped", "shutdown"]:
                 vm.do_shutdown_steps(module, rest_client)
             else:
                 # power_state needs different endpoint
@@ -923,7 +925,6 @@ class ManageVMDisks:
     def _create_block_device(module, rest_client, vm, desired_disk):
         # vm is instance of VM, desired_disk is instance of Disk
         payload = desired_disk.post_payload(vm)
-        vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomainBlockDevice",
             payload,
@@ -950,7 +951,8 @@ class ManageVMDisks:
     @staticmethod
     def _update_block_device(module, rest_client, desired_disk, existing_disk, vm):
         payload = desired_disk.patch_payload(vm, existing_disk)
-        vm.do_shutdown_steps(module, rest_client)
+        if existing_disk.needs_reboot(desired_disk):
+            vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
             "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
             payload,

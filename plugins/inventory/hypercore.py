@@ -16,7 +16,7 @@ description:
   - Builds an inventory containing VMs on Scale Computing HyperCore.
   - Inventory uses tags to group VMs and to add variables to inventory.
   - VM can be added to multiple groups.
-  - Available tags - ansible_group=, ansible_user=, ansible_port=, ansible_ssh_private_key_file=.
+  - Available tags - ansible_host__, ansible_group__, ansible_user__, ansible_port__, ansible_ssh_private_key_file__.
   - Does not support caching.
 version_added: 1.0.0
 seealso: []
@@ -260,17 +260,17 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                     include = False
             for tag in tags:
                 if (
-                    tag.startswith("ansible_group=")
-                    and tag[len("ansible_group=") :] not in groups
+                    tag.startswith("ansible_group__")
+                    and tag[len("ansible_group__") :] not in groups
                 ):
-                    groups.append(tag[len("ansible_group=") :])
-                elif tag.startswith("ansible_user="):
-                    ansible_user = tag[len("ansible_user=") :]
-                elif tag.startswith("ansible_port="):
-                    ansible_port = int(tag[len("ansible_port=") :])
+                    groups.append(tag[len("ansible_group__") :])
+                elif tag.startswith("ansible_user__"):
+                    ansible_user = tag[len("ansible_user__") :]
+                elif tag.startswith("ansible_port__"):
+                    ansible_port = int(tag[len("ansible_port__") :])
                 elif tag.startswith("ansible_ssh_private_key_file"):
                     ansible_ssh_private_key_file = tag[
-                        len("ansible_ssh_private_key_file=") :
+                        len("ansible_ssh_private_key_file__") :
                     ]
             if include:
                 # Group
@@ -286,8 +286,8 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                         ansible_host = nic["ipv4Addresses"][0]
                         break
                 for tag in tags:
-                    if tag.startswith("ansible_host="):
-                        ansible_host = tag[len("ansible_host=") :]
+                    if tag.startswith("ansible_host__"):
+                        ansible_host = tag[len("ansible_host__") :]
                 # User
                 inventory = self.add_user(inventory, ansible_user, vm["name"])
                 # Port
