@@ -75,6 +75,7 @@ ansible-test integration --venv
 Build collection.
 
 ```yaml
+antsibull-changelog release
 ansible-galaxy collection build
 ```
 

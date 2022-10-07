@@ -20,7 +20,7 @@ description:
   attach and/or detach ISO image to the VM by ISO's name,
   detach ISO image from the VM by disk's disk slot,
   or update the existing disks (disk size etc.).
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name

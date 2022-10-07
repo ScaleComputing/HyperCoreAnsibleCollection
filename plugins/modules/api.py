@@ -19,7 +19,7 @@ description:
   - Perform a C(GET), C(POST), C(PATCH) or C(DELETE) request on resource(s) from the given endpoint.
     The api module can be used to perform raw API calls whenever there is no
     suitable concrete module or role implementation for a specific task.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.endpoint

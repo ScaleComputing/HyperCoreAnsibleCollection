@@ -25,7 +25,7 @@ description:
   - If I(strict_affinity) is set to C(true), VM will only run on I(preferred_node) or I(backup_node).
   - If I(node) is not set, the old value of the I(node.node_uuid) will be kept.
   - If I(node.node_uuid) is set to empty string, the existing value of the I(node.node_uuid) will be deleted.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name

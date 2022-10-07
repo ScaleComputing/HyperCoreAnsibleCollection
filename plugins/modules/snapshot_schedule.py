@@ -16,7 +16,7 @@ author:
 short_description: Manage snap schedule to configure the desired schedule of snapshot creation.
 description:
   - Create and delete an automated VM snapshot schedule on HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:

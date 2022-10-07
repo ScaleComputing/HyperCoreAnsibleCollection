@@ -17,7 +17,7 @@ short_description: Handles VM replications
 description:
   - Use vm_replication to perform actions regarding the replication of a specified virtual machine (VM)
     such as start, pause amd unpause replication of the VM.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name

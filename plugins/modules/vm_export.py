@@ -16,7 +16,7 @@ author:
 short_description: Handles export of the virtual machine
 description:
   - Use vm_export to export the virtual machine, to a specified location on a SMB server.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name
