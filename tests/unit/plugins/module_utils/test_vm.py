@@ -2124,15 +2124,19 @@ class TestManageVMDisks:
         )
         rest_client.create_record.assert_called_with(
             "/rest/v1/VirDomainBlockDevice",
-            dict(
-                uuid="id",
-                virDomainUUID="id",
-                type="VIRTIO_DISK",
-                cacheMode="NONE",
-                capacity=4200,
-                name="jc1-disk-0",
-                tieringPriorityFactor=8,
-            ),
+            {
+                "cacheMode": "NONE",
+                "capacity": 4200,
+                "disableSnapshotting": False,
+                "mountPoints": [],
+                "name": "jc1-disk-0",
+                "readOnly": False,
+                "slot": 0,
+                "tieringPriorityFactor": 8,
+                "type": "VIRTIO_DISK",
+                "uuid": "id",
+                "virDomainUUID": "id",
+            },
             False,
         )
         assert result == "disk-id"
@@ -2260,7 +2264,11 @@ class TestManageVMDisks:
             {
                 "cacheMode": "NONE",
                 "capacity": 4200,
+                "disableSnapshotting": False,
+                "mountPoints": [],
                 "name": "jc1-disk-0",
+                "readOnly": False,
+                "slot": 0,
                 "tieringPriorityFactor": 8,
                 "type": "VIRTIO_DISK",
                 "uuid": "id",

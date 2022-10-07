@@ -249,10 +249,13 @@ class TestDisk:
 
         payload = disk.post_and_patch_payload(vm)
 
-        assert payload == dict(
-            type="VIRTIO_DISK",
-            cacheMode="NONE",
-            capacity=4200,
-            tieringPriorityFactor=8,
-            virDomainUUID="id",
-        )
+        assert payload == {
+            "cacheMode": "NONE",
+            "capacity": 4200,
+            "disableSnapshotting": False,
+            "readOnly": False,
+            "slot": 0,
+            "tieringPriorityFactor": 8,
+            "type": "VIRTIO_DISK",
+            "virDomainUUID": "id",
+        }

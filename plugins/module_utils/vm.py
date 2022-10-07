@@ -450,7 +450,7 @@ class VM(PayloadMapper):
             disk_payload = dict(
                 cacheMode=disk.get("cacheMode", "WRITETHROUGH"),
                 type=disk["type"],
-                capacity=disk["capacity"] or 0
+                capacity=disk["capacity"] or 0,
             )
             if disk_payload["type"] == "IDE_CDROM":
                 iso_name = disk["name"]
