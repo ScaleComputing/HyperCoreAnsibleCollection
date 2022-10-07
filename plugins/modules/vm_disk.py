@@ -69,21 +69,22 @@ options:
       size:
         type: int
         description:
-          - Logical size of the device in bytes. Can be used for resizing or creating the disk.
-          - In case you're creating a disk, size needs to be specified.
+          - Logical size of the device in bytes. I(size) is used for resizing or creating the disk.
+          - In case you're creating a disk: If you're creating a CD-ROM - that is, I(type=ide_cdrom),
+            size will get ignored. Otherwise, size needs to be specified.
       type:
         type: str
         description:
           - The bus type the VirDomainBlockDevice will use.
-          - If I(type=ide_cdrom), it's assumed you want to attach ISO image to cdrom disk. In that
-            case, field name is required.
+          - If I(type=ide_cdrom), I(iso_name) is also required. Se documentation of I(iso_name) for more details.
         choices: [ ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
         required: true
       iso_name:
         type: str
         description:
           - The name of ISO image we want to attach/detach from existing VM.
-          - In case of attaching ISO image (see example below), name is required.
+          - In case of attaching ISO image (see example below), I(iso_name) is required. If creating an empty CD-ROM 
+            but not mount anything, set the value of I(iso_name) to empty string. 
           - In case of detaching ISO image (see example below), name is optional. If not specified,
             ISO image present on the C(ide_cdrom) disk will get removed.
       cache_mode:
@@ -148,6 +149,15 @@ EXAMPLES = r"""
       - disk_slot: 0
         type: virtio_disk
         size: "{{ '10.1 GB' | human_to_bytes }}"
+    state: present
+
+- name: Example add an empty CD-ROM.
+  scale_computing.hypercore.vm_disk:
+    vm_name: demo-vm
+    items:
+      - disk_slot: 0
+        type: ide_cdrom
+        iso_name: ""
     state: present
 
 - name: Attach existing ISO image to existing VM
