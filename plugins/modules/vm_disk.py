@@ -20,7 +20,7 @@ description:
   attach and/or detach ISO image to the VM by ISO's name,
   detach ISO image from the VM by disk's disk slot,
   or update the existing disks (disk size etc.).
-  
+
   For a given VM, a particular disk is selected by combination of (I(type), I(disk_slot)).
   I(disk_slot) means slot on bus (IDE, virtio or SCSI bus).
 
