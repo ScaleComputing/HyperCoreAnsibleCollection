@@ -71,6 +71,16 @@ DEFAULT_DISK_OTHER_PAYLOAD = dict(
     uuid="primaryDrive",
 )
 
+FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE = {
+    "UEFI": "scale-8.10",
+    "BIOS": "scale-7.2",
+    "vTPM+UEFI": "scale-uefi-tpm-9.2",
+}
+
+FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE = {
+    v: k for k, v in FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE.items()
+}
+
 
 DEFAULT_MACHINE_TYPE = "scale-7.2"
 VM_PAYLOAD_KEYS = [
@@ -134,6 +144,7 @@ class VM(PayloadMapper):
         snapshot_schedule=None,
         reboot=False,  # Is reboot needed
         was_shutdown_tried=False,  # Has shutdown request already been tried
+        machine_type=None,
     ):
 
         self.operating_system = operating_system
@@ -153,6 +164,7 @@ class VM(PayloadMapper):
         self.snapshot_schedule = snapshot_schedule  # name of the snapshot_schedule
         self.reboot = reboot
         self.was_shutdown_tried = was_shutdown_tried
+        self.machine_type = machine_type
 
     @property
     def nic_list(self):
@@ -179,6 +191,7 @@ class VM(PayloadMapper):
             attach_guest_tools_iso=vm_dict["attach_guest_tools_iso"] or False,
             operating_system=None,
             power_state=vm_dict.get("power_state", None),
+            machine_type=vm_dict.get("machine_type", None),
         )
 
     @classmethod
@@ -240,6 +253,7 @@ class VM(PayloadMapper):
             snapshot_schedule=snapshot_schedule.name
             if snapshot_schedule
             else "",  # "" for vm_params diff check
+            machine_type=FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE[vm_dict["machineType"]],
         )
 
     @classmethod
@@ -377,6 +391,7 @@ class VM(PayloadMapper):
             tags=",".join(self.tags) if self.tags is not None else "",
             uuid=self.uuid,
             attachGuestToolsISO=self.attach_guest_tools_iso,
+            machineType=self.machine_type,
         )
         if self.operating_system:
             vm_dict["operatingSystem"] = self.operating_system
@@ -404,6 +419,7 @@ class VM(PayloadMapper):
             attach_guest_tools_iso=self.attach_guest_tools_iso,
             node_affinity=self.node_affinity,
             snapshot_schedule=self.snapshot_schedule,
+            machine_type=self.machine_type,
         )
 
     # search by vlan or mac as specified in US-11:
@@ -445,7 +461,9 @@ class VM(PayloadMapper):
         # cloud_init should be one of the ansible_dict's keys.
         payload = self.to_hypercore()
         VM._post_vm_payload_set_disks(payload, rest_client)
-        payload["machineType"] = DEFAULT_MACHINE_TYPE
+        payload["machineType"] = FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE[
+            ansible_dict["machine_type"]
+        ]
         payload["netDevs"] = [
             filter_dict(nic, *nic.keys()) for nic in payload["netDevs"]
         ]

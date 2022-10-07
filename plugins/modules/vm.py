@@ -197,6 +197,13 @@ options:
       - If supported by operating system, create an extra device to attach the Scale Guest OS tools ISO.
     default: false
     type: bool
+  machine_type:
+    description:
+      - Scale I(Hardware) version.
+      - Required if I(state=present).
+      - Only relevant when creating the VM. This property cannot be modified.
+    type: str
+    choices: [ BIOS, UEFI, vTPM+UEFI ]
 notes:
   - C(check_mode) is not supported.
 """
@@ -575,6 +582,7 @@ def main():
             snapshot_schedule=dict(
                 type="str",
             ),
+            machine_type=dict(type="str", choices=["BIOS", "UEFI", "vTPM+UEFI"]),
         ),
         required_if=[
             (
@@ -585,6 +593,7 @@ def main():
                     "vcpu",
                     "disks",
                     "nics",
+                    "machine_type",
                 ),
                 False,
             ),

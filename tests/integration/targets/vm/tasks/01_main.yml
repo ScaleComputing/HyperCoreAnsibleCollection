@@ -62,6 +62,7 @@
             disk_slot: 0
           - type: nic
             nic_vlan: 1
+        machine_type: UEFI
         cloud_init:
           user_data:
             is_this: "yes"
@@ -96,6 +97,7 @@
           - vm_created.record.0.boot_devices.0.disk_slot == 0
           - vm_created.record.0.boot_devices.1.vlan == 1
           - vm_created.record.0.power_state == "started"
+          - vm_created.record.0.machine_type == "UEFI"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create the exact same VM (idempotency)
