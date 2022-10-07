@@ -6,31 +6,31 @@
 
   block:
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
-    - name: Delete the VM with name vm-integration-test-vm, if it exists from before
-      scale_computing.hypercore.vm: &delete-vm
-        vm_name: vm-integration-test-vm
-        state: absent
-      register: result
-
-    - name: Create project directory /tmp (if it doesn't exist already)
-      file: state=directory path=/tmp
-
-    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-vm-integration.iso
-      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-vm-integration.iso
-
-    - name: Delete the ISO image (if it may exist)
-      scale_computing.hypercore.iso: &delete-iso
-        name: "TinyCore-vm-integration.iso"
-        state: absent
-      register: result
-
-# ----------------------------------Job-------------------------------------------------------------------------------------
-    - name: Upload ISO image TinyCore-vm-integration.iso to HyperCore API
-      scale_computing.hypercore.iso:
-        name: "TinyCore-vm-integration.iso"
-        source: "/tmp/TinyCore-vm-integration.iso"
-        state: present
-      register: result
+#    - name: Delete the VM with name vm-integration-test-vm, if it exists from before
+#      scale_computing.hypercore.vm: &delete-vm
+#        vm_name: vm-integration-test-vm
+#        state: absent
+#      register: result
+#
+#    - name: Create project directory /tmp (if it doesn't exist already)
+#      file: state=directory path=/tmp
+#
+#    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-vm-integration.iso
+#      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-vm-integration.iso
+#
+#    - name: Delete the ISO image (if it may exist)
+#      scale_computing.hypercore.iso: &delete-iso
+#        name: "TinyCore-vm-integration.iso"
+#        state: absent
+#      register: result
+#
+## ----------------------------------Job-------------------------------------------------------------------------------------
+#    - name: Upload ISO image TinyCore-vm-integration.iso to HyperCore API
+#      scale_computing.hypercore.iso:
+#        name: "TinyCore-vm-integration.iso"
+#        source: "/tmp/TinyCore-vm-integration.iso"
+#        state: present
+#      register: result
 
     - name: Create and start the VM with disks, nics and boot devices set. Attach ISO onto the VM. Add cloud init data
       scale_computing.hypercore.vm: &create-vm
@@ -62,7 +62,7 @@
             disk_slot: 0
           - type: nic
             nic_vlan: 1
-        machine_type: UEFI
+        machine_type: BIOS
         cloud_init:
           user_data:
             is_this: "yes"
@@ -97,15 +97,15 @@
           - vm_created.record.0.boot_devices.0.disk_slot == 0
           - vm_created.record.0.boot_devices.1.vlan == 1
           - vm_created.record.0.power_state == "started"
-          - vm_created.record.0.machine_type == "UEFI"
+          - vm_created.record.0.machine_type == "BIOS"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
-    - name: Create the exact same VM (idempotency)
-      scale_computing.hypercore.vm: *create-vm
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result is not changed
+#    - name: Create the exact same VM (idempotency)
+#      scale_computing.hypercore.vm: *create-vm
+#      register: result
+#    - ansible.builtin.assert:
+#        that:
+#          - result is not changed
 
     - name: Retrieve vm-integration-test-vm Idempotence
       scale_computing.hypercore.vm_info:
@@ -278,13 +278,13 @@
           - result.records[0].memory == 536870912
 
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
-    - name: Delete the VM with name vm-integration-test-vm
-      scale_computing.hypercore.vm: *delete-vm
-      register: result
-
-    - name: Delete the ISO image
-      scale_computing.hypercore.iso: *delete-iso
-      register: result
+#    - name: Delete the VM with name vm-integration-test-vm
+#      scale_computing.hypercore.vm: *delete-vm
+#      register: result
+#
+#    - name: Delete the ISO image
+#      scale_computing.hypercore.iso: *delete-iso
+#      register: result
 
     - name: Delete locally installed ISO image from /tmp/TinyCore-vm-integration.iso
       ansible.builtin.file:

@@ -39,6 +39,7 @@ class TestEnsureAbsent:
                     user_data=None,
                     meta_data=None,
                 ),
+                machine_type="BIOS",
             ),
         )
 
@@ -62,6 +63,7 @@ class TestEnsureAbsent:
                 "backupNodeUUID": "",
             },
             snapshotScheduleUUID="shapshot-id",
+            machineType="scale-7.2",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -82,6 +84,7 @@ class TestEnsureAbsent:
                     "boot_devices": [],
                     "description": "desc",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -115,6 +118,7 @@ class TestEnsureAbsent:
                     "boot_devices": [],
                     "description": "desc",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -169,6 +173,7 @@ class TestEnsureAbsent:
                     user_data=None,
                     meta_data=None,
                 ),
+                machine_type="BIOS",
             ),
         )
 
@@ -192,6 +197,7 @@ class TestEnsureAbsent:
                 "backupNodeUUID": "",
             },
             snapshotScheduleUUID="snapshot_schedule_uuid",
+            machineType="scale-7.2",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -216,6 +222,7 @@ class TestEnsureAbsent:
                     "boot_devices": [],
                     "description": "desc",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -249,6 +256,7 @@ class TestEnsureAbsent:
                     "boot_devices": [],
                     "description": "desc",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -301,6 +309,7 @@ class TestEnsureAbsent:
                     user_data=None,
                     meta_data=None,
                 ),
+                machine_type="BIOS",
             ),
         )
         rest_client.get_record.return_value = None
@@ -337,6 +346,7 @@ class TestEnsurePresent:
                     user_data=None,
                     meta_data=None,
                 ),
+                machine_type="BIOS",
             ),
         )
 
@@ -362,6 +372,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
             ),
             dict(  # vm_after
                 uuid="id",
@@ -383,6 +394,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
             ),
         ]
 
@@ -411,6 +423,7 @@ class TestEnsurePresent:
                     "boot_devices": [],
                     "description": "description",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42000,
                     "nics": [],
                     "node_affinity": {
@@ -443,6 +456,7 @@ class TestEnsurePresent:
                     "boot_devices": [],
                     "description": "description",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42000,
                     "nics": [],
                     "node_affinity": {
@@ -499,6 +513,7 @@ class TestEnsurePresent:
                     user_data=None,
                     meta_data=None,
                 ),
+                machine_type="BIOS",
             ),
         )
 
@@ -523,6 +538,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
             ),
             dict(  # vm_after
                 uuid="id",
@@ -544,6 +560,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
             ),
         ]
         mocker.patch(
@@ -574,6 +591,7 @@ class TestEnsurePresent:
                     "boot_devices": [],
                     "description": "desc-updated",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42000,
                     "nics": [],
                     "node_affinity": {
@@ -606,6 +624,7 @@ class TestEnsurePresent:
                     "boot_devices": [],
                     "description": "desc-updated",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42000,
                     "nics": [],
                     "node_affinity": {
@@ -636,6 +655,7 @@ class TestEnsurePresent:
                     "boot_devices": [],
                     "description": "desc",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -691,6 +711,7 @@ class TestEnsurePresent:
                     user_data=None,
                     meta_data=None,
                 ),
+                machine_type="BIOS",
             ),
         )
 
@@ -715,6 +736,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
             ),
             dict(
                 uuid="id",
@@ -736,6 +758,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
             ),
         ]
         mocker.patch(
@@ -799,6 +822,7 @@ class TestEnsurePresent:
                     meta_data=None,
                 ),
                 vm_name_new=None,
+                machine_type="BIOS",
             ),
         )
 
@@ -837,6 +861,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="shapshot-id",
+                machineType="scale-7.2",
             ),
             dict(
                 uuid="id",
@@ -872,6 +897,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="shapshot-id",
+                machineType="scale-7.2",
             ),
         ]
         mocker.patch(
@@ -916,6 +942,7 @@ class TestEnsurePresent:
                             "vm_uuid": "vm-id",
                         }
                     ],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -962,6 +989,7 @@ class TestEnsurePresent:
                             "vm_uuid": "vm-id",
                         }
                     ],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -1006,6 +1034,7 @@ class TestEnsurePresent:
                             "vm_uuid": "vm-id",
                         }
                     ],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -1060,6 +1089,7 @@ class TestEnsurePresent:
                     user_data=None,
                     meta_data=None,
                 ),
+                machine_type="BIOS",
             ),
         )
 
@@ -1085,6 +1115,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
             ),
             dict(
                 uuid="id",
@@ -1106,6 +1137,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
             ),
         ]
         mocker.patch(
@@ -1127,6 +1159,7 @@ class TestEnsurePresent:
                     "boot_devices": [],
                     "description": "desc",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -1159,6 +1192,7 @@ class TestEnsurePresent:
                     "boot_devices": [],
                     "description": "desc",
                     "disks": [],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -1228,6 +1262,7 @@ class TestEnsurePresent:
                     user_data=None,
                     meta_data=None,
                 ),
+                machine_type="BIOS",
             ),
         )
 
@@ -1267,6 +1302,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="shapshot-id",
+                machineType="scale-7.2",
             ),
             dict(
                 uuid="id",
@@ -1302,6 +1338,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="shapshot-id",
+                machineType="scale-7.2",
             ),
         ]
         mocker.patch(
@@ -1359,6 +1396,7 @@ class TestEnsurePresent:
                             "vm_uuid": "vm-id",
                         }
                     ],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -1419,6 +1457,7 @@ class TestEnsurePresent:
                             "vm_uuid": "vm-id",
                         }
                     ],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -1480,6 +1519,7 @@ class TestEnsurePresent:
                     user_data=None,
                     meta_data=None,
                 ),
+                machine_type="BIOS",
             ),
         )
 
@@ -1519,6 +1559,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="shapshot-id",
+                machineType="scale-7.2",
             ),
             dict(
                 uuid="id",
@@ -1554,6 +1595,7 @@ class TestEnsurePresent:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="shapshot-id",
+                machineType="scale-7.2",
             ),
         ]
         mocker.patch(
@@ -1594,6 +1636,7 @@ class TestEnsurePresent:
                             "vm_uuid": "vm-id",
                         }
                     ],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {
@@ -1640,6 +1683,7 @@ class TestEnsurePresent:
                             "vm_uuid": "vm-id",
                         }
                     ],
+                    "machine_type": "BIOS",
                     "memory": 42,
                     "nics": [],
                     "node_affinity": {

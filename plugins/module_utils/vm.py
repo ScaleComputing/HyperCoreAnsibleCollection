@@ -57,20 +57,6 @@ FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
 )
 
 
-DEFAULT_DISK_CDROM_PAYLOAD = dict(
-    cacheMode="WRITETHROUGH",
-    path="",
-    type="IDE_CDROM",
-    uuid="cdrom",
-    capacity=0,
-)
-
-DEFAULT_DISK_OTHER_PAYLOAD = dict(
-    cacheMode="WRITETHROUGH",
-    path="",
-    uuid="primaryDrive",
-)
-
 FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE = {
     "UEFI": "scale-8.10",
     "BIOS": "scale-7.2",
@@ -480,7 +466,7 @@ class VM(PayloadMapper):
         primary_disk_set = False
         for disk in vm_hypercore_dict["blockDevs"]:
             disk_payload = dict(
-                cacheMode=disk.get("cacheMode", "WRITETHROUGH"),
+                cacheMode=disk["cacheMode"] or "WRITETHROUGH",
                 type=disk["type"],
                 capacity=disk["capacity"] or 0,
             )

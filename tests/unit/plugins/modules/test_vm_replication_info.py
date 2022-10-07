@@ -43,6 +43,7 @@ class TestRun:
                 "backupNodeUUID": "",
             },
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
+            "machineType": "scale-7.2",
         }
 
     @classmethod
@@ -67,6 +68,7 @@ class TestRun:
                 "backupNodeUUID": "",
             },
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
+            "machineType": "scale-7.2",
         }
 
     def test_run_with_vm_name(self, create_module, rest_client, mocker):

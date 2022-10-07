@@ -18,6 +18,7 @@
       - Integration
     vcpu: 2
     state: present
+    machine_type: BIOS
     power_state: stop
     disks:
     - type: virtio_disk

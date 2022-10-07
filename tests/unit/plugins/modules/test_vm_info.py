@@ -50,6 +50,7 @@ class TestRun:
                     "backupNodeUUID": "",
                 },
                 snapshotScheduleUUID="snapshot_schedule_id",
+                machineType="scale-7.2",
             ),
         ]
         mocker.patch(
@@ -67,6 +68,7 @@ class TestRun:
                 "description": "desc",
                 "disks": [],
                 "memory": 42,
+                'machine_type': 'BIOS',
                 "nics": [],
                 "node_affinity": {
                     "backup_node": {

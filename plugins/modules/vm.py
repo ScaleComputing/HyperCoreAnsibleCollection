@@ -200,7 +200,7 @@ options:
   machine_type:
     description:
       - Scale I(Hardware) version.
-      - Required if I(state=present).
+      - Required if creating a new VM.
       - Only relevant when creating the VM. This property cannot be modified.
     type: str
     choices: [ BIOS, UEFI, vTPM+UEFI ]
@@ -389,6 +389,7 @@ def ensure_present(module, rest_client):
         new_vm = VM.from_ansible(module.params)
         # Define the payload and create the VM
         payload = new_vm.post_vm_payload(rest_client, module.params)
+        # raise ValueError(payload)
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomain",
             payload,
@@ -593,7 +594,6 @@ def main():
                     "vcpu",
                     "disks",
                     "nics",
-                    "machine_type",
                 ),
                 False,
             ),

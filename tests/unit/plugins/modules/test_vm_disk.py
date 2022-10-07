@@ -56,6 +56,7 @@ class TestEnsureAbsent:
                 },
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
+                "machineType": "scale-7.2",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -77,6 +78,7 @@ class TestEnsureAbsent:
                 },
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
+                "machineType": "scale-7.2",
             },
         ]
         mocker.patch(
@@ -148,6 +150,7 @@ class TestEnsureAbsent:
                 },
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
+                "machineType": "scale-7.2",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -169,6 +172,7 @@ class TestEnsureAbsent:
                 },
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
+                "machineType": "scale-7.2",
             },
         ]
         mocker.patch(
@@ -255,6 +259,7 @@ class TestEnsureAbsent:
                 },
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
+                "machineType": "scale-7.2",
             },
             {
                 "uuid": "iso-uuid",
@@ -284,6 +289,7 @@ class TestEnsureAbsent:
                 },
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
+                "machineType": "scale-7.2",
             },
         ]
         rest_client.update_record.return_value = {
