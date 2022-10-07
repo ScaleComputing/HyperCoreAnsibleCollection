@@ -1,3 +1,4 @@
+---
 - name: Show replication settings for a specific VM
   hosts: localhost
   connection: local

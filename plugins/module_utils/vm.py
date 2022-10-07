@@ -56,22 +56,7 @@ FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     started="START",
 )
 
-
-DEFAULT_DISK_CDROM_PAYLOAD = dict(
-    cacheMode="WRITETHROUGH",
-    path="",
-    type="IDE_CDROM",
-    uuid="cdrom",
-    capacity=0,
-)
-
-DEFAULT_DISK_OTHER_PAYLOAD = dict(
-    cacheMode="WRITETHROUGH",
-    path="",
-    uuid="primaryDrive",
-)
-
-
+# TODO (tjazsch): Support adding machine types
 DEFAULT_MACHINE_TYPE = "scale-7.2"
 VM_PAYLOAD_KEYS = [
     "blockDevs",
@@ -466,7 +451,7 @@ class VM(PayloadMapper):
             if disk.get("cacheMode", None):
                 disk_payload["cacheMode"] = disk["cacheMode"]
             else:
-                disk_payload["cacheMode"] = DEFAULT_DISK_CDROM_PAYLOAD["cacheMode"]
+                disk_payload["cacheMode"] = "WRITETHROUGH"  # Default cacheMode for disks
             disk_payload["type"] = disk["type"]
             disk_payload["capacity"] = disk["capacity"] or 0
             if disk_payload["type"] == "IDE_CDROM":
@@ -475,7 +460,7 @@ class VM(PayloadMapper):
                 disk_payload["path"] = iso.path
             if not primary_disk_set and disk_payload["type"] != "IDE_CDROM":
                 # Assign the first disk to be the primary
-                disk_payload["uuid"] = DEFAULT_DISK_OTHER_PAYLOAD["uuid"]
+                disk_payload["uuid"] = "primaryDrive"  # The first disk is assigned 'primaryDrive' property
                 primary_disk_set = True
             disks_payload.append(disk_payload)
         vm_hypercore_dict["blockDevs"] = disks_payload
