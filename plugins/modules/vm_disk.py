@@ -83,8 +83,8 @@ options:
         type: str
         description:
           - The name of ISO image we want to attach/detach from existing VM.
-          - In case of attaching ISO image (see example below), I(iso_name) is required. If creating an empty CD-ROM 
-            but not mount anything, set the value of I(iso_name) to empty string. 
+          - In case of attaching ISO image (see example below), I(iso_name) is required. If creating an empty CD-ROM
+            but not mount anything, set the value of I(iso_name) to empty string.
           - In case of detaching ISO image (see example below), name is optional. If not specified,
             ISO image present on the C(ide_cdrom) disk will get removed.
       cache_mode:
