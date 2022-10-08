@@ -78,6 +78,7 @@ VM_PAYLOAD_KEYS = [
     "netDevs",
     "numVCPU",
     "tags",
+    "machineType",
 ]
 
 VM_DEVICE_QUERY_MAPPING_ANSIBLE = dict(
@@ -376,13 +377,16 @@ class VM(PayloadMapper):
             tags=",".join(self.tags) if self.tags is not None else "",
             uuid=self.uuid,
             attachGuestToolsISO=self.attach_guest_tools_iso,
-            machineType=self.machine_type,
         )
         if self.operating_system:
             vm_dict["operatingSystem"] = self.operating_system
         # state attribute is used by HC3 only during VM create.
         if self.power_state:
             vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE[self.power_state]
+        if self.machine_type:
+            vm_dict["machineType"] = FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE[
+                self.machine_type
+            ]
         return vm_dict
 
     def to_ansible(self):
@@ -446,9 +450,6 @@ class VM(PayloadMapper):
         # cloud_init should be one of the ansible_dict's keys.
         payload = self.to_hypercore()
         VM._post_vm_payload_set_disks(payload, rest_client)
-        payload["machineType"] = FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE[
-            ansible_dict["machine_type"]
-        ]
         payload["netDevs"] = [
             filter_dict(nic, *nic.keys()) for nic in payload["netDevs"]
         ]

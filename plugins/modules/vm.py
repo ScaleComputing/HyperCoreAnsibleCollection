@@ -389,7 +389,6 @@ def ensure_present(module, rest_client):
         new_vm = VM.from_ansible(module.params)
         # Define the payload and create the VM
         payload = new_vm.post_vm_payload(rest_client, module.params)
-        # raise ValueError(payload)
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomain",
             payload,

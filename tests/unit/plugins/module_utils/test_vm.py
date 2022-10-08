@@ -165,7 +165,6 @@ class TestVM:
             attachGuestToolsISO=False,
             operatingSystem="os_windows_server_2012",
             state="START",
-            machineType=None,
         )
 
     def test_vm_to_ansible(self):
