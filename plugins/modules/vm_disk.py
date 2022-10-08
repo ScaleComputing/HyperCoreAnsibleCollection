@@ -70,8 +70,7 @@ options:
         type: int
         description:
           - Logical size of the device in bytes. I(size) is used for resizing or creating the disk.
-          - In case you're creating a disk: If you're creating a CD-ROM - that is, I(type=ide_cdrom),
-            size will get ignored. Otherwise, size needs to be specified.
+          - Will get ignored if performing operations on CD-ROM - C(type=ide_cdrom).
       type:
         type: str
         description:
