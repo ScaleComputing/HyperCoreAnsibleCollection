@@ -12,9 +12,6 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_disk
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import (
-    ScaleComputingError,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"

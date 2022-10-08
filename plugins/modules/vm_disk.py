@@ -70,8 +70,7 @@ options:
         type: int
         description:
           - Logical size of the device in bytes. I(size) is used for resizing or creating the disk.
-          - In case you're creating a disk: If you're creating a CD-ROM - that is, I(type=ide_cdrom),
-            size will get ignored. Otherwise, size needs to be specified.
+          - Will get ignored if performing operations on CD-ROM - C(type=ide_cdrom).
       type:
         type: str
         description:
@@ -83,8 +82,8 @@ options:
         type: str
         description:
           - The name of ISO image we want to attach/detach from existing VM.
-          - In case of attaching ISO image (see example below), I(iso_name) is required. If creating an empty CD-ROM 
-            but not mount anything, set the value of I(iso_name) to empty string. 
+          - In case of attaching ISO image (see example below), I(iso_name) is required. If creating an empty CD-ROM
+            but not mount anything, set the value of I(iso_name) to empty string.
           - In case of detaching ISO image (see example below), name is optional. If not specified,
             ISO image present on the C(ide_cdrom) disk will get removed.
       cache_mode:
