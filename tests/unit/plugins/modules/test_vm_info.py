@@ -68,7 +68,7 @@ class TestRun:
                 "description": "desc",
                 "disks": [],
                 "memory": 42,
-                'machine_type': 'BIOS',
+                "machine_type": "BIOS",
                 "nics": [],
                 "node_affinity": {
                     "backup_node": {
