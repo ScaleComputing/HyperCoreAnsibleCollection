@@ -655,12 +655,12 @@ class TestVM:
 
         assert post_vm_payload == {
             "dom": {
-                "CloudIinitData": {
+                "blockDevs": [],
+                "bootDevices": [],
+                "cloudInitData": {
                     "metaData": "Y2xvdWRfaW5pdC1tZXRhLWRhdGE=",
                     "userData": "Y2xvdWRfaW5pdC11c2VyLWRhdGE=",
                 },
-                "blockDevs": [],
-                "bootDevices": [],
                 "description": "desc",
                 "machineType": "scale-7.2",
                 "mem": 42,
