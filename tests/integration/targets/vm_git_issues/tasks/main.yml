@@ -9,4 +9,5 @@
     - include_tasks: issue_4_vcpu_set_to_0.yml
     - include_tasks: issue_15_tiering_priority.yml
     - include_tasks: issue_11_empty_ide_cdrom.yml
+    - include_tasks: issue_12_machine_types.yml
 # TODO: add more tasks here when more issues are fixed.
