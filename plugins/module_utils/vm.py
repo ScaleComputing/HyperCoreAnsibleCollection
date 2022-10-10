@@ -471,7 +471,7 @@ class VM(PayloadMapper):
                 type=disk["type"],
                 capacity=disk["capacity"] or 0,
             )
-            if disk_payload["type"] == "IDE_CDROM":
+            if disk_payload["type"] == "IDE_CDROM" and disk["name"]:
                 iso_name = disk["name"]
                 iso = ISO.get_by_name(dict(name=iso_name), rest_client, must_exist=True)
                 disk_payload["path"] = iso.path
@@ -1048,7 +1048,7 @@ class ManageVMDisks:
                 # Attach ISO image
                 # If ISO image's name is specified, it's assumed you want to attach ISO image
                 name = ansible_desired_disk["iso_name"]
-                if name != "":  # Not creating empty CD-ROM without attaching anything
+                if name:  # Not creating empty CD-ROM without attaching anything
                     iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
                     cls.iso_image_management(
                         module, rest_client, iso, uuid, attach=True

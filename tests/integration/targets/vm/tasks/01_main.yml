@@ -62,6 +62,16 @@
             disk_slot: 0
           - type: nic
             nic_vlan: 1
+        cloud_init:
+          user_data:
+            is_this: "yes"
+            valid:
+              - "yaml"
+              - "expression?"
+          meta_data:
+            this_data:
+              - "is"
+              - "very meta"
         machine_type: BIOS
       register: vm_created
     - ansible.builtin.assert:
