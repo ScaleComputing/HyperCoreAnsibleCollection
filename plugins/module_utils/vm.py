@@ -975,8 +975,6 @@ class ManageVMDisks:
                 ):
                     to_delete = False
             if to_delete:
-                # VM needs to be stopped before delete action
-                vm.do_shutdown_steps(module, rest_client)
                 task_tag = rest_client.delete_record(
                     "{0}/{1}".format(
                         "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
@@ -997,7 +995,6 @@ class ManageVMDisks:
             )
         # Delete all disks
         for existing_disk in vm.disks:
-            vm.do_shutdown_steps(module, rest_client)
             task_tag = rest_client.delete_record(
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
                 module.check_mode,
