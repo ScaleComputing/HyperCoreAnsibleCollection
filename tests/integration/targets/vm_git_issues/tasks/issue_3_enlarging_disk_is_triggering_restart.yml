@@ -42,8 +42,8 @@
 - ansible.builtin.assert:
     that:
       - source_info.records | length == 1
-      - source_info.records.0.disks | length == 2
-      - source_info.records.0.disks.1.size == 214748364800
+      - source_info.records.0.disks | length == 1
+      - source_info.records.0.disks.0.size == 214748364800
       - source_info.records.0.power_state == "stopped"
 
 - name: Make source running vm
@@ -80,8 +80,8 @@
 - ansible.builtin.assert:
     that:
       - source_info.records | length == 1
-      - source_info.records.0.disks | length == 2
-      - source_info.records.0.disks.1.size == 214748364800
+      - source_info.records.0.disks | length == 1
+      - source_info.records.0.disks.0.size == 214748364800
       - source_info.records.0.power_state == "started"
 
 # ----------------------------------Job-----------------------------------------------------------------------------
@@ -107,8 +107,8 @@
 - ansible.builtin.assert:
     that:
       - changed_info.records | length == 1
-      - changed_info.records.0.disks | length == 2
-      - changed_info.records.0.disks.1.size == 268435456000
+      - changed_info.records.0.disks | length == 1
+      - changed_info.records.0.disks.0.size == 268435456000
       - changed_info.records.0.power_state == "stopped"
 
 # ----------------------------------Job-----------------------------------------------------------------------------
@@ -134,8 +134,8 @@
 - ansible.builtin.assert:
     that:
       - changed_info_running.records | length == 1
-      - changed_info_running.records.0.disks | length == 2
-      - changed_info_running.records.0.disks.1.size == 268435456000
+      - changed_info_running.records.0.disks | length == 1
+      - changed_info_running.records.0.disks.0.size == 268435456000
       - changed_info_running.records.0.power_state == "started"
 
 # ----------------------------------Job-----------------------------------------------------------------------------
