@@ -31,7 +31,7 @@ description:
   Changing disk I(type) to C(ide_disk) will as place disk on IDE bus,
   after the CD-ROM, and disk will get C(disk_slot=1).
 
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name

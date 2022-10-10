@@ -17,7 +17,7 @@ short_description: Manage HyperCore VM's boot devices
 description:
   - Use this module to add or remove a list of devices from boot order (add to end of list) or set the exact boot order of the devices.
   - Can also be used to set a specific list of devices as first, but leave everything else as is.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name

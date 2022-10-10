@@ -17,7 +17,7 @@ author:
 short_description: Returns info about replication of a specific VM
 description:
   - Returns information about replication of a specific virtual machine, if replication is configured.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso: []

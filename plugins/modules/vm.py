@@ -18,7 +18,7 @@ short_description: Create, update or delete a VM.
 description:
   - Use this module to create, update or delete a VM. When creating or
     updating a VM, setting the disks, network nics and boot order is possible.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name

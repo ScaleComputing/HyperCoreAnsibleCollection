@@ -17,7 +17,7 @@ author:
 short_description: Retrieve information about the VMs.
 description:
   - Retrieve information about all or single VM present on the cluster.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso: []
