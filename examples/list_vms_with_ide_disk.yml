@@ -17,7 +17,7 @@
 
     - name: Count all VMs
       ansible.builtin.debug:
-        msg: "All VMs count={{ all_vms.records | length }}"
+        msg: All VMs count={{ all_vms.records | length }}
 
     - name: Find VMs with IDE disk
       ansible.builtin.shell: |
@@ -47,9 +47,9 @@
 
     - name: Show all VMs with IDE disk
       ansible.builtin.debug:
-        msg: "IDE VMs count={{ ide_vm_names | length }} names={{ ide_vm_names | to_json }}"
+        msg: IDE VMs count={{ ide_vm_names | length }} names={{ ide_vm_names | to_json }}
 
     - name: Fail if any VM uses IDE disk
       ansible.builtin.fail:
-        msg: "Found {{ ide_vm_names | length }} VMs using IDE disk"
+        msg: Found {{ ide_vm_names | length }} VMs using IDE disk
       when: ide_vm_names | length > 0

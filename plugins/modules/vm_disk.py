@@ -69,21 +69,21 @@ options:
       size:
         type: int
         description:
-          - Logical size of the device in bytes. Can be used for resizing or creating the disk.
-          - In case you're creating a disk, size needs to be specified.
+          - Logical size of the device in bytes. I(size) is used for resizing or creating the disk.
+          - Will get ignored if performing operations on CD-ROM - C(type=ide_cdrom).
       type:
         type: str
         description:
           - The bus type the VirDomainBlockDevice will use.
-          - If I(type=ide_cdrom), it's assumed you want to attach ISO image to cdrom disk. In that
-            case, field name is required.
+          - If I(type=ide_cdrom), I(iso_name) is also required. Se documentation of I(iso_name) for more details.
         choices: [ ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
         required: true
       iso_name:
         type: str
         description:
           - The name of ISO image we want to attach/detach from existing VM.
-          - In case of attaching ISO image (see example below), name is required.
+          - In case of attaching ISO image (see example below), I(iso_name) is required. If creating an empty CD-ROM
+            but not mount anything, set the value of I(iso_name) to empty string.
           - In case of detaching ISO image (see example below), name is optional. If not specified,
             ISO image present on the C(ide_cdrom) disk will get removed.
       cache_mode:
@@ -149,6 +149,23 @@ EXAMPLES = r"""
         type: virtio_disk
         size: "{{ '10.1 GB' | human_to_bytes }}"
     state: present
+
+- name: Add an empty CD-ROM.
+  scale_computing.hypercore.vm_disk:
+    vm_name: demo-vm
+    items:
+      - disk_slot: 0
+        type: ide_cdrom
+        iso_name: ""
+    state: present
+
+- name: Remove empty CD-ROM.
+  scale_computing.hypercore.vm_disk:
+    vm_name: demo-vm
+    items:
+      - disk_slot: 0
+        type: ide_cdrom
+    state: absent
 
 - name: Attach existing ISO image to existing VM
   scale_computing.hypercore.vm_disk:
@@ -248,25 +265,25 @@ def ensure_absent(module, rest_client):
         uuid = existing_disk.uuid
         if ansible_desired_disk["type"] == "ide_cdrom":
             # Detach ISO image and don't delete the disk
+            name = ""
             if ansible_desired_disk.get("iso_name", None):
                 name = ansible_desired_disk["iso_name"]
             elif existing_disk.name:
                 name = existing_disk.name
-            else:
-                raise ScaleComputingError("Don't know which ISO image to detach")
-            iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
-            ManageVMDisks.iso_image_management(
-                module, rest_client, iso, uuid, attach=False
-            )
-            changed = True
-        else:
-            vm_before.do_shutdown_steps(module, rest_client)
-            task_tag = rest_client.delete_record(
-                "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
-                module.check_mode,
-            )
-            TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-            changed = True
+            if name:
+                # Detach the ISO image
+                iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
+                ManageVMDisks.iso_image_management(
+                    module, rest_client, iso, uuid, attach=False
+                )
+        # Remove the disk
+        vm_before.do_shutdown_steps(module, rest_client)
+        task_tag = rest_client.delete_record(
+            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
+            module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+        changed = True
     vm_after, disks_after = ManageVMDisks.get_vm_by_name(module, rest_client)
     return (
         changed,

@@ -105,7 +105,7 @@
     that:
       - source_running_info.records | length == 1
       - source_running_info.records.0.power_state == "started"
-      - source_running_info.records.0.disks | length == 2
+      - source_running_info.records.0.disks | length == 1
 
 # ----------------------------------Job-----------------------------------------------------------------------------
 - name: Change tiering_priority_factor to 6
@@ -166,7 +166,7 @@
     that:
       - changed_running_info.records | length == 1
       - changed_running_info.records.0.power_state == "started"
-      - changed_running_info.records.0.disks.1.tiering_priority_factor == 6
+      - changed_running_info.records.0.disks.0.tiering_priority_factor == 6
 
 - name: Get actual tiering_priority values from hypercore without mapping on running VM
   scale_computing.hypercore.api:
@@ -176,7 +176,7 @@
 - ansible.builtin.assert:
     that:
       - result.record.0.name == "XLAB-test-tiering-priority-running"
-      - result.record.0.blockDevs.1.tieringPriorityFactor == 32
+      - result.record.0.blockDevs.0.tieringPriorityFactor == 32
 
 # ----------------------------------Cleanup------------------------------------------------------------------------
 - name: Delete XLAB-vm

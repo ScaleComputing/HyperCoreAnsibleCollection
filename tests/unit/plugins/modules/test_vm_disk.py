@@ -12,9 +12,6 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_disk
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import (
-    ScaleComputingError,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -296,6 +293,9 @@ class TestEnsureAbsent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
+        ).return_value = None
         results = vm_disk.ensure_absent(module, rest_client)
         print(results)
         assert results == (
@@ -321,64 +321,3 @@ class TestEnsureAbsent:
             },
             False,
         )
-
-    def test_ensure_absent_cdrom_no_name_error(
-        self, create_module, rest_client, task_wait, mocker
-    ):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                vm_name="XLAB_test_vm",
-                items=[dict(disk_slot=1, type="ide_cdrom")],
-                state="present",
-            )
-        )
-        rest_client.get_record.side_effect = [
-            {
-                "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
-                "name": "XLAB_test_vm",
-                "blockDevs": [
-                    dict(
-                        uuid="id",
-                        virDomainUUID="vm-id",
-                        type="IDE_CDROM",
-                        cacheMode="NONE",
-                        capacity=4200,
-                        slot=1,
-                        name="",
-                        disableSnapshotting=False,
-                        tieringPriorityFactor=8,
-                        mountPoints=[],
-                        readOnly=False,
-                    )
-                ],
-                "netDevs": [],
-                "stats": "bla",
-                "tags": "XLAB,test",
-                "description": "test vm",
-                "mem": 23424234,
-                "state": "RUNNING",
-                "numVCPU": 2,
-                "bootDevices": [],
-                "operatingSystem": "windows",
-                "affinityStrategy": {
-                    "preferredNodeUUID": "",
-                    "strictAffinity": False,
-                    "backupNodeUUID": "",
-                },
-                "nodeUUID": "node-id",
-                "snapshotScheduleUUID": "snapshot_schedule_id",
-            },
-        ]
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
-        ).return_value = None
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
-        ).return_value = None
-        with pytest.raises(ScaleComputingError, match="ISO"):
-            vm_disk.ensure_absent(module, rest_client)
