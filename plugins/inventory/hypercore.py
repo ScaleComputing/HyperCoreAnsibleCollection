@@ -18,7 +18,7 @@ description:
   - VM can be added to multiple groups.
   - Available tags - ansible_host__, ansible_group__, ansible_user__, ansible_port__, ansible_ssh_private_key_file__.
   - Does not support caching.
-version_added: 0.0.1
+version_added: 1.0.0
 seealso: []
 options:
   plugin:

@@ -56,22 +56,7 @@ FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     started="START",
 )
 
-
-DEFAULT_DISK_CDROM_PAYLOAD = dict(
-    cacheMode="WRITETHROUGH",
-    path="",
-    type="IDE_CDROM",
-    uuid="cdrom",
-    capacity=0,
-)
-
-DEFAULT_DISK_OTHER_PAYLOAD = dict(
-    cacheMode="WRITETHROUGH",
-    path="",
-    uuid="primaryDrive",
-)
-
-
+# TODO (tjazsch): Support adding machine types
 DEFAULT_MACHINE_TYPE = "scale-7.2"
 VM_PAYLOAD_KEYS = [
     "blockDevs",
@@ -460,28 +445,23 @@ class VM(PayloadMapper):
     @staticmethod
     def _post_vm_payload_set_disks(vm_hypercore_dict, rest_client):
         disks_payload = []
-        cdrom_exists = False
         primary_disk_set = False
         for disk in vm_hypercore_dict["blockDevs"]:
-            disk_payload = dict()
-            if disk.get("cacheMode", None):
-                disk_payload["cacheMode"] = disk["cacheMode"]
-            else:
-                disk_payload["cacheMode"] = DEFAULT_DISK_CDROM_PAYLOAD["cacheMode"]
-            disk_payload["type"] = disk["type"]
-            disk_payload["capacity"] = disk["capacity"] or 0
+            disk_payload = dict(
+                cacheMode=disk["cacheMode"] or "WRITETHROUGH",
+                type=disk["type"],
+                capacity=disk["capacity"] or 0,
+            )
             if disk_payload["type"] == "IDE_CDROM":
                 iso_name = disk["name"]
                 iso = ISO.get_by_name(dict(name=iso_name), rest_client, must_exist=True)
                 disk_payload["path"] = iso.path
-                cdrom_exists = True
             if not primary_disk_set and disk_payload["type"] != "IDE_CDROM":
                 # Assign the first disk to be the primary
-                disk_payload["uuid"] = DEFAULT_DISK_OTHER_PAYLOAD["uuid"]
+                # The first disk is assigned 'primaryDrive' property
+                disk_payload["uuid"] = "primaryDrive"
                 primary_disk_set = True
             disks_payload.append(disk_payload)
-        if not cdrom_exists:
-            disks_payload.insert(0, DEFAULT_DISK_CDROM_PAYLOAD)
         vm_hypercore_dict["blockDevs"] = disks_payload
 
     def delete_unused_nics_to_hypercore_vm(self, module, rest_client, nic_key):
@@ -924,7 +904,7 @@ class ManageVMDisks:
     @staticmethod
     def _create_block_device(module, rest_client, vm, desired_disk):
         # vm is instance of VM, desired_disk is instance of Disk
-        payload = desired_disk.post_payload(vm)
+        payload = desired_disk.post_and_patch_payload(vm)
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomainBlockDevice",
             payload,
@@ -950,7 +930,7 @@ class ManageVMDisks:
 
     @staticmethod
     def _update_block_device(module, rest_client, desired_disk, existing_disk, vm):
-        payload = desired_disk.patch_payload(vm, existing_disk)
+        payload = desired_disk.post_and_patch_payload(vm)
         if existing_disk.needs_reboot(desired_disk):
             vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
@@ -1036,33 +1016,32 @@ class ManageVMDisks:
                     "Disk size can only be enlarged, never downsized."
                 )
             if ansible_desired_disk["type"] == "ide_cdrom":
-                # ISO image detachment
-                # Check if ide_cdrom disk already exists
-                if (
-                    ansible_existing_disk
-                    and ansible_existing_disk["iso_name"]
-                    != ansible_desired_disk["iso_name"]
-                ):
+                if ansible_existing_disk:
+                    if (
+                        ansible_existing_disk["iso_name"]
+                        == ansible_desired_disk["iso_name"]
+                    ):
+                        continue  # CD-ROM with such iso_name already exists
                     existing_disk = Disk.from_ansible(ansible_existing_disk)
                     uuid = existing_disk.uuid
-                elif (
-                    ansible_existing_disk
-                    and ansible_existing_disk["iso_name"]
-                    == ansible_desired_disk["iso_name"]
-                ):
-                    # cdrom with such iso_name already exists
-                    continue
                 else:
                     # Create new ide_cdrom disk
+                    # size is not relevant when creating CD-ROM -->
+                    # https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues/11
+                    desired_disk.size = 0
                     uuid = cls._create_block_device(
                         module, rest_client, vm_before, desired_disk
                     )
+                    changed = True
                 # Attach ISO image
                 # If ISO image's name is specified, it's assumed you want to attach ISO image
                 name = ansible_desired_disk["iso_name"]
-                iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
-                cls.iso_image_management(module, rest_client, iso, uuid, attach=True)
-                changed = True
+                if name != "":  # Not creating empty CD-ROM without attaching anything
+                    iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
+                    cls.iso_image_management(
+                        module, rest_client, iso, uuid, attach=True
+                    )
+                    changed = True
             else:
                 if ansible_existing_disk:
                     existing_disk = Disk.from_ansible(ansible_existing_disk)

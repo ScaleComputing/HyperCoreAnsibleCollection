@@ -17,7 +17,7 @@ short_description: Manage VM's parameters
 description:
   - Use vm_params to update VM's name, description, tags, memory, number of CPUs or change VM's power state.
   - Can also be used to assign a snapshot schedule to the VM.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name

@@ -17,7 +17,7 @@ short_description: Handles import of the virtual machine
 description:
   - Use vm_import to import virtual machine, from a specified location.
   - Use either I(smb) or I(http_uri), which are mutually exclusive.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name

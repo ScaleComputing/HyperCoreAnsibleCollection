@@ -16,7 +16,7 @@ author:
 short_description: Handles cloning of the VM
 description:
   - Use M(scale_computing.hypercore.vm_clone) to clone a specified virtual machine.
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.cloud_init

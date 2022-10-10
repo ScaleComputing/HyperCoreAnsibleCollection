@@ -16,7 +16,7 @@ author:
 short_description: Retrieve information about an automated VM snapshot schedule.
 description:
   - Retrieve information about an automated VM snapshot schedule on HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
-version_added: 0.0.1
+version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:

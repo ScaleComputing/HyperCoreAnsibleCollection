@@ -1,0 +1,55 @@
+---
+- name: List VMs with IDE disks
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+  # ------------------------------------------------------
+    - name: List all VMs
+      scale_computing.hypercore.vm_info:
+      register: all_vms
+
+    - name: Show all VMs
+      ansible.builtin.debug:
+        var: all_vms
+      when: false
+
+    - name: Count all VMs
+      ansible.builtin.debug:
+        msg: All VMs count={{ all_vms.records | length }}
+
+    - name: Find VMs with IDE disk
+      ansible.builtin.shell: |
+        #!/usr/bin/env python
+        # print("in-python")
+        import json
+        import sys
+        data = sys.stdin.read()
+        # print(f"data={data}")
+        all_vms = json.loads(data)
+        ide_vm_names = []
+        for vm in all_vms:
+            for disk in vm["disks"]:
+                if disk["type"] == "ide_disk":
+                    ide_vm_names.append(vm["vm_name"])
+                    break
+        print(json.dumps(ide_vm_names))
+      args:
+        executable: /usr/bin/python3
+        stdin: "{{ all_vms.records | to_json }}"
+      changed_when: false
+      register: ide_vm_names_result
+
+    - name: Set ide_vm_names var/fact
+      ansible.builtin.set_fact:
+        ide_vm_names: "{{ ide_vm_names_result.stdout | from_json }}"
+
+    - name: Show all VMs with IDE disk
+      ansible.builtin.debug:
+        msg: IDE VMs count={{ ide_vm_names | length }} names={{ ide_vm_names | to_json }}
+
+    - name: Fail if any VM uses IDE disk
+      ansible.builtin.fail:
+        msg: Found {{ ide_vm_names | length }} VMs using IDE disk
+      when: ide_vm_names | length > 0

@@ -6,3 +6,4 @@ exclude_paths:
   - tests
   - examples/cloud-init-user-data-example.yml
   - .github/workflows
+  - changelogs
