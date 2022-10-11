@@ -956,8 +956,6 @@ class ManageVMDisks:
                 ):
                     to_delete = False
             if to_delete:
-                # VM needs to be stopped before delete action
-                vm.do_shutdown_steps(module, rest_client)
                 task_tag = rest_client.delete_record(
                     "{0}/{1}".format(
                         "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
@@ -1008,6 +1006,15 @@ class ManageVMDisks:
             disk_query = filter_dict(ansible_desired_disk, "disk_slot", "type")
             ansible_existing_disk = vm_before.get_specific_disk(disk_query)
             desired_disk = Disk.from_ansible(ansible_desired_disk)
+            if (
+                ansible_existing_disk
+                and "size" in ansible_desired_disk
+                and ansible_desired_disk["size"] is not None
+                and ansible_existing_disk["size"] > ansible_desired_disk["size"]
+            ):
+                raise errors.ScaleComputingError(
+                    "Disk size can only be enlarged, never downsized."
+                )
             if ansible_desired_disk["type"] == "ide_cdrom":
                 if ansible_existing_disk:
                     if (
