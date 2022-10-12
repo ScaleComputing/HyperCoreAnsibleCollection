@@ -387,6 +387,7 @@ def ensure_present(module, rest_client):
         before = None  # for output
         # Create new VM object
         new_vm = VM.from_ansible(module.params)
+        new_vm.check_vm_before_create()
         # Define the payload and create the VM
         payload = new_vm.post_vm_payload(rest_client, module.params)
         task_tag = rest_client.create_record(

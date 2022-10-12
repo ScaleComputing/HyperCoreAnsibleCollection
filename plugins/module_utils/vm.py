@@ -744,6 +744,24 @@ class VM(PayloadMapper):
                     f"VM - {self.name} - needs to be powered off and is not responding to a shutdown request."
                 )
 
+    def check_vm_before_create(self):
+        # UEFI machine type must have NVRAM disk.
+        disk_type_list = [disk.type for disk in self.disks]
+        if self.machine_type == "UEFI" and "nvram" not in disk_type_list:
+            raise errors.ScaleComputingError(
+                "Machine of type UEFI requires NVRAM disk."
+            )
+        # vTPM+UEFI machine type must have NVRAM and VTPM disks.
+        # This in not implemented yet, since this version of API does not support VTPM.
+        if (
+            self.machine_type == "vTPM+UEFI"
+            and "nvram" not in disk_type_list
+            and "vtpm" not in disk_type_list
+        ):
+            raise errors.ScaleComputingError(
+                "Machine of type vTPM+UEFI requires NVRAM disk and VTPM disk."
+            )
+
 
 class ManageVMParams(VM):
     @staticmethod
