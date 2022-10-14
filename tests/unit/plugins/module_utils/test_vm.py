@@ -608,7 +608,7 @@ class TestVM:
             machine_type="BIOS",
         )
 
-        post_vm_payload = vm.post_vm_payload(rest_client, {"machine_type": "BIOS"})
+        post_vm_payload = vm.post_vm_payload(rest_client, {})
 
         assert post_vm_payload == {
             "dom": {
