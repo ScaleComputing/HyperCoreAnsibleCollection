@@ -106,7 +106,7 @@
 - ansible.builtin.assert:
     that:
       - output is not changed
-      - output is not succeeded
+      - output is failed
       - output.msg == "Machine of type UEFI requires NVRAM disk."
 
 - name: Retrieve XLAB-test-machine-type-uefi-no-nvram
