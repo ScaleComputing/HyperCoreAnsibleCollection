@@ -56,8 +56,18 @@ FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     started="START",
 )
 
-# TODO (tjazsch): Support adding machine types
-DEFAULT_MACHINE_TYPE = "scale-7.2"
+
+FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE = {
+    "UEFI": "scale-8.10",
+    "BIOS": "scale-7.2",
+    "vTPM+UEFI": "scale-uefi-tpm-9.2",
+}
+
+FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE = {
+    v: k for k, v in FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE.items()
+}
+
+
 VM_PAYLOAD_KEYS = [
     "blockDevs",
     "bootDevices",
@@ -68,6 +78,7 @@ VM_PAYLOAD_KEYS = [
     "netDevs",
     "numVCPU",
     "tags",
+    "machineType",
 ]
 
 VM_DEVICE_QUERY_MAPPING_ANSIBLE = dict(
@@ -119,6 +130,7 @@ class VM(PayloadMapper):
         snapshot_schedule=None,
         reboot=False,  # Is reboot needed
         was_shutdown_tried=False,  # Has shutdown request already been tried
+        machine_type=None,
     ):
 
         self.operating_system = operating_system
@@ -138,6 +150,7 @@ class VM(PayloadMapper):
         self.snapshot_schedule = snapshot_schedule  # name of the snapshot_schedule
         self.reboot = reboot
         self.was_shutdown_tried = was_shutdown_tried
+        self.machine_type = machine_type
 
     @property
     def nic_list(self):
@@ -164,6 +177,7 @@ class VM(PayloadMapper):
             attach_guest_tools_iso=vm_dict["attach_guest_tools_iso"] or False,
             operating_system=None,
             power_state=vm_dict.get("power_state", None),
+            machine_type=vm_dict.get("machine_type", None),
         )
 
     @classmethod
@@ -225,6 +239,7 @@ class VM(PayloadMapper):
             snapshot_schedule=snapshot_schedule.name
             if snapshot_schedule
             else "",  # "" for vm_params diff check
+            machine_type=FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE[vm_dict["machineType"]],
         )
 
     @classmethod
@@ -368,6 +383,10 @@ class VM(PayloadMapper):
         # state attribute is used by HC3 only during VM create.
         if self.power_state:
             vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE[self.power_state]
+        if self.machine_type:
+            vm_dict["machineType"] = FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE[
+                self.machine_type
+            ]
         return vm_dict
 
     def to_ansible(self):
@@ -389,6 +408,7 @@ class VM(PayloadMapper):
             attach_guest_tools_iso=self.attach_guest_tools_iso,
             node_affinity=self.node_affinity,
             snapshot_schedule=self.snapshot_schedule,
+            machine_type=self.machine_type,
         )
 
     # search by vlan or mac as specified in US-11:
@@ -430,7 +450,6 @@ class VM(PayloadMapper):
         # cloud_init should be one of the ansible_dict's keys.
         payload = self.to_hypercore()
         VM._post_vm_payload_set_disks(payload, rest_client)
-        payload["machineType"] = DEFAULT_MACHINE_TYPE
         payload["netDevs"] = [
             filter_dict(nic, *nic.keys()) for nic in payload["netDevs"]
         ]
@@ -452,7 +471,7 @@ class VM(PayloadMapper):
                 type=disk["type"],
                 capacity=disk["capacity"] or 0,
             )
-            if disk_payload["type"] == "IDE_CDROM":
+            if disk_payload["type"] == "IDE_CDROM" and disk["name"]:
                 iso_name = disk["name"]
                 iso = ISO.get_by_name(dict(name=iso_name), rest_client, must_exist=True)
                 disk_payload["path"] = iso.path
@@ -725,6 +744,24 @@ class VM(PayloadMapper):
                     f"VM - {self.name} - needs to be powered off and is not responding to a shutdown request."
                 )
 
+    def check_vm_before_create(self):
+        # UEFI machine type must have NVRAM disk.
+        disk_type_list = [disk.type for disk in self.disks]
+        if self.machine_type == "UEFI" and "nvram" not in disk_type_list:
+            raise errors.ScaleComputingError(
+                "Machine of type UEFI requires NVRAM disk."
+            )
+        # vTPM+UEFI machine type must have NVRAM and VTPM disks.
+        # This in not implemented yet, since this version of API does not support VTPM.
+        if (
+            self.machine_type == "vTPM+UEFI"
+            and "nvram" not in disk_type_list
+            and "vtpm" not in disk_type_list
+        ):
+            raise errors.ScaleComputingError(
+                "Machine of type vTPM+UEFI requires NVRAM disk and VTPM disk."
+            )
+
 
 class ManageVMParams(VM):
     @staticmethod
@@ -976,7 +1013,6 @@ class ManageVMDisks:
             )
         # Delete all disks
         for existing_disk in vm.disks:
-            vm.do_shutdown_steps(module, rest_client)
             task_tag = rest_client.delete_record(
                 "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
                 module.check_mode,
@@ -1036,7 +1072,7 @@ class ManageVMDisks:
                 # Attach ISO image
                 # If ISO image's name is specified, it's assumed you want to attach ISO image
                 name = ansible_desired_disk["iso_name"]
-                if name != "":  # Not creating empty CD-ROM without attaching anything
+                if name:  # Not creating empty CD-ROM without attaching anything
                     iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
                     cls.iso_image_management(
                         module, rest_client, iso, uuid, attach=True

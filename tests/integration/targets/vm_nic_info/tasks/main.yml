@@ -21,6 +21,7 @@
         description: Demo VM
         power_state: stop
         state: present
+        machine_type: BIOS
         tags:
           - 'Xlab'
           - 'CI'

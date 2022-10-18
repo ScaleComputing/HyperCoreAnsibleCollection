@@ -72,6 +72,7 @@
             this_data:
               - "is"
               - "very meta"
+        machine_type: BIOS
       register: vm_created
     - ansible.builtin.assert:
         that:
@@ -96,6 +97,7 @@
           - vm_created.record.0.boot_devices.0.disk_slot == 0
           - vm_created.record.0.boot_devices.1.vlan == 1
           - vm_created.record.0.power_state == "started"
+          - vm_created.record.0.machine_type == "BIOS"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create the exact same VM (idempotency)

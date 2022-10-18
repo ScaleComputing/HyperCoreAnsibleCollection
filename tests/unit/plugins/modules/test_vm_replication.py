@@ -44,6 +44,7 @@ class TestEnabledOrReenabled:
                 "backupNodeUUID": "",
             },
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
+            "machineType": "scale-7.2",
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -121,6 +122,7 @@ class TestEnabledOrReenabled:
                 "backupNodeUUID": "",
             },
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
+            "machineType": "scale-7.2",
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -204,6 +206,7 @@ class TestEnabledOrReenabled:
                 "backupNodeUUID": "",
             },
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
+            "machineType": "scale-7.2",
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
@@ -271,6 +274,7 @@ class TestDisabled:
                 "backupNodeUUID": "",
             },
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
+            "machineType": "scale-7.2",
         }
         module = create_module(
             params=dict(
@@ -317,6 +321,7 @@ class TestDisabled:
                 "backupNodeUUID": "",
             },
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
+            "machineType": "scale-7.2",
         }
         module = create_module(
             params=dict(
@@ -363,6 +368,7 @@ class TestDisabled:
                 "backupNodeUUID": "",
             },
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
+            "machineType": "scale-7.2",
         }
         replication_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",

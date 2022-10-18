@@ -1,0 +1,160 @@
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-vm
+  scale_computing.hypercore.vm: &delete-XLAB-vm
+    vm_name: "{{ item }}"
+    state: absent
+  loop:
+    - XLAB-test-empty-ide-cdrom
+    - XLAB-test-empty-ide-cdrom-running
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Make source vm
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-empty-ide-cdrom
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "blabla"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    machine_type: BIOS
+    power_state: stop
+    disks:
+    - type: ide_cdrom
+      disk_slot: 0
+    nics: []
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-empty-ide-cdrom
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-empty-ide-cdrom
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 1
+      - source_info.records.0.disks.0.type == "ide_cdrom"
+      - source_info.records.0.disks.0.disk_slot == 0
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Make source vm (Idempotence)
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-empty-ide-cdrom
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "blabla"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    machine_type: BIOS
+    power_state: stop
+    disks:
+    - type: ide_cdrom
+      disk_slot: 0
+    nics: []
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is not changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-empty-ide-cdrom (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-empty-ide-cdrom
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 1
+      - source_info.records.0.disks.0.type == "ide_cdrom"
+      - source_info.records.0.disks.0.disk_slot == 0
+
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Make source vm - running
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-empty-ide-cdrom-running
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "blabla"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    machine_type: BIOS
+    power_state: start
+    disks:
+    - type: ide_cdrom
+      disk_slot: 0
+    nics: []
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-empty-ide-cdrom-running
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-empty-ide-cdrom-running
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "started"
+      - source_info.records.0.disks | length == 1
+      - source_info.records.0.disks.0.type == "ide_cdrom"
+      - source_info.records.0.disks.0.disk_slot == 0
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Make source vm running (Idempotence)
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-empty-ide-cdrom-running
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "blabla"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    machine_type: BIOS
+    power_state: start
+    disks:
+    - type: ide_cdrom
+      disk_slot: 0
+    nics: []
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is not changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-empty-ide-cdrom-running (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-empty-ide-cdrom-running
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "started"
+      - source_info.records.0.disks | length == 1
+      - source_info.records.0.disks.0.type == "ide_cdrom"
+      - source_info.records.0.disks.0.disk_slot == 0
+
+
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-vm
+  scale_computing.hypercore.vm: *delete-XLAB-vm
+  loop:
+    - XLAB-test-empty-ide-cdrom
+    - XLAB-test-empty-ide-cdrom-running

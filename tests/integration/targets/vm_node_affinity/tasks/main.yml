@@ -18,6 +18,7 @@
         vm_name: XLAB-vm_node_affinity_CI_test
         description: Demo VM
         power_state: stop
+        machine_type: BIOS
         state: present
         tags:
           - 'Xlab'

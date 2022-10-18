@@ -197,6 +197,13 @@ options:
       - If supported by operating system, create an extra device to attach the Scale Guest OS tools ISO.
     default: false
     type: bool
+  machine_type:
+    description:
+      - Scale I(Hardware) version.
+      - Required if creating a new VM.
+      - Only relevant when creating the VM. This property cannot be modified.
+    type: str
+    choices: [ BIOS, UEFI, vTPM+UEFI ]
 notes:
   - C(check_mode) is not supported.
 """
@@ -380,6 +387,7 @@ def ensure_present(module, rest_client):
         before = None  # for output
         # Create new VM object
         new_vm = VM.from_ansible(module.params)
+        new_vm.check_vm_before_create()
         # Define the payload and create the VM
         payload = new_vm.post_vm_payload(rest_client, module.params)
         task_tag = rest_client.create_record(
@@ -575,6 +583,7 @@ def main():
             snapshot_schedule=dict(
                 type="str",
             ),
+            machine_type=dict(type="str", choices=["BIOS", "UEFI", "vTPM+UEFI"]),
         ),
         required_if=[
             (

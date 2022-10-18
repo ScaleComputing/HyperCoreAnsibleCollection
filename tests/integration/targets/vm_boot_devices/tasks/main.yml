@@ -24,6 +24,7 @@
         disks: []
         nics: []
         state: present
+        machine_type: BIOS
       register: result
 
     - name: Create project directory /tmp (if it doesn't exist already)

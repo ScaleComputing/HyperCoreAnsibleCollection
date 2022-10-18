@@ -25,6 +25,7 @@
         state: present
         disks: [ ]
         nics: [ ]
+        machine_type: BIOS
       register: result
     - ansible.builtin.assert:
         that:

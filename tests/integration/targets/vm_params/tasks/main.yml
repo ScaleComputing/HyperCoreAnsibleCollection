@@ -20,6 +20,7 @@
       vm_name: XLAB-vm_params_CI_test
       description: VM for testing vm_params module
       power_state: start
+      machine_type: BIOS
       state: present
       tags: 
         - Xlab

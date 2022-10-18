@@ -204,7 +204,7 @@
 - ansible.builtin.assert:
     that:
       - output is not changed
-      - output is not succeeded
+      - output is failed
 
 - name: Retrieve XLAB-test-disk-enlarged - after failed downsize
   scale_computing.hypercore.vm_info:
@@ -231,7 +231,7 @@
 - ansible.builtin.assert:
     that:
       - output is not changed
-      - output is not succeeded
+      - output is failed
 
 - name: Retrieve XLAB-test-disk-enlarged-running - after failed downsize
   scale_computing.hypercore.vm_info:
