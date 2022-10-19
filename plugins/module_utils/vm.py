@@ -61,6 +61,7 @@ FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE = {
     "UEFI": "scale-8.10",
     "BIOS": "scale-7.2",
     "vTPM+UEFI": "scale-uefi-tpm-9.2",
+    "": "",
 }
 
 FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE = {
