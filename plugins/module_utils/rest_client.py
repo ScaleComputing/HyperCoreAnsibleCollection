@@ -105,3 +105,21 @@ class RestClient:
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
         return response
+
+
+class CachedRestClient(RestClient):
+    # Use ONLY in case, that all task operations are read only. Should hould for all _info
+    # modules.
+
+    def __init__(self, client):
+        super().__init__(client)
+        self.cache = dict()
+
+    def list_records(self, endpoint, query=None, timeout=None):
+        records = self.cache.get(endpoint)
+        if records:
+            return utils.filter_results(records, query)
+
+        records = super().list_records(endpoint, query, timeout)
+        self.cache[endpoint] = records
+        return records
