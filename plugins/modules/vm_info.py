@@ -106,7 +106,7 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.vm import VM
 from ..module_utils.utils import get_query
-from ..module_utils.rest_client import RestClient
+from ..module_utils.rest_client import CachedRestClient
 
 
 def run(module, rest_client):
@@ -135,7 +135,7 @@ def main():
         username = module.params["cluster_instance"]["username"]
         password = module.params["cluster_instance"]["password"]
         client = Client(host, username, password)
-        rest_client = RestClient(client)
+        rest_client = CachedRestClient(client)
         records = run(module, rest_client)
         module.exit_json(changed=False, records=records)
     except errors.ScaleComputingError as e:
