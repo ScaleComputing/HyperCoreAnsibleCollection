@@ -116,3 +116,23 @@ class TestCachedRestClient:
         records = cached_client.list_records(endpoint1, None)
         assert records == json.loads(data1)
         assert client_mock.call_count == 2
+
+    def test_list_records_empty_response(self, mocker):
+        # API might return "[]" as responses
+        endpoint = "vms"
+        data = "[]"
+
+        client_obj = client.Client("https://thehost", "user", "pass")
+        cached_client = rest_client.CachedRestClient(client=client_obj)
+        client_mock = mocker.patch.object(cached_client.client, "get")
+        client_mock.return_value = client.Response(200, data, '')
+
+        # first call
+        records = cached_client.list_records(endpoint, None)
+        assert records == []
+        assert client_mock.call_count == 1
+
+        # second call - should be cached too
+        records = cached_client.list_records(endpoint, None)
+        assert records == []
+        assert client_mock.call_count == 1
