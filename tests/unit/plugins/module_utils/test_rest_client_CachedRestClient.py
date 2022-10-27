@@ -7,15 +7,10 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import io
 import json
 import sys
 
 import pytest
-
-from ansible.module_utils.common.text.converters import to_text
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.six.moves.urllib.parse import urlparse, parse_qs
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import (
     client,
@@ -26,9 +21,6 @@ pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
 )
 
-
-def mock_list_records():
-    pass
 
 class TestCachedRestClient:
     @pytest.mark.parametrize(
@@ -57,7 +49,7 @@ class TestCachedRestClient:
         client_obj = client.Client("https://thehost", "user", "pass")
         cached_client = rest_client.CachedRestClient(client=client_obj)
         client_mock = mocker.patch.object(cached_client.client, "get")
-        client_mock.return_value = client.Response(200, data, '')
+        client_mock.return_value = client.Response(200, data, "")
 
         # on first call, we get something back
         records = cached_client.list_records(endpoint, query0)
@@ -125,7 +117,7 @@ class TestCachedRestClient:
         client_obj = client.Client("https://thehost", "user", "pass")
         cached_client = rest_client.CachedRestClient(client=client_obj)
         client_mock = mocker.patch.object(cached_client.client, "get")
-        client_mock.return_value = client.Response(200, data, '')
+        client_mock.return_value = client.Response(200, data, "")
 
         # first call
         records = cached_client.list_records(endpoint, None)
