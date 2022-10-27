@@ -121,5 +121,7 @@ class CachedRestClient(RestClient):
             return utils.filter_results(records, query)
 
         records = super().list_records(endpoint, query, timeout)
+        # BUG - here we store filtered result!
+        # Call this twice with different query.
         self.cache[endpoint] = records
         return records
