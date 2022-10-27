@@ -116,13 +116,13 @@ class CachedRestClient(RestClient):
         self.cache = dict()
 
     def list_records(self, endpoint, query=None, timeout=None):
-        records = self.cache.get(endpoint)
-        if records:
-            return utils.filter_results(records, query)
+        if endpoint in self.cache:
+            records = self.cache[endpoint]
+        else:
+            try:
+                records = self.client.get(path=endpoint, timeout=timeout).json
+            except TimeoutError as e:
+                raise errors.ScaleComputingError(f"Request timed out: {e}")
+            self.cache[endpoint] = records
 
-        try:
-            records = self.client.get(path=endpoint, timeout=timeout).json
-        except TimeoutError as e:
-            raise errors.ScaleComputingError(f"Request timed out: {e}")
-        self.cache[endpoint] = records
         return utils.filter_results(records, query)
