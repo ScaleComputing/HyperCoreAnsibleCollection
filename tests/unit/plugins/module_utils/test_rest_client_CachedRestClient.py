@@ -31,15 +31,14 @@ def mock_list_records():
     pass
 
 class TestCachedRestClient:
-    # @pytest.mark.parametrize(
-    #     "swap_query0_query1",
-    #     [
-    #         (None, {}),
-    #         ([], {}),
-    #         ([("a", "aVal"), ("b", "bVal")], {"a": "aVal", "b": "bVal"}),
-    #     ],
-    # )
-    def test_list_records(self, mocker):
+    @pytest.mark.parametrize(
+        "swap_query_order",
+        [
+            (False),
+            (True),
+        ],
+    )
+    def test_list_records(self, mocker, swap_query_order):
         # records = self.client.get(path=endpoint, timeout=timeout).json
         endpoint = "url1"
         data = '[{"name": "vm0"}, {"name": "vm1"}]'
@@ -50,6 +49,11 @@ class TestCachedRestClient:
         # this query should return only subset
         query1 = {"name": "vm1"}
         expected_data1 = '[{"name": "vm1"}]'
+
+        if swap_query_order:
+            # First will be executed query with filtering
+            query1, query0 = query0, query1
+            expected_data1, expected_data0 = expected_data0, expected_data1
 
         client_obj = client.Client("https://thehost", "user", "pass")
         cached_client = rest_client.CachedRestClient(client=client_obj)
