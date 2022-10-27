@@ -95,3 +95,28 @@ jobs:
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
       # - run: cd $WORKDIR && cat tests/integration/integration_config.yml
       - run: cd $WORKDIR && ansible-test integration
+
+  replica_cleanup:
+    needs:
+      - integration-test
+    runs-on: [self-hosted]
+    container: python:3.10-slim-buster
+    env:
+      SC_HOST: ${{ secrets.SC_HOST }}
+      SC_USERNAME: ${{ secrets.SC_USERNAME }}
+      SC_PASSWORD: ${{ secrets.SC_PASSWORD }}
+      SC_REPLICATION_DEST_HOST: ${{ secrets.SC_REPLICATION_DEST_HOST }}
+      SC_REPLICATION_DEST_USERNAME: ${{ secrets.SC_REPLICATION_DEST_USERNAME }}
+      SC_REPLICATION_DEST_PASSWORD: ${{ secrets.SC_REPLICATION_DEST_PASSWORD }}
+      ANSIBLE_COLLECTIONS_PATH: /work-dir
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: apt update
+      - run: apt install -y git make
+      - run: pip install ansible-core==2.13.1
+        # ansible-test needs special directory structure.
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+      - run: cd $WORKDIR && ansible-playbook tests/integration/ci_replica_cleanup.yml

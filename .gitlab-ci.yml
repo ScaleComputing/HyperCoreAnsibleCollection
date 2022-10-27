@@ -4,9 +4,19 @@ image: python:3.8.12-slim-buster # TODO gitlab registry
 # TODO reuse Makefile - "make sanity", and docker dind.
 
 variables:
-  # SC_HOST: https://10.5.11.30  # provide value in gitlab CI/CD settings
+  # provide commented out values in gitlab CI/CD settings
+  # SC_HOST: https://10.5.11.30
   SC_USERNAME: admin
-  # SC_PASSWORD:  # provide value in gitlab CI/CD settings
+  # SC_PASSWORD:
+
+  # SMB_SERVER:
+  # SMB_USERNAME:
+  # SMB_PASSWORD:
+  # SMB_SHARE:
+
+  # SC_REPLICATION_DEST_HOST:
+  # SC_REPLICATION_DEST_USERNAME:
+  # SC_REPLICATION_DEST_PASSWORD:
 
 stages:
   - test

@@ -1,5 +1,9 @@
 # the first part of child-pipeline-gitlab-ci.yml file
 
+stages:
+  - test
+  - cleanup
+
 variables:
   # SC_HOST: https://10.5.11.30  # provide value in gitlab CI/CD settings
   SC_USERNAME: admin
@@ -9,4 +13,23 @@ before_script:
   - pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
   - apt update
   - apt install -y git shellcheck make
+# --------------------------------------------------------------
+
+replica_cleanup:
+  stage: cleanup
+  image: python:3.8.12-slim-buster
+  variables:
+    ANSIBLE_COLLECTIONS_PATH: /work-dir
+  script:
+    - pip install ansible-core==2.13.1
+    # ansible-test needs special directory structure.
+    - mkdir -p /work-dir/ansible_collections/scale_computing/
+    - cp -a ./  /work-dir/ansible_collections/scale_computing/hypercore
+    - pushd /work-dir/ansible_collections/scale_computing/hypercore
+    #
+    - ansible-playbook tests/integration/ci_replica_cleanup.yml
+  # manual - we do not have VPN/proxy to replication dest cluster yet
+  # So this fails on XLAB gitlab.
+  when: manual
+
 # --------------------------------------------------------------
