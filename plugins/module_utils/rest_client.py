@@ -120,8 +120,9 @@ class CachedRestClient(RestClient):
         if records:
             return utils.filter_results(records, query)
 
-        records = super().list_records(endpoint, query, timeout)
-        # BUG - here we store filtered result!
-        # Call this twice with different query.
+        try:
+            records = self.client.get(path=endpoint, timeout=timeout).json
+        except TimeoutError as e:
+            raise errors.ScaleComputingError(f"Request timed out: {e}")
         self.cache[endpoint] = records
-        return records
+        return utils.filter_results(records, query)
