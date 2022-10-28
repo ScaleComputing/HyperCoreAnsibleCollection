@@ -97,9 +97,8 @@ jobs:
       - run: cd $WORKDIR && ansible-test integration
 
   replica_cleanup:
-    # TEMP
-    #needs:
-    #  - integration-test
+    needs:
+      - integration-test
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
     env:
