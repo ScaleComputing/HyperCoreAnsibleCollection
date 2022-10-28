@@ -27,6 +27,7 @@ replica_cleanup:
     - cp -a ./  /work-dir/ansible_collections/scale_computing/hypercore
     - pushd /work-dir/ansible_collections/scale_computing/hypercore
     #
+    - ansible-galaxy collection install community.general
     - ansible-playbook tests/integration/ci_replica_cleanup.yml
   # manual - we do not have VPN/proxy to replication dest cluster yet
   # So this fails on XLAB gitlab.
