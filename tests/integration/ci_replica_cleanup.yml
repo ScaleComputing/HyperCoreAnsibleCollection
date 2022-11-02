@@ -1,0 +1,77 @@
+---
+# Each time we test a VM replication, a new replica is created on replication-destination cluster
+# We need to remove those VMs.
+- name: Find VM replicas on replication-destination cluster
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # source cluster is already exposed via default env vars
+    # for destination cluster we need username and password
+    # host/url also needs to be provided (be we only check it is sane IP as used by out replication tests)
+    replication_dest_cluster:
+      host: "{{ lookup('ansible.builtin.env', 'SC_REPLICATION_DEST_HOST') }}"
+      username: "{{ lookup('ansible.builtin.env', 'SC_REPLICATION_DEST_USERNAME') }}"
+      password: "{{ lookup('ansible.builtin.env', 'SC_REPLICATION_DEST_PASSWORD') }}"
+  tasks:
+    # ==================================================================
+    # source cluster
+    - name: Get available cluster connection
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/RemoteClusterConnection
+      register: cluster_connection_info
+
+    - name: Show IP of first node in first remote cluster
+      ansible.builtin.debug:
+        msg: first cluster, first node IP={{ cluster_connection_info.record.0.remoteNodeIPs.0 }}, replication_dest_cluster.host={{ replication_dest_cluster.host }}
+
+    - name: Check configured dest_cluster URL matches "IP of first node in first remote cluster of the src_cluster"
+      ansible.builtin.assert:
+        that:
+          - cluster_connection_info.record.0.remoteNodeIPs.0 == replication_dest_cluster.host[8:]
+
+    # ==================================================================
+    # destination cluster
+    - name: Get info about all VMs
+      scale_computing.hypercore.vm_info:
+        cluster_instance: "{{ replication_dest_cluster }}"
+      register: vm_info_result
+
+    - name: Show VM count before
+      ansible.builtin.debug:
+        msg: count={{ vm_info_result.records | count }}
+
+    - name: Find VMs with tag=Xlab and tag=CI
+      ansible.builtin.set_fact:
+        remove_vms: []
+
+    - name: Find VMs with tag=Xlab and tag=CI
+      ansible.builtin.set_fact:
+        remove_vms: "{{ remove_vms + ([{'uuid': vm.uuid, 'vm_name': vm.vm_name}] if ('Xlab' in vm.tags  and 'CI' in vm.tags) else [])  }}"
+      loop: "{{ vm_info_result.records }}"
+      loop_control:
+        loop_var: vm
+
+    - name: Show VM UUIDs to be removes
+      ansible.builtin.debug:
+        msg: VMs to be removed count={{ remove_vms | count }} VMs={{ remove_vms }}
+
+    # We use API, as VM names got duplicated
+    - name: Remove VMs
+      scale_computing.hypercore.api:
+        cluster_instance: "{{ replication_dest_cluster }}"
+        action: delete
+        endpoint: /rest/v1/VirDomain/{{ vm.uuid }}
+      loop: "{{ remove_vms }}"
+      loop_control:
+        loop_var: vm
+
+    - name: Get info about all VMs - after remove
+      scale_computing.hypercore.vm_info:
+        cluster_instance: "{{ replication_dest_cluster }}"
+      register: vm_info_result
+
+    - name: Show VM count - after remove
+      ansible.builtin.debug:
+        msg: count={{ vm_info_result.records | count }}
