@@ -1,0 +1,14 @@
+name: CI matrix
+on:
+  - push
+env:
+  WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
+jobs:
+  integration-test:
+    runs-on: [ubuntu-latest]
+    container: python:3.10-slim-buster
+    env:
+      SC_HOST: ${{ secrets.SC_HOST }}
+      IND: 0
+    steps:
+      - run: echo ENV VARS are IND=$IND SC_HOST=$SC_HOST
