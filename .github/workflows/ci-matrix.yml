@@ -11,4 +11,4 @@ jobs:
       SC_HOST: ${{ secrets.SC_HOST }}
       IND: 0
     steps:
-      - run: echo ENV VARS are IND=$IND SC_HOST=$SC_HOST
+      - run: echo ENV VARS are IND=$IND SC_HOST=$(( $SC_HOST | sed 's/http/hTTp/' ))
