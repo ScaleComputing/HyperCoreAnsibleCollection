@@ -14,11 +14,12 @@ jobs:
       # SC_ALL: ${{ secrets.SC_ALL_91 }}
       SC_VERSION: ${{ matrix.sc_version }}
     steps:
+      - run: cat $GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v3
       - run: echo ENV VARS are IND=$IND matrix.sc_version=${{ matrix.sc_version }} SC_VERSION=$SC_VERSION
       - run: pip install pyyaml
-      - run: cat .github/sample_data_sc_all.yml | python .github/load_sc_secrets.py > ci_new_env.sh
+      - run: cat .github/sample_data_sc_all.yml | python .github/load_sc_secrets.py >> $GITHUB_ENV
       # use ".", not "source" (bash vs. ubuntu dash)
-      - run: . ci_new_env.sh
-      - run: python .github/load_sc_secrets.py
+      - run: echo SC_HOST=$SC_HOST SC_REPLICATION_DEST_HOST=$SC_REPLICATION_DEST_HOST
+      - run: cat $GITHUB_ENV

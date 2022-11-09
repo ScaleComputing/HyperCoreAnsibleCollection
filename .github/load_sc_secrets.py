@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# The script needs to provide output compatible with
+# https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#setting-an-environment-variable
+
 # Test as:
 # cat .github/sample_data_sc_all.yml | SC_VERSION=9.1 python .github/load_sc_secrets.py > ci_new_env.sh
 # source ci_new_env.sh
@@ -24,7 +27,7 @@ def main():
 
     print(f"# environ variables for SC_VERSION={sc_version}")
     for kk in data:
-        print(f"export {kk}=\"{data[kk]}\"")
+        print(f"{kk}=\"{data[kk]}\"")
 
 
 if __name__ == "__main__":
