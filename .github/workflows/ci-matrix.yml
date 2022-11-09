@@ -11,7 +11,7 @@ jobs:
     runs-on: [ubuntu-latest]
     container: python:3.10-slim-buster
     env:
-      SC_ALL: ${{ secrets.SC_ALL }}
+      SC_ALL: ${{ secrets.SC_ALL_91 }}
       IND: 0
     steps:
       - run: echo ENV VARS are IND=$IND matrix.sc_version=${{ matrix.sc_version }}
