@@ -1,0 +1,8 @@
+---
+SC_ALL:
+  "9.1":
+    SC_HOST: h91
+    SC_REPLICATION_DEST_HOST: rdh91
+  "9.2":
+    SC_HOST: h92
+    SC_REPLICATION_DEST_HOST: rdh92

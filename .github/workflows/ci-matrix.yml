@@ -7,17 +7,18 @@ jobs:
   matrix-test:
     strategy:
       matrix:
-        sc_version: [91, 92]
+        sc_version: [9.1, 9.2]
     runs-on: [ubuntu-latest]
     container: python:3.10-slim-buster
     env:
-      SC_ALL: ${{ secrets.SC_ALL_${{ matrix.sc_version }} }}
-      IND: 0
+      # SC_ALL: ${{ secrets.SC_ALL_91 }}
+      SC_VERSION: ${{ matrix.sc_version }}
     steps:
-      - run: echo ENV VARS are IND=$IND matrix.sc_version=${{ matrix.sc_version }}
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: echo ENV VARS are IND=$IND matrix.sc_version=${{ matrix.sc_version }} SC_VERSION=$SC_VERSION
       - run: pip install pyyaml
-      - run: python -c 'import yaml, sys; dd=yaml.safe_load(sys.stdin); print(dd);'
-
-#---
-#SC_HOST: h91
-#SC_PASSWORD: p91
+      - run: cat .github/sample_data_sc_all.yml | python .github/load_sc_secrets.py > ci_new_env.sh
+      # use ".", not "source" (bash vs. ubuntu dash)
+      - run: . ci_new_env.sh
+      - run: python .github/load_sc_secrets.py
