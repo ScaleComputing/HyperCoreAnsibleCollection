@@ -5,10 +5,13 @@ env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 jobs:
   integration-test:
+    strategy:
+      matrix:
+        sc_version: [9.1, 9.2]
     runs-on: [ubuntu-latest]
     container: python:3.10-slim-buster
     env:
       SC_HOST: ${{ secrets.SC_HOST }}
       IND: 0
     steps:
-      - run: echo ENV VARS are IND=$IND SC_HOST=$(( $SC_HOST | sed 's/http/hTTp/' ))
+      - run: echo ENV VARS are IND=$IND SC_HOST=$(( $SC_HOST | sed 's/http/hTTp/' )) matrix.sc_version=${{ matrix.sc_version }}
