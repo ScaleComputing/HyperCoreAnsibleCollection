@@ -4,7 +4,7 @@ on:
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 jobs:
-  integration-test:
+  matrix-test:
     strategy:
       matrix:
         sc_version: [9.1, 9.2]
@@ -14,4 +14,4 @@ jobs:
       SC_HOST: ${{ secrets.SC_HOST }}
       IND: 0
     steps:
-      - run: echo ENV VARS are IND=$IND SC_HOST=$(( $SC_HOST | sed 's/http/hTTp/' )) matrix.sc_version=${{ matrix.sc_version }}
+      - run: echo ENV VARS are IND=$IND matrix.sc_version=${{ matrix.sc_version }}
