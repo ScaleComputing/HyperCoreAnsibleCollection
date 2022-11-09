@@ -11,7 +11,13 @@ jobs:
     runs-on: [ubuntu-latest]
     container: python:3.10-slim-buster
     env:
-      SC_HOST: ${{ secrets.SC_HOST }}
+      SC_ALL: ${{ secrets.SC_ALL }}
       IND: 0
     steps:
       - run: echo ENV VARS are IND=$IND matrix.sc_version=${{ matrix.sc_version }}
+      - run: pip install pyyaml
+      - run: python -c 'import yaml, sys; dd=yaml.safe_load(sys.stdin); print(dd);'
+
+#---
+#SC_HOST: h91
+#SC_PASSWORD: p91
