@@ -7,11 +7,11 @@ jobs:
   matrix-test:
     strategy:
       matrix:
-        sc_version: [9.1, 9.2]
+        sc_version: [91, 92]
     runs-on: [ubuntu-latest]
     container: python:3.10-slim-buster
     env:
-      SC_ALL: ${{ secrets.SC_ALL_91 }}
+      SC_ALL: ${{ secrets.SC_ALL_${{ matrix.sc_version }} }}
       IND: 0
     steps:
       - run: echo ENV VARS are IND=$IND matrix.sc_version=${{ matrix.sc_version }}
