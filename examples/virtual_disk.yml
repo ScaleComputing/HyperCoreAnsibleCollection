@@ -1,0 +1,66 @@
+---
+- name: Upload a virtual disk image from http link to HyperCore
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    image_url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+    # image_url: https://github.com/ddemlow/RestAPIExamples/blob/master/ubuntu18_04-cloud-init/ubuntu18cloudimage.qcow2
+    image_filename: "{{ image_url | split('/') | last }}"
+    image_remove_old: false
+    sc_host: https://10.100.20.38 #TODO
+    sc_username: admin
+    sc_password: admin
+
+  tasks:
+    # # ------------------------------------------------------
+    - name: Download Virtual Disk {{ image_filename }} from URL
+      ansible.builtin.get_url: #TODO: what if file doesn't download completely?
+        url: "{{ image_url }}"
+        dest: /tmp/{{ image_filename }}
+
+    - name: Get the Virtual Disk size
+      ansible.builtin.stat:
+        path: /tmp/{{ image_filename }}
+      register: disk_file_info
+
+    #TODO
+    # - name: (Optionally) remove existing Virtual Disk {{ image_filename }} from HyperCore
+    #   scale_computing.hypercore.api:
+    #     action: get
+    #     cluster_instance:
+    #       host: "{{ sc_host }}"
+    #       username: "{{ sc_username }}"
+    #       password: "{{ sc_password }}"
+    #     endpoint: "/rest/v1/VirtualDisk"
+    #   register: virtualDiskResult
+
+    # ------------------------------------------------------
+    - name: "Upload Virtual Disk {{ image_filename }} to HyperCore"
+      scale_computing.hypercore.api:
+        action: put
+        cluster_instance:
+          host: "{{ sc_host }}"
+          username: "{{ sc_username }}"
+          password: "{{ sc_password }}"
+        endpoint: "/rest/v1/VirtualDisk/upload"
+        data:
+          filename: "{{ image_filename }}"
+          filesize: "{{ disk_file_info.stat.size }}"
+        source: /tmp/{{ image_filename }}
+      register: uploadResult
+
+    # ------------------------------------------------------
+    - name: Get Information About the uploaded Virtual Disk in HyperCore
+      scale_computing.hypercore.api:
+        action: get
+        cluster_instance:
+          host: "{{ sc_host }}"
+          username: "{{ sc_username }}"
+          password: "{{ sc_password }}"
+        endpoint: "/rest/v1/VirtualDisk/{{ uploadResult.record.createdUUID }}"
+      register: result
+
+    - name: Show uploaded disk info
+      debug:
+        var: result.record[0]
