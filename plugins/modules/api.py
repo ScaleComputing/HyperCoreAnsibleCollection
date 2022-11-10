@@ -16,7 +16,7 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: API interaction with Scale Computing HyperCore
 description:
-  - Perform a C(GET), C(POST), C(PATCH) or C(DELETE) request on resource(s) from the given endpoint.
+  - Perform a C(GET), C(POST), C(PATCH), C(DELETE), or C(PUT) request on resource(s) from the given endpoint.
     The api module can be used to perform raw API calls whenever there is no
     suitable concrete module or role implementation for a specific task.
 version_added: 1.0.0
@@ -36,6 +36,7 @@ options:
       - delete
       - get
       - post_list
+      - put
   data:
     type: dict
     description:
@@ -240,6 +241,12 @@ def delete_record(module, rest_client):
     return False, dict()
 
 
+def put_record(module, rest_client):
+    # TODO (tjazsch): Implement PUT method
+    module.warn("Put methods has not been implemented yet.")
+    return -1, -1, -1
+
+
 def get_records(module, rest_client):
     records = rest_client.list_records(
         query=module.params["data"],
@@ -258,6 +265,8 @@ def run(module, rest_client):
         return post_list_record(module, rest_client)
     elif action == "get":  # GET method
         return get_records(module, rest_client)
+    elif action == "put":  # GET method
+        return put_record(module, rest_client)
     return delete_record(module, rest_client)  # DELETE methodx
 
 
@@ -271,7 +280,7 @@ def main():
             ),
             action=dict(
                 type="str",
-                choices=["post", "patch", "delete", "get", "post_list"],
+                choices=["post", "patch", "delete", "get", "post_list", "put"],
                 required=True,
             ),
             endpoint=dict(
