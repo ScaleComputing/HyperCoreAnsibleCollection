@@ -26,7 +26,7 @@ jobs:
         # ansible-test needs special directory structure.
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      - run: cd $WORKDIR/tests/integration && sh cleanup.sh
+      - run: cd $WORKDIR/tests/integration && sh cleanup.sh ${SMB_SERVER}
 
   docs:
     runs-on: [self-hosted]
