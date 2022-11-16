@@ -38,4 +38,5 @@ jobs:
           smb_password: ${SMB_PASSWORD}
           EOF
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
-      - run: sshpass -p root ssh root@10.5.11.179 /bin/bash
+      - run: sshpass -p root ssh -tt root@10.5.11.179
+      - run: echo "bla"
