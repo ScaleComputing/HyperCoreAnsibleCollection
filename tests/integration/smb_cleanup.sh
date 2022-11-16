@@ -5,5 +5,5 @@ ${SMB_USERNAME}
 ${SMB_SHARE}
 ${SMB_SERVER}
 
-sshpass -p root root@${SMB_SERVER}
+sshpass -p root ssh root@${SMB_SERVER}
 echo "BLA"
