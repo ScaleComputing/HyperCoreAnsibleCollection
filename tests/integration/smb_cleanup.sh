@@ -5,7 +5,7 @@ ${SMB_USERNAME}
 ${SMB_SHARE}
 ${SMB_SERVER}
 
-SC_HOST=$(( ${SMB_SERVER} | sed 's/http/hTTp/' ))
+SC_HOST=$(( $SMB_SERVER | sed 's/http/hTTp/' ))
 
 echo $SC_HOST
 echo $(( ${SMB_SERVER} | sed 's/http/hTTp/' ))
