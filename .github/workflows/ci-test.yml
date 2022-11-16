@@ -121,3 +121,27 @@ jobs:
       - run: cp -a ./  $WORKDIR
       - run: ansible-galaxy collection install community.general
       - run: cd $WORKDIR && ansible-playbook tests/integration/ci_replica_cleanup.yml
+
+  smb_cleanup:
+    runs-on: [self-hosted]
+    container: python:3.10-slim-buster
+    env:
+      SC_HOST: ${{ secrets.SC_HOST }}
+      SC_USERNAME: ${{ secrets.SC_USERNAME }}
+      SC_PASSWORD: ${{ secrets.SC_PASSWORD }}
+      SMB_SERVER: ${{ secrets.SMB_SERVER }}
+      SMB_SHARE: ${{ secrets.SMB_SHARE }}
+      SMB_USERNAME: ${{ secrets.SMB_USERNAME }}
+      SMB_PASSWORD: ${{ secrets.SMB_PASSWORD }}
+      ANSIBLE_COLLECTIONS_PATH: /work-dir
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: apt update
+      - run: apt install -y git make
+      - run: pip install ansible-core==2.13.1
+        # ansible-test needs special directory structure.
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+      - run: cd $WORKDIR/tests/integration && sh cleanup.sh
