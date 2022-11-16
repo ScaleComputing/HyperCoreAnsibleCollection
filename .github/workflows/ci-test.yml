@@ -22,6 +22,7 @@ jobs:
       - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
       - run: apt update
       - run: apt install -y git make
+      - run: apt install sshpass
         # ansible-test needs special directory structure.
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
