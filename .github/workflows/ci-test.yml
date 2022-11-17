@@ -26,5 +26,5 @@ jobs:
         # ansible-test needs special directory structure.
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      - run: smbclient //10.5.11.179/users -U example1 badpass -N
+      - run: smbclient //$SMB_SERVER/$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N
       - run: ls
