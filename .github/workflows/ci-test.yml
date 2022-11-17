@@ -27,5 +27,6 @@ jobs:
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
       - run: smbclient -L $SMB_SERVER -N
+      - run: smbclient -L $SMB_SERVER -N -n SMB_SERVER
       - run: smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N
       - run: ls
