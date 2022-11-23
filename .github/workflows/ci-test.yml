@@ -4,6 +4,8 @@ on:
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 jobs:
+
+
   smb_cleanup:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
@@ -23,13 +25,6 @@ jobs:
       - run: apt update
       - run: apt install -y git make
       - run: apt install -y smbclient
-        # ansible-test needs special directory structure.
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      - run: smbclient -L $SMB_SERVER/$SMB_SHARE -n $SMB_SERVER/$SMB_SHARE -N --debuglevel=10
-      - run: smbclient -L $SMB_SERVER -N
-      - run: smbclient -L $SMB_SERVER -I $SMB_SERVER -N
-      - run: smbclient -n --netbiosname //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N
-      - run: smbclient -n --netbiosname //$SMB_SERVER/$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N
-      - run: smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N
-      - run: ls
+      - run: targets/smb_cleanup.sh

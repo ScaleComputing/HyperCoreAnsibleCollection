@@ -1,10 +1,14 @@
 #!/bin/bash
 
-${SMB_PASSWORD}
-${SMB_USERNAME}
-${SMB_SHARE}
-${SMB_SERVER}
+files=($(smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c ls | awk '{print $1}'))
+#dates=($(smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c ls -l | awk '{print $4}'))
 
-sshpass -p ${SMB_PASSWORD} ssh ${SMB_USERNAME}@${SMB_SERVER}
-sshpass -p root ssh root@${SMB_SERVER}
-echo "BLA"
+
+for file in ${files[@]}
+do
+    if [ $file != '.' ] && [ $file != '..' ]
+    then
+        echo "Attempting to delete:" $file
+        smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c 'deltree '$file''
+    fi
+done
