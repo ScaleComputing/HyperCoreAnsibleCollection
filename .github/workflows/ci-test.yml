@@ -5,7 +5,6 @@ env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 jobs:
 
-
   smb_cleanup:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
@@ -27,4 +26,4 @@ jobs:
       - run: apt install -y smbclient
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      - run: targets/smb_cleanup.sh
+      - run: cd $WORKDIR && targets/smb_cleanup.sh
