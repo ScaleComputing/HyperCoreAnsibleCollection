@@ -120,7 +120,7 @@ jobs:
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
       - run: ansible-galaxy collection install community.general
-      - run: cd $WORKDIR && ansible-playbook tests/integration/ci_replica_cleanup.yml
+      - run: cd $WORKDIR && ansible-playbook tests/integration/cleanup/ci_replica_cleanup.yml
 
   smb_cleanup:
     needs:
@@ -145,4 +145,4 @@ jobs:
       - run: apt install -y smbclient
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      - run: cd $WORKDIR/tests/integration && ./smb_cleanup.sh
+      - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh
