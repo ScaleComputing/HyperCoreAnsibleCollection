@@ -27,5 +27,4 @@ jobs:
       - run: apt install -y smbclient
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      - run: cd $WORKDIR/tests
-      - run: ls
+      - run: cd $WORKDIR/tests && ls -a
