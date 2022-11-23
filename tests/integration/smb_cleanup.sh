@@ -3,6 +3,7 @@
 files=($(smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c ls | awk '{print $1}'))
 #dates=($(smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c ls -l | awk '{print $4}'))
 
+echo "BLA"
 
 for file in ${files[@]}
 do
