@@ -656,7 +656,7 @@ class TestVM:
             "dom": {
                 "blockDevs": [],
                 "bootDevices": [],
-                "CloudIinitData": {
+                "cloudInitData": {
                     "metaData": "Y2xvdWRfaW5pdC1tZXRhLWRhdGE=",
                     "userData": "Y2xvdWRfaW5pdC11c2VyLWRhdGE=",
                 },

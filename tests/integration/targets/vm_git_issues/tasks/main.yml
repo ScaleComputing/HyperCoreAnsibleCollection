@@ -11,4 +11,5 @@
     - include_tasks: issue_11_empty_ide_cdrom.yml
     - include_tasks: issue_12_machine_types.yml
     - include_tasks: issue_3_enlarging_disk_is_triggering_restart.yml
+    - include_tasks: issue_41_cloud_init_disks.yml
 # TODO: add more tasks here when more issues are fixed.

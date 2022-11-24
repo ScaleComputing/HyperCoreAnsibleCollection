@@ -458,7 +458,7 @@ class VM(PayloadMapper):
         dom = filter_dict(payload, *VM_PAYLOAD_KEYS)
         cloud_init_payload = VM.create_cloud_init_payload(ansible_dict)
         if cloud_init_payload is not None:
-            dom["CloudIinitData"] = cloud_init_payload
+            dom["cloudInitData"] = cloud_init_payload
         options = dict(attachGuestToolsISO=payload["attachGuestToolsISO"])
         return dict(dom=dom, options=options)
 
