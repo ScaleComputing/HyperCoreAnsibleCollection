@@ -32,7 +32,7 @@
         state: present
       register: result
 
-    - name: Create and start the VM with disks, nics and boot devices set. Attach ISO onto the VM. Add cloud init data
+    - name: Create and start the VM with disks, nics and boot devices set. Attach ISO onto the VM.
       scale_computing.hypercore.vm: &create-vm
         vm_name: vm-integration-test-vm
         description: Demo VM
@@ -62,16 +62,6 @@
             disk_slot: 0
           - type: nic
             nic_vlan: 1
-        cloud_init:
-          user_data:
-            is_this: "yes"
-            valid:
-              - "yaml"
-              - "expression?"
-          meta_data:
-            this_data:
-              - "is"
-              - "very meta"
         machine_type: BIOS
       register: vm_created
     - ansible.builtin.assert:
