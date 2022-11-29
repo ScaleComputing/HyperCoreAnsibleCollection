@@ -986,6 +986,8 @@ class ManageVMDisks:
         for updated_ansible_disk in updated_ansible_disks:
             existing_disk = Disk.from_ansible(updated_ansible_disk)
             to_delete = True
+            if existing_disk.name and "cloud-init" in existing_disk.name:
+                continue
             for ansible_desired_disk in module.params[disk_key]:
                 desired_disk = Disk.from_ansible(ansible_desired_disk)
                 if (
