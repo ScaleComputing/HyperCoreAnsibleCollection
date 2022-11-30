@@ -19,4 +19,6 @@ jobs:
       SMB_PASSWORD: ${{ secrets.SMB_PASSWORD }}
       ANSIBLE_COLLECTIONS_PATH: /work-dir
     steps:
+      - run: apt-get update -y
+      - run: apt-get install -y iputils-ping
       - run: ping 127.0.0.1
