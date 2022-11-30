@@ -7,6 +7,8 @@ jobs:
 
 
   smb_cleanup:
+    needs:
+      - integration-test
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
     env:
@@ -19,4 +21,5 @@ jobs:
       SMB_PASSWORD: ${{ secrets.SMB_PASSWORD }}
       ANSIBLE_COLLECTIONS_PATH: /work-dir
     steps:
+      - run: apt install -y ping
       - run: ping 192.168.1.248
