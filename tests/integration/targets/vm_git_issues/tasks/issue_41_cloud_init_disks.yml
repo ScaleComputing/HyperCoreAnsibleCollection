@@ -1,13 +1,14 @@
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
-- name: Delete XLAB-vm
+- name: Delete XLAB-vm (START)
   scale_computing.hypercore.vm: &delete-XLAB-vm
     vm_name: "{{ item }}"
     state: absent
   loop:
     - XLAB-cloud-init-integration
+    - XLAB-cloud-init-integration-2
 
 # ----------------------------------Job-------------------------------------------------------------------------------------
-- name: Create and start the cloud_init VM
+- name: Create the XLAB-cloud-init-integration
   scale_computing.hypercore.vm:
     vm_name: XLAB-cloud-init-integration
     description: Demo VM
@@ -75,8 +76,76 @@
       - vm_created.record.0.power_state == "stopped"
       - vm_created.record.0.machine_type == "BIOS"
 
+- name: Create and start the XLAB-cloud-init-integration-2
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-cloud-init-integration-2
+    description: Demo VM
+    state: present
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: true
+    power_state: start
+    disks:
+      - type: virtio_disk
+        disk_slot: 0
+        size: "{{ '10.1 GB' | human_to_bytes }}"
+      - type: ide_cdrom
+        disk_slot: 0
+    nics:
+      - vlan: 1
+        type: RTL8139
+      - vlan: 2
+        type: virtio
+    boot_devices:
+      - type: virtio_disk
+        disk_slot: 0
+      - type: nic
+        nic_vlan: 1
+    cloud_init:
+      user_data:
+        is_this: "yes"
+        valid:
+          - "yaml"
+          - "expression?"
+      meta_data:
+        this_data:
+          - "is"
+          - "very meta"
+    machine_type: BIOS
+  register: vm_created_2
+- ansible.builtin.assert:
+    that:
+      - vm_created_2 is changed
+      - vm_created_2 is succeeded
+      - vm_created_2.record.0.description == "Demo VM"
+      - vm_created_2.record.0.memory == 536870912
+      - vm_created_2.record.0.tags == ["Xlab"]
+      - vm_created_2.record.0.vcpu == 2
+      - vm_created_2.record.0.vm_name == "XLAB-cloud-init-integration-2"
+      - vm_created_2.record.0.disks | length == 3     # Cloud init creates an IDE_CDROM disk, on first available slot.
+      - vm_created_2.record.0.nics | length == 2
+      - vm_created_2.record.0.nics.0.vlan == 1
+      - vm_created_2.record.0.nics.0.type == "RTL8139"
+      - vm_created_2.record.0.nics.1.vlan == 2
+      - vm_created_2.record.0.nics.1.type == "virtio"
+      - vm_created_2.record.0.disks.2.type == "ide_cdrom"
+      - vm_created_2.record.0.disks.2.disk_slot == 1
+      - vm_created_2.record.0.disks.1.type == "ide_cdrom"
+      - vm_created_2.record.0.disks.1.disk_slot == 0
+      - vm_created_2.record.0.disks.0.type == "virtio_disk"
+      - vm_created_2.record.0.disks.0.disk_slot == 0
+      - vm_created_2.record.0.boot_devices | length == 2
+      - vm_created_2.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created_2.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created_2.record.0.boot_devices.0.disk_slot == 0
+      - vm_created_2.record.0.boot_devices.1.vlan == 1
+      - vm_created_2.record.0.power_state == "started"
+      - vm_created_2.record.0.machine_type == "BIOS"
+
 # ----------------------------------Idempotence check------------------------------------------------------------------------
-- name: Create and start the cloud_init VM (Idempotence)
+- name: Create the XLAB-cloud-init-integration (Idempotence)
   scale_computing.hypercore.vm:
     vm_name: XLAB-cloud-init-integration
     description: Demo VM
@@ -144,8 +213,76 @@
       - vm_created.record.0.power_state == "stopped"
       - vm_created.record.0.machine_type == "BIOS"
 
+- name: Create and start the XLAB-cloud-init-integration-2 (Idempotence)
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-cloud-init-integration-2
+    description: Demo VM
+    state: present
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: true
+    power_state: start
+    disks:
+      - type: virtio_disk
+        disk_slot: 0
+        size: "{{ '10.1 GB' | human_to_bytes }}"
+      - type: ide_cdrom
+        disk_slot: 0
+    nics:
+      - vlan: 1
+        type: RTL8139
+      - vlan: 2
+        type: virtio
+    boot_devices:
+      - type: virtio_disk
+        disk_slot: 0
+      - type: nic
+        nic_vlan: 1
+    cloud_init:
+      user_data:
+        is_this: "yes"
+        valid:
+          - "yaml"
+          - "expression?"
+      meta_data:
+        this_data:
+          - "is"
+          - "very meta"
+    machine_type: BIOS
+  register: vm_created_2
+- ansible.builtin.assert:
+    that:
+      - vm_created_2 is not changed
+      - vm_created_2 is succeeded
+      - vm_created_2.record.0.description == "Demo VM"
+      - vm_created_2.record.0.memory == 536870912
+      - vm_created_2.record.0.tags == ["Xlab"]
+      - vm_created_2.record.0.vcpu == 2
+      - vm_created_2.record.0.vm_name == "XLAB-cloud-init-integration-2"
+      - vm_created_2.record.0.disks | length == 3     # Cloud init creates an IDE_CDROM disk, on first available slot.
+      - vm_created_2.record.0.nics | length == 2
+      - vm_created_2.record.0.nics.0.vlan == 1
+      - vm_created_2.record.0.nics.0.type == "RTL8139"
+      - vm_created_2.record.0.nics.1.vlan == 2
+      - vm_created_2.record.0.nics.1.type == "virtio"
+      - vm_created_2.record.0.disks.2.type == "ide_cdrom"
+      - vm_created_2.record.0.disks.2.disk_slot == 1
+      - vm_created_2.record.0.disks.1.type == "ide_cdrom"
+      - vm_created_2.record.0.disks.1.disk_slot == 0
+      - vm_created_2.record.0.disks.0.type == "virtio_disk"
+      - vm_created_2.record.0.disks.0.disk_slot == 0
+      - vm_created_2.record.0.boot_devices | length == 2
+      - vm_created_2.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created_2.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created_2.record.0.boot_devices.0.disk_slot == 0
+      - vm_created_2.record.0.boot_devices.1.vlan == 1
+      - vm_created_2.record.0.power_state == "started"
+      - vm_created_2.record.0.machine_type == "BIOS"
+
 # ----------------------------------Job-------------------------------------------------------------------------------------
-- name: Detach cloud_init ISO from IDE_CDROM
+- name: Detach cloud_init ISO from IDE_CDROM XLAB-cloud-init-integration
   scale_computing.hypercore.api:
     action: post
     endpoint: /rest/v1/VirDomainBlockDevice/{{ vm_created.record.0.disks.2.uuid }}
@@ -176,7 +313,7 @@
       - result.record.0.blockDevs.0.type == "VIRTIO_DISK"
       - result.record.0.blockDevs.0.slot == 0
 
-- name: Remove unused detached cloud init disk
+- name: Remove unused detached cloud init disk XLAB-cloud-init-integration
   scale_computing.hypercore.vm:
     vm_name: XLAB-cloud-init-integration
     description: Demo VM
@@ -242,7 +379,8 @@
       - vm_created.record.0.power_state == "stopped"
       - vm_created.record.0.machine_type == "BIOS"
 
-- name: Remove unused detached cloud init disk (Idempotence)
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Remove unused detached cloud init disk XLAB-cloud-init-integration (Idempotence)
   scale_computing.hypercore.vm:
     vm_name: XLAB-cloud-init-integration
     description: Demo VM
@@ -307,3 +445,176 @@
       - vm_created.record.0.boot_devices.1.vlan == 1
       - vm_created.record.0.power_state == "stopped"
       - vm_created.record.0.machine_type == "BIOS"
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Detach cloud_init ISO from IDE_CDROM XLAB-cloud-init-integration-2
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainBlockDevice/{{ vm_created_2.record.0.disks.2.uuid }}
+    data:
+      path: ""
+      name: ""
+      type: IDE_CDROM
+      capacity: 0
+  register: iso_detached
+- ansible.builtin.assert:
+    that:
+      - iso_detached is changed
+      - iso_detached is succeeded
+
+- name: Get XLAB-cloud-init-integration-2 info
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/VirDomain/{{vm_created_2.record.0.uuid}}
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record | length == 1
+      - result.record.0.blockDevs | length == 3
+      - result.record.0.blockDevs.2.type == "IDE_CDROM"
+      - result.record.0.blockDevs.2.slot == 1
+      - result.record.0.blockDevs.1.type == "IDE_CDROM"
+      - result.record.0.blockDevs.1.slot == 0
+      - result.record.0.blockDevs.0.type == "VIRTIO_DISK"
+      - result.record.0.blockDevs.0.slot == 0
+
+- name: Remove unused detached cloud init disk XLAB-cloud-init-integration-2
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-cloud-init-integration-2
+    description: Demo VM
+    state: present
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: true
+    power_state: start
+    force_reboot: true
+    shutdown_timeout: 10
+    disks:
+      - type: virtio_disk
+        disk_slot: 0
+        size: "{{ '10.1 GB' | human_to_bytes }}"
+      - type: ide_cdrom
+        disk_slot: 0
+    nics:
+      - vlan: 1
+        type: RTL8139
+      - vlan: 2
+        type: virtio
+    boot_devices:
+      - type: virtio_disk
+        disk_slot: 0
+      - type: nic
+        nic_vlan: 1
+    cloud_init:
+      user_data:
+        is_this: "yes"
+        valid:
+          - "yaml"
+          - "expression?"
+      meta_data:
+        this_data:
+          - "is"
+          - "very meta"
+    machine_type: BIOS
+  register: vm_created_2
+- ansible.builtin.assert:
+    that:
+      - vm_created_2 is changed
+      - vm_created_2 is succeeded
+      - vm_created_2.record.0.description == "Demo VM"
+      - vm_created_2.record.0.memory == 536870912
+      - vm_created_2.record.0.tags == ["Xlab"]
+      - vm_created_2.record.0.vcpu == 2
+      - vm_created_2.record.0.vm_name == "XLAB-cloud-init-integration-2"
+      - vm_created_2.record.0.disks | length == 2     # Cloud init disk was removed, since ISO was detached.
+      - vm_created_2.record.0.nics | length == 2
+      - vm_created_2.record.0.nics.0.vlan == 1
+      - vm_created_2.record.0.nics.0.type == "RTL8139"
+      - vm_created_2.record.0.nics.1.vlan == 2
+      - vm_created_2.record.0.nics.1.type == "virtio"
+      - vm_created_2.record.0.disks.1.type == "ide_cdrom"
+      - vm_created_2.record.0.disks.1.disk_slot == 0
+      - vm_created_2.record.0.disks.0.type == "virtio_disk"
+      - vm_created_2.record.0.disks.0.disk_slot == 0
+      - vm_created_2.record.0.boot_devices | length == 2
+      - vm_created_2.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created_2.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created_2.record.0.boot_devices.0.disk_slot == 0
+      - vm_created_2.record.0.boot_devices.1.vlan == 1
+      - vm_created_2.record.0.machine_type == "BIOS"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Remove unused detached cloud init disk XLAB-cloud-init-integration-2 (Idempotence)
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-cloud-init-integration-2
+    description: Demo VM
+    state: present
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: true
+    power_state: start
+    shutdown_timeout: 10
+    force_reboot: true
+    disks:
+      - type: virtio_disk
+        disk_slot: 0
+        size: "{{ '10.1 GB' | human_to_bytes }}"
+      - type: ide_cdrom
+        disk_slot: 0
+    nics:
+      - vlan: 1
+        type: RTL8139
+      - vlan: 2
+        type: virtio
+    boot_devices:
+      - type: virtio_disk
+        disk_slot: 0
+      - type: nic
+        nic_vlan: 1
+    cloud_init:
+      user_data:
+        is_this: "yes"
+        valid:
+          - "yaml"
+          - "expression?"
+      meta_data:
+        this_data:
+          - "is"
+          - "very meta"
+    machine_type: BIOS
+  register: vm_created_2
+- ansible.builtin.assert:
+    that:
+      - vm_created_2 is not changed
+      - vm_created_2 is succeeded
+      - vm_created_2.record.0.description == "Demo VM"
+      - vm_created_2.record.0.memory == 536870912
+      - vm_created_2.record.0.tags == ["Xlab"]
+      - vm_created_2.record.0.vcpu == 2
+      - vm_created_2.record.0.vm_name == "XLAB-cloud-init-integration-2"
+      - vm_created_2.record.0.disks | length == 2     # Cloud init disk was removed, since ISO was detached.
+      - vm_created_2.record.0.nics | length == 2
+      - vm_created_2.record.0.nics.0.vlan == 1
+      - vm_created_2.record.0.nics.0.type == "RTL8139"
+      - vm_created_2.record.0.nics.1.vlan == 2
+      - vm_created_2.record.0.nics.1.type == "virtio"
+      - vm_created_2.record.0.disks.1.type == "ide_cdrom"
+      - vm_created_2.record.0.disks.1.disk_slot == 0
+      - vm_created_2.record.0.disks.0.type == "virtio_disk"
+      - vm_created_2.record.0.disks.0.disk_slot == 0
+      - vm_created_2.record.0.boot_devices | length == 2
+      - vm_created_2.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created_2.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created_2.record.0.boot_devices.0.disk_slot == 0
+      - vm_created_2.record.0.boot_devices.1.vlan == 1
+      - vm_created_2.record.0.machine_type == "BIOS"
+
+- name: Delete XLAB-vm (END)
+  scale_computing.hypercore.vm: *delete-XLAB-vm
+  loop:
+    - XLAB-cloud-init-integration
+    - XLAB-cloud-init-integration-2

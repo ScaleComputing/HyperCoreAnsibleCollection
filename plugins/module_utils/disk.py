@@ -189,9 +189,14 @@ class Disk(PayloadMapper):
             virDomainUUID=vm.uuid,
         )
 
-    def needs_reboot(self, desired_disk):
+    def needs_reboot(self, action: str, desired_disk=None) -> bool:
+        # action is "create", "update", "delete".
         # Only a few actions over disks require reboot.
         # Delete and change type.
-        if self.type != desired_disk.type:
+        if desired_disk and action == "update" and self.type != desired_disk.type:
+            return True
+        if (
+            action == "delete" and self.type == "ide_cdrom"
+        ):  # ide_cdrom can never be deleted when VM is running.
             return True
         return False
