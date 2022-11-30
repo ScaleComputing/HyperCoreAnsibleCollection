@@ -19,5 +19,4 @@ jobs:
       SMB_PASSWORD: ${{ secrets.SMB_PASSWORD }}
       ANSIBLE_COLLECTIONS_PATH: /work-dir
     steps:
-      - run: apt install -y ping
-      - run: ping 192.168.1.248
+      - run: ping 127.0.0.1
