@@ -7,8 +7,6 @@ jobs:
 
 
   smb_cleanup:
-    needs:
-      - integration-test
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
     env:
