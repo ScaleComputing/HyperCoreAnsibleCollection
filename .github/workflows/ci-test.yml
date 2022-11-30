@@ -4,7 +4,21 @@ on:
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 jobs:
-  docs:
+
+
+  smb_cleanup:
+    needs:
+      - integration-test
     runs-on: [self-hosted]
+    container: python:3.10-slim-buster
+    env:
+      SC_HOST: ${{ secrets.SC_HOST }}
+      SC_USERNAME: ${{ secrets.SC_USERNAME }}
+      SC_PASSWORD: ${{ secrets.SC_PASSWORD }}
+      SMB_SERVER: ${{ secrets.SMB_SERVER }}
+      SMB_SHARE: ${{ secrets.SMB_SHARE }}
+      SMB_USERNAME: ${{ secrets.SMB_USERNAME }}
+      SMB_PASSWORD: ${{ secrets.SMB_PASSWORD }}
+      ANSIBLE_COLLECTIONS_PATH: /work-dir
     steps:
       - run: ping 192.168.1.248
