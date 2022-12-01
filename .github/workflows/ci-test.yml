@@ -36,3 +36,4 @@ jobs:
       - run: smbclient //192.168.1.248/azure-sync -U administrator%Scale2020! && ls
       - run: smbclient //192.168.1.248/azure-sync -U administrator%Scale2020! && ls
       - run: dig ${{ secrets.SMB_SERVER }}
+      - run: smbclient //${{ secrets.SMB_SERVER }}/${{ secrets.SMB_SHARE }} -U administrator%Scale2020! && ls
