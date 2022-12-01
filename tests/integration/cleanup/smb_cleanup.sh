@@ -8,6 +8,7 @@
 # username is provided as domain;username
 IFS=';'
 read -a username <<< "$3"
+echo ${username[1]}
 
 smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 ls
@@ -16,8 +17,6 @@ SMBCLIENTCOMMANDS
 smbclient //$1$2 -U ${username[1]}%$4 << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
-
-echo ${username[1]}
 
 exit
 
@@ -31,7 +30,7 @@ length=${#files[@]}-1
 for (( j=0; j<length; j++ ));
 do
     # Delete files that are at least one day old, in order to not crash other integration tests
-    if [ ${files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
+    if [ ${files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
     then
         echo "Attempting to delete:" ${files[j]} "with timestamp:" ${dates[j]}
         smbclient //$SMB_SERVER$SMB_SHARE -U ${username[1]}%$SMB_PASSWORD -c 'deltree '$file''
