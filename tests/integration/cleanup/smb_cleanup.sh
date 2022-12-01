@@ -6,11 +6,12 @@
 # password = $4
 
 # username is provided as domain;username
+bla = "ena;dva"
 IFS=';'
-read -a username <<< "$3"
-echo ${username[0]}
-echo ${username[1]}
-echo $username
+read -a username <<< "$bla"
+echo ${bla[0]}
+echo ${bla[1]}
+echo $bla
 
 smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 ls
