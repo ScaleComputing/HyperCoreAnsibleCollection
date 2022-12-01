@@ -8,7 +8,9 @@
 # username is provided as domain;username
 IFS=';'
 read -a username <<< "$3"
+echo ${username[0]}
 echo ${username[1]}
+echo $username
 
 smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 ls
