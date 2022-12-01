@@ -30,7 +30,7 @@ jobs:
       - run: cp -a ./  $WORKDIR
       - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh
       - run: ping -c 4 192.168.1.248
-      - run: smbclient -m SMB3 -L 192.168.1.248 -U $SMB_USERNAME $SMB_PASSWORD -N
+      - run: smbclient -m SMB3 -L 192.168.1.248 -U $SMB_USERNAME -N
       - run: smbclient -m SMB3 -L 192.168.1.248 -U administrator Scale2020!
       - run: smbclient -m SMB3 -L $SMB_USERNAME -U administrator Scale2020!
       - run: smbclient -m SMB3 -L $SMB_USERNAME -U $SMB_USERNAME $SMB_PASSWORD
