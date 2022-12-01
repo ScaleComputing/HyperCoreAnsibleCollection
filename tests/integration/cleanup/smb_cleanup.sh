@@ -6,13 +6,9 @@
 # password = $4
 
 # username is provided as domain;username
-
+IFS=';' read -ra username <<< "$3"
 
 smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
-ls
-SMBCLIENTCOMMANDS
-
-smbclient //$1$2 -U administrator%Scale2020! << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
