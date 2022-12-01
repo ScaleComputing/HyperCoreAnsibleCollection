@@ -31,5 +31,9 @@ jobs:
       - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh
       - run: ping -c 4 192.168.1.248
       - run: smbclient -m SMB3 -L 192.168.1.248
+      - run: smbclient -m SMB2 -L 192.168.1.248
+      - run: smbclient -m SMB1 -L 192.168.1.248
+      - run: smbclient -m SMB3 -L 192.168.1.248
+      - run: smbclient -m NT1 -L 192.168.1.248
       - run: smbclient -m SMB3 -L $SMB_SERVER -I 192.168.1.248
       - run: smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -E
