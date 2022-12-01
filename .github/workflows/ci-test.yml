@@ -31,3 +31,7 @@ jobs:
       - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh
       - run: ping -c 4 192.168.1.248
       - run: smbclient -L 192.168.1.248
+      - run: smbclient -I 192.168.1.248
+      - run: smbclient -L -I 192.168.1.248
+      - run: smbclient -I --ip-address=192.168.1.248
+      - run: smbclient -L -I --ip-address=192.168.1.248
