@@ -6,10 +6,10 @@
 # password = $4
 
 # username is provided as domain;username
-IFS=';' read -ra username <<< "$3"
+# IFS=';' read -ra username <<< "$3"
 
 
-smbclient //$1$2 -U "administrator"%$4 << SMBCLIENTCOMMANDS
+smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
