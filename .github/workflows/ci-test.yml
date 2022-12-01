@@ -30,6 +30,6 @@ jobs:
       - run: cp -a ./  $WORKDIR
       - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh
       - run: ping -c 4 192.168.1.248
+      - run: dig ${{ secrets.SMB_SERVER }}
       - run: smbclient -L 192.168.1.248 -U administrator%Scale2020!
       - run: smbclient //192.168.1.248/azure-sync -U administrator%Scale2020! && ls
-      - run: smbclient //192.168.1.248/users -U administrator%Scale2020! && ls
