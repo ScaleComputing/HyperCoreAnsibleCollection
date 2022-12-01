@@ -7,11 +7,10 @@
 
 # username is provided as domain;username
 bla="ena;dva"
-IFS=';'
-read -a username <<< "$bla"
-echo ${bla[0]}
-echo ${bla[1]}
-echo $bla
+IFS=';' read -ra ADDR <<< "$bla"
+echo ${ADDR[0]}
+echo ${ADDR[1]}
+echo $ADDR
 
 smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 ls
