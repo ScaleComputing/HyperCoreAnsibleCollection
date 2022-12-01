@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+smbclient -L 192.168.1.248 -U pm-edge/administrator%Scale2020! -W pm-edge
+
 smbclient //192.168.1.248/azure-sync -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 cd integration-test/integration-test-vm-export
 ls
