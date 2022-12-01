@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
 
 # USERNAME is provided as domain;username
+server = $1
+share = $2
+username = $3
+password = $4
+
 IFS=';'
-read -a username <<< "$SMB_USERNAME"
+read -a username_split <<< "$username"
 
 smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
-smbclient //$SMB_SERVER/ansibleci -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
+smbclient //$server$share -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
+
+echo $username_split
 
 exit
 

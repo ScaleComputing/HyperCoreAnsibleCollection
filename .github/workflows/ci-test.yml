@@ -27,4 +27,4 @@ jobs:
       - run: apt install -y smbclient
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh
+      - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh ${{ secrets.SMB_SERVER }} ${{ secrets.SMB_SHARE }} ${{ secrets.SMB_USERNAME }} ${{ secrets.SMB_PASSWORD }}
