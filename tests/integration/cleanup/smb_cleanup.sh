@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
 
-smbclient -L 192.168.1.248 -U pm-edge/administrator%Scale2020! -W pm-edge
-
-smbclient //192.168.1.248/azure-sync -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
-cd integration-test/integration-test-vm-export
-ls
-SMBCLIENTCOMMANDS
-
-smbclient //192.168.1.248/azure-sync -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
-cd integration-test/integration-test-vm-import
+smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
 exit
 
-files=($(smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c ls | awk '{print $1}'))
-dates=($(smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c ls -l | awk '{print $5":"$6":"$8}'))
+# USERNAME is provided as domain;username
+IFS=';'
+read -a username <<< "$SMB_USERNAME"
+
+files=($(smbclient //$SMB_SERVER$SMB_SHARE -U ${username[0]}%$SMB_PASSWORD -c ls | awk '{print $1}'))
+dates=($(smbclient //$SMB_SERVER$SMB_SHARE -U ${username[1]}%$SMB_PASSWORD -c ls -l | awk '{print $5":"$6":"$8}'))
 today_date=$(date +'%b:%d:%Y')
 
 echo "Todays date:" $today_date
@@ -27,6 +23,6 @@ do
     if [ ${files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
     then
         echo "Attempting to delete:" ${files[j]} "with timestamp:" ${dates[j]}
-        smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c 'deltree '$file''
+        smbclient //$SMB_SERVER$SMB_SHARE -U ${username[1]}%$SMB_PASSWORD -c 'deltree '$file''
     fi
 done
