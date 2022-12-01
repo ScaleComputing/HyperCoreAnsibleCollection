@@ -9,7 +9,7 @@
 IFS=';' read -ra username <<< "$3"
 
 
-smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
+smbclient //$1$2 -U "administrator"%"$4" << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
