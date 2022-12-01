@@ -6,7 +6,7 @@
 # password = $4
 
 # username is provided as domain;username
-bla = "ena;dva"
+bla="ena;dva"
 IFS=';'
 read -a username <<< "$bla"
 echo ${bla[0]}
