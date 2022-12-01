@@ -26,11 +26,10 @@ jobs:
       - run: apt install -y git make
       - run: apt install -y smbclient
       - run: apt install -y iputils-ping
-      - run: apt install -y iputils-ping
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
       - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh
       - run: ping -c 4 192.168.1.248
       - run: smbclient -L 192.168.1.248 -U administrator%Scale2020!
       - run: smbclient //192.168.1.248/azure-sync -U administrator%Scale2020! && ls
-      - run: smbclient //192.168.1.248/$SMB_SHARE -U administrator%Scale2020! && ls
+      - run: smbclient //192.168.1.248/$_SMB_SHARE -U administrator%Scale2020! && ls
