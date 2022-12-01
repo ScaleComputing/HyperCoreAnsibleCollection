@@ -8,7 +8,7 @@ smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-ed
 ls
 SMBCLIENTCOMMANDS
 
-smbclient //$SMB_SERVER$SMB_SHARE -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
+smbclient //$SMB_SERVER/$SMB_SHARE -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
