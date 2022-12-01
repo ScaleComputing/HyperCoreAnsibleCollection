@@ -26,6 +26,7 @@ jobs:
       - run: apt install -y git make
       - run: apt install -y smbclient
       - run: apt install -y iputils-ping
+      - run: apt install -y dnsutils
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
       - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh
