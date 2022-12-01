@@ -38,7 +38,6 @@ jobs:
       - run: smbclient //192.168.1.248/azure-sync -U remotedc/administrator%Scale2020! && cd tests && ls -a
       - run: smbclient //192.168.1.248/azure-sync -U remotedc/administrator%Scale2020! && cd tests/integration && ls -a
       - run: smbclient //192.168.1.248/azure-sync -U pm-edge/administrator%Scale2020! && ls
-      - run: smbclient //192.168.1.248/azure-sync -U pm-edge/administrator%Scale2020! -W pm-edge -c cd integration-test
-      - run: smbclient //192.168.1.248/azure-sync\integration-test -U pm-edge/administrator%Scale2020! -W pm-edge -c cd integration-test
+      - run: smbclient //192.168.1.248/azure-sync -U pm-edge/administrator%Scale2020! -W pm-edge -c 'cd integration-test'
       - run: dig ${{ secrets.SMB_SERVER }}
       - run: smbclient //${{ secrets.SMB_SERVER }} ${{ secrets.SMB_SHARE }} -U administrator%Scale2020! && ls
