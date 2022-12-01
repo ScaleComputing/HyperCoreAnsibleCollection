@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-# USERNAME is provided as domain;username
 # server = $1
 # share = $2
 # username = $3
 # password = $4
 
+# username is provided as domain;username
 IFS=';'
 read -a username <<< "$3"
 
@@ -13,11 +13,11 @@ smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-ed
 ls
 SMBCLIENTCOMMANDS
 
-smbclient //$1$2 -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
+smbclient //$1$2 -U ${username[1]}%$4 << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
-echo $username
+echo ${username[1]}
 
 exit
 
