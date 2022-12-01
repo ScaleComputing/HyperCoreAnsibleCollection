@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 
+# USERNAME is provided as domain;username
+IFS=';'
+read -a username <<< "$SMB_USERNAME"
+
 smbclient //192.168.1.248/ansibleci -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
-exit
+smbclient //SMB_SERVER$SMB_SHARE -U ${username[0]}%$SMB_PASSWORD << SMBCLIENTCOMMANDS
+ls
+SMBCLIENTCOMMANDS
 
-# USERNAME is provided as domain;username
-IFS=';'
-read -a username <<< "$SMB_USERNAME"
+exit
 
 files=($(smbclient //$SMB_SERVER$SMB_SHARE -U ${username[0]}%$SMB_PASSWORD -c ls | awk '{print $1}'))
 dates=($(smbclient //$SMB_SERVER$SMB_SHARE -U ${username[1]}%$SMB_PASSWORD -c ls -l | awk '{print $5":"$6":"$8}'))
