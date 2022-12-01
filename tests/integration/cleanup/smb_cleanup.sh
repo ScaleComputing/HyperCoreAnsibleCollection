@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+smbclient //192.168.1.248/azure-sync -U pm-edge/administrator%Scale2020! -W pm-edge << SMBCLIENTCOMMANDS
+cd integration-test
+ls
+exit
+SMBCLIENTCOMMANDS
+
+exit
+
 files=($(smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c ls | awk '{print $1}'))
 dates=($(smbclient //$SMB_SERVER$SMB_SHARE -U $SMB_USERNAME $SMB_PASSWORD -N -c ls -l | awk '{print $5":"$6":"$8}'))
 today_date=$(date +'%b:%d:%Y')
