@@ -9,7 +9,7 @@
 # IFS=';' read -ra username <<< "$3"
 
 
-smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
+smbclient //192.168.1.248/ansibleci -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
