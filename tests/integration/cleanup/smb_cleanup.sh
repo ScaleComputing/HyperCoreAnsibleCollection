@@ -17,7 +17,6 @@ echo ${username[0]} ":" ${username[1]}
 # files = $5
 # dates = $6
 # folder = $7
-# files array length = $8
 delete_files () { 
     if [ $7 == 'export' ]
     then
@@ -31,7 +30,8 @@ SMBCLIENTCOMMANDS
 
     today_date=$(date +'%b:%d:%Y')
     echo "Todays date:" $today_date
-    for (( j=0; j<$8; j++ ));
+    length=${#5[@]}-1
+    for (( j=0; j<length; j++ ));
     do
         # Delete files that are at least one day old, in order to not crash other integration tests
         if [ ${5[j]} != '.' ] && [ ${5[j]} != '..' ] && [ ${5[j]} != '.deleted' ] && [ ${6[j]} != $today_date ] 
@@ -45,12 +45,10 @@ done
 
 files=($(smbclient //$1$2 -U ${username[1]}%$4 -D 'integration-test-vm-export' -c ls | awk '{print $1}'))
 dates=($(smbclient //$1$2 -U ${username[1]}%$4 -D 'integration-test-vm-export' -c ls -l | awk '{print $5":"$6":"$8}'))
-length=${#files[@]}-1
 
-delete_files $1 $2 $username $4 $files $dates 'export' $length
+delete_files $1 $2 $username $4 $files $dates 'export'
 
 files=($(smbclient //$1$2 -U ${username[1]}%$4 -D 'integration-test-vm-import' -c ls | awk '{print $1}'))
 dates=($(smbclient //$1$2 -U ${username[1]}%$4 -D 'integration-test-vm-import' -c ls -l | awk '{print $5":"$6":"$8}'))
-length=${#files[@]}-1
 
-delete_files $1 $2 $username $4 $files $dates 'import' $length
+delete_files $1 $2 $username $4 $files $dates 'import'
