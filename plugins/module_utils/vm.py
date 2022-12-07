@@ -769,6 +769,8 @@ class ManageVMParams(VM):
     @staticmethod
     def _build_payload(module, rest_client):
         payload = {}
+        if module.params["operating_system"]:
+            payload["operating_system"] = module.params["operating_system"]
         if module.params["vm_name_new"]:
             payload["name"] = module.params["vm_name_new"]
         if module.params["description"] is not None:  # we want to be able to write ""
@@ -777,7 +779,7 @@ class ManageVMParams(VM):
             payload["tags"] = ",".join(
                 module.params["tags"]
             )  # tags is a list of strings
-        if module.params["memory"]:
+        if module.params["memory"] is not None:
             payload["mem"] = module.params["memory"]
         if module.params["vcpu"] is not None:
             payload["numVCPU"] = module.params["vcpu"]
@@ -809,6 +811,10 @@ class ManageVMParams(VM):
         changed_params = {}
         if module.params["vm_name_new"]:
             changed_params["vm_name"] = vm.name != module.params["vm_name_new"]
+        if module.params["operating_system"]:
+            changed_params["operating_system"] = (
+                vm.operating_system != module.params["operating_system"]
+            )
         if module.params["description"] is not None:  # we want to be able to write ""
             changed_params["description"] = (
                 vm.description != module.params["description"]
@@ -838,15 +844,17 @@ class ManageVMParams(VM):
     def _build_after_diff(module, rest_client):
         after = {}
         if module.check_mode:
+            if module.params["operating_system"]:
+                after["operating_system"] = module.params["operating_system"]
             if module.params["vm_name_new"]:
                 after["vm_name"] = module.params["vm_name_new"]
             if module.params["description"] is not None:
                 after["description"] = module.params["description"]
             if module.params["tags"] is not None:
                 after["tags"] = module.params["tags"]
-            if module.params["memory"]:
+            if module.params["memory"] is not None:
                 after["memory"] = module.params["memory"]
-            if module.params["vcpu"]:
+            if module.params["vcpu"] is not None:
                 after["vcpu"] = module.params["vcpu"]
             if module.params["power_state"]:
                 after["power_state"] = module.params["power_state"]
@@ -859,15 +867,17 @@ class ManageVMParams(VM):
             else module.params["vm_name"]
         }
         vm = VM.get_or_fail(query, rest_client)[0]
+        if module.params["operating_system"]:
+            after["operating_system"] = vm.operating_system
         if module.params["vm_name_new"]:
             after["vm_name"] = vm.name
         if module.params["description"] is not None:
             after["description"] = vm.description
         if module.params["tags"] is not None:
             after["tags"] = vm.tags
-        if module.params["memory"]:
+        if module.params["memory"] is not None:
             after["memory"] = vm.mem
-        if module.params["vcpu"]:
+        if module.params["vcpu"] is not None:
             after["vcpu"] = vm.numVCPU
         if module.params["power_state"]:
             after["power_state"] = vm.power_state
@@ -878,6 +888,8 @@ class ManageVMParams(VM):
     @staticmethod
     def _build_before_diff(vm, module):
         before = {}
+        if module.params["operating_system"]:
+            before["operating_system"] = vm.operating_system
         if module.params["vm_name_new"]:
             before["vm_name"] = vm.name
         if module.params["description"] is not None:
