@@ -17,6 +17,7 @@ echo ${username[0]} ":" ${username[1]}
 # files = $5
 # dates = $6
 # folder = $7
+# files array length = $8
 delete_files () { 
     smbclient //$1$2 -U $3%$4 -D $7 << SMBCLIENTCOMMANDS
     ls
@@ -24,9 +25,7 @@ SMBCLIENTCOMMANDS
 
     today_date=$(date +'%b:%d:%Y')
     echo "Todays date:" $today_date
-    set $5[*]
-    ref=(${!5})
-    length=${ref[*]}
+    length=$8
     echo "length:" $length
     echo "whatever:" $5
     for (( j=0; j<length; j++ ));
@@ -40,15 +39,17 @@ SMBCLIENTCOMMANDS
 done
  }
 
-echo "Getting variables for export"
+
 folder='integration-test-vm-export'
 files=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls | awk '{print $1}'))
 dates=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
-echo "first function call"
-delete_files $1 $2 ${username[1]} $4 $files $dates $folder
+length=${#files[@]}
+
+delete_files $1 $2 ${username[1]} $4 $files $dates $folder $length
 
 folder='integration-test-vm-import'
 files=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls | awk '{print $1}'))
 dates=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
+length=${#files[@]}
 
-delete_files $1 $2 ${username[1]} $4 $files $dates $folder
+delete_files $1 $2 ${username[1]} $4 $files $dates $folder $length
