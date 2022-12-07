@@ -8,6 +8,7 @@
 # username is provided as domain;username
 # IFS=';' read -ra username <<< "$3"
 
+echo $3
 
 smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration-test-vm-export' << SMBCLIENTCOMMANDS
 ls
