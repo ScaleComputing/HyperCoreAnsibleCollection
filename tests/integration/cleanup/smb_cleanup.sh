@@ -6,15 +6,15 @@
 # password = $4
 
 # username is provided as domain;username
-# IFS=';' read -ra username <<< "$3"
+IFS=';' read -ra username <<< $3
 
-echo $3
+echo ${username[0]} ":" ${username[1]}
 
-smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration-test-vm-export' << SMBCLIENTCOMMANDS
+smbclient //$1$2 -U ${username[1]}%"Scale2020!" -D 'integration-test-vm-export' << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
-smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration-test-vm-import' << SMBCLIENTCOMMANDS
+smbclient //$1$2 -U ${username[1]}%"Scale2020!" -D 'integration-test-vm-import' << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
