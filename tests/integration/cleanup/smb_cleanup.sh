@@ -24,9 +24,11 @@ SMBCLIENTCOMMANDS
 
     today_date=$(date +'%b:%d:%Y')
     echo "Todays date:" $today_date
+    set $5[*]
     ref=(${!5})
     length=${ref[*]}
-    echo $length
+    echo "length:" $length
+    echo "whatever:" $5
     for (( j=0; j<length; j++ ));
     do
         # Delete files that are at least one day old, in order to not crash other integration tests
@@ -43,7 +45,7 @@ folder='integration-test-vm-export'
 files=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls | awk '{print $1}'))
 dates=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
 echo "first function call"
-delete_files $1 $2 ${username[1]} $4 $files $dates 'export'
+delete_files $1 $2 ${username[1]} $4 $files $dates $folder
 
 folder='integration-test-vm-import'
 files=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls | awk '{print $1}'))
