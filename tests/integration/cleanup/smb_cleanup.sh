@@ -1,55 +1,48 @@
 #!/usr/bin/env bash
 
-# server = $1
-# share = $2
-# username = $3
-# password = $4
+# Delete function.
+# Deletes files that are at least one day old.
+delete_files () {
+    # $1 server address.
+    # $2 share on server.
+    # $3 username.
+    # $4 password.
+    # $5 folder in which files are located.
 
-# username is provided as domain;username
-IFS=';' read -ra username <<< $3
-echo ${username[0]} ":" ${username[1]}
+    folder=$5
+    files=($(smbclient //$1$2 -U $3%$4 -D $folder -c ls | awk '{print $1}'))
+    dates=($(smbclient //$1$2 -U $3%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
+    length=${#files[@]}
 
-# Delete function
-# server = $1
-# share = $2
-# username = $3
-# password = $4
-# files = $5
-# dates = $6
-# folder = $7
-# files array length = $8
-delete_files () { 
-    smbclient //$1$2 -U $3%$4 -D $7 << SMBCLIENTCOMMANDS
+    # Output list of all files inside given directory, easier to debug.
+    smbclient //$1$2 -U $3%$4 -D $folder << SMBCLIENTCOMMANDS
     ls
 SMBCLIENTCOMMANDS
 
     today_date=$(date +'%b:%d:%Y')
     echo "Todays date:" $today_date
-    length=$8
-    echo "length:" $length
-    echo "whatever:" $5
+
     for (( j=0; j<length; j++ ));
     do
-        # Delete files that are at least one day old, in order to not crash other integration tests
-        if [ ${$5[j]} != '.' ] && [ ${$5[j]} != '..' ] && [ ${$5[j]} != '.deleted' ] && [ ${$6[j]} != $today_date ] 
+        # Delete files that are at least one day old, in order to not crash other integration tests.
+        if [ ${$files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
         then
-            echo "Attempting to delete:" ${$5[j]} "with timestamp:" ${$6[j]}
-            smbclient //$1$2 -U $3%$4 -D $7 -c 'deltree '${$5[j]}''
+            echo "Attempting to delete:" ${files[j]} "with timestamp:" ${dates[j]}
+            smbclient //$1$2 -U $3%$4 -D $7 -c 'deltree '${files[j]}''
         fi
 done
  }
 
+# $1 server address
+# $2 share on server
+# $3 username
+# $4 password
+# username is provided as domain;username
+IFS=';' read -ra username <<< $3
+echo ${username[0]} ":" ${username[1]}
 
 folder='integration-test-vm-export'
-files=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls | awk '{print $1}'))
-dates=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
-length=${#files[@]}
-
-delete_files $1 $2 ${username[1]} $4 $files $dates $folder $length
+delete_files $1 $2 ${username[1]} $4 $folder
 
 folder='integration-test-vm-import'
-files=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls | awk '{print $1}'))
-dates=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
-length=${#files[@]}
-
-delete_files $1 $2 ${username[1]} $4 $files $dates $folder $length
+delete_files $1 $2 ${username[1]} $4 $folder
