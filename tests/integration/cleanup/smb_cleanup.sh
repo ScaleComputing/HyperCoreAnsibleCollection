@@ -24,9 +24,6 @@ import_dates=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration
 
 today_date=$(date +'%b:%d:%Y')
 echo "Todays date:" $today_date
-echo "export files:" ${export_files[3]}
-echo "export dates:" ${export_dates[3]}
-
 
 length=${#export_files[@]}-1
 for (( j=0; j<length; j++ ));
@@ -42,7 +39,6 @@ done
 length=${#import_files[@]}-1
 for (( j=0; j<length; j++ ));
 do
-    # Delete files that are at least one day old, in order to not crash other integration tests
     if [ ${import_files[j]} != '.' ] && [ ${import_files[j]} != '..' ] && [ ${import_files[j]} != '.deleted' ] && [ ${import_dates[j]} != $today_date ] 
     then
         echo "Attempting to delete:" ${import_files[j]} "with timestamp:" ${import_dates[j]}
