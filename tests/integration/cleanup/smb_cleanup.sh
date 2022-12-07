@@ -13,10 +13,10 @@ smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
-files=($(smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
+files=($(smbclient //$1$2 -U "administrator"%"Scale2020!")) << SMBCLIENTCOMMANDS
 cd integration-test-vm-export
 ls
-SMBCLIENTCOMMANDS))
+SMBCLIENTCOMMANDS
 
 echo ${files[1]}
 
