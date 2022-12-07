@@ -3,19 +3,18 @@
 # Delete function.
 # Deletes files that are at least one day old.
 delete_files () {
-    # $1 server address.
-    # $2 share on server.
-    # $3 username.
-    # $4 password.
-    # $5 folder in which files are located.
-
-    folder=$5
-    files=($(smbclient //$1$2 -U $3%$4 -D $folder -c ls | awk '{print $1}'))
-    dates=($(smbclient //$1$2 -U $3%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
+    server=$1
+    share=$2
+    username=$3
+    password=$4
+    folder=$5 # Folder where files are located.
+    files=($(smbclient //$server$share -U $username%$password -D $folder -c ls | awk '{print $1}'))
+    dates=($(smbclient //$server$share -U $username%$password -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
     length=${#files[@]}-1
 
     # Output list of all files inside given directory, easier to debug.
-    smbclient //$1$2 -U $3%$4 -D $folder << SMBCLIENTCOMMANDS
+    echo "Folder:" $folder
+    smbclient //$server$share -U $username%$password -D $folder << SMBCLIENTCOMMANDS
     ls
 SMBCLIENTCOMMANDS
 
@@ -28,7 +27,7 @@ SMBCLIENTCOMMANDS
         if [ ${files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
         then
             echo "Attempting to delete:" ${files[j]} "with timestamp:" ${dates[j]}
-            smbclient //$1$2 -U $3%$4 -D $folder -c 'deltree '${files[j]}''
+            //$server$share -U $username%$password -D $folder -c 'deltree '${files[j]}''
         fi
 done
  }
