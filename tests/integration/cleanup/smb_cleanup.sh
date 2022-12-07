@@ -28,7 +28,7 @@ SMBCLIENTCOMMANDS
         if [ ${files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
         then
             echo "Attempting to delete:" ${files[j]} "with timestamp:" ${dates[j]}
-            smbclient //$1$2 -U $3%$4 -D $7 -c 'deltree '${files[j]}''
+            smbclient //$1$2 -U $3%$4 -D $folder -c 'deltree '${files[j]}''
         fi
 done
  }
