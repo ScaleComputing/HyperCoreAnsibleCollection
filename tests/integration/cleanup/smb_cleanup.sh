@@ -14,8 +14,7 @@ ls
 SMBCLIENTCOMMANDS
 
 files=($(smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
-cd integration-test-vm-export && ls
-ls
+cd integration-test-vm-export && ls | awk '{print $1}'
 SMBCLIENTCOMMANDS
 ))
 
