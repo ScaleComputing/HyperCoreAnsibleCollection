@@ -80,6 +80,7 @@ VM_PAYLOAD_KEYS = [
     "numVCPU",
     "tags",
     "machineType",
+    "operatingSystem",
 ]
 
 VM_DEVICE_QUERY_MAPPING_ANSIBLE = dict(
@@ -176,7 +177,7 @@ class VM(PayloadMapper):
             ],
             boot_devices=vm_dict.get("boot_devices", []),
             attach_guest_tools_iso=vm_dict["attach_guest_tools_iso"] or False,
-            operating_system=None,
+            operating_system=vm_dict.get("operating_system"),
             power_state=vm_dict.get("power_state", None),
             machine_type=vm_dict.get("machine_type", None),
         )
@@ -986,7 +987,11 @@ class ManageVMDisks:
         for updated_ansible_disk in updated_ansible_disks:
             existing_disk = Disk.from_ansible(updated_ansible_disk)
             to_delete = True
-            if existing_disk.name and "cloud-init" in existing_disk.name:
+            # Ensure idempotence with cloud-init and guest-tools IDE_DISKs
+            if existing_disk.name and (
+                "cloud-init" in existing_disk.name
+                or "guest-tools" in existing_disk.name
+            ):
                 continue
             for ansible_desired_disk in module.params[disk_key]:
                 desired_disk = Disk.from_ansible(ansible_desired_disk)

@@ -1,0 +1,47 @@
+# Rename file to create_vm_playbook.yml? We have module vm_info, not VM_info.
+# Can we put all sample playbooks into a single sub-directory?
+- name: test vm module
+  hosts: localhost
+  tasks:
+  - name: Create VM
+    scale_computing.hypercore.vm:
+      # Get HyperCore host and related parameters (username, password, anything else?)
+      # from env or as module parameter.
+      # We need to define the env variables names.
+      # HyperCore_x or SCALE_ or SCALE_COMPUTING_ or SCALE_HyperCore_?
+      # HyperCore_API_URL, HyperCore_API_USERNAME, HyperCore_API_PASSWORD
+      # Later we wil have also username/password for SMB access.
+      cluster_instance:
+        host: 'https://10.5.11.30'
+        username: 'admin'
+        password: 'admin'
+      vm_name: XLAB-test-gest-tools-7
+      description: Demo VM
+      power_state: stop
+      state: present
+      tags:
+        - 'Xlab'
+        - 'Domen'
+      memory: 536870912 # In Bytes
+      vcpu: 2
+      attach_guest_tools_iso: true  # default false (same as HyperCore)
+      operating_system: os_other
+      disks:
+        - type: virtio_disk
+          disk_slot: 0
+          size: "{{ '100 GB' | human_to_bytes }}"
+        - type: ide_cdrom
+          disk_slot: 0
+      nics:
+        - vlan: 0
+          type: RTL8139
+      boot_devices:
+        - type: virtio_disk
+          disk_slot: 0
+        - type: ide_cdrom
+          disk_slot: 0
+    register: testout
+
+  - name: output the HTTP request results
+    debug:
+      var: testout
