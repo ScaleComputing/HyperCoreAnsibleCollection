@@ -24,7 +24,7 @@ SMBCLIENTCOMMANDS
 
     today_date=$(date +'%b:%d:%Y')
     echo "Todays date:" $today_date
-    length=$($5[@])-1
+    length=$(#5[@])-1
     echo $length
     for (( j=0; j<length; j++ ));
     do
@@ -42,10 +42,10 @@ folder='integration-test-vm-export'
 files=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls | awk '{print $1}'))
 dates=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
 echo "first function call"
-delete_files $1 $2 $username $4 $files $dates 'export'
+delete_files $1 $2 ${username[1]} $4 $files $dates 'export'
 
 folder='integration-test-vm-import'
 files=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls | awk '{print $1}'))
 dates=($(smbclient //$1$2 -U ${username[1]}%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
 
-delete_files $1 $2 $username $4 $files $dates $folder
+delete_files $1 $2 ${username[1]} $4 $files $dates $folder
