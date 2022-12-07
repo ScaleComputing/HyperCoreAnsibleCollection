@@ -13,15 +13,14 @@ smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration-test-vm-export'
 ls
 SMBCLIENTCOMMANDS
 
-files=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration-test-vm-export' -c ls | awk '{print $1}'))
+export_files=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration-test-vm-export' -c ls | awk '{print $1}'))
+import_files=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration-test-vm-import' -c ls -l | awk '{print $5":"$6":"$8}'))
 
-echo ${files}
-
-files=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -c ls | awk '{print $1}'))
-dates=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -c ls -l | awk '{print $5":"$6":"$8}'))
 
 today_date=$(date +'%b:%d:%Y')
 echo "Todays date:" $today_date
+echo "export files:" ${export_files[3]}
+echo "import files:" ${import_files[3]}
 
 exit 0
 
