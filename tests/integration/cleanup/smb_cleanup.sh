@@ -9,7 +9,7 @@
 # IFS=';' read -ra username <<< "$3"
 
 
-smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
+smbclient //$1$2/integration-test-vm-export -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
@@ -18,6 +18,7 @@ dates=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -c ls -l | awk '{print
 
 today_date=$(date +'%b:%d:%Y')
 echo "Todays date:" $today_date
+
 
 exit 0
 
