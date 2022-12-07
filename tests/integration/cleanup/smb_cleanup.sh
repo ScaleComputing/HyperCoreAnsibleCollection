@@ -12,7 +12,7 @@ delete_files () {
     folder=$5
     files=($(smbclient //$1$2 -U $3%$4 -D $folder -c ls | awk '{print $1}'))
     dates=($(smbclient //$1$2 -U $3%$4 -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
-    length=${#files[@]}
+    length=${#files[@]}-1
 
     # Output list of all files inside given directory, easier to debug.
     smbclient //$1$2 -U $3%$4 -D $folder << SMBCLIENTCOMMANDS
