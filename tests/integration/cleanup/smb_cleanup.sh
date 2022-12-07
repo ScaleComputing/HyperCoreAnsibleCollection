@@ -30,7 +30,7 @@ SMBCLIENTCOMMANDS
 
     today_date=$(date +'%b:%d:%Y')
     echo "Todays date:" $today_date
-    length=${#5[@]}-1
+    length=$($5[@])-1
     for (( j=0; j<length; j++ ));
     do
         # Delete files that are at least one day old, in order to not crash other integration tests
