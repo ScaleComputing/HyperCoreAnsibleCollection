@@ -9,17 +9,17 @@
 # IFS=';' read -ra username <<< "$3"
 
 
-smbclient //$1$2 -U "administrator"%$4 << SMBCLIENTCOMMANDS
+smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
-exit 0
+files=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -c ls | awk '{print $1}'))
+dates=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -c ls -l | awk '{print $5":"$6":"$8}'))
 
-files=($(smbclient //$SMB_SERVER$SMB_SHARE -U ${username[0]}%$SMB_PASSWORD -c ls | awk '{print $1}'))
-dates=($(smbclient //$SMB_SERVER$SMB_SHARE -U ${username[1]}%$SMB_PASSWORD -c ls -l | awk '{print $5":"$6":"$8}'))
 today_date=$(date +'%b:%d:%Y')
-
 echo "Todays date:" $today_date
+
+exit 0
 
 length=${#files[@]}-1
 for (( j=0; j<length; j++ ));
