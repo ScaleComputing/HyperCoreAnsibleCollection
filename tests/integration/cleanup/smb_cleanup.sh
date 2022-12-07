@@ -24,7 +24,8 @@ SMBCLIENTCOMMANDS
 
     today_date=$(date +'%b:%d:%Y')
     echo "Todays date:" $today_date
-    length=$(#5[@])-1
+    ref=(${!5})
+    length=${ref[*]}
     echo $length
     for (( j=0; j<length; j++ ));
     do
