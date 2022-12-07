@@ -14,7 +14,8 @@ ls
 SMBCLIENTCOMMANDS
 
 smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
-cd integration-test-vm-export && ls
+cd integration-test-vm-export
+ls
 SMBCLIENTCOMMANDS
 
 
