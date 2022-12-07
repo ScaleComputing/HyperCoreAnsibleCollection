@@ -25,7 +25,7 @@ SMBCLIENTCOMMANDS
     for (( j=0; j<length; j++ ));
     do
         # Delete files that are at least one day old, in order to not crash other integration tests.
-        if [ ${$files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
+        if [ ${files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
         then
             echo "Attempting to delete:" ${files[j]} "with timestamp:" ${dates[j]}
             smbclient //$1$2 -U $3%$4 -D $7 -c 'deltree '${files[j]}''
