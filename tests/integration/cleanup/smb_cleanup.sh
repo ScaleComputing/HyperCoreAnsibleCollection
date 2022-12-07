@@ -9,7 +9,7 @@
 # IFS=';' read -ra username <<< "$3"
 
 
-smbclient //$1$2 -U "administrator"%"Scale2020!" -D integration-test-vm-export << SMBCLIENTCOMMANDS
+smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration-test-vm-export' << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
