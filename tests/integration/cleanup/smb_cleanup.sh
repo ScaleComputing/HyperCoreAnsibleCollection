@@ -23,16 +23,14 @@ echo "Todays date:" $today_date
 echo "export files:" ${export_files[3]}
 echo "export dates:" ${export_dates[3]}
 
-exit 0
-
 
 length=${#export_files[@]}-1
 for (( j=0; j<length; j++ ));
 do
     # Delete files that are at least one day old, in order to not crash other integration tests
-    if [ ${files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
+    if [ ${export_files[j]} != '.' ] && [ ${export_files[j]} != '..' ] && [ ${export_files[j]} != '.deleted' ] && [ ${export_dates[j]} != $today_date ] 
     then
-        echo "Attempting to delete:" ${files[j]} "with timestamp:" ${dates[j]}
-        smbclient //$SMB_SERVER$SMB_SHARE -U ${username[1]}%$SMB_PASSWORD -c 'deltree '$file''
+        echo "Attempting to delete:" ${export_files[j]} "with timestamp:" ${export_dates[j]}
+        smbclient //$1$2 -U "administrator"%"Scale2020!" -D 'integration-test-vm-export' -c 'deltree '${export_files[j]}''
     fi
 done
