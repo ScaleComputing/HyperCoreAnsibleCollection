@@ -13,13 +13,13 @@ smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
 ls
 SMBCLIENTCOMMANDS
 
-smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
+files=($(smbclient //$1$2 -U "administrator"%"Scale2020!" << SMBCLIENTCOMMANDS
 cd integration-test-vm-export
-ls
+ls | awk '{print $1}'
 SMBCLIENTCOMMANDS
+))
 
-
-echo $files
+echo ${files[1]}
 
 files=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -c ls | awk '{print $1}'))
 dates=($(smbclient //$1$2 -U "administrator"%"Scale2020!" -c ls -l | awk '{print $5":"$6":"$8}'))
