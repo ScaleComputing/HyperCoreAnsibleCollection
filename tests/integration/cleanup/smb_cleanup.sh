@@ -27,7 +27,7 @@ SMBCLIENTCOMMANDS
         if [ ${files[j]} != '.' ] && [ ${files[j]} != '..' ] && [ ${files[j]} != '.deleted' ] && [ ${dates[j]} != $today_date ] 
         then
             echo "Attempting to delete:" ${files[j]} "with timestamp:" ${dates[j]}
-            //$server$share -U $username%$password -D $folder -c 'deltree '${files[j]}''
+            smbclient //$server$share -U $username%$password -D $folder -c 'deltree '${files[j]}''
         fi
 done
  }
@@ -38,7 +38,6 @@ done
 # $4 password
 # username is provided as domain;username
 IFS=';' read -ra username <<< $3
-echo ${username[0]} ":" ${username[1]}
 
 folder='integration-test-vm-export'
 delete_files $1 $2 ${username[1]} $4 $folder
