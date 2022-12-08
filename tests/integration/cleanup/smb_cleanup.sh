@@ -46,6 +46,8 @@ main () {
 
     folder='integration-test-vm-import'
     delete_files $1 $2 ${username[1]} $4 $folder
+
+    exit 0
 }
 
 main $1 $2 $3 $4
