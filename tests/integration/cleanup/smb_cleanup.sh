@@ -29,9 +29,11 @@ SMBCLIENTCOMMANDS
             echo "Attempting to delete:" ${files[j]} "with timestamp:" ${dates[j]}
             smbclient //$server$share -U $username%$password -D $folder -c 'deltree '${files[j]}''
         fi
-done
+    done
  }
 
+# Main function
+main () {
 # $1 server address
 # $2 share on server
 # $3 username
@@ -44,3 +46,6 @@ delete_files $1 $2 ${username[1]} $4 $folder
 
 folder='integration-test-vm-import'
 delete_files $1 $2 ${username[1]} $4 $folder
+}
+
+main
