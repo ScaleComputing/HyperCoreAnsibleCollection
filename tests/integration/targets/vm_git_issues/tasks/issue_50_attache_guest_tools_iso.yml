@@ -1,0 +1,818 @@
+# ----------------------------------Cleanup--------------------------------------------------------------------------------
+- name: Delete XLAB-vm (START)
+  scale_computing.hypercore.vm: &delete-XLAB-vm
+    vm_name: "{{ item }}"
+    state: absent
+  loop:
+    - XLAB-attach-guest-tools-integration
+    - XLAB-attach-guest-tools-integration-2
+    - XLAB-attach-guest-tools-integration-3
+    - XLAB-attach-guest-tools-integration-4
+    - XLAB-attach-guest-tools-integration-5
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration with guest tools
+  scale_computing.hypercore.vm: &XLAB-attach-guest-tools-integration
+    vm_name: XLAB-attach-guest-tools-integration
+    description: Integration test
+    state: present
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: true
+    power_state: stop
+    disks:
+      - type: virtio_disk
+        disk_slot: 0
+        size: "{{ '10.1 GB' | human_to_bytes }}"
+      - type: ide_cdrom
+        disk_slot: 0
+    nics:
+      - vlan: 1
+        type: RTL8139
+      - vlan: 2
+        type: virtio
+    boot_devices:
+      - type: virtio_disk
+        disk_slot: 0
+      - type: nic
+        nic_vlan: 1
+    machine_type: BIOS
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration"
+      - vm_created.record.0.disks | length == 3     # Guest tools creates an IDE_CDROM disk, on first available slot.
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.2.type == "ide_cdrom"
+      - vm_created.record.0.disks.2.disk_slot == 1
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - vm_created.record.0.disks.1.iso_name == ""
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "stopped"
+      - vm_created.record.0.machine_type == "BIOS"
+      - vm_created.record.0.operating_system == "os_windows_server_2012" # This is default
+
+- name: Retrieve XLAB-attach-guest-tools-integration
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 3
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.2.iso_name"
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_windows_server_2012" # This is default
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration with guest tools (Idempotence)
+  scale_computing.hypercore.vm: *XLAB-attach-guest-tools-integration
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is not changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration"
+      - vm_created.record.0.disks | length == 3     # Guest tools creates an IDE_CDROM disk, on first available slot.
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.2.type == "ide_cdrom"
+      - vm_created.record.0.disks.2.disk_slot == 1
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - vm_created.record.0.disks.1.iso_name == ""
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "stopped"
+      - vm_created.record.0.machine_type == "BIOS"
+
+- name: Retrieve XLAB-attach-guest-tools-integration (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 3
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.2.iso_name"
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_windows_server_2012" # This is default
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Change the OS on XLAB-attach-guest-tools-integration
+  scale_computing.hypercore.vm_params:
+    vm_name: XLAB-attach-guest-tools-integration
+    operating_system: os_other
+  register: vm_changed
+- ansible.builtin.assert:
+    that:
+      - vm_changed is changed
+      - vm_changed is succeeded
+
+- name: Retrieve changed XLAB-attach-guest-tools-integration
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 3
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.2.iso_name" # Guest tools should stay
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_other"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Change the OS on XLAB-attach-guest-tools-integration (Idempotence)
+  scale_computing.hypercore.vm_params:
+    vm_name: XLAB-attach-guest-tools-integration
+    operating_system: os_other
+  register: vm_changed
+- ansible.builtin.assert:
+    that:
+      - vm_changed is not changed
+      - vm_changed is succeeded
+
+- name: Retrieve changed XLAB-attach-guest-tools-integration (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 3
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.2.iso_name" # Guest tools should stay
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_other"
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration-2 without guest tools
+  scale_computing.hypercore.vm: &XLAB-attach-guest-tools-integration-2
+    vm_name: XLAB-attach-guest-tools-integration-2
+    description: Integration test
+    state: present
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: false
+    power_state: stop
+    disks:
+      - type: virtio_disk
+        disk_slot: 0
+        size: "{{ '10.1 GB' | human_to_bytes }}"
+      - type: ide_cdrom
+        disk_slot: 0
+    nics:
+      - vlan: 1
+        type: RTL8139
+      - vlan: 2
+        type: virtio
+    boot_devices:
+      - type: virtio_disk
+        disk_slot: 0
+      - type: nic
+        nic_vlan: 1
+    machine_type: BIOS
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration-2"
+      - vm_created.record.0.disks | length == 2
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - vm_created.record.0.disks.1.iso_name == ""
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "stopped"
+      - vm_created.record.0.machine_type == "BIOS"
+      - vm_created.record.0.operating_system == "os_windows_server_2012" # This is default
+
+- name: Retrieve XLAB-attach-guest-tools-integration-2
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-2
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-2"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 2
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_windows_server_2012" # This is default
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration-2 without guest tools (Idempotence)
+  scale_computing.hypercore.vm: *XLAB-attach-guest-tools-integration-2
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is not changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration-2"
+      - vm_created.record.0.disks | length == 2
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - vm_created.record.0.disks.1.iso_name == ""
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "stopped"
+      - vm_created.record.0.machine_type == "BIOS"
+
+- name: Retrieve XLAB-attach-guest-tools-integration-2 (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-2
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-2"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 2
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_windows_server_2012" # This is default
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration-3 with other_os with guest tools
+  scale_computing.hypercore.vm: &XLAB-attach-guest-tools-integration-3
+    vm_name: XLAB-attach-guest-tools-integration-3
+    description: Integration test
+    state: present
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: true  # This should not work, since OS is set as os_other
+    operating_system: os_other
+    power_state: stop
+    disks:
+      - type: virtio_disk
+        disk_slot: 0
+        size: "{{ '10.1 GB' | human_to_bytes }}"
+      - type: ide_cdrom
+        disk_slot: 0
+    nics:
+      - vlan: 1
+        type: RTL8139
+      - vlan: 2
+        type: virtio
+    boot_devices:
+      - type: virtio_disk
+        disk_slot: 0
+      - type: nic
+        nic_vlan: 1
+    machine_type: BIOS
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration-3"
+      - vm_created.record.0.disks | length == 2    # Guest tools shouldn't be created, since the wrong OS is selected.
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - vm_created.record.0.disks.1.iso_name == ""
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "stopped"
+      - vm_created.record.0.machine_type == "BIOS"
+      - vm_created.record.0.operating_system == "os_other" # This is default
+
+- name: Retrieve XLAB-attach-guest-tools-integration-3
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-3
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-3"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 2
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_other" # This is default
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration-3 with other_os with guest tools (Idempotence)
+  scale_computing.hypercore.vm: *XLAB-attach-guest-tools-integration-3
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is not changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration-3"
+      - vm_created.record.0.disks | length == 2
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - vm_created.record.0.disks.1.iso_name == ""
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "stopped"
+      - vm_created.record.0.machine_type == "BIOS"
+
+- name: Retrieve XLAB-attach-guest-tools-integration-3 (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-3
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-3"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 2
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_other" # This is default
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration-4 with guest tools and cloud_init
+  scale_computing.hypercore.vm: &XLAB-attach-guest-tools-integration-4
+    vm_name: XLAB-attach-guest-tools-integration-4
+    description: Integration test
+    state: present
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: true
+    operating_system: os_windows_server_2012
+    power_state: stop
+    disks:
+      - type: virtio_disk
+        disk_slot: 0
+        size: "{{ '10.1 GB' | human_to_bytes }}"
+    nics:
+      - vlan: 1
+        type: RTL8139
+      - vlan: 2
+        type: virtio
+    boot_devices:
+      - type: virtio_disk
+        disk_slot: 0
+      - type: nic
+        nic_vlan: 1
+    cloud_init:                     # Test if cloud_init works with attach_guest_tools
+      user_data:
+        is_this: "yes"
+        valid:
+          - "yaml"
+          - "expression?"
+      meta_data:
+        this_data:
+          - "is"
+          - "very meta"
+    machine_type: BIOS
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration-4"
+      - vm_created.record.0.disks | length == 3    # Cloud_init and guest tools both create IDE_CDROMS
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.2.type == "ide_cdrom"
+      - "'cloud-init' in vm_created.record.0.disks.2.iso_name"
+      - vm_created.record.0.disks.2.disk_slot == 1
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - "'scale-guest-tools' in vm_created.record.0.disks.1.iso_name"
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "stopped"
+      - vm_created.record.0.machine_type == "BIOS"
+      - vm_created.record.0.operating_system == "os_windows_server_2012" # This is default
+
+- name: Retrieve XLAB-attach-guest-tools-integration-4
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-4
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-4"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 3
+      - "'cloud-init' in source_info.records.0.disks.2.iso_name"
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.1.iso_name"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_windows_server_2012" # This is default
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration-4 with guest tools and cloud_init (Idempotence)
+  scale_computing.hypercore.vm: *XLAB-attach-guest-tools-integration-4
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is not changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration-4"
+      - vm_created.record.0.disks | length == 3    # Cloud_init and guest tools both create IDE_CDROMS
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.2.type == "ide_cdrom"
+      - "'cloud-init' in vm_created.record.0.disks.2.iso_name"
+      - vm_created.record.0.disks.2.disk_slot == 1
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - "'scale-guest-tools' in vm_created.record.0.disks.1.iso_name"
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "stopped"
+      - vm_created.record.0.machine_type == "BIOS"
+      - vm_created.record.0.operating_system == "os_windows_server_2012" # This is default
+
+- name: Retrieve XLAB-attach-guest-tools-integration-4 (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-4
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-4"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 3
+      - "'cloud-init' in source_info.records.0.disks.2.iso_name"
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.1.iso_name"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_windows_server_2012" # This is default
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration-5 with guest tools RUNNING
+  scale_computing.hypercore.vm: &XLAB-attach-guest-tools-integration-5
+    vm_name: XLAB-attach-guest-tools-integration-5
+    description: Integration test
+    state: present
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: true
+    power_state: start
+    disks:
+      - type: virtio_disk
+        disk_slot: 0
+        size: "{{ '10.1 GB' | human_to_bytes }}"
+      - type: ide_cdrom
+        disk_slot: 0
+    nics:
+      - vlan: 1
+        type: RTL8139
+      - vlan: 2
+        type: virtio
+    boot_devices:
+      - type: virtio_disk
+        disk_slot: 0
+      - type: nic
+        nic_vlan: 1
+    machine_type: BIOS
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration-5"
+      - vm_created.record.0.disks | length == 3     # Guest tools creates an IDE_CDROM disk, on first available slot.
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.2.type == "ide_cdrom"
+      - vm_created.record.0.disks.2.disk_slot == 1
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - vm_created.record.0.disks.1.iso_name == ""
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "started"
+      - vm_created.record.0.machine_type == "BIOS"
+      - vm_created.record.0.operating_system == "os_windows_server_2012" # This is default
+
+- name: Retrieve XLAB-attach-guest-tools-integration-5
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-5
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-5"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.disks | length == 3
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.2.iso_name"
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_windows_server_2012" # This is default
+      - source_info.records.0.power_state == "started"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Create the XLAB-attach-guest-tools-integration-5 with guest tools RUNNING (Idempotence)
+  scale_computing.hypercore.vm: *XLAB-attach-guest-tools-integration-5
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is not changed
+      - vm_created is succeeded
+      - vm_created.record.0.memory == 536870912
+      - vm_created.record.0.tags == ["Xlab"]
+      - vm_created.record.0.vcpu == 2
+      - vm_created.record.0.vm_name == "XLAB-attach-guest-tools-integration-5"
+      - vm_created.record.0.disks | length == 3     # Guest tools creates an IDE_CDROM disk, on first available slot.
+      - vm_created.record.0.nics | length == 2
+      - vm_created.record.0.nics.0.vlan == 1
+      - vm_created.record.0.nics.0.type == "RTL8139"
+      - vm_created.record.0.nics.1.vlan == 2
+      - vm_created.record.0.nics.1.type == "virtio"
+      - vm_created.record.0.disks.2.type == "ide_cdrom"
+      - vm_created.record.0.disks.2.disk_slot == 1
+      - vm_created.record.0.disks.1.type == "ide_cdrom"
+      - vm_created.record.0.disks.1.disk_slot == 0
+      - vm_created.record.0.disks.1.iso_name == ""
+      - vm_created.record.0.disks.0.type == "virtio_disk"
+      - vm_created.record.0.disks.0.disk_slot == 0
+      - vm_created.record.0.boot_devices | length == 2
+      - vm_created.record.0.boot_devices.0.type == "virtio_disk"
+      - vm_created.record.0.boot_devices.1.type == "RTL8139"
+      - vm_created.record.0.boot_devices.0.disk_slot == 0
+      - vm_created.record.0.boot_devices.1.vlan == 1
+      - vm_created.record.0.power_state == "started"
+      - vm_created.record.0.machine_type == "BIOS"
+      - vm_created.record.0.operating_system == "os_windows_server_2012" # This is default
+
+- name: Retrieve XLAB-attach-guest-tools-integration-5 (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-5
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-5"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.disks | length == 3
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.2.iso_name"
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_windows_server_2012" # This is default
+      - source_info.records.0.power_state == "started"
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Change the OS on XLAB-attach-guest-tools-integration-5 RUNNING
+  scale_computing.hypercore.vm_params:
+    vm_name: XLAB-attach-guest-tools-integration-5
+    operating_system: os_other        # Should be changable while VM is running.
+  register: vm_changed
+- ansible.builtin.assert:
+    that:
+      - vm_changed is changed
+      - vm_changed is succeeded
+
+- name: Retrieve changed XLAB-attach-guest-tools-integration-5
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-5
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-5"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.disks | length == 3
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.2.iso_name" # Guest tools should stay
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_other"
+      - source_info.records.0.power_state == "started"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Change the OS on XLAB-attach-guest-tools-integration-5 RUNNING (Idempotence)
+  scale_computing.hypercore.vm_params:
+    vm_name: XLAB-attach-guest-tools-integration-5
+    operating_system: os_other
+  register: vm_changed
+- ansible.builtin.assert:
+    that:
+      - vm_changed is not changed
+      - vm_changed is succeeded
+
+- name: Retrieve changed XLAB-attach-guest-tools-integration-5 (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-guest-tools-integration-5
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-attach-guest-tools-integration-5"
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.disks | length == 3
+      - source_info.records.0.disks.2.type == "ide_cdrom"
+      - "'scale-guest-tools' in source_info.records.0.disks.2.iso_name" # Guest tools should stay
+      - source_info.records.0.disks.2.disk_slot == 1
+      - source_info.records.0.disks.1.type == "ide_cdrom"
+      - source_info.records.0.disks.1.disk_slot == 0
+      - source_info.records.0.disks.1.iso_name == ""
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.disks.0.type == "virtio_disk"
+      - source_info.records.0.operating_system == "os_other"
+      - source_info.records.0.power_state == "started"
+
+# ----------------------------------Cleanup--------------------------------------------------------------------------------
+- name: Delete XLAB-vm (END)
+  scale_computing.hypercore.vm: *delete-XLAB-vm
+  loop:
+    - XLAB-attach-guest-tools-integration
+    - XLAB-attach-guest-tools-integration-2
+    - XLAB-attach-guest-tools-integration-3
+    - XLAB-attach-guest-tools-integration-4
+    - XLAB-attach-guest-tools-integration-5

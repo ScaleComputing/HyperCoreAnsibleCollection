@@ -36,7 +36,7 @@
       - mytag2
     memory: "{{ '512 MB' | human_to_bytes }}"
     vcpu: 2
-    attach_guest_tools_iso: true
+    attach_guest_tools_iso: false
     power_state: start
     disks:
       - type: virtio_disk

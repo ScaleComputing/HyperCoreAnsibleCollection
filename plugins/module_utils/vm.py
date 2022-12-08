@@ -770,7 +770,7 @@ class ManageVMParams(VM):
     def _build_payload(module, rest_client):
         payload = {}
         if module.params["operating_system"]:
-            payload["operating_system"] = module.params["operating_system"]
+            payload["operatingSystem"] = module.params["operating_system"]
         if module.params["vm_name_new"]:
             payload["name"] = module.params["vm_name_new"]
         if module.params["description"] is not None:  # we want to be able to write ""
