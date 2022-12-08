@@ -48,4 +48,4 @@ main () {
     delete_files $1 $2 ${username[1]} $4 $folder
 }
 
-main
+main $1 $2 $3 $4
