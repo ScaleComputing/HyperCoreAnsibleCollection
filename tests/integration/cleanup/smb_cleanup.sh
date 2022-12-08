@@ -18,7 +18,7 @@ delete_files () {
     ls
 SMBCLIENTCOMMANDS
 
-    today_date=$(date +'%b:%d:%Y')
+    today_date=$(date +'%b:%-d:%Y')
     echo "Todays date:" $today_date
 
     for (( j=0; j<length; j++ ));
