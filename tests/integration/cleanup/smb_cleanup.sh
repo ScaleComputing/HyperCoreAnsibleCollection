@@ -34,18 +34,18 @@ SMBCLIENTCOMMANDS
 
 # Main function
 main () {
-# $1 server address
-# $2 share on server
-# $3 username
-# $4 password
-# username is provided as domain;username
-IFS=';' read -ra username <<< $3
+    # $1 server address
+    # $2 share on server
+    # $3 username
+    # $4 password
+    # username is provided as domain;username
+    IFS=';' read -ra username <<< $3
 
-folder='integration-test-vm-export'
-delete_files $1 $2 ${username[1]} $4 $folder
+    folder='integration-test-vm-export'
+    delete_files $1 $2 ${username[1]} $4 $folder
 
-folder='integration-test-vm-import'
-delete_files $1 $2 ${username[1]} $4 $folder
+    folder='integration-test-vm-import'
+    delete_files $1 $2 ${username[1]} $4 $folder
 }
 
 main
