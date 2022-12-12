@@ -120,4 +120,19 @@ jobs:
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
       - run: ansible-galaxy collection install community.general
-      - run: cd $WORKDIR && ansible-playbook tests/integration/ci_replica_cleanup.yml
+      - run: cd $WORKDIR && ansible-playbook tests/integration/cleanup/ci_replica_cleanup.yml
+
+  smb_cleanup:
+    needs:
+      - integration-test
+    runs-on: [self-hosted]
+    container: python:3.10-slim-buster
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: apt update
+      - run: apt install -y git make
+      - run: apt install -y smbclient
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+      - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh ${{ secrets.SMB_SERVER }} ${{ secrets.SMB_SHARE }} "${{ secrets.SMB_USERNAME }}" ${{ secrets.SMB_PASSWORD }}
