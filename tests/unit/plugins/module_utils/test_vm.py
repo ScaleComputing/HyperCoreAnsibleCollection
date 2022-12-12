@@ -1424,6 +1424,7 @@ class TestManageVMParams:
                 vcpu=2,
                 power_state="start",
                 snapshot_schedule="",
+                operating_system="",
             ),
         )
 
@@ -1454,6 +1455,7 @@ class TestManageVMParams:
                 vcpu=2,
                 power_state="start",
                 snapshot_schedule="snapshot_schedule",
+                operating_system="",
             ),
         )
 
@@ -1492,6 +1494,7 @@ class TestManageVMParams:
                 vcpu=3,
                 power_state="start",
                 snapshot_schedule="snapshot_schedule",
+                operating_system="",
             ),
         )
 
@@ -1531,6 +1534,7 @@ class TestManageVMParams:
                 vcpu=3,
                 power_state="start",
                 snapshot_schedule="",
+                operating_system="",
             ),
         )
 
@@ -1570,6 +1574,7 @@ class TestManageVMParams:
                 vcpu=3,
                 power_state="start",
                 snapshot_schedule="",
+                operating_system="",
             ),
         )
 
@@ -1666,6 +1671,7 @@ class TestManageVMParams:
                 vcpu=4,
                 power_state="stop",
                 snapshot_schedule="snapshot_schedule_new",
+                operating_system="",
             ),
             check_mode=False,
         )
@@ -1714,6 +1720,7 @@ class TestManageVMParams:
                 vcpu=4,
                 power_state="stop",
                 snapshot_schedule="snapshot_schedule_new",
+                operating_system="",
             ),
             check_mode=True,
         )
@@ -1746,6 +1753,7 @@ class TestManageVMParams:
                 vcpu=4,
                 power_state="stop",
                 snapshot_schedule="snapshot_schedule_new",
+                operating_system="",
             ),
         )
 
@@ -1789,6 +1797,7 @@ class TestManageVMParams:
                 vcpu=4,
                 power_state="started",
                 snapshot_schedule="",
+                operating_system="",
             ),
             check_mode=False,
         )
@@ -1868,6 +1877,7 @@ class TestManageVMParams:
                 vcpu=2,
                 power_state="started",
                 snapshot_schedule="",
+                operating_system="",
             ),
             check_mode=True,
         )

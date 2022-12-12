@@ -195,8 +195,16 @@ options:
   attach_guest_tools_iso:
     description:
       - If supported by operating system, create an extra device to attach the Scale Guest OS tools ISO.
+      - Supported by I(operating_system=os_windows_server_2012).
     default: false
     type: bool
+  operating_system:
+    description:
+      - Operating system name.
+      - Used to select drivers package
+    default: os_windows_server_2012
+    type: str
+    choices: [ os_windows_server_2012, os_other ]
   machine_type:
     description:
       - Scale I(Hardware) version.
@@ -572,6 +580,11 @@ def main():
                 ),
             ),
             attach_guest_tools_iso=dict(type="bool", default=False),
+            operating_system=dict(
+                type="str",
+                choices=["os_windows_server_2012", "os_other"],
+                default="os_windows_server_2012",
+            ),
             cloud_init=dict(
                 type="dict",
                 default={},

@@ -12,4 +12,5 @@
     - include_tasks: issue_12_machine_types.yml
     - include_tasks: issue_3_enlarging_disk_is_triggering_restart.yml
     - include_tasks: issue_41_cloud_init_disks.yml
+    - include_tasks: issue_50_attache_guest_tools_iso.yml
 # TODO: add more tasks here when more issues are fixed.

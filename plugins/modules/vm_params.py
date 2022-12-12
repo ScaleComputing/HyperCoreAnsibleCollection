@@ -54,6 +54,12 @@ options:
       - States C(PAUSE) and C(LIVEMIGRATE) are not exposed in this module (this can be done with raw api module).
     choices: [ start, shutdown, stop, reboot, reset ]
     type: str
+  operating_system:
+    description:
+      - Operating system name.
+      - Used to select drivers package
+    type: str
+    choices: [ os_windows_server_2012, os_other ]
   snapshot_schedule:
     description:
       - The name of an existing snapshot_schedule to assign to VM.
@@ -158,6 +164,10 @@ def main():
             power_state=dict(
                 type="str",
                 choices=["start", "shutdown", "stop", "reboot", "reset"],
+            ),
+            operating_system=dict(
+                type="str",
+                choices=["os_windows_server_2012", "os_other"],
             ),
             snapshot_schedule=dict(
                 type="str",
