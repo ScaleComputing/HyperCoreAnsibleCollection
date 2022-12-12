@@ -91,7 +91,7 @@
           dom:
             name: XLAB-vm_clone-CI_test-running
             tags: Xlab,CI,test,vm_clone,running
-            mem: 512100100
+            mem: 511705088
             numVCPU: 2
             blockDevs:
               - type: VIRTIO_DISK
