@@ -51,9 +51,9 @@ class Client:
     def __init__(
         self,
         host: str,
-        username: str=None,
-        password: str=None,
-        timeout: float=None,
+        username: str = None,
+        password: str = None,
+        timeout: float = None,
     ):
         if not (host or "").startswith(("https://", "http://")):
             raise ScaleComputingError(
@@ -71,7 +71,12 @@ class Client:
 
     @classmethod
     def get_client(cls, cluster_instance: dict):
-        return cls(cluster_instance["host"], cluster_instance["username"], cluster_instance["password"], cluster_instance["timeout"])
+        return cls(
+            cluster_instance["host"],
+            cluster_instance["username"],
+            cluster_instance["password"],
+            cluster_instance["timeout"],
+        )
 
     @property
     def auth_header(self):
@@ -86,7 +91,9 @@ class Client:
         return dict(Authorization=basic_auth_header(self.username, self.password))
 
     def _request(self, method, path, data=None, headers=None, timeout=None):
-        if timeout is None: # If timeout from request is not specifically provided, take it from the Client.
+        if (
+            timeout is None
+        ):  # If timeout from request is not specifically provided, take it from the Client.
             timeout = self.timeout
         try:
             raw_resp = self._client.open(
@@ -130,7 +137,7 @@ class Client:
         escaped_path = quote(path.strip("/"))
         if escaped_path:
             escaped_path = "/" + escaped_path
-        url = "{0}{1}".format(self._host, escaped_path)
+        url = "{0}{1}".format(self.host, escaped_path)
         if query:
             url = "{0}?{1}".format(url, urlencode(query))
         headers = dict(headers or DEFAULT_HEADERS, **self.auth_header)
