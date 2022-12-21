@@ -1,0 +1,78 @@
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-timeout-test
+  scale_computing.hypercore.vm: &delete-XLAB-vm_clone_CI-test
+    vm_name: "{{ item }}"
+    state: absent
+  loop:
+    - XLAB-timeout-test
+
+# ----------------------------------Setup-----------------------------------------------------------------------------
+- name: Create XLAB-timeout-test
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-timeout-test
+        tags: Xlab,CI,test,vm_clone
+        mem: 511705088
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+            name: jc1-disk-0
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: False
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is succeeded
+      - vm_created is changed
+
+- name: Wait for the VM to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm_created.record }}"
+
+- name: Retrieve XLAB-timeout-test with default timeout from SC_TIMEOUT enviroment variable.
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-timeout-test
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-timeout-test"
+
+- name: Retrieve XLAB-timeout-test with timeout specified in cluster_instance for a specific task.
+  scale_computing.hypercore.vm_info:
+    cluster_instance:
+      host: "{{ sc_host }}"
+      username: "{{ sc_username }}"
+      password: "{{ sc_password }}"
+      timeout: 10
+    vm_name: XLAB-timeout-test
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vm_name == "XLAB-timeout-test"
+
+- name: Retrieve XLAB-timeout-test with "forced" timeout.
+  scale_computing.hypercore.vm_info:
+    cluster_instance:
+      host: "{{ sc_host }}"
+      username: "{{ sc_username }}"
+      password: "{{ sc_password }}"
+      timeout: 0.000001     # This should "force" a timeout
+    vm_name: XLAB-timeout-test
+  register: source_info
+  failed_when: source_info is not failed
+
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-timeout-test
+  scale_computing.hypercore.vm: *delete-XLAB-vm_clone_CI-test
+  loop:
+    - XLAB-timeout-test
