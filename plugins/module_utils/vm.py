@@ -61,7 +61,6 @@ FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE = {
     "UEFI": "scale-8.10",
     "BIOS": "scale-7.2",
     "vTPM+UEFI": "scale-uefi-tpm-9.2",
-    "": "",
 }
 
 FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE = {
@@ -220,7 +219,14 @@ class VM(PayloadMapper):
         snapshot_schedule = SnapshotSchedule.get_snapshot_schedule(
             query={"uuid": vm_dict["snapshotScheduleUUID"]}, rest_client=rest_client
         )
-
+        try:
+            machine_type = FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE[
+                vm_dict["machineType"]
+            ]
+        except KeyError:
+            raise errors.ScaleComputingError(
+                f"Virtual machine: {vm_dict['name']} has an invalid Machine type: {vm_dict['machineType']}."
+            )
         return cls(
             uuid=vm_dict["uuid"],  # No uuid when creating object from ansible
             node_uuid=vm_dict["nodeUUID"],  # Needed in vm_node_affinity
@@ -241,7 +247,7 @@ class VM(PayloadMapper):
             snapshot_schedule=snapshot_schedule.name
             if snapshot_schedule
             else "",  # "" for vm_params diff check
-            machine_type=FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE[vm_dict["machineType"]],
+            machine_type=machine_type,
         )
 
     @classmethod
