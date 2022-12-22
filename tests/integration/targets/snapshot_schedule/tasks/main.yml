@@ -5,21 +5,6 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   block:
-    - name: Retrieve all snapshot schedules
-      scale_computing.hypercore.snapshot_schedule_info:
-      register: initial
-    - ansible.builtin.assert:
-        that:
-          - initial.records != []
-
-    - name: Retrieve specific snapshot schedule object by name and verify that query for that name was successful.
-      scale_computing.hypercore.snapshot_schedule_info:
-        name: "{{ initial.records.0.name }}"
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result.records.0.name == initial.records.0.name
-
     - name: Delete snapshot schedule, if it maybe already exists from before
       scale_computing.hypercore.snapshot_schedule: &delete-schedule
         name: demo-snap-schedule
@@ -39,6 +24,7 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
           - result is changed
 
     - name: Assert that snapshot schedule has been created
@@ -47,6 +33,8 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          - result.records | length == 1
           - result.records.0.name == "demo-snap-schedule"
 
     - name: Setup (create) snapshot schedule (idempotency)
@@ -54,6 +42,7 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
           - result is not changed
 
     - name: Update snapshot schedule
@@ -69,15 +58,29 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
+          - result is changed
           - result.record.0.name == "demo-snap-schedule"
           - result.record.0.recurrences.0.name == "weekly-friday"
           - result.record.0.recurrences | length == 1
+
+    - name: Assert that snapshot schedule was updated
+      scale_computing.hypercore.snapshot_schedule_info: *get-specific-snapshot
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result.records | length == 1
+          - result.records.0.name == "demo-snap-schedule"
+          - result.records.0.recurrences.0.name == "weekly-friday"
+          - result.records.0.recurrences | length == 1
 
     - name: Delete snapshot schedule
       scale_computing.hypercore.snapshot_schedule: *delete-schedule
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
           - result is changed
 
     - name: Assert that snapshot schedule was delete successfully
@@ -85,4 +88,5 @@
       register: result
     - ansible.builtin.assert:
         that:
+          - result is succeeded
           - result.records == []
