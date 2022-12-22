@@ -383,10 +383,7 @@ def main():
     )
 
     try:
-        host = module.params["cluster_instance"]["host"]
-        username = module.params["cluster_instance"]["username"]
-        password = module.params["cluster_instance"]["password"]
-        client = Client(host, username, password)
+        client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
         changed, record, diff, reboot = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff, vm_rebooted=reboot)

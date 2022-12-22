@@ -50,9 +50,10 @@ class Response:
 class Client:
     def __init__(
         self,
-        host,
-        username=None,
-        password=None,
+        host: str,
+        username: str = None,
+        password: str = None,
+        timeout: float = None,
     ):
         if not (host or "").startswith(("https://", "http://")):
             raise ScaleComputingError(
@@ -63,9 +64,19 @@ class Client:
         self.host = host
         self.username = username
         self.password = password
+        self.timeout = timeout
 
         self._auth_header = None
         self._client = Request()
+
+    @classmethod
+    def get_client(cls, cluster_instance: dict):
+        return cls(
+            cluster_instance["host"],
+            cluster_instance["username"],
+            cluster_instance["password"],
+            cluster_instance["timeout"],
+        )
 
     @property
     def auth_header(self):
@@ -80,6 +91,10 @@ class Client:
         return dict(Authorization=basic_auth_header(self.username, self.password))
 
     def _request(self, method, path, data=None, headers=None, timeout=None):
+        if (
+            timeout is None
+        ):  # If timeout from request is not specifically provided, take it from the Client.
+            timeout = self.timeout
         try:
             raw_resp = self._client.open(
                 method,

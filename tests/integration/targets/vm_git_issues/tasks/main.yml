@@ -13,4 +13,5 @@
     - include_tasks: issue_3_enlarging_disk_is_triggering_restart.yml
     - include_tasks: issue_41_cloud_init_disks.yml
     - include_tasks: issue_50_attache_guest_tools_iso.yml
+    - include_tasks: issue_60_timeout.yml
 # TODO: add more tasks here when more issues are fixed.
