@@ -34,8 +34,13 @@
     - ansible.builtin.assert:
         that:
           - result is succeeded
+          - result is not changed
           - result.records | length == 1
           - result.records.0.name == "demo-snap-schedule"
+          - result.records.0.recurrences.0.name == "weekly-tuesday"
+          - result.records.0.recurrences.0.frequency == "FREQ=WEEKLY;INTERVAL=1;BYDAY=TU"
+          - result.records.0.recurrences.0.start == "2010-01-01 00:00:00"
+          - result.records.0.recurrences.0.local_retention == {{ 10 * 7*24*60*60 }}
 
     - name: Setup (create) snapshot schedule (idempotency)
       scale_computing.hypercore.snapshot_schedule: *create-snapshot-schedule
@@ -61,8 +66,8 @@
           - result is succeeded
           - result is changed
           - result.record.0.name == "demo-snap-schedule"
-          - result.record.0.recurrences.0.name == "weekly-friday"
           - result.record.0.recurrences | length == 1
+          - result.record.0.recurrences.0.name == "weekly-friday"
 
     - name: Assert that snapshot schedule was updated
       scale_computing.hypercore.snapshot_schedule_info: *get-specific-snapshot
@@ -70,10 +75,14 @@
     - ansible.builtin.assert:
         that:
           - result is succeeded
+          - result is not changed
           - result.records | length == 1
           - result.records.0.name == "demo-snap-schedule"
-          - result.records.0.recurrences.0.name == "weekly-friday"
           - result.records.0.recurrences | length == 1
+          - result.records.0.recurrences.0.name == "weekly-friday"
+          - result.records.0.recurrences.0.frequency == "FREQ=WEEKLY;INTERVAL=2;BYDAY=TU"
+          - result.records.0.recurrences.0.start == "2020-01-01 00:00:00"
+          - result.records.0.recurrences.0.local_retention == {{ 20 * 7*24*60*60 }}
 
     - name: Delete snapshot schedule
       scale_computing.hypercore.snapshot_schedule: *delete-schedule
