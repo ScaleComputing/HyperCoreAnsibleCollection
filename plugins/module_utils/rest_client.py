@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 
 from . import errors
 from . import utils
+import json
 
 __metaclass__ = type
 
@@ -100,10 +101,15 @@ class RestClient:
                 timeout=timeout,
                 binary_data=binary_data,
                 headers=headers,
-            ).json
+            )
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
-        return response
+
+        try:
+            json.loads(response.json)
+        except ValueError as e:
+            return response
+        return response.json
 
 
 class CachedRestClient(RestClient):
