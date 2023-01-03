@@ -90,7 +90,7 @@ class RestClient:
         binary_data=None,
         headers=None,
     ):
-        # Method put doesn't support check mode # IT ACTUALLY DOES
+        # Method put doesn't support check mode # IT ACTUALLY DOES.
         if check_mode:
             return None
         try:
