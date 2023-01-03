@@ -16,7 +16,7 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: API interaction with Scale Computing HyperCore
 description:
-  - Perform a C(GET), C(POST), C(PATCH), C(DELETE), or C(PUT) request on resource(s) from the given endpoint.
+  - Perform a C(GET), C(POST), C(PATCH) or C(DELETE) request on resource(s) from the given endpoint.
     The api module can be used to perform raw API calls whenever there is no
     suitable concrete module or role implementation for a specific task.
 version_added: 1.0.0
@@ -36,7 +36,6 @@ options:
       - delete
       - get
       - post_list
-      - put
   data:
     type: dict
     description:
@@ -240,34 +239,6 @@ def delete_record(module, rest_client):
         return True, task_tag
     return False, dict()
 
-"""
-PUT_TIMEOUT_TIME was copied from the iso module for ISO data upload.
-Currently, assume we have 4.7 GB ISO and speed 1 MB/s -> 4700 seconds.
-Rounded to 3600.
-
-TODO: compute it from expected min upload speed and file size.
-Even better, try to detect stalled uploads and terminate if no data was transmitted for more than N seconds.
-Yum/dnf complain with error "Operation too slow. Less than 1000 bytes/sec transferred the last 30 seconds"
-in such case.
-"""
-PUT_TIMEOUT_TIME = 3600
-
-def put_record(module, rest_client):
-    with open(module.params["source"], "rb") as source_file:
-      result = rest_client.put_record(
-        endpoint=module.params["endpoint"],
-        payload=None,
-        check_mode=module.check_mode,
-        query=module.params["data"],
-        timeout=PUT_TIMEOUT_TIME,
-        binary_data=source_file,
-        headers={
-          "Content-Type": "application/octet-stream",
-          "Accept": "application/json",
-        }
-      )
-    return True, result
-
 
 def get_records(module, rest_client):
     records = rest_client.list_records(
@@ -287,8 +258,6 @@ def run(module, rest_client):
         return post_list_record(module, rest_client)
     elif action == "get":  # GET method
         return get_records(module, rest_client)
-    elif action == "put":  # PUT method
-        return put_record(module, rest_client)
     return delete_record(module, rest_client)  # DELETE methodx
 
 
@@ -302,15 +271,12 @@ def main():
             ),
             action=dict(
                 type="str",
-                choices=["post", "patch", "delete", "get", "post_list", "put"],
+                choices=["post", "patch", "delete", "get", "post_list"],
                 required=True,
             ),
             endpoint=dict(
                 type="str",
                 required=True,
-            ),
-            source=dict(
-                type="str",
             ),
         ),
     )
