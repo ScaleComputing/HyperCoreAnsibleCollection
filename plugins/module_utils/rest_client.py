@@ -84,7 +84,6 @@ class RestClient:
         endpoint,
         payload,
         check_mode,
-        query=None,
         timeout=None,
         binary_data=None,
         headers=None,
@@ -92,15 +91,17 @@ class RestClient:
         # Method put doesn't support check mode # IT ACTUALLY DOES
         if check_mode:
             return None
+        # Only /rest/v1/ISO/[uuid}/data is using put, which doesn't return anything.
+        # self.client.put on this endpoint returns None.
         try:
             response = self.client.put(
                 endpoint,
                 data=payload,
-                query=query,
+                query=_query(),
                 timeout=timeout,
                 binary_data=binary_data,
                 headers=headers,
-            ).json
+            )
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
         return response

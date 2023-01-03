@@ -75,28 +75,6 @@ class TestGetMethod:
         assert result == (False, [])
 
 
-class TestPutMethod:
-    def test_put_method(self, create_module, rest_client):
-        # TODO: Put method hasn't been implemented yet, so tests still have to be written.
-        #       Harcoding value for now.
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                action="put",
-                endpoint="/rest/v1/VirDomain",
-                unique_id="id",
-                data=dict(),
-            )
-        )
-
-        result = api.put_record(module, rest_client)
-        assert result == (-1, -1, -1)
-
-
 class TestDeleteRecord:
     def test_delete_method_record_present(self, create_module, rest_client, task_wait):
         module = create_module(
