@@ -254,18 +254,18 @@ PUT_TIMEOUT_TIME = 3600
 
 def put_record(module, rest_client):
     with open(module.params["source"], "rb") as source_file:
-      result = rest_client.put_record(
-        endpoint=module.params["endpoint"],
-        payload=None,
-        check_mode=module.check_mode,
-        query=module.params["data"],
-        timeout=PUT_TIMEOUT_TIME,
-        binary_data=source_file,
-        headers={
-          "Content-Type": "application/octet-stream",
-          "Accept": "application/json",
-        }
-      )
+        result = rest_client.put_record(
+          endpoint=module.params["endpoint"],
+          payload=None,
+          check_mode=module.check_mode,
+          query=module.params["data"],
+          timeout=PUT_TIMEOUT_TIME,
+          binary_data=source_file,
+          headers={
+            "Content-Type": "application/octet-stream",
+            "Accept": "application/json",
+          }
+        )
     return True, result
 
 
