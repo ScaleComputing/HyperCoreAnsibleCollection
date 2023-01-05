@@ -46,6 +46,7 @@
   register: result
 - ansible.builtin.assert:
     that:
+      - result.record.0.mem == 512100100
       - result.record.0.tags == "Xlab,jc1,us1,integration-test3"
       - result.record.0.name == "XLAB-jc1"
 
