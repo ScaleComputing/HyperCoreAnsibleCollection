@@ -36,9 +36,9 @@ SHARED_SPECS = dict(
                 fallback=(env_fallback, ["SC_PASSWORD"]),
             ),
             timeout=dict(
-                type="float",
+                type="str",
                 required=False,
-                no_log=True,
+                no_log=False,
                 fallback=(env_fallback, ["SC_TIMEOUT"]),
             ),
         ),
