@@ -3,7 +3,7 @@
     SC_HOST: "{{ sc_host }}"
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
-    SC_TIMEOUT: "{{ sc_timeout | default('10') }}"
+    SC_TIMEOUT: "{{ sc_timeout | default(10) }}"
 
   block:
 # -------------------------------------------------------------------------
