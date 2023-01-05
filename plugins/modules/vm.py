@@ -614,7 +614,6 @@ def main():
     )
 
     try:
-        raise errors.ScaleComputingError(module.params["cluster_instance"])
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
         changed, record, diff, reboot = run(module, rest_client)
