@@ -51,6 +51,11 @@ options:
       - The raw endpoint that we want to perform post, patch or delete operation on.
     type: str
     required: true
+  source:
+    description:
+      - Source of the file to upload.
+    type: str
+    version_added: 1.1.0
 notes:
   - C(check_mode) is not supported.
 
@@ -240,6 +245,7 @@ def delete_record(module, rest_client):
         return True, task_tag
     return False, dict()
 
+
 """
 PUT_TIMEOUT_TIME was copied from the iso module for ISO data upload.
 Currently, assume we have 4.7 GB ISO and speed 1 MB/s -> 4700 seconds.
@@ -252,19 +258,20 @@ in such case.
 """
 PUT_TIMEOUT_TIME = 3600
 
+
 def put_record(module, rest_client):
     with open(module.params["source"], "rb") as source_file:
         result = rest_client.put_record(
-          endpoint=module.params["endpoint"],
-          payload=None,
-          check_mode=module.check_mode,
-          query=module.params["data"],
-          timeout=PUT_TIMEOUT_TIME,
-          binary_data=source_file,
-          headers={
-            "Content-Type": "application/octet-stream",
-            "Accept": "application/json",
-          }
+            endpoint=module.params["endpoint"],
+            payload=None,
+            check_mode=module.check_mode,
+            query=module.params["data"],
+            timeout=PUT_TIMEOUT_TIME,
+            binary_data=source_file,
+            headers={
+                "Content-Type": "application/octet-stream",
+                "Accept": "application/json",
+            },
         )
     return True, result
 

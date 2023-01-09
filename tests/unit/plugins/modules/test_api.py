@@ -76,7 +76,7 @@ class TestGetMethod:
 
 
 class TestPutMethod:
-    def test_put_method(self, create_module, rest_client):
+    def test_put_method(self, create_module, rest_client, mocker):
         # TODO: Put method hasn't been implemented yet, so tests still have to be written.
         #       Harcoding value for now.
         module = create_module(
@@ -89,12 +89,15 @@ class TestPutMethod:
                 action="put",
                 endpoint="/rest/v1/VirDomain",
                 unique_id="id",
+                source="this-source",
                 data=dict(),
             )
         )
-
+        mocker.patch("builtins.open", mocker.mock_open(read_data="this-data"))
+        rest_client.put_record.return_value = "this-value"
         result = api.put_record(module, rest_client)
-        assert result == (-1, -1, -1)
+        print(result)
+        assert result == (True, "this-value")
 
 
 class TestDeleteRecord:
