@@ -167,7 +167,7 @@ class TestTablePutRecord:
         client.put.assert_called_with(
             "my_table/id",
             data=None,
-            query=dict(),
+            query=None,
             timeout=None,
             binary_data=None,
             headers=None,
