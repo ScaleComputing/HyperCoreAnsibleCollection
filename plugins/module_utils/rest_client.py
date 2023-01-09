@@ -7,7 +7,6 @@ from __future__ import absolute_import, division, print_function
 
 from . import errors
 from . import utils
-import json
 
 __metaclass__ = type
 
@@ -107,7 +106,7 @@ class RestClient:
 
         try:
             return response.json
-        except errors.ScaleComputingError as e:
+        except errors.ScaleComputingError:
             return response
 
 
