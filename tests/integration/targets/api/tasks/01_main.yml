@@ -39,6 +39,10 @@
     that:
       - vm_created is changed
 
+- name: Wait for the VM to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm_created.record }}"
+
 - name: Verify the VM has been created
   scale_computing.hypercore.api: &get-specific-vm
     action: get
@@ -94,6 +98,10 @@
 - ansible.builtin.assert:
     that:
       - result is changed
+
+- name: Wait for the VM to be deleted
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ result.record }}"
 
 - name: Verify that record has been deleted
   scale_computing.hypercore.api: *get-specific-vm

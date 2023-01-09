@@ -38,7 +38,6 @@ SHARED_SPECS = dict(
             timeout=dict(
                 type="float",
                 required=False,
-                no_log=True,
                 fallback=(env_fallback, ["SC_TIMEOUT"]),
             ),
         ),
