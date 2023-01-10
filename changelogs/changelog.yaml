@@ -76,3 +76,23 @@ releases:
         name: hypercore
         namespace: null
     release_date: '2022-10-07'
+  1.1.0:
+    changes:
+      bugfixes:
+      - CD_ROM should be created without passing the size option to vm_disk module.
+      - Changing the 'tiering_priority' does not require machine restart and values
+        are now mapped properly.
+      - Idempotence for module snapshot_schedule.
+      - Issues with 'cloud_init' option now fixed, created IDE_DISK is not overriden.
+      - Make sure enlarging the virtual disk does not require machine restart.
+      - Makes sure that vm_disk module reports changes when ISO is detached.
+      - Option 'attach_guest_tools' now works as intended with Windows systems.
+      - Timeout is now properly applied and overrides the default.
+      minor_changes:
+      - Added 'machine_type' option to vm module.
+      - Added 'source' option to api module.
+      - Implemented 'put' and added to 'action' option in api module.
+      release_summary: Feature release with minor changes and small bugfixes.
+    fragments:
+    - release_110.yml
+    release_date: '2023-01-10'
