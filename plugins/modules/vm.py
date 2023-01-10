@@ -212,6 +212,7 @@ options:
       - Only relevant when creating the VM. This property cannot be modified.
     type: str
     choices: [ BIOS, UEFI, vTPM+UEFI ]
+    version_added: 1.1.0
 notes:
   - C(check_mode) is not supported.
 """

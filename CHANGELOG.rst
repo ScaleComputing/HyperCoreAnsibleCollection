@@ -5,6 +5,33 @@ Scale_Computing.Hypercore Release Notes
 .. contents:: Topics
 
 
+v1.1.0
+======
+
+Release Summary
+---------------
+
+Feature release with minor changes and small bugfixes.
+
+Minor Changes
+-------------
+
+- 'machine_type' option added to vm module.
+- 'put' now implemented and added to 'action' option in api module.
+- 'source' option added to api module.
+
+Bugfixes
+--------
+
+- CD_ROM should be created without passing the size option to vm_disk module.
+- Changing the 'tiering_priority' does not require machine restart and values are now mapped properly.
+- Idempotence for module snapshot_schedule.
+- Issues with 'cloud_init' option now fixed, created IDE_DISK is not overriden.
+- Make sure enlarging the virtual disk does not require machine restart.
+- Makes sure that vm_disk module reports changes when ISO is detached.
+- Option 'attach_guest_tools' now works as intended with Windows systems.
+- Timeout is now properly applied and overrides the default.
+
 v1.0.0
 ======
 

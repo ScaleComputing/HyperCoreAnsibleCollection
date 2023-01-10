@@ -1,0 +1,129 @@
+objects:
+  role: {}
+plugins:
+  become: {}
+  cache: {}
+  callback: {}
+  cliconf: {}
+  connection: {}
+  filter: {}
+  httpapi: {}
+  inventory:
+    hypercore:
+      description: Inventory source for Scale Computing HyperCore.
+      name: hypercore
+      version_added: 1.0.0
+  lookup: {}
+  module:
+    api:
+      description: API interaction with Scale Computing HyperCore
+      name: api
+      namespace: ''
+      version_added: 1.0.0
+    iso:
+      description: Manage ISO images on HyperCore API
+      name: iso
+      namespace: ''
+      version_added: 1.0.0
+    iso_info:
+      description: Retrieve ISO images
+      name: iso_info
+      namespace: ''
+      version_added: 1.0.0
+    node_info:
+      description: Returns information about the nodes in a cluster.
+      name: node_info
+      namespace: ''
+      version_added: 1.0.0
+    remote_cluster_info:
+      description: Retrieve a list of remote clusters.
+      name: remote_cluster_info
+      namespace: ''
+      version_added: 1.0.0
+    snapshot_schedule:
+      description: Manage snap schedule to configure the desired schedule of snapshot
+        creation.
+      name: snapshot_schedule
+      namespace: ''
+      version_added: 1.0.0
+    snapshot_schedule_info:
+      description: Retrieve information about an automated VM snapshot schedule.
+      name: snapshot_schedule_info
+      namespace: ''
+      version_added: 1.0.0
+    task_wait:
+      description: Wait for a HyperCore TaskTag to be finished.
+      name: task_wait
+      namespace: ''
+      version_added: 1.0.0
+    vm:
+      description: Create, update or delete a VM.
+      name: vm
+      namespace: ''
+      version_added: 1.0.0
+    vm_boot_devices:
+      description: Manage HyperCore VM's boot devices
+      name: vm_boot_devices
+      namespace: ''
+      version_added: 1.0.0
+    vm_clone:
+      description: Handles cloning of the VM
+      name: vm_clone
+      namespace: ''
+      version_added: 1.0.0
+    vm_disk:
+      description: Manage VM's disks
+      name: vm_disk
+      namespace: ''
+      version_added: 1.0.0
+    vm_export:
+      description: Handles export of the virtual machine
+      name: vm_export
+      namespace: ''
+      version_added: 1.0.0
+    vm_import:
+      description: Handles import of the virtual machine
+      name: vm_import
+      namespace: ''
+      version_added: 1.0.0
+    vm_info:
+      description: Retrieve information about the VMs.
+      name: vm_info
+      namespace: ''
+      version_added: 1.0.0
+    vm_nic:
+      description: Handles actions over network interfaces
+      name: vm_nic
+      namespace: ''
+      version_added: 1.0.0
+    vm_nic_info:
+      description: Returns info about NIC
+      name: vm_nic_info
+      namespace: ''
+      version_added: 1.0.0
+    vm_node_affinity:
+      description: Update virtual machine's node affinity
+      name: vm_node_affinity
+      namespace: ''
+      version_added: 1.0.0
+    vm_params:
+      description: Manage VM's parameters
+      name: vm_params
+      namespace: ''
+      version_added: 1.0.0
+    vm_replication:
+      description: Handles VM replications
+      name: vm_replication
+      namespace: ''
+      version_added: 1.0.0
+    vm_replication_info:
+      description: Returns info about replication of a specific VM
+      name: vm_replication_info
+      namespace: ''
+      version_added: 1.0.0
+  netconf: {}
+  shell: {}
+  strategy: {}
+  test: {}
+  vars: {}
+version: 1.1.0
