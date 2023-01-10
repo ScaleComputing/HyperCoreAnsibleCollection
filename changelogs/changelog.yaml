@@ -89,9 +89,9 @@ releases:
       - Option 'attach_guest_tools' now works as intended with Windows systems.
       - Timeout is now properly applied and overrides the default.
       minor_changes:
-      - '''machine_type'' option added to vm module.'
-      - '''put'' now implemented and added to ''action'' option in api module.'
-      - '''source'' option added to api module.'
+      - Added 'machine_type' option to vm module.
+      - Added 'source' option to api module.
+      - Implemented 'put' and added to 'action' option in api module.
       release_summary: Feature release with minor changes and small bugfixes.
     fragments:
     - release_110.yml

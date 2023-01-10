@@ -16,9 +16,9 @@ Feature release with minor changes and small bugfixes.
 Minor Changes
 -------------
 
-- 'machine_type' option added to vm module.
-- 'put' now implemented and added to 'action' option in api module.
-- 'source' option added to api module.
+- Added 'machine_type' option to vm module.
+- Added 'source' option to api module.
+- Implemented 'put' and added to 'action' option in api module.
 
 Bugfixes
 --------
