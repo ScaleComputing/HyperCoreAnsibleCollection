@@ -12,3 +12,4 @@ bugfixes:
   - "Changing the 'tiering_priority' does not require machine restart and values are now mapped properly."
   - "Make sure enlarging the virtual disk does not require machine restart."
   - "CD_ROM should be created without passing the size option to vm_disk module."
+  
