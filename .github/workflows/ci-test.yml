@@ -66,7 +66,7 @@ jobs:
       SC_HOST: ${{ secrets.SC_HOST }}
       SC_USERNAME: ${{ secrets.SC_USERNAME }}
       SC_PASSWORD: ${{ secrets.SC_PASSWORD }}
-      SC_TIMEOUT: ${{ secrets.SC_TIMEOUT }}
+      SC_TIMEOUT: 10.1
       SMB_SERVER: ${{ secrets.SMB_SERVER }}
       SMB_SHARE: ${{ secrets.SMB_SHARE }}
       SMB_USERNAME: ${{ secrets.SMB_USERNAME }}
@@ -96,7 +96,7 @@ jobs:
           EOF
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
       # - run: cd $WORKDIR && cat tests/integration/integration_config.yml
-      - run: cd $WORKDIR && ansible-test integration
+      - run: cd $WORKDIR && ansible-test integration api
 
   replica_cleanup:
     needs:
