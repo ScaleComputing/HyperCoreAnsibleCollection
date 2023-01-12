@@ -2,7 +2,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from .task_tag import TaskTag
 from ..module_utils.utils import PayloadMapper, get_query
 
 
@@ -76,6 +75,9 @@ class DNSConfig(PayloadMapper):
             for key, value in self.to_hypercore().items()
             if key in ("searchDomains", "serverIPs")
         }
+
+    def post_dns_config_payload_2(self, rest_client, ansible_dict):
+        payload = self.to_hypercore()
 
     @classmethod
     def get_by_uuid(cls, ansible_dict, rest_client, must_exist=False):

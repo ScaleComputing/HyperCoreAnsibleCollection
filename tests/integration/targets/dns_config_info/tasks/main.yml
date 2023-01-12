@@ -7,14 +7,12 @@
   block:
     - name: Retrieve info about DNS Config
       scale_computing.hypercore.dns_config_info:
-      register: initial
-    - ansible.builtin.debug:
-        msg: "{{ initial.records[0] }}"
+      register: result
     - ansible.builtin.assert:
         that:
-          - initial.records != []
-          - "{{ initial.records[0].keys() | sort == ['latest_task_tag', 'search_domains', 'server_ips', 'uuid'] }}"
-          - initial.records[0].uuid
-          - initial.records[0].server_ips
-          - initial.records[0].search_domains
-          - initial.records[0].latest_task_tag
+          - result.records != []
+          - "{{ result.records[0].keys() | sort == ['latest_task_tag', 'search_domains', 'server_ips', 'uuid'] }}"
+          - result.records[0].uuid
+          - result.records[0].server_ips
+          - result.records[0].search_domains
+          - result.records[0].latest_task_tag

@@ -1,0 +1,44 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Add/modify configs (search domains, dns servers)
+      scale_computing.hypercore.dns_config:
+        search_domains:
+          - "test"
+          - "test1"
+          - "test2"
+          - "test3"
+          - "test4"
+        dns_servers:
+          - "1.2.3.4"
+        state: present
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.diff.before != result.diff.after
+          - result.diff.after.search_domains == ["test", "test1", "test2", "test3", "test4"]
+          - result.diff.after.server_ips == ["1.1.1.1", "1.0.0.1", "1.2.3.4"]
+          - result.diff.after.uuid
+
+    - name: Delete configs (search domains, dns servers)
+      scale_computing.hypercore.dns_config:
+        search_domains:
+          - "test"
+          - "test1"
+          - "test2"
+          - "test3"
+          - "test4"
+        dns_servers:
+          - "1.2.3.4"
+        state: absent
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.diff.before != result.diff.after
+          - result.diff.after.search_domains == []
+          - result.diff.after.server_ips == ["1.1.1.1", "1.0.0.1"]
+          - result.diff.after.uuid

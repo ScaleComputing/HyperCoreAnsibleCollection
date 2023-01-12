@@ -7,13 +7,11 @@ from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.task_tag import TaskTag
 from ..module_utils.dns_config import DNSConfig
 from ..module_utils.utils import get_query
 
 
 def run(module, rest_client):
-    query = get_query(module.params, "name", ansible_hypercore_map=dict(name="name"))
     return [
         DNSConfig.from_hypercore(dns_config_dict=hypercore_dict).to_ansible()
         for hypercore_dict in rest_client.list_records("/rest/v1/DNSConfig")
