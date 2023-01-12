@@ -1,0 +1,15 @@
+---
+- name: Example dns_config_info module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+  # ------------------------------------------------------
+    - name: List DNS configuration
+      scale_computing.hypercore.dns_config_info:
+      register: dns_config_info_results
+
+    - name: Show all configs
+      debug:
+        var: is_results
