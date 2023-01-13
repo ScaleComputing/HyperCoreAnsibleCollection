@@ -8,7 +8,6 @@ from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.dns_config import DNSConfig
-from ..module_utils.utils import get_query
 
 
 def run(module, rest_client):

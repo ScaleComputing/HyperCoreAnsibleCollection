@@ -2,6 +2,83 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+
+DOCUMENTATION = r"""
+module: dns_config
+
+author:
+  - Ana Zobec (@anazobec)
+short_description: Modify DNS configuration on HyperCore API
+description:
+  - Use this module to add to or delete from a DNS configuration on HyperCore API.
+version_added: 1.1.0
+extends_documentation_fragment:
+  - scale_computing.hypercore.cluster_instance
+seealso: 
+  - module: scale_computing.hypercore.dns_config_info
+options:
+  search_domains:
+    type: list
+    description:
+      - List of DNS names to be added or removed from DNS configuration.
+      - If the configuration is to be added, then, if all of the provided DNS names already exist on HyperCore API, there will be no changes made.
+      - Otherwise, if the configuration is to be removed, and the provided DNS names don't exist on HyperCore API, the plugin will return an error.
+  dns_servers:
+    type: list
+    description:
+      - List of DNS server IPs to be added or removed from DNS configuration.
+      - If the configuration is to be added, then, if all of the provided DNS servers already exist on HyperCore API, there will be no changes made.
+      - Otherwise, if the configuration is to be removed, and the provided DNS servers don't exist on HyperCore API, the plugin will return an error.  
+  state:
+    type: str
+    description:
+      - The desired state of DNS configuration object.
+      - You must provide one or both of the DNS configuration lists - search_domains and dns_servers.
+      - If I(state=present), the module modifies the desired DNS configuration on HyperCore API.
+      - If I(state=absent), the module removes the desired DNS configuration on HyperCore API.
+    choices: 
+      - present
+      - absent
+    required: true
+notes:
+ - C(check_mode) is not supported.
+"""
+
+
+EXAMPLES = r"""
+# Note that only one or both of the config options are required
+
+- name: Add/modify a DNS configuration
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - "example.domain.com"
+      - "example.domain123.com"
+    dns_servers: 
+      - "1.2.3.4"
+      - "5.6.7.8"
+      - "9.10.11.12"
+    state: present
+
+- name: Delete a DNS configuration
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - "example.domain123.com"
+    dns_servers:
+      - "9.10.11.12"
+    state: absent
+"""
+
+
+RETURN = r"""
+results:
+  description:
+    - Updated the DNS configuration on HyperCore API.
+  return: success
+  type: dict
+  
+"""
+
+
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils.task_tag import TaskTag
@@ -13,33 +90,31 @@ from ..module_utils.dns_config import DNSConfig
 
 def ensure_present(module, rest_client):
     dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
+    if not dns_config:
+        raise errors.ScaleComputingError(
+            f"DNS config: There is no DNS configuration."
+        )
+
     before = dns_config.to_ansible()
 
-    create_dns_servers = (
-        before.get("server_ips")
-        if module.params["dns_servers"] is None
-        else list(
-            dict.fromkeys(before.get("server_ips") + module.params["dns_servers"])
-        )
-    )
-    create_search_domains = (
-        before.get("search_domains")
-        if module.params["search_domains"] is None
-        else list(
-            dict.fromkeys(
-                before.get("search_domains") + module.params["search_domains"]
-            )
-        )
-    )
+    create_dns_servers = \
+        before.get("server_ips") \
+        if module.params["dns_servers"] is None \
+        else dict.fromkeys(before.get("server_ips") + module.params["dns_servers"])
+
+    create_search_domains = \
+        before.get("search_domains") \
+        if module.params["search_domains"] is None \
+        else before.get("search_domains") + module.params["search_domains"]
 
     # remove possible empty string elements from list
     create_dns_servers = list(filter(None, create_dns_servers))
     create_search_domains = list(filter(None, create_search_domains))
 
-    unchanged_search_domains = create_search_domains == before.get("search_domains")
-    unchanged_dns_servers = create_dns_servers == before.get("server_ips")
+    search_domains_change_needed = create_search_domains == before.get("search_domains")
+    dns_servers_change_needed = create_dns_servers == before.get("server_ips")
     changed, result, _dict = (
-        not unchanged_search_domains or not unchanged_dns_servers,
+        not search_domains_change_needed or not dns_servers_change_needed,
         [],
         dict(),
     )
@@ -68,7 +143,8 @@ def ensure_present(module, rest_client):
     return changed, result, _dict
 
 
-def ensure_absent(module, rest_client):  # delete
+# TODO: remove ensure_absent method
+def ensure_absent(module, rest_client):  # remove items from lists: dnsServers, searchDomains
     dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
     before = dns_config.to_ansible()
 
@@ -113,7 +189,6 @@ def ensure_absent(module, rest_client):  # delete
     new_dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
     after = new_dns_config.to_ansible()
     return before != after, [after], dict(before=before, after=after)
-    # return False, [], dict()
 
 
 def run(module, rest_client):
@@ -130,8 +205,21 @@ def main():
             dns_servers=dict(
                 type="list",
                 required=False,
+                elements="dict",
+                options=dict(
+                    # if True, it prepends new values to the beginning
+                    # of the list, otherwise it appends to the end of the list.
+                    prepend=dict(
+                        type="bool",
+                        default=False,
+                        required=False
+                    ),
+                ),
             ),
-            search_domains=dict(type="list", required=False),
+            search_domains=dict(
+                type="list",
+                required=False
+            ),
             state=dict(
                 type="str",
                 required=True,

@@ -5,9 +5,6 @@ __metaclass__ = type
 from ..module_utils.utils import PayloadMapper, get_query
 
 
-DNS_CONFIG_UUID = "dnsconfig_guid"
-
-
 class DNSConfig(PayloadMapper):
     def __init__(
         self,
@@ -16,10 +13,10 @@ class DNSConfig(PayloadMapper):
         server_ips=None,
         latest_task_tag=None,
     ):
-        self.uuid = uuid if uuid is not None else DNS_CONFIG_UUID
+        self.uuid = uuid
         self.search_domains = search_domains if search_domains is not None else []
         self.server_ips = server_ips
-        self.latest_task_tag = search_domains if search_domains is not None else {}
+        self.latest_task_tag = latest_task_tag if latest_task_tag is not None else {}
 
     @classmethod
     def from_ansible(cls, dns_config_dict):
@@ -44,10 +41,8 @@ class DNSConfig(PayloadMapper):
 
     def to_hypercore(self):
         return dict(
-            # uuid=self.uuid,
             searchDomains=self.search_domains,
             serverIPs=self.server_ips,
-            # latest_task_tag=self.latest_task_tag
         )
 
     def to_ansible(self):
@@ -69,16 +64,6 @@ class DNSConfig(PayloadMapper):
             )
         )
 
-    def post_dns_config_payload(self):
-        return {
-            key: value
-            for key, value in self.to_hypercore().items()
-            if key in ("searchDomains", "serverIPs")
-        }
-
-    def post_dns_config_payload_2(self, rest_client, ansible_dict):
-        payload = self.to_hypercore()
-
     @classmethod
     def get_by_uuid(cls, ansible_dict, rest_client, must_exist=False):
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
@@ -87,20 +72,3 @@ class DNSConfig(PayloadMapper):
         )
         dns_config_from_hypercore = DNSConfig.from_hypercore(hypercore_dict)
         return dns_config_from_hypercore
-
-    @classmethod
-    def get_latest_task_tag(cls, ansible_dict, rest_client, must_exist=False):
-        query = get_query(
-            ansible_dict,
-            "latestTaskTag",
-            ansible_hypercore_map=dict(latest_task_tag="latestTaskTag"),
-        )
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/DNSConfig", query, must_exist=must_exist
-        )
-        dns_config_from_hypercore = DNSConfig.from_hypercore(hypercore_dict)
-        return dns_config_from_hypercore
-
-    @classmethod
-    def get_dns_config(cls, ansible_dict, rest_client, must_exist=True):
-        pass

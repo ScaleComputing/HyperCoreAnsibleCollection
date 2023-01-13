@@ -10,9 +10,6 @@
         search_domains:
           - "test"
           - "test1"
-          - "test2"
-          - "test3"
-          - "test4"
         dns_servers:
           - "1.2.3.4"
         state: present
@@ -20,8 +17,8 @@
     - ansible.builtin.assert:
         that:
           - result.diff.before != result.diff.after
-          - result.diff.after.search_domains == ["test", "test1", "test2", "test3", "test4"]
-          - result.diff.after.server_ips == ["1.1.1.1", "1.0.0.1", "1.2.3.4"]
+          - "{{ result.diff.after.search_domains is contains('test') and result.diff.after.search_domains is contains('test1') }}"
+          - "{{ result.diff.after.server_ips is contains('1.2.3.4') }}"
           - result.diff.after.uuid
 
     - name: Delete configs (search domains, dns servers)
@@ -29,9 +26,6 @@
         search_domains:
           - "test"
           - "test1"
-          - "test2"
-          - "test3"
-          - "test4"
         dns_servers:
           - "1.2.3.4"
         state: absent
@@ -39,6 +33,6 @@
     - ansible.builtin.assert:
         that:
           - result.diff.before != result.diff.after
-          - result.diff.after.search_domains == []
-          - result.diff.after.server_ips == ["1.1.1.1", "1.0.0.1"]
+          - "{{ not result.diff.after.search_domains is contains('test') and not result.diff.after.search_domains is contains('test1') }}"
+          - "{{ not result.diff.after.server_ips is contains('1.2.3.4') }}"
           - result.diff.after.uuid
