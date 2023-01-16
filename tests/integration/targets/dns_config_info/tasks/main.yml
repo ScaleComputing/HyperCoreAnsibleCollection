@@ -8,11 +8,13 @@
     - name: Retrieve info about DNS Config
       scale_computing.hypercore.dns_config_info:
       register: result
+    - ansible.builtin.debug:
+        msg: "{{ result.records[0] }}"
     - ansible.builtin.assert:
         that:
           - result.records != []
           - "{{ result.records[0].keys() | sort == ['latest_task_tag', 'search_domains', 'server_ips', 'uuid'] }}"
           - result.records[0].uuid
           - result.records[0].server_ips
-          - result.records[0].search_domains
+          - result.records[0].search_domains  # fails if set to [], [""] or ['']
           - result.records[0].latest_task_tag

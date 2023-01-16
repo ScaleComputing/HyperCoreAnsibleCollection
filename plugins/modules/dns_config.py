@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-
+# language=yaml
 DOCUMENTATION = r"""
 module: dns_config
 
@@ -44,7 +44,7 @@ notes:
  - C(check_mode) is not supported.
 """
 
-
+# language=yaml
 EXAMPLES = r"""
 # Note that only one or both of the config options are required
 
@@ -68,7 +68,7 @@ EXAMPLES = r"""
     state: absent
 """
 
-
+# language=yaml
 RETURN = r"""
 results:
   description:
@@ -88,113 +88,96 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.dns_config import DNSConfig
 
 
-def ensure_present(module, rest_client):
+def get_dns_config_info(module, rest_client):
+    return [
+        DNSConfig.from_hypercore(dns_config_dict=hypercore_dict).to_ansible()
+        for hypercore_dict in rest_client.list_records("/rest/v1/DNSConfig")
+    ]
+
+
+def modify_dns_config(module, rest_client):
+    # GET method, to get the DNS Config by UUID
     dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
+
+    # If DNS config doesn't exist, raise an exception (error)
     if not dns_config:
         raise errors.ScaleComputingError(
-            f"DNS config: There is no DNS configuration."
+            "DNS Config: There is no DNS configuration."
         )
 
+    # Otherwise, continue with modifying the configuration
     before = dns_config.to_ansible()
 
-    create_dns_servers = \
-        before.get("server_ips") \
-        if module.params["dns_servers"] is None \
-        else dict.fromkeys(before.get("server_ips") + module.params["dns_servers"])
+    # Set the new configurations for dnsServers
+    update_dns_servers = before.get("server_ips")
+    if module.params["dns_servers"][0]["ips"] is not None:
+        if not module.params["dns_servers"][0]["prepend"]:
+            update_dns_servers += module.params["dns_servers"][0]["ips"]
+        else:
+            update_dns_servers = module.params["dns_servers"][0]["ips"] + update_dns_servers
 
-    create_search_domains = \
-        before.get("search_domains") \
-        if module.params["search_domains"] is None \
-        else before.get("search_domains") + module.params["search_domains"]
+    # Set the new configuration for searchDomains
+    update_search_domains = before.get("search_domains")
+    if module.params["search_domains"][0]["names"] is not None:
+        if not module.params["search_domains"][0]["prepend"]:
+            update_search_domains += module.params["search_domains"][0]["names"]
+        else:
+            update_search_domains = module.params["search_domains"][0]["names"] + update_search_domains
 
-    # remove possible empty string elements from list
-    create_dns_servers = list(filter(None, create_dns_servers))
-    create_search_domains = list(filter(None, create_search_domains))
+    # Remove possible empty string elements from list
+    update_dns_servers = list(filter(None, update_dns_servers))
+    update_search_domains = list(filter(None, update_search_domains))
 
-    search_domains_change_needed = create_search_domains == before.get("search_domains")
-    dns_servers_change_needed = create_dns_servers == before.get("server_ips")
-    changed, result, _dict = (
+    # Check if there will be any changes made to the current configuration
+    search_domains_change_needed = update_search_domains == before.get("search_domains")
+    dns_servers_change_needed = update_dns_servers == before.get("server_ips")
+
+    # When there is no change made, "new_state" then equals "old_state"
+    old_state = get_dns_config_info(module, rest_client)
+    module.warn(str(old_state))
+    changed, new_state, diff = (
         not search_domains_change_needed or not dns_servers_change_needed,
-        [],
-        dict(),
+        get_dns_config_info(module, rest_client),
+        dict(before=old_state, after=old_state),
     )
 
+    # Return no changes made, if there were no
+    # changes to be made to the current configuration
     if not changed:
-        return changed, result, _dict
+        return changed, new_state, diff
 
-    dns_config_create = DNSConfig(
-        search_domains=create_search_domains,
-        server_ips=create_dns_servers,
+    # Set up the new (modified) configuration
+    dns_config_update = DNSConfig(
+        search_domains=update_search_domains,
+        server_ips=update_dns_servers,
     )
 
-    payload = DNSConfig.to_hypercore(dns_config_create)
+    # Set up the payload to modify the current configuration
+    # TODO: use GET method to build payload!
+    payload = DNSConfig.to_hypercore(dns_config_update)
 
-    task_tag_create = rest_client.create_record(
+    # Set up a task to create a new modified record for the configuration
+    # the update_record method uses method PATCH
+    # NOTE: PUT method is not allowed on DNS Config
+    task_tag_update = rest_client.update_record(
         endpoint="{0}/{1}".format("/rest/v1/DNSConfig", dns_config.uuid),
         payload=payload,
         check_mode=module.check_mode,
     )
 
-    TaskTag.wait_task(rest_client, task_tag_create)
+    # Wait for the task to finish
+    TaskTag.wait_task(rest_client, task_tag_update)
+
+    # Get the new configuration and save its new state to then return it
     new_dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
     after = new_dns_config.to_ansible()
-    changed, result, _dict = before != after, [after], dict(before=before, after=after)
+    new_state, diff = get_dns_config_info(module, rest_client), dict(before=before, after=after)
 
-    return changed, result, _dict
-
-
-# TODO: remove ensure_absent method
-def ensure_absent(module, rest_client):  # remove items from lists: dnsServers, searchDomains
-    dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
-    before = dns_config.to_ansible()
-
-    delete_dns_servers = (
-        [] if module.params["dns_servers"] is None else module.params["dns_servers"]
-    )
-    delete_search_domains = (
-        []
-        if module.params["search_domains"] is None
-        else module.params["search_domains"]
-    )
-
-    new_dns_servers = [el for el in before.get("server_ips")]
-    new_search_domains = [el for el in before.get("search_domains")]
-
-    for delete_dns_server in delete_dns_servers:
-        try:
-            new_dns_servers.remove(delete_dns_server)
-        except ValueError:
-            raise errors.ScaleComputingError(
-                f"DNS config: IP '{delete_dns_server}' doesn't exist in DNS config records."
-            )
-    for delete_search_domain in delete_search_domains:
-        try:
-            new_search_domains.remove(delete_search_domain)
-        except ValueError:
-            raise errors.ScaleComputingError(
-                f"DNS config: Search domain name '{delete_search_domain}' doesn't exist in DNS config records."
-            )
-
-    dns_config_new = DNSConfig(
-        search_domains=new_search_domains,
-        server_ips=new_dns_servers,
-    )
-    payload = DNSConfig.to_hypercore(dns_config_new)
-    task_tag_create = rest_client.create_record(
-        endpoint="{0}/{1}".format("/rest/v1/DNSConfig", dns_config.uuid),
-        payload=payload,
-        check_mode=module.check_mode,
-    )
-    TaskTag.wait_task(rest_client, task_tag_create)
-    new_dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
-    after = new_dns_config.to_ansible()
-    return before != after, [after], dict(before=before, after=after)
+    return True, new_state, diff
 
 
 def run(module, rest_client):
-    if module.params["state"] == "absent":
-        return ensure_absent(module, rest_client)
-    return ensure_present(module, rest_client)
+    return modify_dns_config(module, rest_client)
 
 
 def main():
@@ -207,43 +190,36 @@ def main():
                 required=False,
                 elements="dict",
                 options=dict(
+                    ips=dict(
+                        type="list",
+                        required=True,
+                    ),
                     # if True, it prepends new values to the beginning
                     # of the list, otherwise it appends to the end of the list.
                     prepend=dict(
                         type="bool",
                         default=False,
-                        required=False
+                        required=False,
                     ),
                 ),
             ),
             search_domains=dict(
                 type="list",
-                required=False
-            ),
-            state=dict(
-                type="str",
-                required=True,
-                choices=["present", "absent"],
+                required=False,
+                elements="dict",
+                options=dict(
+                    names=dict(
+                        type="list",
+                        required=True,
+                    ),
+                    prepend=dict(
+                        type="bool",
+                        default=False,
+                        required=False,
+                    ),
+                ),
             ),
         ),
-        required_one_of=[
-            (
-                "state",
-                "present",
-                (
-                    "dns_servers",
-                    "search_domains",
-                ),
-            ),
-            (
-                "state",
-                "absent",
-                (
-                    "dns_servers",
-                    "search_domains",
-                ),
-            ),
-        ],
     )
 
     try:
@@ -253,8 +229,8 @@ def main():
             password=module.params["cluster_instance"]["password"],
         )
         rest_client = RestClient(client)
-        changed, results, diff = run(module, rest_client)
-        module.exit_json(changed=changed, results=results, diff=diff)
+        changed, new_state, diff = run(module, rest_client)
+        module.exit_json(changed=changed, new_state=new_state, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

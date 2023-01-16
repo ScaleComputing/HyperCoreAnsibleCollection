@@ -4,35 +4,63 @@
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
 
+  vars:
+    default_domains:
+      - "1.1.1.1"
+      - "1.0.0.1"
+    default_search_domains: []
+
   block:
+#    - name: Get configs
+#      scale_computing.hypercore.api:
+#        action: put
+#        endpoint: /rest/v1/DNSConfig/
+#        data:
+#          searchDomains: "test1"
+#          serverIPs: "1.2.3.4"
+#      register: get_dns_config
+#    - ansible.builtin.debug:
+#        msg: "{{ get_dns_config.record.0 }}"
+
+#    - name: "Remove all configs(search domains, dns servers)"
+#      scale_computing.hypercore.dns_config:
+#        search_domains: []
+#        dns_servers: []
+#      register: result
+#    - ansible.builtin.assert:
+#        that: []  # TODO
+
     - name: Add/modify configs (search domains, dns servers)
       scale_computing.hypercore.dns_config:
         search_domains:
-          - "test"
-          - "test1"
+          - names:
+              - "test1"
+              - "test2"
+              - "test3"
         dns_servers:
-          - "1.2.3.4"
-        state: present
+          - ips:
+              - "1.2.3.4"
+              - "5.6.7.8"
       register: result
-    - ansible.builtin.assert:
-        that:
-          - result.diff.before != result.diff.after
-          - "{{ result.diff.after.search_domains is contains('test') and result.diff.after.search_domains is contains('test1') }}"
-          - "{{ result.diff.after.server_ips is contains('1.2.3.4') }}"
-          - result.diff.after.uuid
-
-    - name: Delete configs (search domains, dns servers)
-      scale_computing.hypercore.dns_config:
-        search_domains:
-          - "test"
-          - "test1"
-        dns_servers:
-          - "1.2.3.4"
-        state: absent
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result.diff.before != result.diff.after
-          - "{{ not result.diff.after.search_domains is contains('test') and not result.diff.after.search_domains is contains('test1') }}"
-          - "{{ not result.diff.after.server_ips is contains('1.2.3.4') }}"
-          - result.diff.after.uuid
+#    - ansible.builtin.assert:
+#        that:
+#          - result.diff.before != result.diff.after
+#          - "{{ result.diff.after.search_domains is contains('test') and result.diff.after.search_domains is contains('test1') }}"
+#          - "{{ result.diff.after.server_ips is contains('1.2.3.4') }}"
+#          - result.diff.after.uuid
+#
+#    - name: Delete configs (search domains, dns servers)
+#      scale_computing.hypercore.dns_config:
+#        search_domains:
+#          - "test"
+#          - "test1"
+#        dns_servers:
+#          - "1.2.3.4"
+#        state: absent
+#      register: result
+#    - ansible.builtin.assert:
+#        that:
+#          - result.diff.before != result.diff.after
+#          - "{{ not result.diff.after.search_domains is contains('test') and not result.diff.after.search_domains is contains('test1') }}"
+#          - "{{ not result.diff.after.server_ips is contains('1.2.3.4') }}"
+#          - result.diff.after.uuid

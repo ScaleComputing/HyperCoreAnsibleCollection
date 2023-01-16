@@ -10,11 +10,15 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.dns_config import DNSConfig
 
 
-def run(module, rest_client):
+def get_dns_config_info(module, rest_client):
     return [
         DNSConfig.from_hypercore(dns_config_dict=hypercore_dict).to_ansible()
         for hypercore_dict in rest_client.list_records("/rest/v1/DNSConfig")
     ]
+
+
+def run(module, rest_client):
+    return get_dns_config_info(module, rest_client)
 
 
 def main():
@@ -22,7 +26,6 @@ def main():
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            name=dict(type="str", required=False),
         ),
     )
 
