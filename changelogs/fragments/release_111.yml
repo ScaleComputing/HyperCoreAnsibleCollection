@@ -1,0 +1,6 @@
+release_summary: Feature release with minor changes and small bugfixes.
+minor_changes:
+  - "TODO: write any changes here"
+  - "Implemented a 'dns_config' and 'dns_config' to list and modify DNS configuration."
+bugfixes:
+  - "TODO: write here any bugfixes here"
