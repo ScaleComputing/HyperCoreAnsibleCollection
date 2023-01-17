@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-# language=yaml
+
 DOCUMENTATION = r"""
 module: dns_config
 
@@ -11,71 +11,115 @@ author:
 short_description: Modify DNS configuration on HyperCore API
 description:
   - Use this module to add to or delete from a DNS configuration on HyperCore API.
-version_added: 1.1.0
+version_added: 1.1.1
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso: 
   - module: scale_computing.hypercore.dns_config_info
 options:
+  overwrite:
+    type: str
+    choices: [ all, none ]
+    default: none
+    required: False
+    description:
+      - The desired way of modifying existing DNS Config entries.
+      - If C(all), both searchIPs and searchDomains lists on HyperCore API will be overwritten.
+      - If C(none), entries will be updated with new (provided) additional entries.
+
   search_domains:
     type: list
+    elements: dict
     description:
-      - List of DNS names to be added or removed from DNS configuration.
-      - If the configuration is to be added, then, if all of the provided DNS names already exist on HyperCore API, there will be no changes made.
-      - Otherwise, if the configuration is to be removed, and the provided DNS names don't exist on HyperCore API, the plugin will return an error.
+      - Options for modifying the search_domains entry in the DNS configuration.
+    suboptions:
+      names:
+        type: list
+        description:
+          - List of DNS names to be added or removed from DNS configuration.
+          - If the configuration is to be added, then, if all of the provided DNS names already exist on HyperCore API, there will be no changes made.
+          - Otherwise, if the configuration is to be removed, and the provided DNS names don't exist on HyperCore API, the plugin will return an error.
+      prepend:
+        type: bool
+        default: False
+        description:
+          - Choose to prepend or not to the existing config entry.
+          - If C(prepend=True), new entry will be I(prepended) to the existing one.
+          - If C(prepend=False), new entry will be I(appended) to the existing one.
   dns_servers:
     type: list
+    elements: dict
     description:
-      - List of DNS server IPs to be added or removed from DNS configuration.
-      - If the configuration is to be added, then, if all of the provided DNS servers already exist on HyperCore API, there will be no changes made.
-      - Otherwise, if the configuration is to be removed, and the provided DNS servers don't exist on HyperCore API, the plugin will return an error.  
-  state:
-    type: str
-    description:
-      - The desired state of DNS configuration object.
-      - You must provide one or both of the DNS configuration lists - search_domains and dns_servers.
-      - If I(state=present), the module modifies the desired DNS configuration on HyperCore API.
-      - If I(state=absent), the module removes the desired DNS configuration on HyperCore API.
-    choices: 
-      - present
-      - absent
-    required: true
+      - Options for modifying the search_domains entry in the DNS configuration. 
+    suboptions:
+      ips:
+        type: list
+        description:
+          - List of DNS server IPs to be added or removed from DNS configuration.
+          - If the configuration is to be added, then, if all of the provided DNS servers already exist on HyperCore API, there will be no changes made.
+          - Otherwise, if the configuration is to be removed, and the provided DNS servers don't exist on HyperCore API, the plugin will return an error.  
+      prepend:
+        type: bool
+        default: False
+        description:
+          - Same as the I(prepend) option for I(search_domains).
 notes:
  - C(check_mode) is not supported.
 """
 
-# language=yaml
+
 EXAMPLES = r"""
 # Note that only one or both of the config options are required
 
-- name: Add/modify a DNS configuration
+- name: Add entry to existing DNS configuration
   scale_computing.hypercore.dns_config:
+    overwrite: none
     search_domains:
-      - "example.domain.com"
-      - "example.domain123.com"
-    dns_servers: 
-      - "1.2.3.4"
-      - "5.6.7.8"
-      - "9.10.11.12"
-    state: present
-
-- name: Delete a DNS configuration
-  scale_computing.hypercore.dns_config:
-    search_domains:
-      - "example.domain123.com"
+      - names:
+          - example.domain1.com
+          - example.domain2.com
     dns_servers:
-      - "9.10.11.12"
-    state: absent
+      - ips: 
+          - 1.2.3.4
+          - 5.6.7.8
+        prepend: True
+
+- name: Overwrite all the existing DNS configuration entries
+  scale_computing.hypercore.dns_config:
+    overwrite: all
+    search_domains: 
+      - names: []
+    dns_servers: 
+      - ips: []
 """
 
-# language=yaml
 RETURN = r"""
 results:
   description:
-    - Updated the DNS configuration on HyperCore API.
+    - Output from modifying entries of the DNS configuration on HyperCore API.
   return: success
-  type: dict
-  
+  type: list
+  sample:
+    - uuid: "dnsconfig_guid"
+      server_ips:
+        - "1.1.1.1"
+        - "1.0.0.1"
+      search_domains: []
+      latest_task_tag:
+        completed: 1673966351
+        created: 1673966345
+        descriptionParameters: []
+        formattedDescription: "DNSConfig Update"
+        formattedMessage: ""
+        messageParameters: []
+        modified: 1673966351
+        nodeUUIDs:
+          - "32c5012d-7d7b-49b4-9201-70e02b0d8758"
+        objectUUID: "dnsconfig_guid"
+        progressPercent: 100
+        sessionID: "b8c45c35-3349-49e0-9474-0edfa73a2162"
+        state: "COMPLETE"
+        taskTag: "396"
 """
 
 
@@ -86,13 +130,6 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.dns_config import DNSConfig
-
-
-def get_dns_config_info(module, rest_client):
-    return [
-        DNSConfig.from_hypercore(dns_config_dict=hypercore_dict).to_ansible()
-        for hypercore_dict in rest_client.list_records("/rest/v1/DNSConfig")
-    ]
 
 
 def modify_dns_config(module, rest_client):
@@ -110,7 +147,7 @@ def modify_dns_config(module, rest_client):
 
     # Set the new configurations for dnsServers
     update_dns_servers = before.get("server_ips")
-    if module.params["dns_servers"][0]["ips"] is not None:
+    if module.params["dns_servers"] and module.params["dns_servers"][0]["ips"] is not None:
         if not module.params["dns_servers"][0]["prepend"]:
             update_dns_servers += module.params["dns_servers"][0]["ips"]
         else:
@@ -118,7 +155,7 @@ def modify_dns_config(module, rest_client):
 
     # Set the new configuration for searchDomains
     update_search_domains = before.get("search_domains")
-    if module.params["search_domains"][0]["names"] is not None:
+    if module.params["search_domains"] and module.params["search_domains"][0]["names"] is not None:
         if not module.params["search_domains"][0]["prepend"]:
             update_search_domains += module.params["search_domains"][0]["names"]
         else:
@@ -129,15 +166,14 @@ def modify_dns_config(module, rest_client):
     update_search_domains = list(filter(None, update_search_domains))
 
     # Check if there will be any changes made to the current configuration
-    search_domains_change_needed = update_search_domains == before.get("search_domains")
-    dns_servers_change_needed = update_dns_servers == before.get("server_ips")
+    search_domains_change_needed = dict.fromkeys(update_search_domains) == before.get("search_domains")
+    dns_servers_change_needed = dict.fromkeys(update_dns_servers) == before.get("server_ips")
 
     # When there is no change made, "new_state" then equals "old_state"
-    old_state = get_dns_config_info(module, rest_client)
-    module.warn(str(old_state))
+    old_state = DNSConfig.get_state(rest_client)
     changed, new_state, diff = (
         not search_domains_change_needed or not dns_servers_change_needed,
-        get_dns_config_info(module, rest_client),
+        DNSConfig.get_state(rest_client),
         dict(before=old_state, after=old_state),
     )
 
@@ -146,32 +182,46 @@ def modify_dns_config(module, rest_client):
     if not changed:
         return changed, new_state, diff
 
-    # Set up the new (modified) configuration
-    dns_config_update = DNSConfig(
-        search_domains=update_search_domains,
-        server_ips=update_dns_servers,
-    )
+    # 1. Set up the payload and task_tag to modify the current configuration
+    # 2. Set up a task to create a new modified record for the configuration
+    #    - the update_record method uses method PATCH,
+    #    - the create_record method uses method POST.
+    # [ NOTE: PUT method is not allowed on DNS Config ]
+    task_tag = None
+    if module.params["overwrite"] == "none":
+        payload = dict(
+            searchDomains=update_search_domains,
+            serverIPs=update_dns_servers,
+        )
 
-    # Set up the payload to modify the current configuration
-    # TODO: use GET method to build payload!
-    payload = DNSConfig.to_hypercore(dns_config_update)
+        # This method uses PATCH
+        # [ NOTE: PUT is not allowed ]
+        task_tag = rest_client.update_record(
+            endpoint="{0}/{1}".format("/rest/v1/DNSConfig", dns_config.uuid),
+            payload=payload,
+            check_mode=module.check_mode,
+        )
+    elif module.params["overwrite"] == "all":
+        payload = dict(
+            searchDomains=module.params["search_domains"][0]["names"],
+            serverIPs=module.params["dns_servers"][0]["ips"],
+        )
 
-    # Set up a task to create a new modified record for the configuration
-    # the update_record method uses method PATCH
-    # NOTE: PUT method is not allowed on DNS Config
-    task_tag_update = rest_client.update_record(
-        endpoint="{0}/{1}".format("/rest/v1/DNSConfig", dns_config.uuid),
-        payload=payload,
-        check_mode=module.check_mode,
-    )
+        # This method uses POST
+        # [ NOTE: PUT is not allowed ]
+        task_tag = rest_client.create_record(
+            endpoint="{0}/{1}".format("/rest/v1/DNSConfig", dns_config.uuid),
+            payload=payload,
+            check_mode=module.check_mode,
+        )
 
     # Wait for the task to finish
-    TaskTag.wait_task(rest_client, task_tag_update)
+    TaskTag.wait_task(rest_client, task_tag)
 
     # Get the new configuration and save its new state to then return it
     new_dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
     after = new_dns_config.to_ansible()
-    new_state, diff = get_dns_config_info(module, rest_client), dict(before=before, after=after)
+    new_state, diff = DNSConfig.get_state(rest_client), dict(before=before, after=after)
 
     return True, new_state, diff
 
@@ -185,6 +235,17 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
+            # - if "all", both searchIPs and searchDomain lists
+            #   on HyperCore API will be overwritten.
+            # - if "none" nor searchIPs nor searchDomains lists
+            #   will be overwritten, but rather updated with
+            #   additional entries.
+            overwrite=dict(
+                type="str",
+                default="none",
+                choices=["all", "none"],
+                required=False,
+            ),
             dns_servers=dict(
                 type="list",
                 required=False,
@@ -220,6 +281,9 @@ def main():
                 ),
             ),
         ),
+        required_if=[
+            ("overwrite", "all", ("dns_servers", "search_domains")),
+        ],
     )
 
     try:

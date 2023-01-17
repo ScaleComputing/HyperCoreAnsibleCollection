@@ -72,3 +72,10 @@ class DNSConfig(PayloadMapper):
         )
         dns_config_from_hypercore = DNSConfig.from_hypercore(hypercore_dict)
         return dns_config_from_hypercore
+
+    @classmethod
+    def get_state(cls, rest_client):
+        return [
+            DNSConfig.from_hypercore(dns_config_dict=hypercore_dict).to_ansible()
+            for hypercore_dict in rest_client.list_records("/rest/v1/DNSConfig")
+        ]

@@ -2,6 +2,59 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+
+DOCUMENTATION = r"""
+module: dns_config_info
+
+author:
+  - Ana Zobec (@anazobec)
+short_description: List DNS configuration on HyperCore API
+description:
+  - Use this module to list information about the DNS configuration on HyperCore API.
+version_added: 1.1.1
+extends_documentation_fragment:
+  - scale_computing.hypercore.cluster_instance
+seealso:
+  - module: scale_computing.hypercore.dns_config
+"""
+
+
+EXAMPLES = r"""
+- name: List all configurations on DNS configuration on HyperCore API
+  scale_computing.hypercore.dns_config_info:
+  register: dns_config
+"""
+
+RETURN = r"""
+records:
+  description:
+    - A list of DNS configuration records.
+  returned: success
+  type: list
+  sample:
+    - uuid: "dnsconfig_guid"
+      server_ips:
+        - "1.1.1.1"
+        - "1.0.0.1"
+      search_domains: []
+      latest_task_tag:
+        completed: 1673946776
+        created: 1673946770
+        descriptionParameters: []
+        formattedDescription: "DNSConfig Update"
+        formattedMessage: ""
+        messageParameters: []
+        modified: 1673946776
+        nodeUUIDs:
+          - "32c5012d-7d7b-49b4-9201-70e02b0d8758"
+        objectUUID: "dnsconfig_guid"
+        progressPercent: 100
+        sessionID: "775155cc-bc4e-445c-9efa-a304f4f66c82"
+        state: "COMPLETE"
+        taskTag: "359"
+"""
+
+
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import errors, arguments
@@ -10,15 +63,8 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.dns_config import DNSConfig
 
 
-def get_dns_config_info(module, rest_client):
-    return [
-        DNSConfig.from_hypercore(dns_config_dict=hypercore_dict).to_ansible()
-        for hypercore_dict in rest_client.list_records("/rest/v1/DNSConfig")
-    ]
-
-
-def run(module, rest_client):
-    return get_dns_config_info(module, rest_client)
+def run(rest_client):
+    return DNSConfig.get_state(rest_client)
 
 
 def main():
@@ -36,7 +82,7 @@ def main():
             password=module.params["cluster_instance"]["password"],
         )
         rest_client = RestClient(client)
-        records = run(module, rest_client)
+        records = run(rest_client)
         module.exit_json(changed=False, records=records)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))

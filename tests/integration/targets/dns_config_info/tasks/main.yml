@@ -4,17 +4,30 @@
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
 
+  vars:
+    actual_uuid: ""
+    actual_server_ips: []
+    actual_search_domains: []
+
   block:
+    - name: Get expected configs
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/DNSConfig/dnsconfig_guid
+      register: dns_config
+    - ansible.builtin.set_fact:
+        actual_server_ips: "{{ dns_config.record.0.serverIPs }}"
+        actual_search_domains: "{{ dns_config.record.0.searchDomains }}"
+        actual_uuid: "{{ dns_config.record.0.uuid }}"
+
     - name: Retrieve info about DNS Config
       scale_computing.hypercore.dns_config_info:
       register: result
-    - ansible.builtin.debug:
-        msg: "{{ result.records[0] }}"
     - ansible.builtin.assert:
         that:
           - result.records != []
           - "{{ result.records[0].keys() | sort == ['latest_task_tag', 'search_domains', 'server_ips', 'uuid'] }}"
-          - result.records[0].uuid
-          - result.records[0].server_ips
-          - result.records[0].search_domains  # fails if set to [], [""] or ['']
+          - result.records[0].uuid == actual_uuid
+          - result.records[0].server_ips == actual_server_ips
+          - result.records[0].search_domains == actual_search_domains # fails if set to [], [""] or ['']
           - result.records[0].latest_task_tag

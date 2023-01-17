@@ -5,62 +5,157 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   vars:
-    default_domains:
-      - "1.1.1.1"
-      - "1.0.0.1"
+    default_server_ips: []
     default_search_domains: []
+    actual_uuid: ""
 
   block:
-#    - name: Get configs
-#      scale_computing.hypercore.api:
-#        action: put
-#        endpoint: /rest/v1/DNSConfig/
-#        data:
-#          searchDomains: "test1"
-#          serverIPs: "1.2.3.4"
-#      register: get_dns_config
-#    - ansible.builtin.debug:
-#        msg: "{{ get_dns_config.record.0 }}"
+    - name: Get default configs
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/DNSConfig/dnsconfig_guid
+      register: dns_config
+    - ansible.builtin.set_fact:
+        default_server_ips: "{{ dns_config.record.0.serverIPs }}"
+        default_search_domains: "{{ dns_config.record.0.searchDomains }}"
+        actual_uuid: "{{ dns_config.record.0.uuid }}"
 
-#    - name: "Remove all configs(search domains, dns servers)"
-#      scale_computing.hypercore.dns_config:
-#        search_domains: []
-#        dns_servers: []
-#      register: result
-#    - ansible.builtin.assert:
-#        that: []  # TODO
+    - name: Prepare for test
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/DNSConfig/dnsconfig_guid
+        data:
+          searchDomains: []
+          serverIPs: []
 
-    - name: Add/modify configs (search domains, dns servers)
+# -----------------------------------------------------------
+
+    - name: Overwrite all entries (search_domains, dns_servers)
       scale_computing.hypercore.dns_config:
+        overwrite: all
         search_domains:
           - names:
-              - "test1"
-              - "test2"
-              - "test3"
+              - example.domain1.com
+              - example.domain2.com
+            prepend: False  # defaults to False
         dns_servers:
           - ips:
-              - "1.2.3.4"
-              - "5.6.7.8"
+              - 1.2.3.4
+              - 5.6.7.8
+            prepend: False
       register: result
-#    - ansible.builtin.assert:
-#        that:
-#          - result.diff.before != result.diff.after
-#          - "{{ result.diff.after.search_domains is contains('test') and result.diff.after.search_domains is contains('test1') }}"
-#          - "{{ result.diff.after.server_ips is contains('1.2.3.4') }}"
-#          - result.diff.after.uuid
-#
-#    - name: Delete configs (search domains, dns servers)
-#      scale_computing.hypercore.dns_config:
-#        search_domains:
-#          - "test"
-#          - "test1"
-#        dns_servers:
-#          - "1.2.3.4"
-#        state: absent
-#      register: result
-#    - ansible.builtin.assert:
-#        that:
-#          - result.diff.before != result.diff.after
-#          - "{{ not result.diff.after.search_domains is contains('test') and not result.diff.after.search_domains is contains('test1') }}"
-#          - "{{ not result.diff.after.server_ips is contains('1.2.3.4') }}"
-#          - result.diff.after.uuid
+    - ansible.builtin.assert:
+        that:
+          - result.diff.before != result.diff.after
+          - result.new_state.0.search_domains == ["example.domain1.com", "example.domain2.com"]
+          - result.new_state.0.server_ips == ["1.2.3.4", "5.6.7.8"]
+          - result.new_state.0.uuid == actual_uuid
+
+    - name: PREPEND new 'dns_servers' to existing DNS config
+      scale_computing.hypercore.dns_config:
+        overwrite: none
+        dns_servers:
+          - ips:
+              - 0.0.0.0
+              - 0.1.1.1
+            prepend: True
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.diff.before != result.diff.after
+          - result.new_state.0.search_domains == ["example.domain1.com", "example.domain2.com"]
+          - result.new_state.0.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8"]
+          - result.new_state.0.uuid == actual_uuid
+
+    - name: PREPEND new 'search_domains' to existing DNS config
+      scale_computing.hypercore.dns_config:
+        overwrite: none
+        search_domains:
+          - names:
+              - example.domain0.com
+            prepend: True
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.diff.before != result.diff.after
+          - result.new_state.0.search_domains == ["example.domain0.com", "example.domain1.com", "example.domain2.com"]
+          - result.new_state.0.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8"]
+          - result.new_state.0.uuid == actual_uuid
+
+    - name: APPEND new 'dns_servers' to existing DNS config
+      scale_computing.hypercore.dns_config:
+        overwrite: none
+        dns_servers:
+          - ips:
+              - 9.9.9.9
+              - 0.9.9.9
+            prepend: False
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.diff.before != result.diff.after
+          - result.new_state.0.search_domains == ["example.domain0.com", "example.domain1.com", "example.domain2.com"]
+          - result.new_state.0.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
+          - result.new_state.0.uuid == actual_uuid
+
+    - name: APPEND new 'search_domains' to existing DNS config
+      scale_computing.hypercore.dns_config:
+        overwrite: none
+        search_domains:
+          - names:
+              - example.domain3.com
+            prepend: False
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.diff.before != result.diff.after
+          - result.new_state.0.search_domains == ["example.domain0.com", "example.domain1.com", "example.domain2.com", "example.domain3.com"]
+          - result.new_state.0.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
+          - result.new_state.0.uuid == actual_uuid
+
+    - name: PREPEND 'search_domains' and APPEND 'dns_servers' existing DNS config
+      scale_computing.hypercore.dns_config:
+        overwrite: none
+        search_domains:
+          - names:
+              - example.domain-2.com
+              - example.domain-1.com
+            prepend: True
+        dns_servers:
+          # Intentionally left out "prepend" option,
+          # because it should default to "False"
+          - ips:
+              - 8.8.8.1
+              - 8.8.8.2
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.diff.before != result.diff.after
+          - result.new_state.0.search_domains == ["example.domain-2.com", "example.domain-1.com", "example.domain0.com", "example.domain1.com", "example.domain2.com", "example.domain3.com"]
+          - result.new_state.0.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8", "9.9.9.9", "0.9.9.9", "8.8.8.1", "8.8.8.2"]
+          - result.new_state.0.uuid == actual_uuid
+
+    - name: Clear all entries by using 'overwrite'
+      scale_computing.hypercore.dns_config:
+        overwrite: all
+        search_domains:
+          - names: []
+        dns_servers:
+          - ips: []
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result.diff.before != result.diff.after
+          - result.new_state.0.search_domains == []
+          - result.new_state.0.server_ips == []
+          - result.new_state.0.uuid == actual_uuid
+
+# -----------------------------------------------------------
+
+    - name: Restore back to default values
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/DNSConfig/dnsconfig_guid
+        data:
+          searchDomains: "{{ default_search_domains }}"
+          serverIPs: "{{ default_server_ips }}"
