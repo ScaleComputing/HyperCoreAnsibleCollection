@@ -6,10 +6,10 @@
 
   tasks:
   # ------------------------------------------------------
-    - name: List DNS configuration
+    - name: List DNS config entries
       scale_computing.hypercore.dns_config_info:
       register: dns_config_info_results
 
-    - name: Show all configs
+    - name: Show all DNS config entries
       debug:
-        var: is_results
+        var: dns_config_info_results

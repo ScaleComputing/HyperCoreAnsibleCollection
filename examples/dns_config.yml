@@ -6,23 +6,28 @@
 
   tasks:
     # ------------------------------------------------------
-    - name: Add to DNS configuration records
+    - name: Setup DNS configuration by overwriting existing entries
       scale_computing.hypercore.dns_config:
+        overwrite: all
         search_domains:
-          - example_dns_1
-          - example_dns_2
-          - example_dns_3
-          - do_not_need_this_dns
+          - names:
+            - example.domain1.com
+            - example.domain2.com
+            - example.domain3.com
         dns_servers:
-          - 1.2.3.4
-          - 5.6.7.8
-        state: present
-
+          - ips:
+            - 1.2.3.4
+            - 5.6.7.8
     # ------------------------------------------------------
-    - name: Delete DNS configuration records
+    - name: Modify existing DNS config configurations
       scale_computing.hypercore.dns_config:
+        # overwrite: none -> this is a defaulted option
         search_domains:
-          - do_not_need_this_dns
+          - names:
+              - example.domain.com
+            # prepend: False -> this is a defaulted option
         dns_servers:
-          - 5.6.7.8
-        state: absent
+          - ips:
+              - 1.2.3.4
+              - 5.6.7.8
+            prepend: True
