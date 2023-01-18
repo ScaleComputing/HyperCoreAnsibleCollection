@@ -1,0 +1,14 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Retrieve info about the users
+      scale_computing.hypercore.user_info:
+      register: initial
+    - ansible.builtin.assert:
+        that:
+          - initial.records != []
+          - "{{ initial.records[0].keys() | sort == ['fullname', 'role_uuids', 'session_limit', 'username', 'uuid'] }}"
