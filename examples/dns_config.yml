@@ -10,24 +10,17 @@
       scale_computing.hypercore.dns_config:
         overwrite: all
         search_domains:
-          - names:
-            - example.domain1.com
-            - example.domain2.com
-            - example.domain3.com
+          - example.domain1.com
+          - example.domain2.com
+          - example.domain3.com
         dns_servers:
-          - ips:
-            - 1.2.3.4
-            - 5.6.7.8
+          - 1.2.3.4
+          - 5.6.7.8
     # ------------------------------------------------------
     - name: Modify existing DNS config configurations
       scale_computing.hypercore.dns_config:
-        # overwrite: none -> this is a defaulted option
         search_domains:
-          - names:
-              - example.domain.com
-            # prepend: False -> this is a defaulted option
+          - example.domain.com
         dns_servers:
-          - ips:
-              - 1.2.3.4
-              - 5.6.7.8
-            prepend: True
+          - 1.2.3.4
+          - 5.6.7.8

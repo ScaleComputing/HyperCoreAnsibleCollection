@@ -1,8 +1,15 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2023, XLAB Steampunk <steampunk@xlab.si>
+#
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper, get_query
+from ..module_utils import errors
 
 
 class DNSConfig(PayloadMapper):
@@ -75,7 +82,17 @@ class DNSConfig(PayloadMapper):
 
     @classmethod
     def get_state(cls, rest_client):
-        return [
+        state = [
             DNSConfig.from_hypercore(dns_config_dict=hypercore_dict).to_ansible()
-            for hypercore_dict in rest_client.list_records("/rest/v1/DNSConfig")
+            for hypercore_dict in rest_client.list_records("/rest/v1/DNSConfig/")
         ]
+
+        # Raise an error if there is more than 1 DNS configuration available
+        # - There should be 0 or 1 DNS configuration available
+        if len(state) > 1:
+            raise errors.ScaleComputingError(
+                "DNS Config: There are too many DNS configuration settings!\n\
+                The number of DNS settings should be 0 or 1."
+            )
+
+        return state[0]

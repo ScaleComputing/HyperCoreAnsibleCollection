@@ -1,3 +1,9 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# Copyright: (c) 2023, XLAB Steampunk <steampunk@xlab.si>
+#
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
@@ -11,7 +17,7 @@ author:
 short_description: List DNS configuration on HyperCore API
 description:
   - Use this module to list information about the DNS configuration on HyperCore API.
-version_added: 1.1.1
+version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:
@@ -63,7 +69,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.dns_config import DNSConfig
 
 
-def run(rest_client):
+def run(rest_client: RestClient):
     return DNSConfig.get_state(rest_client)
 
 
