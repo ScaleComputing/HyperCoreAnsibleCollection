@@ -1,0 +1,14 @@
+- name: US05 - Cluster registration
+  hosts: localhost
+  tasks:
+  - name: Get registration info
+    scale_computing.hypercore.registration_info:
+      cluster_instance:
+          host: 'https://10.5.11.50'
+          username: 'xlab'
+          password: 'xlab2022'
+    register: output
+
+  - name: output the HTTP request results
+    debug:
+      var: output
