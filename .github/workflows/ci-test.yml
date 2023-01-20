@@ -66,6 +66,7 @@ jobs:
       SC_HOST: ${{ secrets.SC_HOST }}
       SC_USERNAME: ${{ secrets.SC_USERNAME }}
       SC_PASSWORD: ${{ secrets.SC_PASSWORD }}
+      ANSIBLE_COLLECTIONS_PATH: /work-dir
     steps:
       - name: Checkout
         uses: actions/checkout@v3
