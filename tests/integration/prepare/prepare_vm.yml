@@ -1,6 +1,7 @@
 ---
 - name: Create VM for integration tests
   hosts: localhost
+  connection: local
   tasks:
   - name: Create VM
     scale_computing.hypercore.vm:
