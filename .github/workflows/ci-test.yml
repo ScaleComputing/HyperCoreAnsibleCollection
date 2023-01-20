@@ -59,7 +59,7 @@ jobs:
       - run: cd $WORKDIR && ansible-test coverage html --requirements
       - run: cd $WORKDIR && ansible-test coverage report --omit 'tests/*' --show-missing
 
-  integration-prepare:
+  integration-prepare-env:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
     env:
@@ -98,6 +98,8 @@ jobs:
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
     steps:
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
       - run: cd $WORKDIR && ansible-test integration
 
   replica_cleanup:
