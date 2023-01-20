@@ -6,5 +6,5 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   block:
-#    - include_tasks: 01_main.yml
+    - include_tasks: 01_main.yml
     - include_tasks: 02_corner_cases.yml

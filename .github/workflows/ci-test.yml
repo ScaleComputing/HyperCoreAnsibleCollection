@@ -96,7 +96,7 @@ jobs:
           EOF
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
       # - run: cd $WORKDIR && cat tests/integration/integration_config.yml
-      - run: cd $WORKDIR && ansible-test integration api
+      - run: cd $WORKDIR && ansible-test integration
 
   replica_cleanup:
     needs:
