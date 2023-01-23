@@ -102,6 +102,9 @@ jobs:
       SMB_SHARE: ${{ secrets.SMB_SHARE }}
       SMB_USERNAME: ${{ secrets.SMB_USERNAME }}
       SMB_PASSWORD: ${{ secrets.SMB_PASSWORD }}
+    strategy:
+      matrix:
+        test_name: ['api', 'inventory', 'iso', 'node_info', 'remote_cluster_info', 'snapshot_schedule', 'vm', 'vm_boot_devices', 'vm_clone', 'vm_disk', 'vm_export', 'vm_git_issues', 'vm_import', 'vm_nic', 'vm_nic_info', 'vm_node_affinity', 'vm_params', 'vm_replication', 'vm_replication_info']
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -124,7 +127,7 @@ jobs:
           smb_password: ${SMB_PASSWORD}
           EOF
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
-      - run: cd $WORKDIR && ansible-test integration
+      - run: cd $WORKDIR && ansible-test integration ${{ matrix.test_name }}
 
   replica_cleanup:
     needs:

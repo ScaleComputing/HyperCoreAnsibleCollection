@@ -13,15 +13,16 @@
 
 # ----------------------------------Setup----------------------------------------------------------------------------------
     - name: Get source VM info
-      scale_computing.hypercore.vm_info:
+      scale_computing.hypercore.vm_isnfo:
         vm_name: vm-integration-test-source-vm
-    register: vm_source_info
+      register: vm_source_info
 
     - name: Get clone VM info
       scale_computing.hypercore.vm_info:
         vm_name: XLAB-vm_replication_CI_test
-    register: vm_clone_info
+      register: vm_clone_info
 
+  # Create if source VM does not exist; Used when single test run
     - name: Create a VM
       scale_computing.hypercore.api:
         action: post
@@ -42,15 +43,40 @@
                 connected: true
           options:
             attachGuestToolsISO: true
+      when: vm_source_info.records | length == 0
       register: vm_created
     - ansible.builtin.assert:
         that:
           - vm_created is succeeded
-          - vm_created is changed
-  
+
+  # Clone when source VM exists; Used when running github integration testing
+    - name: Clone the source VM
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/VirDomain/"{{ vm_source_info.records.0.uuid }}"/clone
+        data:
+          template:
+            name: XLAB-vm_replication_CI_test
+            tags: vm_replication  
+      when:
+        - vm_source_info.records | length > 0
+        - vm_clone_info.records | length == 0
+      register: vm_cloned
+    - ansible.builtin.assert:
+        that:
+          - vm_cloned is succeeded
+
     - name: Wait for the VM to be created
       scale_computing.hypercore.task_wait:
         task_tag: "{{ vm_created.record }}"
+      when: vm_source_info.records | length == 0
+
+    - name: Wait for the VM to be cloned
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ vm_created.record }}"
+      when:
+        - vm_source_info.records | length > 0
+        - vm_close_info.records | length == 0
   
     - name: Get available cluster connection
       scale_computing.hypercore.api:
