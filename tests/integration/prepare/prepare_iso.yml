@@ -5,8 +5,11 @@
   tasks:
   - name: Delete the ISO image (if it may exist)
     scale_computing.hypercore.iso:
-      name: "integration.iso"
+      name: "{{ item }}"
       state: absent
+    loop:
+        - integration-test.iso
+        - integration-test-disk.iso
 
   - name: Create a text file
     command: touch integration.txt
@@ -16,9 +19,12 @@
 
   - name: Upload ISO image integration-test.iso to HyperCore API
     scale_computing.hypercore.iso:
-      name: "integration-test.iso"
+      name: "{{ item }}"
       source: "integration.iso"
       state: present
+    loop:
+        - integration-test.iso
+        - integration-test-disk.iso
 
   - name: Get integration-test.iso info
     scale_computing.hypercore.iso_info:
@@ -28,4 +34,14 @@
       that:
         - uploaded_iso_info.records | length > 0
         - uploaded_iso_info.records.0.name == "integration-test.iso"
+        - uploaded_iso_info.records.0.ready_for_insert is true
+
+  - name: Get integration-test-disk.iso info
+    scale_computing.hypercore.iso_info:
+      name: "integration-test-disk.iso"
+    register: uploaded_iso_info
+  - ansible.builtin.assert:
+      that:
+        - uploaded_iso_info.records | length > 0
+        - uploaded_iso_info.records.0.name == "integration-test-disk.iso"
         - uploaded_iso_info.records.0.ready_for_insert is true

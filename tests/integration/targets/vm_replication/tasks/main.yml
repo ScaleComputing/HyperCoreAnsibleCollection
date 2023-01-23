@@ -13,7 +13,7 @@
 
 # ----------------------------------Setup----------------------------------------------------------------------------------
     - name: Get source VM info
-      scale_computing.hypercore.vm_isnfo:
+      scale_computing.hypercore.vm_info:
         vm_name: vm-integration-test-source-vm
       register: vm_source_info
 
