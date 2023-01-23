@@ -3,7 +3,7 @@ on:
   - push
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
-  TARGET_LIST: []
+  TARGET_LIST: ''
 jobs:
   docs:
     runs-on: [self-hosted]
