@@ -12,6 +12,7 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.user import User
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.role import Role
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -48,7 +49,14 @@ class TestUser:
     def test_user_from_hypercore_dict_empty(self):
         assert User.from_hypercore([]) is None
 
-    def test_user_to_ansible(self):
+    def test_user_to_ansible(self, mocker, rest_client):
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.user.Role.get_role_from_uuid"
+        ).side_effect = [
+            Role(name="Cluster Settings", uuid="38b346c6-a626-444b-b6ab-92ecd671afc0"),
+            Role(name="Cluster Shutdown", uuid="7224a2bd-5a08-4b99-a0de-9977089c66a4"),
+        ]
+
         user = User(
             fullname="fullname",
             role_uuids=[
@@ -62,16 +70,20 @@ class TestUser:
 
         ansible_dict = dict(
             fullname="fullname",
-            role_uuids=[
-                "38b346c6-a626-444b-b6ab-92ecd671afc0",
-                "7224a2bd-5a08-4b99-a0de-9977089c66a4",
+            roles=[
+                dict(
+                    name="Cluster Settings", uuid="38b346c6-a626-444b-b6ab-92ecd671afc0"
+                ),
+                dict(
+                    name="Cluster Shutdown", uuid="7224a2bd-5a08-4b99-a0de-9977089c66a4"
+                ),
             ],
             session_limit=0,
             username="username",
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
         )
 
-        assert user.to_ansible() == ansible_dict
+        assert user.to_ansible(rest_client) == ansible_dict
 
     def test_user_equal_true(self):
         user1 = User(
