@@ -15,10 +15,10 @@ from ..module_utils import errors
 class DNSConfig(PayloadMapper):
     def __init__(
         self,
-        uuid=None,
+        uuid: str = None,
         search_domains: [] = None,
-        server_ips=None,
-        latest_task_tag=None,
+        server_ips: [] = None,
+        latest_task_tag: {} = None,
     ):
         self.uuid = uuid
         self.search_domains = search_domains if search_domains is not None else []
@@ -80,6 +80,7 @@ class DNSConfig(PayloadMapper):
         dns_config_from_hypercore = DNSConfig.from_hypercore(hypercore_dict)
         return dns_config_from_hypercore
 
+    # This method is being tested with integration tests (dns_config_info)
     @classmethod
     def get_state(cls, rest_client):
         state = [

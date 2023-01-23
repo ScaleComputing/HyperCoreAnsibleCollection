@@ -111,28 +111,41 @@ from ..module_utils.dns_config import DNSConfig
 
 
 def build_entry_list(
-    api_entry_list: list, module_entry_list: list, state: str
+    api_entry_list: list,
+    module_entry_list: list,
+    state: str,
+    module: AnsibleModule = None,  # use module param for debugging
 ) -> tuple[list, bool]:
     new_entry_list = list()
 
-    if module_entry_list and module_entry_list is not None:
-        if state == "create":
-            new_entry_list = module_entry_list
-        elif state == "before":
-            new_entry_list = module_entry_list + api_entry_list
-        elif state == "after":
-            new_entry_list = api_entry_list + module_entry_list
+    if module_entry_list is None:
+        return api_entry_list, False
 
+    if module_entry_list is not None:
+        if state == "set":
+            new_entry_list += module_entry_list
+        elif state == "before":
+            new_entry_list += module_entry_list + api_entry_list
+        elif state == "after":
+            new_entry_list += api_entry_list + module_entry_list
+
+    new_entry_list = list(  # bring everything back to list
+        # creates a dict from values in list: ensure there are no duplicates
+        dict.fromkeys(
+            # creates a list with removed empty values
+            list(filter(None, new_entry_list))
+        )
+    )
     change_needed = new_entry_list != api_entry_list
 
+    # this block is used for debugging
+    if module:
+        module.warn("new_entry_list: " + str(new_entry_list))
+        module.warn("api_entry_list: " + str(api_entry_list))
+        module.warn("change_needed: " + str(change_needed))
+
     return (
-        list(  # bring everything back to list
-            # creates a dict from values in list: ensure there are no duplicates
-            dict.fromkeys(
-                # creates a list with removed empty values
-                list(filter(None, new_entry_list))
-            )
-        ),
+        new_entry_list,
         change_needed,
     )
 
@@ -162,10 +175,14 @@ def modify_dns_config(
 
     # Build entries for modifications
     new_dns_servers, dns_servers_change_needed = build_entry_list(
-        before.get("server_ips"), module.params["dns_servers"], state
+        before.get("server_ips"),
+        module.params["dns_servers"],
+        state,
     )
     new_search_domains, search_domains_change_needed = build_entry_list(
-        before.get("search_domains"), module.params["search_domains"], state
+        before.get("search_domains"),
+        module.params["search_domains"],
+        state,
     )
 
     # Init return values and return if no changes were needed
@@ -178,7 +195,7 @@ def modify_dns_config(
         return change, new_state, diff
 
     # Set the task tag
-    # using getattr() to call either create_record or update_record method from rest_client
+    # using builtin method getattr() to call either create_record or update_record method from rest_client
     # - pros: less if statements in code
     # update_record method uses method PATCH,
     # create_record method uses method POST.
@@ -195,7 +212,7 @@ def modify_dns_config(
     new_dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
     after = new_dns_config.to_ansible()
     new_state, diff = DNSConfig.get_state(rest_client), dict(before=before, after=after)
-    change = old_state == new_state
+    change = old_state != new_state
 
     return change, new_state, diff
 
