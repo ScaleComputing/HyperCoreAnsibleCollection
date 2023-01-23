@@ -74,6 +74,7 @@ jobs:
       - run: apt update
       - run: apt install -y git make
       - run: pip install ansible-core==2.13.1
+      - run: apt install -y genisoimage
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
       - run: ansible-galaxy collection install community.general
