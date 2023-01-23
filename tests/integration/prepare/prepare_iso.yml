@@ -27,5 +27,5 @@
   - ansible.builtin.assert:
       that:
         - uploaded_iso_info.records | length > 0
-        - uploaded_iso_info.records.0.name == "integration-test.iso""
+        - uploaded_iso_info.records.0.name == "integration-test.iso"
         - uploaded_iso_info.records.0.ready_for_insert is true
