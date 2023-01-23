@@ -61,7 +61,7 @@
           - disk_slot: 2
             type: ide_cdrom
             size: "{{ '5 GB' | human_to_bytes }}"
-            iso_name: "integration.iso"
+            iso_name: "integration-test.iso"
         state: set
       register: created_disks
 
@@ -158,7 +158,7 @@
         vm_name: vm-integration-test-boot_devices
         items:
           - type: ide_cdrom
-            iso_name: integration.iso
+            iso_name: integration-test.iso
         state: present
         first: true
       register: result
