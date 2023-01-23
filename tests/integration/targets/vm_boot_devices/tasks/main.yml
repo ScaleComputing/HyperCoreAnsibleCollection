@@ -27,23 +27,25 @@
         machine_type: BIOS
       register: result
 
+    - name: Get integration-test.iso info
+      scale_computing.hypercore.iso_info:
+        name: "integration-test.iso"
+      register: uploaded_iso_info
+
     - name: Create a text file
       command: touch integration.txt
+      when: uploaded_iso_info.records | length == 0
 
     - name: Create an ISO file
       command: genisoimage -output integration.iso integration.txt
+      when: uploaded_iso_info.records | length == 0
 
-    - name: Delete the ISO image (if it may exist from before)
+    - name: Upload ISO image integration-test.iso to HyperCore API
       scale_computing.hypercore.iso:
-        name: "TinyCore-vm-boot-devices-integration.iso"
-        state: absent
-      register: result
-
-    - name: Upload ISO image TinyCore-vm-boot-devices-integration.iso to HyperCore API
-      scale_computing.hypercore.iso:
-        name: "TinyCore-vm-boot-devices-integration.iso"
+        name: "integration-test.iso"
         source: "integration.iso"
         state: present
+      when: uploaded_iso_info.records | length == 0
       register: result
 
     - name: Set a couple of disks
@@ -59,7 +61,7 @@
           - disk_slot: 2
             type: ide_cdrom
             size: "{{ '5 GB' | human_to_bytes }}"
-            iso_name: "TinyCore-vm-boot-devices-integration.iso"
+            iso_name: "integration.iso"
         state: set
       register: created_disks
 
@@ -156,7 +158,7 @@
         vm_name: vm-integration-test-boot_devices
         items:
           - type: ide_cdrom
-            iso_name: TinyCore-vm-boot-devices-integration.iso
+            iso_name: integration.iso
         state: present
         first: true
       register: result
@@ -177,12 +179,6 @@
     - ansible.builtin.assert:
         that:
           - result.record == []
-
-    - name: Delete the ISO image from the API
-      scale_computing.hypercore.iso:
-        name: "TinyCore-vm-boot-devices-integration.iso"
-        state: absent
-      register: result
 
     - name: Delete locally installed ISO image from current dir
       ansible.builtin.file:

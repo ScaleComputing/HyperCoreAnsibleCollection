@@ -86,6 +86,7 @@ jobs:
           EOF
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
+      - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
 
   integration-test:
     needs:

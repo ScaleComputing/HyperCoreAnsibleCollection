@@ -5,26 +5,28 @@
     state: absent
   register: result
 
+- name: Get integration-test.iso info
+  scale_computing.hypercore.iso_info:
+    name: "integration-test.iso"
+  register: uploaded_iso_info
+
 - name: Create a text file
   command: touch integration.txt
+  when: uploaded_iso_info.records | length == 0
 
 - name: Create an ISO file
   command: genisoimage -output integration.iso integration.txt
+  when: uploaded_iso_info.records | length == 0
 
-- name: Delete the ISO image (if it may exist)
-  scale_computing.hypercore.iso: &delete-iso
-    name: "TinyCore-vm-integration.iso"
-    state: absent
+- name: Upload ISO image integration-test.iso to HyperCore API
+  scale_computing.hypercore.iso:
+    name: "integration-test.iso"
+    source: "integration.iso"
+    state: present
+  when: uploaded_iso_info.records | length == 0
   register: result
 
 # ----------------------------------Job-------------------------------------------------------------------------------------
-- name: Upload ISO image TinyCore-vm-integration.iso to HyperCore API
-  scale_computing.hypercore.iso:
-    name: "TinyCore-vm-integration.iso"
-    source: "integration.iso"
-    state: present
-  register: result
-
 - name: Create and start the VM with disks, nics and boot devices set. Attach ISO onto the VM.
   scale_computing.hypercore.vm: &create-vm
     vm_name: vm-shutdown-test
@@ -44,7 +46,7 @@
         size: "{{ '10.1 GB' | human_to_bytes }}"
       - type: ide_cdrom
         disk_slot: 0
-        iso_name: TinyCore-vm-integration.iso
+        iso_name: integration-test.iso
     nics:
       - vlan: 1
         type: RTL8139
@@ -127,7 +129,7 @@
     disks:
       - type: ide_cdrom
         disk_slot: 0
-        iso_name: TinyCore-vm-integration.iso
+        iso_name: integration-test.iso
       - type: virtio_disk
         disk_slot: 1
         size: "{{ '20 GB' | human_to_bytes }}"
@@ -151,7 +153,7 @@
       - result.records[0].disks.0.type == "virtio_disk"
       - result.records[0].disks.0.disk_slot == 0
       - result.records[0].disks.1.type == "ide_cdrom"
-      - result.records[0].disks.1.iso_name == "TinyCore-vm-integration.iso"
+      - result.records[0].disks.1.iso_name == "integration-test.iso"
       - result.records[0].disks.2.type == "virtio_disk"
       - result.records[0].disks.2.disk_slot == 1
       - result.records[0].vcpu == 2
@@ -176,7 +178,7 @@
       - result.records[0].disks.0.type == "virtio_disk"
       - result.records[0].disks.0.disk_slot == 0
       - result.records[0].disks.1.type == "ide_cdrom"
-      - result.records[0].disks.1.iso_name == "TinyCore-vm-integration.iso"
+      - result.records[0].disks.1.iso_name == "integration-test.iso"
       - result.records[0].disks.2.type == "virtio_disk"
       - result.records[0].disks.2.disk_slot == 1
       - result.records[0].vcpu == 2
@@ -188,10 +190,6 @@
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
 - name: Delete the VM with name vm-shutdown-test
   scale_computing.hypercore.vm: *delete-vm
-  register: result
-
-- name: Delete the ISO image
-  scale_computing.hypercore.iso: *delete-iso
   register: result
 
 - name: Delete locally installed ISO image from current dir

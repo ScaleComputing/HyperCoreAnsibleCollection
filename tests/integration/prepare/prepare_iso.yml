@@ -1,1 +1,34 @@
 ---
+- name: upload integration test iso
+  hosts: localhost
+  connection: local
+  tasks:
+  - name: Create VM
+
+  - name: Delete the VM with name vm-integration-test-vm, if it exists from before
+    scale_computing.hypercore.vm:
+      vm_name: vm-integration-test-vm
+      state: absent
+    register: result
+
+  - name: Create a text file
+    command: touch integration.txt
+
+  - name: Create an ISO file
+    command: genisoimage -output integration.iso integration.txt
+
+  - name: Upload ISO image integration-test.iso to HyperCore API
+    scale_computing.hypercore.iso:
+      name: "integration-test.iso"
+      source: "integration.iso"
+      state: present
+
+  - name: Get integration-test.iso info
+    scale_computing.hypercore.iso_info:
+      name: "integration-test.iso"
+    register: uploaded_iso_info
+  - ansible.builtin.assert:
+      that:
+        - uploaded_iso_info.records | length > 0
+        - uploaded_iso_info.records.0.name == "integration-test.iso""
+        - uploaded_iso_info.records.0.ready_for_insert is true
