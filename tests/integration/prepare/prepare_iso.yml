@@ -3,13 +3,10 @@
   hosts: localhost
   connection: local
   tasks:
-  - name: Create VM
-
-  - name: Delete the VM with name vm-integration-test-vm, if it exists from before
-    scale_computing.hypercore.vm:
-      vm_name: vm-integration-test-vm
+  - name: Delete the ISO image (if it may exist)
+    scale_computing.hypercore.iso:
+      name: "integration.iso"
       state: absent
-    register: result
 
   - name: Create a text file
     command: touch integration.txt
