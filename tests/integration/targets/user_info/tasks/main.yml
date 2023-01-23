@@ -7,8 +7,17 @@
   block:
     - name: Retrieve info about the users
       scale_computing.hypercore.user_info:
-      register: initial
+      register: users
     - ansible.builtin.assert:
         that:
-          - initial.records != []
-          - "{{ initial.records[0].keys() | sort == ['fullname', 'role_uuids', 'session_limit', 'username', 'uuid'] }}"
+          - users.records != []
+          - "{{ users.records[0].keys() | sort == ['fullname', 'roles', 'session_limit', 'username', 'uuid'] }}"
+
+    - name: Retrieve info about selected user
+      scale_computing.hypercore.user_info:
+        username: admin
+      register: user
+    - ansible.builtin.assert:
+        that:
+          - user.records[0].username == "admin"
+          - "{{ user.records[0].keys() | sort == ['fullname', 'roles', 'session_limit', 'username', 'uuid'] }}"
