@@ -12,6 +12,16 @@
         state: absent
 
 # ----------------------------------Setup----------------------------------------------------------------------------------
+    - name: Get source VM info
+      scale_computing.hypercore.vm_info:
+        vm_name: vm-integration-test-source-vm
+    register: vm_source_info
+
+    - name: Get clone VM info
+      scale_computing.hypercore.vm_info:
+        vm_name: XLAB-vm_replication_CI_test
+    register: vm_clone_info
+
     - name: Create a VM
       scale_computing.hypercore.api:
         action: post

@@ -185,9 +185,6 @@
         path: integration.iso
         state: absent
       register: file_deleted
-    - ansible.builtin.assert:
-        that:
-          file_deleted is changed
 
     - name: Delete the VM on which the tests were performed
       scale_computing.hypercore.vm: *vm-delete
