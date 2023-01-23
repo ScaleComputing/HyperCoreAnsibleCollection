@@ -8,6 +8,8 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.role import Role
+from ..module_utils.rest_client import RestClient
 
 
 class User(PayloadMapper):
@@ -37,12 +39,17 @@ class User(PayloadMapper):
     def to_hypercore(self):
         pass
 
-    def to_ansible(self):
+    def to_ansible(self, rest_client: RestClient):
         return dict(
             uuid=self.uuid,
             username=self.username,
             fullname=self.fullname,
-            role_uuids=self.role_uuids,
+            roles=[
+                Role.get_role_from_uuid(
+                    role_uuid, rest_client, must_exist=False
+                ).to_ansible()
+                for role_uuid in self.role_uuids
+            ],
             session_limit=self.session_limit,
         )
 
@@ -62,9 +69,9 @@ class User(PayloadMapper):
         )
 
     @classmethod
-    def get_user(cls, query, rest_client, must_exist=False):
+    def get_user(cls, query, rest_client: RestClient, must_exist=False):
         hypercore_dict = rest_client.get_record(
             "/rest/v1/User", query, must_exist=must_exist
         )
-        node_from_hypercore = cls.from_hypercore(hypercore_dict)
-        return node_from_hypercore
+        user = cls.from_hypercore(hypercore_dict)
+        return user
