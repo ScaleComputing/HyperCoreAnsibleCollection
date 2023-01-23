@@ -17,8 +17,11 @@
       ansible.builtin.debug:
         var: testout
 
+    - name: Create a text file
+      command: touch integration.txt
+
     - name: Create an ISO file
-      command: genisoimage -output bla.iso integration.cfg
+      command: genisoimage -output integration.iso integration.txt
 
     - name: Run command
       command: ls
@@ -29,10 +32,10 @@
         var: testout
     
     - name: Run command
-      command: stat bla.iso
+      command: stat integration.iso
       register: testout
 
-    - name: get bla.iso info
+    - name: get integration.iso info
       ansible.builtin.debug:
         var: testout
 
