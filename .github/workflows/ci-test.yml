@@ -3,6 +3,7 @@ on:
   - push
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
+  TARGET_LIST: ls /work-dir/ansible_collections/scale_computing/hypercore/tests/integration/targets
 jobs:
   docs:
     runs-on: [self-hosted]
@@ -19,6 +20,7 @@ jobs:
         #
       - run: cd $WORKDIR && make docs
       - run: cd $WORKDIR && ls -al docs/build/html
+      - run: echo $TARGET_LIST
 
   sanity-test:
     runs-on: [self-hosted]
