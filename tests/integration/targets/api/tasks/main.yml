@@ -5,5 +5,36 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   block:
+    - name: get current directory
+      ansible.builtin.debug:
+        var: playbook_dir
+
+    - name: Run command
+      command: ls
+      register: testout
+
+    - name: get List dir
+      ansible.builtin.debug:
+        var: testout
+
+    - name: Create an ISO file
+      command: genisoimage -output bla.iso integration.cfg
+
+    - name: Run command
+      command: ls
+      register: testout
+
+    - name: get List dir
+      ansible.builtin.debug:
+        var: testout
+    
+    - name: Run command
+      command: stat bla.iso
+      register: testout
+
+    - name: get bla.iso info
+      ansible.builtin.debug:
+        var: testout
+
     - include_tasks: 01_main.yml
     - include_tasks: 02_corner_cases.yml

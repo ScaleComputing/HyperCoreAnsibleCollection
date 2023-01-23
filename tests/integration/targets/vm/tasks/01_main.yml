@@ -12,11 +12,11 @@
         state: absent
       register: result
 
-    - name: Create project directory /tmp (if it doesn't exist already)
-      file: state=directory path=/tmp
+    - name: Create a text file
+      command: touch integration.txt
 
-    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-vm-integration.iso
-      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-vm-integration.iso
+    - name: Create an ISO file
+      command: genisoimage -output integration.iso integration.txt
 
     - name: Delete the ISO image (if it may exist)
       scale_computing.hypercore.iso: &delete-iso
@@ -28,7 +28,7 @@
     - name: Upload ISO image TinyCore-vm-integration.iso to HyperCore API
       scale_computing.hypercore.iso:
         name: "TinyCore-vm-integration.iso"
-        source: "/tmp/TinyCore-vm-integration.iso"
+        source: "integration.iso"
         state: present
       register: result
 
@@ -276,9 +276,9 @@
       scale_computing.hypercore.iso: *delete-iso
       register: result
 
-    - name: Delete locally installed ISO image from /tmp/TinyCore-vm-integration.iso
+    - name: Delete locally installed ISO image from current dir
       ansible.builtin.file:
-        path: /tmp/TinyCore-vm-integration.iso
+        path: integration.iso
         state: absent
       register: file_deleted
 
