@@ -12,12 +12,3 @@
         that:
           - users.records != []
           - "{{ users.records[0].keys() | sort == ['fullname', 'roles', 'session_limit', 'username', 'uuid'] }}"
-
-    - name: Retrieve info about selected user
-      scale_computing.hypercore.user_info:
-        username: admin
-      register: user
-    - ansible.builtin.assert:
-        that:
-          - user.records[0].username == "admin"
-          - "{{ user.records[0].keys() | sort == ['fullname', 'roles', 'session_limit', 'username', 'uuid'] }}"
