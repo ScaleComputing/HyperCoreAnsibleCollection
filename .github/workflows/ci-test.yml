@@ -92,7 +92,7 @@ jobs:
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
       - id: set-matrix
-        run: echo "::set-output name=matrix::$(ls $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n"[:-1]')"
+        run: echo "::set-output name=matrix::$(ls $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n")[:-1]')"
 
   integration-test:
     needs:
