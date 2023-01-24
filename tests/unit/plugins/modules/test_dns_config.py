@@ -10,7 +10,6 @@ __metaclass__ = type
 import sys
 
 import pytest
-from unittest.mock import MagicMock
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.dns_config import (
