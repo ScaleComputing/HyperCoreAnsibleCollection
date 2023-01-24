@@ -68,7 +68,7 @@ jobs:
       SC_PASSWORD: ${{ secrets.SC_PASSWORD }}
       ANSIBLE_COLLECTIONS_PATH: /work-dir
     outputs:
-      matrix: ${{ steps.set-matrix2.outputs.matrix }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -107,6 +107,9 @@ jobs:
       SMB_SHARE: ${{ secrets.SMB_SHARE }}
       SMB_USERNAME: ${{ secrets.SMB_USERNAME }}
       SMB_PASSWORD: ${{ secrets.SMB_PASSWORD }}
+    strategy:
+      matrix:
+        test_name: ${{ fromJson(needs.integration-prepare-env.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -128,7 +131,6 @@ jobs:
           smb_username: ${SMB_USERNAME}
           smb_password: ${SMB_PASSWORD}
           EOF
-      - run: echo ${{ needs.integration-prepare-env.outputs.matrix }}
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
       - run: cd $WORKDIR && ansible-test integration ${{ matrix.test_name }}
 
