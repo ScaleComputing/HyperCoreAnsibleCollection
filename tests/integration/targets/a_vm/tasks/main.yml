@@ -6,5 +6,6 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   block:
-    - include_tasks: issue_50_attache_guest_tools_iso.yml
+    - include_tasks: 01_main.yml
+    - include_tasks: 02_shutdown.yml
 # TODO: add more tasks here when more issues are fixed.
