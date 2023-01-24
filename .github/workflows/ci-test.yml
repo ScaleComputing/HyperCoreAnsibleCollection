@@ -3,7 +3,7 @@ on:
   - push
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
-  TARGET_LIST: ''
+  TARGET_LIST: ['api', 'inventory', 'iso', 'node_info', 'remote_cluster_info', 'snapshot_schedule', 'vm_main', 'vm_boot_devices', 'vm_clone', 'vm_shutdown','vm_disk', 'vm_export', 'vm_git_issues', 'vm_import', 'vm_nic', 'vm_nic_info', 'vm_node_affinity', 'vm_params', 'vm_replication', 'vm_replication_info']
 jobs:
   docs:
     runs-on: [self-hosted]
@@ -68,6 +68,8 @@ jobs:
       SC_USERNAME: ${{ secrets.SC_USERNAME }}
       SC_PASSWORD: ${{ secrets.SC_PASSWORD }}
       ANSIBLE_COLLECTIONS_PATH: /work-dir
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -89,10 +91,8 @@ jobs:
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
-      - run: echo $TARGET_LIST
-      - run: ls $WORKDIR
-      - run: TARGET_LIST=($(ls $WORKDIR/tests/integration/targets))
-      - run: echo $TARGET_LIST
+      - id: set-matrix
+        run: echo "::set-output name=matrix::$(ls $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n"[:-1]')"
 
   integration-test:
     needs:
@@ -109,7 +109,7 @@ jobs:
       SMB_PASSWORD: ${{ secrets.SMB_PASSWORD }}
     strategy:
       matrix:
-        test_name: ['api', 'inventory', 'iso', 'node_info', 'remote_cluster_info', 'snapshot_schedule', 'vm_main', 'vm_boot_devices', 'vm_clone', 'vm_shutdown','vm_disk', 'vm_export', 'vm_git_issues', 'vm_import', 'vm_nic', 'vm_nic_info', 'vm_node_affinity', 'vm_params', 'vm_replication', 'vm_replication_info']
+        test_name: ${{ fromJson(needs.integration-prepare-env.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
