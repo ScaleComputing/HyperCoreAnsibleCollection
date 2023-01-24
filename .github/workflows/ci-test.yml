@@ -66,6 +66,7 @@ jobs:
       SC_HOST: ${{ secrets.SC_HOST }}
       SC_USERNAME: ${{ secrets.SC_USERNAME }}
       SC_PASSWORD: ${{ secrets.SC_PASSWORD }}
+      SC_TIMEOUT: 10.1
       SMB_SERVER: ${{ secrets.SMB_SERVER }}
       SMB_SHARE: ${{ secrets.SMB_SHARE }}
       SMB_USERNAME: ${{ secrets.SMB_USERNAME }}
@@ -87,6 +88,7 @@ jobs:
           sc_host: ${SC_HOST}
           sc_username: ${SC_USERNAME}
           sc_password: ${SC_PASSWORD}
+          sc_timeout: ${SC_TIMEOUT}
           smb_server: ${SMB_SERVER}
           smb_share: ${SMB_SHARE}
           smb_username: ${SMB_USERNAME}
