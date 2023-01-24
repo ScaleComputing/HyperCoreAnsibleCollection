@@ -3,7 +3,6 @@ on:
   - push
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
-  TARGET_LIST: ['api', 'inventory', 'iso', 'node_info', 'remote_cluster_info', 'snapshot_schedule', 'vm_main', 'vm_boot_devices', 'vm_clone', 'vm_shutdown','vm_disk', 'vm_export', 'vm_git_issues', 'vm_import', 'vm_nic', 'vm_nic_info', 'vm_node_affinity', 'vm_params', 'vm_replication', 'vm_replication_info']
 jobs:
   docs:
     runs-on: [self-hosted]
