@@ -1,0 +1,10 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  block:
+    - include_tasks: issue_60_timeout.yml
+# TODO: add more tasks here when more issues are fixed.
