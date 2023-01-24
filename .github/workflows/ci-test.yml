@@ -95,7 +95,7 @@ jobs:
       - id: set-matrix
         run: echo "::set-output name=matrix::$(ls $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n")[:-1]')"
       - id: set-matrix2
-        run: echo "{matrix2}={$(ls $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n")[:-1]')}" >> $GITHUB_OUTPUT
+        run: echo "matrix2=$(ls $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   integration-test:
     needs:
