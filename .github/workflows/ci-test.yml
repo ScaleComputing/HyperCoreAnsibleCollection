@@ -91,7 +91,7 @@ jobs:
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: echo $TARGET_LIST
       - run: ls $WORKDIR
-      - run: ls $WORKDIR/tests/integration/targets
+      - run: TARGET_LIST=($(ls $WORKDIR/tests/integration/targets))
       - run: echo $TARGET_LIST
 
   integration-test:
