@@ -69,6 +69,7 @@ jobs:
       ANSIBLE_COLLECTIONS_PATH: /work-dir
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix2: ${{ steps.set-matrix2.outputs.matrix2 }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -93,7 +94,8 @@ jobs:
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
       - id: set-matrix
         run: echo "::set-output name=matrix::$(ls $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n")[:-1]')"
-      - run: echo "{matrix2}={$(ls $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n")[:-1]')}" >> $TARGET_NAME
+      - id: set-matrix2
+        run: echo "{matrix2}={$(ls $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n")[:-1]')}" >> $GITHUB_OUTPUT
 
   integration-test:
     needs:
@@ -111,6 +113,7 @@ jobs:
     strategy:
       matrix:
         test_name: ${{ fromJson(needs.integration-prepare-env.outputs.matrix) }}
+        test_name2: ${{ fromJson(needs.integration-prepare-env.outputs.matrix2) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -132,7 +135,7 @@ jobs:
           smb_username: ${SMB_USERNAME}
           smb_password: ${SMB_PASSWORD}
           EOF
-      - run: echo "${{ env.TARGET_NAME }}"
+      - run: echo "${{ matrix.test_name2 }}"
       - run: cd $WORKDIR && ls -al tests/integration/integration_config.yml
       - run: cd $WORKDIR && ansible-test integration ${{ matrix.test_name }}
 
