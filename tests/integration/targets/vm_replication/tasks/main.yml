@@ -13,6 +13,12 @@
         state: absent
 
 # ----------------------------------Setup----------------------------------------------------------------------------------
+    - name: Get source VM info
+      scale_computing.hypercore.vm_info:
+        vm_name: vm-integration-test-source-vm
+      register: vm_source_info
+
+  # Create if source VM does not exist; Used when single test run
     - name: Create a VM
       scale_computing.hypercore.api:
         action: post
@@ -33,15 +39,28 @@
                 connected: true
           options:
             attachGuestToolsISO: true
+      when: vm_source_info.records | length == 0
       register: vm_created
     - ansible.builtin.assert:
         that:
           - vm_created is succeeded
-          - vm_created is changed
-  
+
+  # Clone when source VM exists; Used when running github integration testing
+    - name: Clone the source VM
+      scale_computing.hypercore.vm_clone:
+        vm_name: XLAB-vm_replication_CI_test
+        source_vm_name: vm-integration-test-source-vm
+      when:
+        - vm_source_info.records | length > 0
+      register: vm_cloned
+    - ansible.builtin.assert:
+        that:
+          - vm_cloned is succeeded
+
     - name: Wait for the VM to be created
       scale_computing.hypercore.task_wait:
         task_tag: "{{ vm_created.record }}"
+      when: vm_source_info.records | length == 0
   
     - name: Get available cluster connection
       scale_computing.hypercore.api:

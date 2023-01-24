@@ -7,4 +7,5 @@
 
   block:
     - include_tasks: 01_main.yml
-    - include_tasks: 02_shutdown_cases.yml
+    - include_tasks: 02_shutdown.yml
+# TODO: add more tasks here when more issues are fixed.
