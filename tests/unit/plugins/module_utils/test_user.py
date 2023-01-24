@@ -21,8 +21,8 @@ pytestmark = pytest.mark.skipif(
 
 class TestUser:
     def test_user_from_hypercore_dict_not_empty(self):
-        node = User(
-            fullname="fullname",
+        user = User(
+            full_name="fullname",
             role_uuids=[
                 "38b346c6-a626-444b-b6ab-92ecd671afc0",
                 "7224a2bd-5a08-4b99-a0de-9977089c66a4",
@@ -43,8 +43,8 @@ class TestUser:
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
         )
 
-        node_from_hypercore = User.from_hypercore(hypercore_dict)
-        assert node == node_from_hypercore
+        user_from_hypercore = User.from_hypercore(hypercore_dict)
+        assert user == user_from_hypercore
 
     def test_user_from_hypercore_dict_empty(self):
         assert User.from_hypercore([]) is None
@@ -58,7 +58,7 @@ class TestUser:
         ]
 
         user = User(
-            fullname="fullname",
+            full_name="fullname",
             role_uuids=[
                 "38b346c6-a626-444b-b6ab-92ecd671afc0",
                 "7224a2bd-5a08-4b99-a0de-9977089c66a4",
@@ -69,7 +69,7 @@ class TestUser:
         )
 
         ansible_dict = dict(
-            fullname="fullname",
+            full_name="fullname",
             roles=[
                 dict(
                     name="Cluster Settings", uuid="38b346c6-a626-444b-b6ab-92ecd671afc0"
@@ -87,7 +87,7 @@ class TestUser:
 
     def test_user_equal_true(self):
         user1 = User(
-            fullname="fullname",
+            full_name="fullname",
             role_uuids=[
                 "38b346c6-a626-444b-b6ab-92ecd671afc0",
                 "7224a2bd-5a08-4b99-a0de-9977089c66a4",
@@ -97,7 +97,7 @@ class TestUser:
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
         )
         user2 = User(
-            fullname="fullname",
+            full_name="fullname",
             role_uuids=[
                 "38b346c6-a626-444b-b6ab-92ecd671afc0",
                 "7224a2bd-5a08-4b99-a0de-9977089c66a4",
@@ -111,7 +111,7 @@ class TestUser:
 
     def test_user_equal_false(self):
         user1 = User(
-            fullname="fullname",
+            full_name="fullname",
             role_uuids=[
                 "38b346c6-a626-444b-b6ab-92ecd671afc0",
                 "7224a2bd-5a08-4b99-a0de-9977089c66a4",
@@ -121,7 +121,7 @@ class TestUser:
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
         )
         user2 = User(
-            fullname="",
+            full_name="",
             role_uuids=[
                 "38b346c6-a626-444b-b6ab-92ecd671afc0",
                 "7224a2bd-5a08-4b99-a0de-9977089c66a4",
@@ -145,10 +145,10 @@ class TestUser:
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
         )
         query = {"uuid": "51e6d073-7566-4273-9196-58720117bd7f"}
-        node_from_hypercore = User.get_user(query, rest_client)
+        user = User.get_user(query, rest_client)
 
-        assert node_from_hypercore == User(
-            fullname="fullname",
+        assert user == User(
+            full_name="fullname",
             role_uuids=[
                 "38b346c6-a626-444b-b6ab-92ecd671afc0",
                 "7224a2bd-5a08-4b99-a0de-9977089c66a4",

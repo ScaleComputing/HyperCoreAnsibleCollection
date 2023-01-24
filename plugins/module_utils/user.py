@@ -13,10 +13,10 @@ from ..module_utils.rest_client import RestClient
 
 
 class User(PayloadMapper):
-    def __init__(self, uuid, username, fullname, role_uuids, session_limit):
+    def __init__(self, uuid, username, full_name, role_uuids, session_limit):
         self.uuid = uuid
         self.username = username
-        self.fullname = fullname
+        self.full_name = full_name
         self.role_uuids = role_uuids
         self.session_limit = session_limit
 
@@ -31,7 +31,7 @@ class User(PayloadMapper):
         return cls(
             uuid=user_dict["uuid"],
             username=user_dict["username"],
-            fullname=user_dict["fullName"],
+            full_name=user_dict["fullName"],
             role_uuids=user_dict["roleUUIDs"],
             session_limit=user_dict["sessionLimit"],
         )
@@ -43,7 +43,7 @@ class User(PayloadMapper):
         return dict(
             uuid=self.uuid,
             username=self.username,
-            fullname=self.fullname,
+            full_name=self.full_name,
             roles=[
                 Role.get_role_from_uuid(
                     role_uuid, rest_client, must_exist=False
@@ -62,7 +62,7 @@ class User(PayloadMapper):
             (
                 self.uuid == other.uuid,
                 self.username == other.username,
-                self.fullname == other.fullname,
+                self.full_name == other.full_name,
                 self.role_uuids == other.role_uuids,
                 self.session_limit == other.session_limit,
             )
