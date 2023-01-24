@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2023, XLAB Steampunk <steampunk@xlab.si>
 #
@@ -26,24 +25,24 @@ class DNSConfig(PayloadMapper):
         self.latest_task_tag = latest_task_tag if latest_task_tag is not None else {}
 
     @classmethod
-    def from_ansible(cls, dns_config_dict):
+    def from_ansible(cls, ansible_data):
         return DNSConfig(
-            uuid=dns_config_dict["uuid"],
-            search_domains=dns_config_dict["searchDomains"],
-            server_ips=dns_config_dict["serverIPs"],
-            latest_task_tag=dns_config_dict["latestTaskTag"],
+            uuid=ansible_data["uuid"],
+            search_domains=ansible_data["searchDomains"],
+            server_ips=ansible_data["serverIPs"],
+            latest_task_tag=ansible_data["latestTaskTag"],
         )
 
     @classmethod
-    def from_hypercore(cls, dns_config_dict):
-        if not dns_config_dict:
+    def from_hypercore(cls, hypercore_data):
+        if not hypercore_data:
             return None
 
         return cls(
-            uuid=dns_config_dict["uuid"],
-            search_domains=dns_config_dict["searchDomains"],
-            server_ips=dns_config_dict["serverIPs"],
-            latest_task_tag=dns_config_dict["latestTaskTag"],
+            uuid=hypercore_data["uuid"],
+            search_domains=hypercore_data["searchDomains"],
+            server_ips=hypercore_data["serverIPs"],
+            latest_task_tag=hypercore_data["latestTaskTag"],
         )
 
     def to_hypercore(self):
@@ -95,5 +94,6 @@ class DNSConfig(PayloadMapper):
                 "DNS Config: There are too many DNS configuration settings!\n\
                 The number of DNS settings should be 0 or 1."
             )
-
+        if len(state) == 0:
+            return {}
         return state[0]

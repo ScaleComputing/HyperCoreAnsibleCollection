@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2023, XLAB Steampunk <steampunk@xlab.si>
 #
@@ -36,28 +35,28 @@ records:
   description:
     - A list of DNS configuration records.
   returned: success
-  type: list
+  type: dict
   sample:
-    - uuid: "dnsconfig_guid"
-      server_ips:
-        - "1.1.1.1"
-        - "1.0.0.1"
-      search_domains: []
-      latest_task_tag:
-        completed: 1673946776
-        created: 1673946770
-        descriptionParameters: []
-        formattedDescription: "DNSConfig Update"
-        formattedMessage: ""
-        messageParameters: []
-        modified: 1673946776
-        nodeUUIDs:
-          - "32c5012d-7d7b-49b4-9201-70e02b0d8758"
-        objectUUID: "dnsconfig_guid"
-        progressPercent: 100
-        sessionID: "775155cc-bc4e-445c-9efa-a304f4f66c82"
-        state: "COMPLETE"
-        taskTag: "359"
+    uuid: "dnsconfig_guid"
+    server_ips:
+      - "1.1.1.1"
+      - "1.0.0.1"
+    search_domains: []
+    latest_task_tag:
+      completed: 1673946776
+      created: 1673946770
+      descriptionParameters: []
+      formattedDescription: "DNSConfig Update"
+      formattedMessage: ""
+      messageParameters: []
+      modified: 1673946776
+      nodeUUIDs:
+        - "32c5012d-7d7b-49b4-9201-70e02b0d8758"
+      objectUUID: "dnsconfig_guid"
+      progressPercent: 100
+      sessionID: "775155cc-bc4e-445c-9efa-a304f4f66c82"
+      state: "COMPLETE"
+      taskTag: "359"
 """
 
 

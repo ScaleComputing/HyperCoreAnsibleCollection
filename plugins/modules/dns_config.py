@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2023, XLAB Steampunk <steampunk@xlab.si>
 #
@@ -37,6 +36,7 @@ options:
       - List of DNS server IPs to be added or removed from DNS configuration.
       - If the configuration is to be added, then, if all of the provided DNS servers already exist on HyperCore API, there will be no changes made.
       - Otherwise, if the configuration is to be removed, and the provided DNS servers don't exist on HyperCore API, the plugin will return an error.
+
   state:
     type: str
     choices:
@@ -62,7 +62,7 @@ EXAMPLES = r"""
     dns_servers:
       - 1.2.3.4
       - 5.6.7.8
-    state: before
+    state: before  # or after
 
 - name: Overwrite all the existing DNS configuration entries
   scale_computing.hypercore.dns_config:
@@ -76,28 +76,28 @@ results:
   description:
     - Output from modifying entries of the DNS configuration on HyperCore API.
   returned: success
-  type: list
+  type: dict
   sample:
-    - uuid: "dnsconfig_guid"
-      server_ips:
-        - "1.1.1.1"
-        - "1.0.0.1"
-      search_domains: []
-      latest_task_tag:
-        completed: 1673966351
-        created: 1673966345
-        descriptionParameters: []
-        formattedDescription: "DNSConfig Update"
-        formattedMessage: ""
-        messageParameters: []
-        modified: 1673966351
-        nodeUUIDs:
-          - "32c5012d-7d7b-49b4-9201-70e02b0d8758"
-        objectUUID: "dnsconfig_guid"
-        progressPercent: 100
-        sessionID: "b8c45c35-3349-49e0-9474-0edfa73a2162"
-        state: "COMPLETE"
-        taskTag: "396"
+    uuid: "dnsconfig_guid"
+    server_ips:
+      - "1.1.1.1"
+      - "1.0.0.1"
+    search_domains: []
+    latest_task_tag:
+      completed: 1673966351
+      created: 1673966345
+      descriptionParameters: []
+      formattedDescription: "DNSConfig Update"
+      formattedMessage: ""
+      messageParameters: []
+      modified: 1673966351
+      nodeUUIDs:
+        - "32c5012d-7d7b-49b4-9201-70e02b0d8758"
+      objectUUID: "dnsconfig_guid"
+      progressPercent: 100
+      sessionID: "b8c45c35-3349-49e0-9474-0edfa73a2162"
+      state: "COMPLETE"
+      taskTag: "396"
 """
 
 
@@ -242,6 +242,12 @@ def main() -> None:
                 required=True,
             ),
         ),
+        required_one_of=[
+            (
+                "dns_servers",
+                "search_domains",
+            ),
+        ],
     )
 
     try:
