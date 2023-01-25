@@ -12,4 +12,4 @@
     - ansible.builtin.assert:
         that:
           - users.records != []
-          - "{{ users.records[0].keys() | sort == ['fullname', 'roles', 'session_limit', 'username', 'uuid'] }}"
+          - users.records[0].keys() | sort == ['full_name', 'roles', 'session_limit', 'username', 'uuid']
