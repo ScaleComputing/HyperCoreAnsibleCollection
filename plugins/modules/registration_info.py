@@ -23,9 +23,30 @@ seealso: []
 """
 
 EXAMPLES = r"""
+- name: Get registration info
+  scale_computing.hypercore.registration_info:
+  register: output
+  
+- name: output the registration info
+  debug:
+    var: output
 """
 
 RETURN = r"""
+records:
+  description:
+    - A list of cluster registration info
+  returned: success
+  type: list
+  sample:
+    - cluster_data_hash: data_hash
+      cluster_data_hash_accepted: data_hash_accepted
+      cluster_id: this_cluster_id
+      company_name: sample_company
+      contact: John Smith
+      email: john_smith@sgmail.com
+      phone: '777777777'
+      uuid: registration_guid
 """
 
 from ansible.module_utils.basic import AnsibleModule
