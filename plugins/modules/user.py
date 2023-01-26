@@ -116,11 +116,10 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.rest_client import CachedRestClient
 from ..module_utils.user import User
 from ..module_utils.role import Role
-from ..module_utils.task_tag import TaskTag
 
 
 def get_role_uuids(module, rest_client: RestClient):
-    # cached_rest_client = CachedRestClient(rest_client)
+    # CachedRestClient is beneficial here since we use for loop and make get requests to the same endpoint many times
     role_uuids = []
     for role_name in module.params["roles"]:
         role = Role.get_role_from_name(role_name, rest_client, must_exist=True)
@@ -251,7 +250,7 @@ def main():
 
     try:
         client = Client.get_client(module.params["cluster_instance"])
-        rest_client = RestClient(client)
+        rest_client = CachedRestClient(client)
         changed, record, diff = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
