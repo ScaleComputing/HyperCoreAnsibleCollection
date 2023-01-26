@@ -5,7 +5,7 @@
   gather_facts: false
 
   tasks:
-  # ------------------------------------------------------
+    # ------------------------------------------------------
     - name: List DNS config entries
       scale_computing.hypercore.dns_config_info:
       register: dns_config_info_results

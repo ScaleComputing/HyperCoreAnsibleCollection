@@ -26,17 +26,16 @@ options:
     type: list
     elements: str
     description:
-      - List of DNS names to be added or removed from DNS configuration.
-      - If the configuration is to be added, then, if all of the provided DNS names already exist on HyperCore API, there will be no changes made.
-      - Otherwise, if the configuration is to be removed, and the provided DNS names don't exist on HyperCore API, the plugin will return an error.
+      - List of DNS names to use as new DNS configuration or to add to DNS configuration.
+      - If the configuration is added, then, if all of the provided DNS names already exist
+        on HyperCore API, and DNS names on server are in correct order, there will be no changes made.
   dns_servers:
     type: list
     elements: str
     description:
-      - List of DNS server IPs to be added or removed from DNS configuration.
-      - If the configuration is to be added, then, if all of the provided DNS servers already exist on HyperCore API, there will be no changes made.
-      - Otherwise, if the configuration is to be removed, and the provided DNS servers don't exist on HyperCore API, the plugin will return an error.
-
+      - List of DNS server IPs to use as new DNS configuration or to add to DNS configuration.
+      - If the configuration is added, then, if all of the provided DNS names already exist
+        on HyperCore API, and DNS server IPs on server are in correct order, there will be no changes made.
   state:
     type: str
     choices:
@@ -46,8 +45,8 @@ options:
     required: True
     description:
       - With I(state=set), the DNS configuration entries are B(set to new) specified entries.
-      - With I(state=before), the specified entries are B(prepended) to the new DNS configuration.
-      - With I(state=after), the specified entries are B(appended) to the new DNS configuration.
+      - With I(state=before), the specified entries are B(prepended) to the existing DNS configuration.
+      - With I(state=after), the specified entries are B(appended) to the existing DNS configuration.
 notes:
  - C(check_mode) is not supported.
 """
@@ -116,18 +115,16 @@ def build_entry_list(
     state: str,
     module: AnsibleModule = None,  # use module param for debugging
 ) -> tuple[list, bool]:
-    new_entry_list = list()
-
     if module_entry_list is None:
         return api_entry_list, False
 
     if module_entry_list is not None:
         if state == "set":
-            new_entry_list += module_entry_list
+            new_entry_list = module_entry_list
         elif state == "before":
-            new_entry_list += module_entry_list + api_entry_list
+            new_entry_list = module_entry_list + api_entry_list
         elif state == "after":
-            new_entry_list += api_entry_list + module_entry_list
+            new_entry_list = api_entry_list + module_entry_list
 
     new_entry_list = list(  # bring everything back to list
         # creates a dict from values in list: ensure there are no duplicates

@@ -28,7 +28,7 @@
           searchDomains: []
           serverIPs: []
 
-# -----------------------------------------------------------
+    # -----------------------------------------------------------
 
     - name: Overwrite all entries (search_domains, dns_servers)
       scale_computing.hypercore.dns_config:
@@ -120,6 +120,23 @@
           - info.records.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8"]
           - info.records.uuid == actual_uuid
 
+    - name: PREPEND to 'search_domains' with duplicates
+      scale_computing.hypercore.dns_config:
+        search_domains:
+          - example.domain1.com
+          - example.domain0.com
+        state: before
+      register: result
+    - scale_computing.hypercore.dns_config_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+          - info.records.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com"]
+          - info.records.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8"]
+          - info.records.uuid == actual_uuid
+
     - name: APPEND new 'dns_servers' to existing DNS config
       scale_computing.hypercore.dns_config:
         dns_servers:
@@ -133,7 +150,7 @@
         that:
           - result.changed == True
           - result.diff.before != result.diff.after
-          - info.records.search_domains == ["example.domain0.com", "example.domain1.com", "example.domain2.com"]
+          - info.records.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com"]
           - info.records.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
           - info.records.uuid == actual_uuid
 
@@ -149,7 +166,7 @@
         that:
           - result.changed == True
           - result.diff.before != result.diff.after
-          - info.records.search_domains == ["example.domain0.com", "example.domain1.com", "example.domain2.com", "example.domain3.com"]
+          - info.records.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com", "example.domain3.com"]
           - info.records.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
           - info.records.uuid == actual_uuid
 
@@ -185,7 +202,7 @@
           - info.records.server_ips == []
           - info.records.uuid == actual_uuid
 
-# -----------------------------------------------------------
+    # -----------------------------------------------------------
 
     - name: Restore back to default values
       scale_computing.hypercore.api:
