@@ -33,7 +33,7 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - A list of DNS configuration records.
+    - DNS configuration record.
   returned: success
   type: dict
   sample:
