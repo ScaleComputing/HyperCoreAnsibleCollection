@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestRun:
-    def test_run_records_present(self, rest_client):
+    def test_run_record_present(self, rest_client):
         rest_client.list_records.return_value = [
             dict(
                 uuid="test",
@@ -39,7 +39,7 @@ class TestRun:
             "latest_task_tag": {},
         }
 
-    def test_run_records_absent(self, rest_client):
+    def test_run_record_absent(self, rest_client):
         rest_client.list_records.return_value = []
 
         result = dns_config_info.run(rest_client)

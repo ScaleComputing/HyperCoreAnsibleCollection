@@ -25,9 +25,9 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - result.records != []
-          - "{{ result.records.keys() | sort == ['latest_task_tag', 'search_domains', 'server_ips', 'uuid'] }}"
-          - result.records.uuid == actual_uuid
-          - result.records.server_ips == actual_server_ips
-          - result.records.search_domains == actual_search_domains  # fails if set to [], [""] or ['']
-          - result.records.latest_task_tag
+          - result.record != []
+          - "{{ result.record.keys() | sort == ['latest_task_tag', 'search_domains', 'server_ips', 'uuid'] }}"
+          - result.record.uuid == actual_uuid
+          - result.record.server_ips == actual_server_ips
+          - result.record.search_domains == actual_search_domains  # fails if set to [], [""] or ['']
+          - result.record.latest_task_tag

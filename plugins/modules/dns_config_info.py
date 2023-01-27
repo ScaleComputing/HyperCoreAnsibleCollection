@@ -31,7 +31,7 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-records:
+record:
   description:
     - DNS configuration record.
   returned: success
@@ -87,8 +87,8 @@ def main():
             password=module.params["cluster_instance"]["password"],
         )
         rest_client = RestClient(client)
-        records = run(rest_client)
-        module.exit_json(changed=False, records=records)
+        record = run(rest_client)
+        module.exit_json(changed=False, record=record)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 
