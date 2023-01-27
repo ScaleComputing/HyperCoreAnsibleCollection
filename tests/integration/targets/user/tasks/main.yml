@@ -33,6 +33,18 @@
           - user.record.roles[0]["name"] == "Admin"
           - user.record.session_limit == 2
     
+    - name: Check if user is created
+      scale_computing.hypercore.user_info:
+        username: my_user
+      register: initial
+    - ansible.builtin.assert:
+        that:
+          - initial.records[0].keys() | sort == ['full_name', 'roles', 'session_limit', 'username', 'uuid']
+          - initial.records[0].username == "my_user"
+          - initial.records[0].full_name == "my_full_name"
+          - initial.records[0].roles[0]["name"] == "Admin"
+          - initial.records[0].session_limit == 2
+    
     - name: Create user - idempotence
       scale_computing.hypercore.user:
         state: present
@@ -50,13 +62,25 @@
           - user.record.username == "my_user"
           - user.record.full_name == "my_full_name"
           - user.record.roles[0]["name"] == "Admin"
+          - user.record.roles | length == 1
           - user.record.session_limit == 2
+      
+    - name: Check if user still exists and hasn't changed
+      scale_computing.hypercore.user_info:
+        username: my_user
+      register: user
+    - ansible.builtin.assert:
+        that:
+          - user.records[0].keys() | sort == ['full_name', 'roles', 'session_limit', 'username', 'uuid']
+          - user.records[0].username == "my_user"
+          - user.records[0].full_name == "my_full_name"
+          - user.records[0].roles[0]["name"] == "Admin"
+          - user.records[0].session_limit == 2
 
     - name: Update user
       scale_computing.hypercore.user:
         state: present
         username: my_user
-        # new_username: my_user_updated
         password: my_password_updated
         full_name: my_full_name_updated
         roles:
@@ -71,6 +95,19 @@
           - user.record.full_name == "my_full_name_updated"
           - user.record.roles[0]["name"] == "Cluster Settings"
           - user.record.session_limit == 0
+    
+    - name: Check if user is updated
+      scale_computing.hypercore.user_info:
+        username: my_user
+      register: user
+    - ansible.builtin.assert:
+        that:
+          - user.records[0].keys() | sort == ['full_name', 'roles', 'session_limit', 'username', 'uuid']
+          - user.records[0].username == "my_user"
+          - user.records[0].full_name == "my_full_name_updated"
+          - user.records[0].roles[0]["name"] == "Cluster Settings"
+          - user.records[0].session_limit == 0
+  
     
     - name: Update user - idempotence
       scale_computing.hypercore.user:
@@ -90,11 +127,23 @@
           - user.record.roles[0]["name"] == "Cluster Settings"
           - user.record.session_limit == 0
     
+    - name: Check if user still exists and hasn't changed
+      scale_computing.hypercore.user_info:
+        username: my_user
+      register: user
+    - ansible.builtin.assert:
+        that:
+          - user.records[0].keys() | sort == ['full_name', 'roles', 'session_limit', 'username', 'uuid']
+          - user.records[0].username == "my_user"
+          - user.records[0].full_name == "my_full_name_updated"
+          - user.records[0].roles[0]["name"] == "Cluster Settings"
+          - user.records[0].session_limit == 0
+    
     - name: Update user name
       scale_computing.hypercore.user:
         state: present
         username: my_user
-        new_username: my_user_updated
+        username_new: my_user_updated
       register: user
     - ansible.builtin.assert:
         that:
@@ -104,6 +153,19 @@
           - user.record.full_name == "my_full_name_updated"
           - user.record.roles[0]["name"] == "Cluster Settings"
           - user.record.session_limit == 0
+    
+    - name: Check if username is updated
+      scale_computing.hypercore.user_info:
+        username: my_user_updated
+      register: user
+    - ansible.builtin.assert:
+        that:
+          - user.records[0].keys() | sort == ['full_name', 'roles', 'session_limit', 'username', 'uuid']
+          - user.records[0].username == "my_user_updated"
+          - user.records[0].full_name == "my_full_name_updated"
+          - user.records[0].roles[0]["name"] == "Cluster Settings"
+          - user.records[0].session_limit == 0
+          - user.records[0].uuid == initial.records[0].uuid
 
     - name: Delete user
       scale_computing.hypercore.user:
