@@ -111,7 +111,7 @@ class TestDataForUpdateUser:
                 ),
                 status="present",
                 username="username",
-                new_username="updated_username",
+                username_new="updated_username",
                 password="updated_password",
                 full_name="updated_fullname",
                 roles=["Admin"],
@@ -155,7 +155,7 @@ class TestMain:
             ),
             state="present",
             username="username",
-            new_username="updated_username",
+            username_new="updated_username",
             password="updated_password",
             full_name="updated_fullname",
             roles=[

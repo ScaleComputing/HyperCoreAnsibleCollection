@@ -16,8 +16,8 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Creates, updates or deletes local hypercore user accounts.
 description:
-  - Module updates selected virtual machine node affinity.
-version_added: 1.0.0
+  - Creates, updates or deletes local hypercore user accounts.
+version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:
@@ -25,9 +25,8 @@ seealso:
 options:
   state:
     description:
-      - The desired state of the snapshot schedule object.
-      - Use C(absent) to ensure the snapshot schedule will be absent from the API and C(present) to ensure
-        snapshot schedule will remain present on the API.
+      - The desired state of the user account.
+      - Use C(absent) to ensure the user will be absent from the API and C(present) to ensure user will remain present on the API.
     type: str
     choices: [ present, absent ]
     required: true
@@ -40,7 +39,7 @@ options:
       - If C(state) is I(absent) and C(username) is found, existing user is deleted.
     type: str
     required: True
-  new_username:
+  username_new:
     description:
       - New user name.
       - Relevant only if C(state) is I(present) and C(username) exists.
@@ -83,9 +82,9 @@ EXAMPLES = r"""
 - name: Update existing user
   scale_computing.hypercore.user:
     state: present
-    username: user
-    new_username: new_username
-    password: new_password
+    username: username
+    username_new: updated_username
+    password: updated_password
 
 - name: Delete the user
   scale_computing.hypercore.user:
@@ -155,9 +154,9 @@ def create_user(module, rest_client: RestClient):
 
 def data_for_update_user(module, rest_client: RestClient, user):
     data = {}
-    if module.params["new_username"]:
-        if user.username != module.params["new_username"]:
-            data["username"] = module.params["new_username"]
+    if module.params["username_new"]:
+        if user.username != module.params["username_new"]:
+            data["username"] = module.params["username_new"]
     if module.params["password"]:
         data["password"] = module.params["password"]  # password isn't visible in GET
     if module.params["full_name"]:
@@ -197,10 +196,10 @@ def update_user(module, rest_client: RestClient, user):
 
 
 def delete_user(rest_client: RestClient, user):
-    if user:
-        user.delete(rest_client)
-        return True, dict(), dict(before=user.to_ansible(rest_client), after={})
-    return False, dict(), dict(before={}, after={})
+    if not user:
+        return False, dict(), dict(before={}, after={})
+    user.delete(rest_client)
+    return True, dict(), dict(before=user.to_ansible(rest_client), after={})
 
 
 def run(module, rest_client: RestClient):
@@ -227,7 +226,7 @@ def main():
                 required=True,
             ),
             username=dict(type="str", required=True),
-            new_username=dict(type="str"),
+            username_new=dict(type="str"),
             password=dict(type="str", no_log=True),
             full_name=dict(type="str"),
             roles=dict(
