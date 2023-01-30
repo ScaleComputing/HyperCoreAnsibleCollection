@@ -23,7 +23,6 @@ jobs:
         #
       - run: cd $WORKDIR && make docs
       - run: cd $WORKDIR && ls -al docs/build/html
-      - run: echo ${{ github.ref_name }}
 
   sanity-test:
     runs-on: [self-hosted]
