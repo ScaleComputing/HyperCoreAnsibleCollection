@@ -1,0 +1,27 @@
+---
+- name: Example dns_config module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    # ------------------------------------------------------
+    - name: Setup DNS configuration by overwriting existing entries
+      scale_computing.hypercore.dns_config:
+        search_domains:
+          - example.domain1.com
+          - example.domain2.com
+          - example.domain3.com
+        dns_servers:
+          - 1.2.3.4
+          - 5.6.7.8
+        state: set
+    # ------------------------------------------------------
+    - name: Modify existing DNS config configurations
+      scale_computing.hypercore.dns_config:
+        search_domains:
+          - example.domain.com
+        dns_servers:
+          - 0.0.0.1
+          - 0.0.1.0
+        state: before  # or after
