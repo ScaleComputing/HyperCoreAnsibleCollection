@@ -69,9 +69,48 @@ class User(PayloadMapper):
         )
 
     @classmethod
-    def get_user(cls, query, rest_client: RestClient, must_exist=False):
+    def get_user_from_uuid(cls, user_uuid, rest_client: RestClient, must_exist=False):
         hypercore_dict = rest_client.get_record(
-            "/rest/v1/User", query, must_exist=must_exist
+            "/rest/v1/User/{0}".format(user_uuid), must_exist=must_exist
         )
         user = cls.from_hypercore(hypercore_dict)
         return user
+
+    @classmethod
+    def get_user_from_username(
+        cls, username, rest_client: RestClient, must_exist=False
+    ):
+        hypercore_dict = rest_client.get_record(
+            "/rest/v1/User", {"username": username}, must_exist=must_exist
+        )
+        user = cls.from_hypercore(hypercore_dict)
+        return user
+
+    def delete(self, rest_client: RestClient, check_mode=False):
+        rest_client.delete_record(f"/rest/v1/User/{self.uuid}", check_mode)
+        # returned:
+        # {
+        #     "taskTag": "",
+        #     "createdUUID": ""
+        # }
+
+    def update(self, rest_client: RestClient, payload, check_mode=False):
+        rest_client.update_record(f"/rest/v1/User/{self.uuid}", payload, check_mode)
+        # returned:
+        # {
+        #     "taskTag": "",
+        #     "createdUUID": ""
+        # }
+
+    @classmethod
+    def create(cls, rest_client: RestClient, payload, check_mode=False):
+        task_tag = rest_client.create_record("/rest/v1/User", payload, check_mode)
+        user = cls.get_user_from_uuid(
+            task_tag["createdUUID"], rest_client, must_exist=True
+        )
+        return user
+        # returned
+        # {
+        #   "taskTag": "",
+        #   "createdUUID": "e022a3ca-ceb4-40c9-8ed0-7cd594640f12"
+        # }

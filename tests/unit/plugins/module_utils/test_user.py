@@ -34,6 +34,7 @@ class TestUser:
 
         hypercore_dict = dict(
             fullName="fullname",
+            password="",
             roleUUIDs=[
                 "38b346c6-a626-444b-b6ab-92ecd671afc0",
                 "7224a2bd-5a08-4b99-a0de-9977089c66a4",
@@ -133,7 +134,38 @@ class TestUser:
 
         assert user1 != user2
 
-    def test_get_user(self, rest_client):
+    def test_get_user_from_username(self, rest_client):
+        username = "my_name"
+        rest_client.get_record.return_value = dict(
+            fullName="fullname",
+            roleUUIDs=[
+                "38b346c6-a626-444b-b6ab-92ecd671afc0",
+                "7224a2bd-5a08-4b99-a0de-9977089c66a4",
+            ],
+            sessionLimit=0,
+            username="my_name",
+            uuid="51e6d073-7566-4273-9196-58720117bd7f",
+        )
+
+        user = User.get_user_from_username(username, rest_client)
+
+        rest_client.get_record.assert_called_with(
+            "/rest/v1/User",
+            {"username": "my_name"},
+            must_exist=False,
+        )
+        assert user == User(
+            full_name="fullname",
+            role_uuids=[
+                "38b346c6-a626-444b-b6ab-92ecd671afc0",
+                "7224a2bd-5a08-4b99-a0de-9977089c66a4",
+            ],
+            session_limit=0,
+            username="my_name",
+            uuid="51e6d073-7566-4273-9196-58720117bd7f",
+        )
+
+    def test_get_user_from_uuid(self, rest_client):
         rest_client.get_record.return_value = dict(
             fullName="fullname",
             roleUUIDs=[
@@ -144,9 +176,13 @@ class TestUser:
             username="username",
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
         )
-        query = {"uuid": "51e6d073-7566-4273-9196-58720117bd7f"}
-        user = User.get_user(query, rest_client)
+        user_uuid = "51e6d073-7566-4273-9196-58720117bd7f"
+        user = User.get_user_from_uuid(user_uuid, rest_client)
 
+        rest_client.get_record.assert_called_with(
+            "/rest/v1/User/51e6d073-7566-4273-9196-58720117bd7f",
+            must_exist=False,
+        )
         assert user == User(
             full_name="fullname",
             role_uuids=[

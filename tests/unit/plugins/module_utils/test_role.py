@@ -71,13 +71,36 @@ class TestRole:
     def test_get_role_from_uuid(self, rest_client):
         role_uuid = "51e6d073-7566-4273-9196-58720117bd7f"
         rest_client.get_record.return_value = dict(
-            name="admin",
-            uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            name="Admin",
+            uuid="51e6d073-7566-4273-9196-58720117bd7f",
         )
 
         role_from_hypercore = Role.get_role_from_uuid(role_uuid, rest_client)
 
+        rest_client.get_record.assert_called_with(
+            "/rest/v1/Role/51e6d073-7566-4273-9196-58720117bd7f",
+            must_exist=False,
+        )
         assert role_from_hypercore == Role(
-            name="admin",
-            uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            name="Admin",
+            uuid="51e6d073-7566-4273-9196-58720117bd7f",
+        )
+
+    def test_get_role_from_name(self, rest_client):
+        role_name = "Admin"
+        rest_client.get_record.return_value = dict(
+            name="Admin",
+            uuid="51e6d073-7566-4273-9196-58720117bd7f",
+        )
+
+        role_from_hypercore = Role.get_role_from_name(role_name, rest_client)
+
+        rest_client.get_record.assert_called_with(
+            "/rest/v1/Role",
+            {"name": "Admin"},
+            must_exist=False,
+        )
+        assert role_from_hypercore == Role(
+            name="Admin",
+            uuid="51e6d073-7566-4273-9196-58720117bd7f",
         )

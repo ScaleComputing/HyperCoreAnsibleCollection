@@ -58,3 +58,11 @@ class Role(PayloadMapper):
         )
         role = cls.from_hypercore(hypercore_dict)
         return role
+
+    @classmethod
+    def get_role_from_name(cls, role_name, rest_client: RestClient, must_exist=False):
+        hypercore_dict = rest_client.get_record(
+            "/rest/v1/Role", {"name": role_name}, must_exist=must_exist
+        )
+        role = cls.from_hypercore(hypercore_dict)
+        return role
