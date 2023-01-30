@@ -15,29 +15,21 @@ author:
   - Domen Dobnikar (@domen_dobnikar)
 short_description: Handles cluster registration.
 description:
-  - Can create, update or delete cluster registrations.
-  - A single registration can be identified by: I(company_name) and I(contact)
+  - Can create or update cluster registration.
+  - A single registration per cluster.
 version_added: 1.1.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
-  state:
-    description:
-      - State defines which operation should plugin do over selected registration.
-    choices: [ present, absent ]
-    type: str
-    required: True
   company_name:
     description:
       - Name of the company registering the cluster.
     type: str
-    required: True
   contact:
     description:
       - Name of the person registering the cluster.
     type: str
-    required: True
   phone:
     description:
       - Phone number for company contact.
@@ -57,7 +49,6 @@ EXAMPLES = r"""
     contact: John Smith
     phone: 056789987
     email: john_smith@gmail.com
-    state: present
     
 - name: Update registration
   scale_computing.hypercore.registration:
@@ -65,13 +56,6 @@ EXAMPLES = r"""
     contact: John Smith
     phone: 056789987
     email: john_smith@gmail.com
-    state: present
-
-- name: Delete registration
-  scale_computing.hypercore.registration:
-    company_name: New company
-    contact: John Smith
-    state: absent
 """
 
 RETURN = r"""
@@ -95,18 +79,11 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            state=dict(
-                type="str",
-                required=True,
-                choices=["present", "absent"],
-            ),
             company_name=dict(
                 type="str",
-                required=True,
             ),
             contact=dict(
                 type="str",
-                required=True,
             ),
             phone=dict(
                 type="str",
@@ -115,17 +92,6 @@ def main():
                 type="str",
             ),
         ),
-        required_if=[
-            (
-                "state",
-                "present",
-                (
-                    "phone",
-                    "email",
-                ),
-                False,
-            ),
-        ],
     )
 
     try:
