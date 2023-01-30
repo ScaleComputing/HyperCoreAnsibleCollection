@@ -15,13 +15,19 @@ author:
   - Domen Dobnikar (@domen_dobnikar)
 short_description: Handles cluster registration.
 description:
-  - Can create or update cluster registration.
+  - Can create, update or delete cluster registration.
   - A single registration per cluster.
 version_added: 1.1.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
+  state:
+    description:
+      - Desired state of the registration.
+    choices: [ present, absent ]
+    type: str
+    required: True
   company_name:
     description:
       - Name of the company registering the cluster.
@@ -49,13 +55,16 @@ EXAMPLES = r"""
     contact: John Smith
     phone: 056789987
     email: john_smith@gmail.com
+    state: present
     
 - name: Update registration
   scale_computing.hypercore.registration:
-    company_name: New company
-    contact: John Smith
-    phone: 056789987
-    email: john_smith@gmail.com
+    contact: Janez Novak
+    state: present
+
+- name: Delete registration
+  scale_computing.hypercore.registration:
+    state: absent
 """
 
 RETURN = r"""
@@ -79,6 +88,14 @@ def main():
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
+            state=dict(
+                type="str",
+                choices=[
+                    "present",
+                    "absent",
+                ],
+                required=True,
+            ),
             company_name=dict(
                 type="str",
             ),
