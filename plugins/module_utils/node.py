@@ -23,14 +23,15 @@ class Node(PayloadMapper):
         pass
 
     @classmethod
-    def from_hypercore(cls, node_dict):
-        if not node_dict:  # In case for get_record, return None if no result is found
+    def from_hypercore(cls, hypercore_data):
+        if not hypercore_data:
+            # In case for get_record, return None if no result is found
             return None
         return cls(
-            node_uuid=node_dict["uuid"],
-            backplane_ip=node_dict["backplaneIP"],
-            lan_ip=node_dict["lanIP"],
-            peer_id=node_dict["peerID"],
+            node_uuid=hypercore_data["uuid"],
+            backplane_ip=hypercore_data["backplaneIP"],
+            lan_ip=hypercore_data["lanIP"],
+            peer_id=hypercore_data["peerID"],
         )
 
     def to_hypercore(self):

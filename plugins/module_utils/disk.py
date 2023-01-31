@@ -105,59 +105,59 @@ class Disk(PayloadMapper):
         )
 
     @classmethod
-    def from_hypercore(cls, hypercore_dict):
-        if not hypercore_dict:
+    def from_hypercore(cls, hypercore_data):
+        if not hypercore_data:
             return None
         try:
             return cls(
-                uuid=hypercore_dict["uuid"],
-                vm_uuid=hypercore_dict["virDomainUUID"],
-                type=hypercore_dict["type"].lower(),
-                cache_mode=hypercore_dict["cacheMode"].lower(),
-                size=hypercore_dict["capacity"],
-                slot=hypercore_dict["slot"],
-                name=hypercore_dict["name"],
-                disable_snapshotting=hypercore_dict["disableSnapshotting"],
+                uuid=hypercore_data["uuid"],
+                vm_uuid=hypercore_data["virDomainUUID"],
+                type=hypercore_data["type"].lower(),
+                cache_mode=hypercore_data["cacheMode"].lower(),
+                size=hypercore_data["capacity"],
+                slot=hypercore_data["slot"],
+                name=hypercore_data["name"],
+                disable_snapshotting=hypercore_data["disableSnapshotting"],
                 # Hypercore sometimes returns values outside the mapping table, so we set it to default.
                 tiering_priority_factor=TIERING_PRIORITY_MAPPING_FROM_HYPERCORE[
-                    hypercore_dict["tieringPriorityFactor"]
+                    hypercore_data["tieringPriorityFactor"]
                 ]
-                if hypercore_dict["tieringPriorityFactor"]
+                if hypercore_data["tieringPriorityFactor"]
                 in TIERING_PRIORITY_MAPPING_FROM_HYPERCORE
                 else TIERING_PRIORITY_DEFAULT,
-                mount_points=hypercore_dict["mountPoints"],
-                read_only=hypercore_dict["readOnly"],
+                mount_points=hypercore_data["mountPoints"],
+                read_only=hypercore_data["readOnly"],
             )
         except KeyError as e:
             raise errors.MissingValueHypercore(e)
 
     @classmethod
-    def from_ansible(cls, ansible_dict):
+    def from_ansible(cls, ansible_data):
         # Specific for this module - in case of performing PATCH method on the /VirDomainBlockDevice endpoint,
         # type_new is possible field if you want to update disk type. In that case, type_new is desired type
         # of the disk
-        if ansible_dict.get("type_new", ""):
-            disk_type = ansible_dict["type_new"]
+        if ansible_data.get("type_new", ""):
+            disk_type = ansible_data["type_new"]
         else:
-            disk_type = ansible_dict["type"]
-        # Only disk_type and slot are certainly going to be present in ansible_dict.
+            disk_type = ansible_data["type"]
+        # Only disk_type and slot are certainly going to be present in hypercore_data.
         # The rest of the fields may be specified if update action is performed
         # Ensure that size is integer
-        if ansible_dict.get("size", None):
-            size = int(ansible_dict["size"])
+        if ansible_data.get("size", None):
+            size = int(ansible_data["size"])
         else:
             size = None
         return cls(
             type=disk_type,
-            slot=ansible_dict["disk_slot"],
+            slot=ansible_data["disk_slot"],
             size=size,
-            cache_mode=ansible_dict.get("cache_mode", None),
-            name=ansible_dict.get("iso_name", None),
-            disable_snapshotting=ansible_dict.get("disable_snapshotting", None),
-            tiering_priority_factor=ansible_dict.get("tiering_priority_factor", None),
-            mount_points=ansible_dict.get("mount_points", None),
-            read_only=ansible_dict.get("read_only", None),
-            uuid=ansible_dict.get("uuid", None),
+            cache_mode=ansible_data.get("cache_mode", None),
+            name=ansible_data.get("iso_name", None),
+            disable_snapshotting=ansible_data.get("disable_snapshotting", None),
+            tiering_priority_factor=ansible_data.get("tiering_priority_factor", None),
+            mount_points=ansible_data.get("mount_points", None),
+            read_only=ansible_data.get("read_only", None),
+            uuid=ansible_data.get("uuid", None),
         )
 
     def __eq__(self, other):
