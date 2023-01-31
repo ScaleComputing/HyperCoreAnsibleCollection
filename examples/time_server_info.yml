@@ -1,0 +1,10 @@
+---
+- name: List current Time Server entries
+  scale_computing.hypercore.time_server_info:
+  register: time_server_info
+- scale_computing.hypercore.time_zone_info:
+  register: time_zone_info
+- ansible.builtin.debug:
+    msg: |
+      {{ time_server_info }}
+      {{ time_zone_info }}
