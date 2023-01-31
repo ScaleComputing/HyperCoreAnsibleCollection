@@ -1,0 +1,49 @@
+---
+name: Sanity test
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 6 * * *'
+env:
+  NAMESPACE: scale_computing
+  COLLECTION_NAME: hypercore
+  ANSIBLE_TEST_PREFER_PODMAN: 1
+jobs:
+  sanity:
+    name: Sanity test ${{ matrix.ansible }}-py${{ matrix.python }})
+    strategy:
+      matrix:
+        ansible:
+          - stable-2.11
+          - stable-2.12
+          - stable-2.13
+        python:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+        exclude:
+          - ansible: stable-2.11
+            python: '3.10'
+        include:
+          - ansible: stable-2.11
+            python: '3.6'
+          - ansible: stable-2.11
+            python: '3.7'
+          - ansible: stable-2.14
+            python: '3.9'
+          - ansible: stable-2.14
+            python: '3.10'
+          - ansible: stable-2.14
+            python: '3.11'
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Perform sanity testing with ansible-test
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          ansible-core-version: ${{ matrix.ansible }}
+          target-python-version: ${{ matrix.python }}
+          testing-type: sanity
