@@ -11,9 +11,6 @@ delete_files () {
     username=$3
     password=$4
     folder=$5 # Folder where files are located.
-    # files=($(smbclient //$server$share -U $username%$password -D $folder -c ls | awk '{print $1}'))
-    # dates=($(smbclient //$server$share -U $username%$password -D $folder -c ls -l | awk '{print $5":"$6":"$8}'))
-    # length=${#files[@]}-1
 
     list_dir=$(smbclient "//$server$share" -U "$username%$password" -D "$folder" -c l)
     # for each file we have a line is like "  Cuba                                N     2416  Mon Apr 27 10:52:07 2020"
@@ -37,7 +34,7 @@ delete_files () {
       fi
       filename="$(echo "$line" | awk '{print $1}')"
       file_date=$(echo "$line" | awk '{print $5":"$6":"$8}')
-      if [ $file_date == $today_date ]
+      if [ "$file_date" == "$today_date" ]
       then
         echo "Keeping file $filename, timestamp is $file_date"
         continue
