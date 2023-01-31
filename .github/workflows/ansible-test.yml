@@ -10,11 +10,14 @@ env:
   COLLECTION_NAME: hypercore
   ANSIBLE_TEST_PREFER_PODMAN: 1
 jobs:
-  sanity:
-    name: Sanity test ${{ matrix.ansible }}-py${{ matrix.python }}
+  sanity_units:
+    name: ${{ matrix.testing_type }} test ${{ matrix.ansible }}-py${{ matrix.python }}
     strategy:
       fail-fast: false
       matrix:
+        testing_type:
+          - sanity
+          - units
         ansible:
           - stable-2.11
           - stable-2.12
@@ -47,4 +50,4 @@ jobs:
         with:
           ansible-core-version: ${{ matrix.ansible }}
           target-python-version: ${{ matrix.python }}
-          testing-type: sanity
+          testing-type: ${{ matrix.testing_type }}
