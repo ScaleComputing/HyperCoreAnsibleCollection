@@ -1,5 +1,5 @@
 ---
-name: Sanity test
+name: Ansible test
 on:
   push:
   pull_request:
@@ -10,37 +10,24 @@ env:
   COLLECTION_NAME: hypercore
   ANSIBLE_TEST_PREFER_PODMAN: 1
 jobs:
+  job1:
+    outputs:
+      version_matrix: ${{ steps.set-matrix.outputs.version_matrix }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - id: set-matrix
+        name: set version_matrix output
+        # run: echo "::set-output name=matrix::{\"node\":[10, 12, 14]}"
+        run: python .github/workflows/print_ansible_test_matrix.py >> $GITHUB_OUTPUT
+
   sanity_units:
+    needs: job1
     name: ${{ matrix.testing_type }} test ${{ matrix.ansible }}-py${{ matrix.python }}
     strategy:
       fail-fast: false
-      matrix:
-        testing_type:
-          - sanity
-          - units
-        ansible:
-          - stable-2.11
-          - stable-2.12
-          - stable-2.13
-        python:
-          - '3.8'
-          - '3.9'
-          - '3.10'
-        exclude:
-          - ansible: stable-2.11
-            python: '3.10'
-        include:
-          - ansible: stable-2.11
-            python: '3.6'
-          - ansible: stable-2.11
-            python: '3.7'
-          - ansible: stable-2.14
-            python: '3.9'
-          - ansible: stable-2.14
-            python: '3.10'
-          - ansible: stable-2.14
-            python: '3.11'
-
+      matrix: ${{ fromJSON(needs.job1.outputs.version_matrix) }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
