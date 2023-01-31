@@ -73,7 +73,7 @@ def run(module, rest_client):
         module.params, "username", ansible_hypercore_map=dict(username="username")
     )
     return [
-        User.from_hypercore(user_dict=hypercore_dict).to_ansible(rest_client)
+        User.from_hypercore(hypercore_data=hypercore_dict).to_ansible(rest_client)
         for hypercore_dict in rest_client.list_records("/rest/v1/User", query)
     ]
 

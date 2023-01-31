@@ -52,7 +52,7 @@ from ..module_utils.node import Node
 
 def run(rest_client):
     return [
-        Node.from_hypercore(node_dict=hypercore_dict).to_ansible()
+        Node.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
         for hypercore_dict in rest_client.list_records("/rest/v1/Node")
     ]
 
