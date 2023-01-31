@@ -102,6 +102,7 @@ results:
 
 
 from ansible.module_utils.basic import AnsibleModule
+from typing import Tuple
 
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import arguments, errors
@@ -115,7 +116,7 @@ def build_entry_list(
     module_entry_list: list,
     state: str,
     module: AnsibleModule = None,  # use module param for debugging
-) -> tuple[list, bool]:
+) -> Tuple[list, bool]:
     if module_entry_list is None:
         return api_entry_list, False
 
@@ -150,7 +151,7 @@ def build_entry_list(
 
 def modify_dns_config(
     module: AnsibleModule, rest_client: RestClient
-) -> tuple[bool, dict, dict]:
+) -> Tuple[bool, dict, dict]:
     # GET method to get the DNS Config by UUID
     dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
 
@@ -215,7 +216,7 @@ def modify_dns_config(
     return change, new_state, diff
 
 
-def run(module: AnsibleModule, rest_client: RestClient) -> tuple[bool, dict, dict]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
     return modify_dns_config(module, rest_client)
 
 
