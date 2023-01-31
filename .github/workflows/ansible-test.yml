@@ -11,8 +11,9 @@ env:
   ANSIBLE_TEST_PREFER_PODMAN: 1
 jobs:
   sanity:
-    name: Sanity test ${{ matrix.ansible }}-py${{ matrix.python }})
+    name: Sanity test ${{ matrix.ansible }}-py${{ matrix.python }}
     strategy:
+      fail-fast: false
       matrix:
         ansible:
           - stable-2.11
