@@ -5,11 +5,23 @@
 
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
 from ..module_utils import errors
+from ..module_utils.rest_client import RestClient
+from ..module_utils.task_tag import TypedTaskTag
+from typing import TypedDict, Union
+
+
+# Use for type hinting.
+class TypedRegistrationToAnsible(TypedDict):
+    company_name: str
+    contact: str
+    phone: str
+    email: str
 
 
 class Registration(PayloadMapper):
@@ -25,9 +37,17 @@ class Registration(PayloadMapper):
         self.cluster_data_hash_accepted = None
 
     @classmethod
-    def from_hypercore(cls, hypercore_data):
+    def get(cls, rest_client: RestClient) -> Union[Registration, None]:
+        result = rest_client.list_records("/rest/v1/Registration")
+        if result:
+            # One registration per cluster.
+            return cls.from_hypercore(result[0])
+        return None
+
+    @classmethod
+    def from_hypercore(cls, hypercore_data: dict) -> Registration:
         try:
-            obj = Registration()
+            obj = cls()
             obj.uuid = hypercore_data["uuid"]
             obj.company_name = hypercore_data["companyName"]
             obj.contact = hypercore_data["contact"]
@@ -42,20 +62,18 @@ class Registration(PayloadMapper):
             raise errors.MissingValueHypercore(e)
 
     @classmethod
-    def from_ansible(cls, ansible_data):
-        obj = Registration()
+    def from_ansible(cls, ansible_data: dict) -> Registration:
+        obj = cls()
         obj.company_name = ansible_data.get("company_name", None)
         obj.contact = ansible_data.get("contact", None)
         obj.phone = ansible_data.get("phone", None)
         obj.email = ansible_data.get("email", None)
         return obj
 
-    def to_hypercore(self):
+    def to_hypercore(self) -> dict:
         hypercore_dict = dict()
-        if self.uuid:
-            hypercore_dict["uuid"] = self.uuid
         if self.company_name:
-            hypercore_dict["company_name"] = self.company_name
+            hypercore_dict["companyName"] = self.company_name
         if self.contact:
             hypercore_dict["contact"] = self.contact
         if self.phone is not None:
@@ -64,14 +82,25 @@ class Registration(PayloadMapper):
             hypercore_dict["email"] = self.email
         return hypercore_dict
 
-    def to_ansible(self):
+    def to_ansible(self) -> TypedRegistrationToAnsible:
         return dict(
-            uuid = self.uuid,
-            company_name = self.company_name,
-            contact = self.contact,
-            phone = self.phone,
-            email = self.email,
-            cluster_id = self.cluster_id,
-            cluster_data_hash = self.cluster_data_hash,
-            cluster_data_hash_accepted = self.cluster_data_hash_accepted,
+            company_name=self.company_name,
+            contact=self.contact,
+            phone=self.phone,
+            email=self.email,
+        )
+
+    def send_create_request(self, rest_client: RestClient) -> TypedTaskTag:
+        payload = self.to_hypercore()
+        return rest_client.create_record("/rest/v1/Registration", payload, False)
+
+    def send_delete_request(self, rest_client: RestClient) -> TypedTaskTag:
+        return rest_client.delete_record(
+            "/rest/v1/Registration/registration_guid", False
+        )
+
+    def send_update_request(self, rest_client: RestClient) -> TypedTaskTag:
+        payload = self.to_hypercore()
+        return rest_client.update_record(
+            "/rest/v1/Registration/registration_guid", payload, False
         )

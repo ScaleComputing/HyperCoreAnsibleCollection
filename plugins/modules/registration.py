@@ -56,7 +56,7 @@ EXAMPLES = r"""
     phone: 056789987
     email: john_smith@gmail.com
     state: present
-    
+
 - name: Update registration
   scale_computing.hypercore.registration:
     contact: Janez Novak
@@ -68,22 +68,74 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
+record:
+  description:
+    - Registration record.
+  returned: success
+  type: dict
+  sample:
+    company_name: New company
+    contact: John Smith
+    email: john_smith@gmail.com
+    phone: 056789987
 """
 
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
+from ..module_utils.utils import is_changed
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
+from ..module_utils.state import State
+from ..module_utils.registration import Registration, TypedRegistrationToAnsible
+from ..module_utils.task_tag import TaskTag
+from typing import Union, Tuple
 
 
+def ensure_present(
+    module: AnsibleModule,
+    rest_client: RestClient,
+    registration_obj: Union[Registration, None],
+) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], dict, bool]:
+    before = registration_obj.to_ansible() if registration_obj else None
+    registration_obj_ansible = Registration.from_ansible(module.params)
+    if registration_obj is None:
+        # Create
+        task = registration_obj_ansible.send_create_request(rest_client)
+    else:
+        # Update
+        task = registration_obj_ansible.send_update_request(rest_client)
+    TaskTag.wait_task(rest_client, task)
+    updated_registration = Registration.get(rest_client)
+    after = updated_registration.to_ansible() if updated_registration else None
+    return is_changed(before, after), after, dict(before=before, after=after), False
 
 
-def run(module, rest_client):
-    return changed, records, diff, reboot
+def ensure_absent(
+    module: AnsibleModule,
+    rest_client: RestClient,
+    registration_obj: Union[Registration, None],
+) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], dict, bool]:
+    before = registration_obj.to_ansible() if registration_obj else None
+    after = None
+    if registration_obj:
+        task = registration_obj.send_delete_request(rest_client)
+        TaskTag.wait_task(rest_client, task)
+        updated_registration = Registration.get(rest_client)
+        after = updated_registration.to_ansible() if updated_registration else None
+    return is_changed(before, after), after, dict(before=before, after=after), False
 
 
-def main():
+def run(
+    module: AnsibleModule, rest_client: RestClient
+) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], dict, bool]:
+    registration_obj = Registration.get(rest_client)
+    if module.params["state"] == State.present:
+        return ensure_present(module, rest_client, registration_obj)
+    return ensure_absent(module, rest_client, registration_obj)
+
+
+def main() -> None:
     module = AnsibleModule(
         supports_check_mode=False,
         argument_spec=dict(
@@ -114,10 +166,8 @@ def main():
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client=client)
-        changed, records, diff, reboot = run(module, rest_client)
-        module.exit_json(
-            changed=changed, records=records, diff=diff, vm_rebooted=reboot
-        )
+        changed, record, diff, reboot = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff, vm_rebooted=reboot)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 
