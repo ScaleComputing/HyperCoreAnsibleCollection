@@ -133,7 +133,6 @@ class VM(PayloadMapper):
         was_shutdown_tried=False,  # Has shutdown request already been tried
         machine_type=None,
     ):
-
         self.operating_system = operating_system
         self.uuid = uuid
         self.node_uuid = node_uuid
