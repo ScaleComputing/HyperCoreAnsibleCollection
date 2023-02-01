@@ -8,7 +8,7 @@ on:
 env:
   NAMESPACE: scale_computing
   COLLECTION_NAME: hypercore
-  ANSIBLE_TEST_PREFER_PODMAN: 1
+  # ANSIBLE_TEST_PREFER_PODMAN: 1
 jobs:
   job1:
     outputs:
