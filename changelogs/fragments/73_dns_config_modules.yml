@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Added dns_config and dns_config_info modules.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/73)

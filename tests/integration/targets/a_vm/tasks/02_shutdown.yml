@@ -1,4 +1,6 @@
 ---
+# This is a part of the vm module; testing shutdown logic.
+# The main vm test was devided into smaller tests for sake of synchronous testing.
 - environment:
     SC_HOST: "{{ sc_host }}"
     SC_USERNAME: "{{ sc_username }}"
@@ -8,33 +10,35 @@
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
     - name: Delete the VM with name vm-integration-test-vm, if it exists from before
       scale_computing.hypercore.vm: &delete-vm
-        vm_name: vm-integration-test-vm
+        vm_name: vm-shutdown-test
         state: absent
       register: result
 
-    - name: Create project directory /tmp (if it doesn't exist already)
-      file: state=directory path=/tmp
+    - name: Get integration-test.iso info
+      scale_computing.hypercore.iso_info:
+        name: "integration-test.iso"
+      register: uploaded_iso_info
 
-    - name: Download ISO image from http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso and save it into /tmp/TinyCore-vm-integration.iso
-      get_url: url=http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso dest=/tmp/TinyCore-vm-integration.iso
+    - name: Create a text file
+      command: touch integration.txt
+      when: uploaded_iso_info.records | length == 0
 
-    - name: Delete the ISO image (if it may exist)
-      scale_computing.hypercore.iso: &delete-iso
-        name: "TinyCore-vm-integration.iso"
-        state: absent
+    - name: Create an ISO file
+      command: genisoimage -output integration.iso integration.txt
+      when: uploaded_iso_info.records | length == 0
+
+    - name: Upload ISO image integration-test.iso to HyperCore API
+      scale_computing.hypercore.iso:
+        name: "integration-test.iso"
+        source: "integration.iso"
+        state: present
+      when: uploaded_iso_info.records | length == 0
       register: result
 
 # ----------------------------------Job-------------------------------------------------------------------------------------
-    - name: Upload ISO image TinyCore-vm-integration.iso to HyperCore API
-      scale_computing.hypercore.iso:
-        name: "TinyCore-vm-integration.iso"
-        source: "/tmp/TinyCore-vm-integration.iso"
-        state: present
-      register: result
-
     - name: Create and start the VM with disks, nics and boot devices set. Attach ISO onto the VM.
       scale_computing.hypercore.vm: &create-vm
-        vm_name: vm-integration-test-vm
+        vm_name: vm-shutdown-test
         description: Demo VM
         state: present
         tags:
@@ -51,7 +55,7 @@
             size: "{{ '10.1 GB' | human_to_bytes }}"
           - type: ide_cdrom
             disk_slot: 0
-            iso_name: TinyCore-vm-integration.iso
+            iso_name: integration-test.iso
         nics:
           - vlan: 1
             type: RTL8139
@@ -62,7 +66,6 @@
             disk_slot: 0
           - type: nic
             nic_vlan: 1
-        machine_type: BIOS
       register: vm_created
     - ansible.builtin.assert:
         that:
@@ -70,7 +73,7 @@
           - vm_created.record.0.memory == 536870912
           - vm_created.record.0.tags == ["Xlab", "mytag1", "mytag2"]
           - vm_created.record.0.vcpu == 2
-          - vm_created.record.0.vm_name == "vm-integration-test-vm"
+          - vm_created.record.0.vm_name == "vm-shutdown-test"
           - vm_created.record.0.disks | length == 2
           - vm_created.record.0.nics | length == 2
           - vm_created.record.0.nics.0.vlan == 1
@@ -87,7 +90,6 @@
           - vm_created.record.0.boot_devices.0.disk_slot == 0
           - vm_created.record.0.boot_devices.1.vlan == 1
           - vm_created.record.0.power_state == "started"
-          - vm_created.record.0.machine_type == "BIOS"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     - name: Create the exact same VM (idempotency)
@@ -97,9 +99,9 @@
         that:
           - result is not changed
 
-    - name: Retrieve vm-integration-test-vm Idempotence
+    - name: Retrieve vm-shutdown-test Idempotence
       scale_computing.hypercore.vm_info:
-        vm_name: vm-integration-test-vm
+        vm_name: vm-shutdown-test
       register: vm_created
     - ansible.builtin.assert:
         that:
@@ -107,7 +109,7 @@
           - vm_created.records.0.memory == 536870912
           - vm_created.records.0.tags == ["Xlab", "mytag1", "mytag2"]
           - vm_created.records.0.vcpu == 2
-          - vm_created.records.0.vm_name == "vm-integration-test-vm"
+          - vm_created.records.0.vm_name == "vm-shutdown-test"
           - vm_created.records.0.disks | length == 2
           - vm_created.records.0.nics | length == 2
           - vm_created.records.0.nics.0.vlan == 1
@@ -126,9 +128,9 @@
           - vm_created.records.0.power_state == "started"
 
 # ----------------------------------Job-------------------------------------------------------------------------------------
-    - name: Update the VM
+    - name: Force reboot the VM
       scale_computing.hypercore.vm: &update-vm
-        vm_name: vm-integration-test-vm
+        vm_name: vm-shutdown-test
         state: present
         memory: "{{ '512 MB' | human_to_bytes }}"
         vcpu: 2
@@ -136,7 +138,7 @@
         disks:
           - type: ide_cdrom
             disk_slot: 0
-            iso_name: TinyCore-vm-integration.iso
+            iso_name: integration-test.iso
           - type: virtio_disk
             disk_slot: 1
             size: "{{ '20 GB' | human_to_bytes }}"
@@ -150,9 +152,9 @@
           - result is changed
           - result.vm_rebooted is true
 
-    - name: Assert the VM has been updated
+    - name: Assert the VM has been updated and rebooted
       scale_computing.hypercore.vm_info: &get-vm-by-name
-        vm_name: vm-integration-test-vm
+        vm_name: vm-shutdown-test
       register: result
     - ansible.builtin.assert:
         that:
@@ -160,21 +162,23 @@
           - result.records[0].disks.0.type == "virtio_disk"
           - result.records[0].disks.0.disk_slot == 0
           - result.records[0].disks.1.type == "ide_cdrom"
-          - result.records[0].disks.1.iso_name == "TinyCore-vm-integration.iso"
+          - result.records[0].disks.1.iso_name == "integration-test.iso"
           - result.records[0].disks.2.type == "virtio_disk"
           - result.records[0].disks.2.disk_slot == 1
           - result.records[0].vcpu == 2
           - result.records[0].memory == 536870912
+          - result.records[0].power_state == "started"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
-    - name: Update the VM Idempotence
+    - name: Force reboot the VM Idempotence
       scale_computing.hypercore.vm: *update-vm
       register: result
     - ansible.builtin.assert:
         that:
-        - result is not changed
+          - result is not changed
+          - result.vm_rebooted is false
 
-    - name: Assert the VM has been updated Idempotence
+    - name: Assert the VM has been updated and rebooted Idempotence
       scale_computing.hypercore.vm_info: *get-vm-by-name
       register: result
     - ansible.builtin.assert:
@@ -183,102 +187,23 @@
           - result.records[0].disks.0.type == "virtio_disk"
           - result.records[0].disks.0.disk_slot == 0
           - result.records[0].disks.1.type == "ide_cdrom"
-          - result.records[0].disks.1.iso_name == "TinyCore-vm-integration.iso"
+          - result.records[0].disks.1.iso_name == "integration-test.iso"
           - result.records[0].disks.2.type == "virtio_disk"
           - result.records[0].disks.2.disk_slot == 1
           - result.records[0].vcpu == 2
           - result.records[0].memory == 536870912
+          - result.records[0].power_state == "started"
 
-# ----------------------------------Job-------------------------------------------------------------------------------------
-    - name: Update the VM 2nd time
-      scale_computing.hypercore.vm: &update-vm2
-        vm_name: vm-integration-test-vm
-        state: present
-        memory: "{{ '512 MB' | human_to_bytes }}"
-        vcpu: 2
-        force_reboot: true
-        disks:
-          - type: ide_cdrom
-            disk_slot: 0
-            iso_name: TinyCore-vm-integration.iso
-          - type: virtio_disk
-            disk_slot: 1
-            size: "{{ '20 GB' | human_to_bytes }}"
-          - type: virtio_disk
-            disk_slot: 0
-        nics:
-          - vlan: 1
-            type: RTL8139
-          - vlan: 2
-            type: virtio
-        boot_devices: []
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result is changed
-          - result.vm_rebooted is true
-
-    - name: Assert the VM has been updated 2nd time
-      scale_computing.hypercore.vm_info: &get-vm-by-name2
-        vm_name: vm-integration-test-vm
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result.records[0].boot_devices == []
-          - result.records[0].disks.0.type == "virtio_disk"
-          - result.records[0].disks.0.disk_slot == 0
-          - result.records[0].disks.1.type == "ide_cdrom"
-          - result.records[0].disks.1.iso_name == "TinyCore-vm-integration.iso"
-          - result.records[0].disks.2.type == "virtio_disk"
-          - result.records[0].disks.2.disk_slot == 1
-          - result.records[0].nics | length == 2
-          - result.records[0].nics.0.vlan == 1
-          - result.records[0].nics.0.type == "RTL8139"
-          - result.records[0].nics.1.vlan == 2
-          - result.records[0].nics.1.type == "virtio"
-          - result.records[0].vcpu == 2
-          - result.records[0].memory == 536870912
-
-# ----------------------------------Idempotence check------------------------------------------------------------------------
-    - name: Update the VM Idempotence
-      scale_computing.hypercore.vm: *update-vm2
-      register: result
-    - ansible.builtin.assert:
-        that:
-        - result is not changed
-
-    - name: Assert the VM has been updated Idempotence
-      scale_computing.hypercore.vm_info: *get-vm-by-name2
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result.records[0].boot_devices == []
-          - result.records[0].disks.0.type == "virtio_disk"
-          - result.records[0].disks.0.disk_slot == 0
-          - result.records[0].disks.1.type == "ide_cdrom"
-          - result.records[0].disks.1.iso_name == "TinyCore-vm-integration.iso"
-          - result.records[0].disks.2.type == "virtio_disk"
-          - result.records[0].disks.2.disk_slot == 1
-          - result.records[0].nics | length == 2
-          - result.records[0].nics.0.vlan == 1
-          - result.records[0].nics.0.type == "RTL8139"
-          - result.records[0].nics.1.vlan == 2
-          - result.records[0].nics.1.type == "virtio"
-          - result.records[0].vcpu == 2
-          - result.records[0].memory == 536870912
+# TODO: Add shutdown request test.
 
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
-    - name: Delete the VM with name vm-integration-test-vm
+    - name: Delete the VM with name vm-shutdown-test
       scale_computing.hypercore.vm: *delete-vm
       register: result
 
-    - name: Delete the ISO image
-      scale_computing.hypercore.iso: *delete-iso
-      register: result
-
-    - name: Delete locally installed ISO image from /tmp/TinyCore-vm-integration.iso
+    - name: Delete locally installed ISO image from current dir
       ansible.builtin.file:
-        path: /tmp/TinyCore-vm-integration.iso
+        path: integration.iso
         state: absent
       register: file_deleted
 

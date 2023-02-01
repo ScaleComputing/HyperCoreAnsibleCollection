@@ -1,0 +1,3 @@
+---
+major_changes:
+  - Added user_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/74)

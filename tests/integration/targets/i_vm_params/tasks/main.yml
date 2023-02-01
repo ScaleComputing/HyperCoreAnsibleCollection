@@ -3,6 +3,7 @@
     SC_HOST: "{{ sc_host }}"
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
 
   block:
   # ===================================================================
@@ -35,12 +36,12 @@
 
   - name: Delete snapshot schedule (if it exists from before)
     scale_computing.hypercore.snapshot_schedule: &delete-snapshot-schedule
-      name: demo-snap-schedule
+      name: demo-snap-schedule-params
       state: absent
 
   - name: Setup snapshot schedule
     scale_computing.hypercore.snapshot_schedule:
-      name: demo-snap-schedule
+      name: demo-snap-schedule-params
       state: present
       recurrences:
         - name: weekly-tuesday
