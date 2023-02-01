@@ -16,11 +16,28 @@
         actual_host: "{{ time_server.record.0.host }}"
         actual_uuid: "{{ time_server.record.0.uuid }}"
 
+    # Test cluster is already configured with pool.ntp.org,
+    # but it does not want to accept 0.pool.ntp.org.
+    # We will reconfigure it using corresponding IP address.
+    # Assumption: ansible-controller is running close to HyperCore server,
+    # so that returned IP address will be accepted by HyperCore server.
+    - ansible.builtin.command: python -c 'import dns.resolver; ans=dns.resolver.resolve("{{ actual_host }}", "A"); print(str(ans[0]));'
+      changed_when: false
+      register: actual_host_ip_address_result
+    - ansible.builtin.set_fact:
+        actual_host_ip_address: "{{ actual_host_ip_address_result.stdout }}"
+    - name: Set NTP server to IP address {{ actual_host_ip_address }} using api module
+      scale_computing.hypercore.api:
+        action: patch
+        endpoint: /rest/v1/TimeSource/timesource_guid
+        data:
+          host: "{{ actual_host_ip_address }}"
+
     # ------------------------------------------------
 
     - name: Change NTP server
       scale_computing.hypercore.time_server:
-        source: 0.pool.ntp.org
+        source: "{{ actual_host }}"
       register: result
     - scale_computing.hypercore.time_server_info:
       register: info
@@ -28,12 +45,12 @@
         that:
           - result.changed == True
           - result.diff.before != result.diff.after
-          - info.record.host == "0.pool.ntp.org"
+          - info.record.host == actual_host
           - info.record.uuid == actual_uuid
 
     - name: Update with NTP server from previous task
       scale_computing.hypercore.time_server:
-        source: 0.pool.ntp.org
+        source: "{{ actual_host }}"
       register: result
     - scale_computing.hypercore.time_server_info:
       register: info
@@ -41,7 +58,7 @@
         that:
           - result.changed == False
           - result.diff.before == result.diff.after
-          - info.record.host == "0.pool.ntp.org"
+          - info.record.host == actual_host
           - info.record.uuid == actual_uuid
 
     # ------------------------------------------------
