@@ -229,7 +229,6 @@ class TestDisk:
         assert disk1 == disk2
 
     def test_post_and_patch_payload(self):
-
         vm = VM(
             uuid="id",
             name="VM-name",
