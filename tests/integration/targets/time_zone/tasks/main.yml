@@ -4,10 +4,6 @@
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
 
-  vars:
-    actual_uuid: ""
-    actual_host: ""  # pool.ntp.org
-
   block:
     - name: Get default configs
       scale_computing.hypercore.api:
