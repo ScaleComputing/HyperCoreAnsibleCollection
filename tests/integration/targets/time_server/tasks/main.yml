@@ -10,6 +10,8 @@
         action: get
         endpoint: /rest/v1/TimeSource/timesource_guid
       register: time_server
+    - ansible.builtin.debug:
+        msg: time_server.record {{ time_server.record }}
     - ansible.builtin.set_fact:
         actual_host: "{{ time_server.record.0.host }}"
         actual_uuid: "{{ time_server.record.0.uuid }}"
