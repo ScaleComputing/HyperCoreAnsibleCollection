@@ -9,7 +9,8 @@ __metaclass__ = type
 
 
 DOCUMENTATION = r"""
-module: time_server_info
+module: time_zone_info
+
 author:
   - Ana Zobec (@anazobec)
 short_description: List Time Zone configuration on HyperCore API
@@ -41,21 +42,20 @@ record:
     uuid: timezone_guid
     zone: US/Eastern
     latest_task_tag:
-      completed: 1675170961,
-      created: 1675170954,
-      descriptionParameters: [],
-      formattedDescription: TimeZone Update,
-      formattedMessage: "",
-      messageParameters: [],
-      modified: 1675170961,
+      completed: 1675170961
+      created: 1675170954
+      descriptionParameters: []
+      formattedDescription: TimeZone Update
+      formattedMessage: ""
+      messageParameters: []
+      modified: 1675170961
       nodeUUIDs:
         - 32c5012d-7d7b-49b4-9201-70e02b0d8758
-      objectUUID: timezone_guid,
-      progressPercent: 100,
-      sessionID: 7157e957-bfad-4506-8713-124d5eb2397d,
-      state: COMPLETE,
+      objectUUID: timezone_guid
+      progressPercent: 100
+      sessionID: 7157e957-bfad-4506-8713-124d5eb2397d
+      state: COMPLETE
       taskTag: 687
-
 """
 
 from ansible.module_utils.basic import AnsibleModule

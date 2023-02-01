@@ -7,9 +7,9 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-
 DOCUMENTATION = r"""
 module: time_server
+
 author:
   - Ana Zobec (@anazobec)
 short_description: Modify Time Zone configuration on HyperCore API
@@ -23,13 +23,13 @@ seealso:
   - module: scale_computing.hypercore.time_zone
   - module: scale_computing.hypercore.time_zone_info
 options:
-  host:
+  source:
     type: str
-    required: True
     description:
       - A NTP server string used to replace the existing one.
       - If the given NTP server already exist in the Time Server configuration,
         there will be no changes made.
+    required: True
 notes:
  - C(check_mode) is not supported.
 """
@@ -48,21 +48,21 @@ results:
   type: dict
   sample:
     uuid: timesource_guid
-    host: pool.ntp.org,
+    host: pool.ntp.org
     latest_task_tag:
-      completed: 1675169105,
-      created: 1675169100,
-      descriptionParameters: [],
-      formattedDescription: TimeSource Update,
-      formattedMessage": "",
-      messageParameters: [],
-      modified: 1675169105,
+      completed: 1675169105
+      created: 1675169100
+      descriptionParameters: []
+      formattedDescription: TimeSource Update
+      formattedMessage: ""
+      messageParameters: []
+      modified: 1675169105
       nodeUUIDs:
         - 32c5012d-7d7b-49b4-9201-70e02b0d8758
-      objectUUID: timesource_guid,
-      progressPercent: 100,
-      sessionID: b0ef6ff6-e7dc-4b13-80f2-010e1bcbcfbf,
-      state: COMPLETE,
+      objectUUID: timesource_guid
+      progressPercent: 100
+      sessionID: b0ef6ff6-e7dc-4b13-80f2-010e1bcbcfbf
+      state: COMPLETE
       taskTag: 665
 """
 

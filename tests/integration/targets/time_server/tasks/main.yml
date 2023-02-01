@@ -22,7 +22,7 @@
 
     - name: Change NTP server
       scale_computing.hypercore.time_server:
-        source: europe.pool.ntp.org
+        source: ca.pool.ntp.org
       register: result
     - scale_computing.hypercore.time_server_info:
       register: info
@@ -30,12 +30,12 @@
         that:
           - result.changed == True
           - result.diff.before != result.diff.after
-          - info.record.host == "europe.pool.ntp.org"
+          - info.record.host == "ca.pool.ntp.org"
           - info.record.uuid == actual_uuid
 
     - name: Update with NTP server from previous task
       scale_computing.hypercore.time_server:
-        source: europe.pool.ntp.org
+        source: ca.pool.ntp.org
       register: result
     - scale_computing.hypercore.time_server_info:
       register: info
@@ -43,7 +43,7 @@
         that:
           - result.changed == False
           - result.diff.before == result.diff.after
-          - info.record.host == "europe.pool.ntp.org"
+          - info.record.host == "ca.pool.ntp.org"
           - info.record.uuid == actual_uuid
 
     # ------------------------------------------------
