@@ -4,10 +4,6 @@
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
 
-  vars:
-    default_uuid: ""
-    default_host: ""  # pool.ntp.org
-
   block:
     - name: Get default configs
       scale_computing.hypercore.api:
@@ -22,7 +18,7 @@
 
     - name: Change NTP server
       scale_computing.hypercore.time_server:
-        source: ca.pool.ntp.org
+        source: 0.pool.ntp.org
       register: result
     - scale_computing.hypercore.time_server_info:
       register: info
@@ -30,12 +26,12 @@
         that:
           - result.changed == True
           - result.diff.before != result.diff.after
-          - info.record.host == "ca.pool.ntp.org"
+          - info.record.host == "0.pool.ntp.org"
           - info.record.uuid == actual_uuid
 
     - name: Update with NTP server from previous task
       scale_computing.hypercore.time_server:
-        source: ca.pool.ntp.org
+        source: 0.pool.ntp.org
       register: result
     - scale_computing.hypercore.time_server_info:
       register: info
@@ -43,7 +39,7 @@
         that:
           - result.changed == False
           - result.diff.before == result.diff.after
-          - info.record.host == "ca.pool.ntp.org"
+          - info.record.host == "0.pool.ntp.org"
           - info.record.uuid == actual_uuid
 
     # ------------------------------------------------
