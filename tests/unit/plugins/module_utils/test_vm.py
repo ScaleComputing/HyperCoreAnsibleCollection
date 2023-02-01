@@ -1090,7 +1090,6 @@ class TestNic:
         ).return_value = None
         virtual_machine = self._get_test_vm(rest_client, mocker)
         results = virtual_machine.find_nic(mac="12-34-56-78-CD")
-        print(results)
         assert results[0].vlan == 2
         assert results[0].mac == "12-34-56-78-CD"
         assert results[0].uuid == "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"
@@ -1105,7 +1104,6 @@ class TestNic:
         results = virtual_machine.find_nic(
             mac="12-34-56-78-CD", mac_new="12-34-56-78-AB"
         )
-        print(results)
         assert results[0].vlan == 2
         assert results[0].mac == "12-34-56-78-CD"
         assert results[0].uuid == "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"
@@ -1131,7 +1129,6 @@ class TestVMExport:
             },
         }
         results = VM.create_export_or_import_vm_payload(ansible_dict, None, True)
-        print(results)
         assert results == dict(
             target=dict(
                 pathURI="smb://"
@@ -1215,7 +1212,6 @@ class TestVMImport:
             },
         }
         results = VM.create_export_or_import_vm_payload(ansible_dict, None, False)
-        print(results)
         assert results == dict(
             source=dict(
                 pathURI="smb://"
@@ -1344,7 +1340,6 @@ class TestVMClone:
         results = VM.create_clone_vm_payload(
             "clone_name", ["bla", "bla1"], ["oroginal_tag", "original_tag2"], None
         )
-        print(results)
         assert results == {
             "template": {
                 "name": "clone_name",
@@ -1359,7 +1354,6 @@ class TestVMClone:
             ["oroginal_tag", "original_tag2"],
             {"userData": "something", "metaData": "else"},
         )
-        print(results)
         assert results == {
             "template": {
                 "name": "clone_name",
@@ -3667,7 +3661,6 @@ class TestManageVMNics:
         results = ManageVMNics.get_by_uuid(
             rest_client=rest_client, nic_uuid="my-nic-uuid"
         )
-        print(results)
         nic_dict = Nic.from_hypercore(nic_dict).to_hypercore()
         assert results.to_hypercore() == nic_dict
 
@@ -3859,8 +3852,6 @@ class TestManageVMNics:
             before=[],
             after=[],
         )
-        print(results)
-        print((True, [None], [Nic.from_hypercore(new_nic).to_ansible()]))
         assert results == (
             True,
             [None],
@@ -3908,7 +3899,6 @@ class TestManageVMNics:
             before=[],
             after=[],
         )
-        print(results)
         assert results == (True, [nic_to_delete.to_ansible()], [None], False)
 
     @classmethod

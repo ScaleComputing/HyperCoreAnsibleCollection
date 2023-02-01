@@ -57,7 +57,6 @@ class TestDNSConfig:
         assert DNSConfig.from_hypercore([]) is None
 
     def test_dns_config_to_ansible(self):
-        print(self.dns_config.to_ansible())
         assert self.dns_config.to_ansible() == self.ansible_dict
 
     def test_dns_config_from_ansible(self):
@@ -81,7 +80,6 @@ class TestDNSConfig:
         rest_client.list_records.return_value = [self.from_hypercore_dict]
 
         result = DNSConfig.get_state(rest_client)
-        print(result)
         assert result == {
             "uuid": "test",
             "search_domains": ["example.domain1.com", "example.domain2.com"],

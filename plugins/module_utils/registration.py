@@ -25,16 +25,27 @@ class TypedRegistrationToAnsible(TypedDict):
 
 
 class Registration(PayloadMapper):
-    def __init__(self):
-        self.uuid = None
-        self.company_name = None
-        self.contact = None
-        self.phone = None
-        self.email = None
-        self.cluster_id = None
-        self.cluster_data = None
-        self.cluster_data_hash = None
-        self.cluster_data_hash_accepted = None
+    def __init__(
+        self,
+        uuid: str = "",
+        company_name: str = "",
+        contact: str = "",
+        phone: str = "",
+        email: str = "",
+        cluster_id: str = "",
+        cluster_data: str = "",
+        cluster_data_hash: str = "",
+        cluster_data_hash_accepted: str = "",
+    ):
+        self.uuid = uuid
+        self.company_name = company_name
+        self.contact = contact
+        self.phone = phone
+        self.email = email
+        self.cluster_id = cluster_id
+        self.cluster_data = cluster_data
+        self.cluster_data_hash = cluster_data_hash
+        self.cluster_data_hash_accepted = cluster_data_hash_accepted
 
     @classmethod
     def get(cls, rest_client: RestClient) -> Union[Registration, None]:
