@@ -21,6 +21,11 @@
     # We will reconfigure it using corresponding IP address.
     # Assumption: ansible-controller is running close to HyperCore server,
     # so that returned IP address will be accepted by HyperCore server.
+    # How to install python dependencies for ansible-test?
+    # File tests/integration/requirements.txt is used with
+    # "ansible-test integration time_server -vv --venv",
+    # but otherwise - not/not always?
+    - ansible.builtin.command: pip install dnspython==2.3.0
     - ansible.builtin.command: python -c 'import dns.resolver; ans=dns.resolver.resolve("{{ actual_host }}", "A"); print(str(ans[0]));'
       changed_when: false
       register: actual_host_ip_address_result
