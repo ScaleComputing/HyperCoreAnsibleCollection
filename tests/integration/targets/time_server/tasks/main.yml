@@ -5,13 +5,6 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   block:
-    - name: TEMP revert to default
-      scale_computing.hypercore.api:
-        action: post
-        endpoint: /rest/v1/TimeSource/timesource_guid
-        data:
-          host: "pool.ntp.org"
-
     - name: Get default configs
       scale_computing.hypercore.api:
         action: get
