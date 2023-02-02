@@ -303,7 +303,6 @@ class TestEnsureAbsent:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         results = vm_disk.ensure_absent(module, rest_client)
-        print(results)
         assert results == (
             True,
             [],

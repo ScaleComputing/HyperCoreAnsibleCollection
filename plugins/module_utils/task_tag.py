@@ -11,6 +11,13 @@ __metaclass__ = type
 from time import sleep
 
 from ..module_utils import errors
+from typing import TypedDict
+
+
+# Use for type hinting.
+class TypedTaskTag(TypedDict):
+    createdUUID: str
+    taskTag: str
 
 
 class TaskTag:
