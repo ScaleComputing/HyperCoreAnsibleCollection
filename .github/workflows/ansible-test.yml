@@ -10,24 +10,8 @@ env:
   COLLECTION_NAME: hypercore
   # ANSIBLE_TEST_PREFER_PODMAN: 1
 jobs:
-  job1:
-    outputs:
-      version_matrix: ${{ steps.set-matrix.outputs.version_matrix }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-      - id: set-matrix
-        name: set version_matrix output
-        # run: echo "::set-output name=matrix::{\"node\":[10, 12, 14]}"
-        run: python .github/workflows/print_ansible_test_matrix.py >> $GITHUB_OUTPUT
-
-  sanity_units:
-    needs: job1
-    name: ${{ matrix.testing_type }} test ${{ matrix.ansible }}-py${{ matrix.python }}
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.job1.outputs.version_matrix) }}
+  sanity:
+    name: sanity test
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -35,6 +19,29 @@ jobs:
       - name: Perform sanity testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
+          ansible-core-version: stable-2.14
+          target-python-version: 3.11
+          testing-type: sanity
+
+  units:
+    name: units ${{ matrix.ansible }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible:
+          - stable-2.9
+          - stable-2.10
+          - stable-2.11
+          - stable-2.12
+          - stable-2.13
+          - stable-2.14
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Perform units testing with ansible-test
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
           ansible-core-version: ${{ matrix.ansible }}
-          target-python-version: ${{ matrix.python }}
-          testing-type: ${{ matrix.testing_type }}
+          # target-python-version: ${{ matrix.python }}
+          testing-type: units
