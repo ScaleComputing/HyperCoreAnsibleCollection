@@ -85,6 +85,19 @@ class TestModifyTimeZone:
 
             time_zone.modify_time_zone(module, rest_client)
 
+    def test_modify_time_zone_unsupported_zone(self, create_module, rest_client, mocker):
+        with pytest.raises(errors.ScaleComputingError):
+            module = create_module(
+                params=dict(
+                    zone="Unsupported/Zone",
+                ),
+            )
+            mocker.patch(
+                "ansible_collections.scale_computing.hypercore.plugins.module_utils.time_zone.TimeZone.get_by_uuid"
+            ).return_value = None
+
+            time_zone.modify_time_zone(module, rest_client)
+
 
 class TestMain:
     def setup_method(self):
