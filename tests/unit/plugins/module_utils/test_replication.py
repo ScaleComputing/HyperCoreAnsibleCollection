@@ -158,7 +158,6 @@ class TestToHypercore:
         }
         replication_obj = Replication.from_hypercore(hypercore_data)
         results = replication_obj.to_hypercore()
-        print(results)
         assert results == {
             "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",
@@ -176,7 +175,6 @@ class TestToHypercore:
         }
         replication_obj = Replication.from_hypercore(hypercore_data)
         results = replication_obj.to_hypercore()
-        print(results)
         assert results == {
             "sourceDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "connectionUUID": "7890f2ab-3r9a-89ff-5k91-3gdahgh47ghg",

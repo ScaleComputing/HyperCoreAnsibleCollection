@@ -24,4 +24,4 @@
         dns_servers:
           - 0.0.0.1
           - 0.0.1.0
-        state: before  # or after
+        state: before # or after

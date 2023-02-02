@@ -107,7 +107,6 @@ class TestRun:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         result = vm_clone.run(module, rest_client)
-        print(result)
         assert result == (False, "Virtual machine XLAB-test-vm-clone already exists.")
 
     def test_run_when_VM_not_found(self, rest_client, create_module):

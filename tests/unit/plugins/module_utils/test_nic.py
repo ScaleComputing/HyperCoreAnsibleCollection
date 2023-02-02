@@ -104,7 +104,6 @@ class TestNic:
         )
 
         for kk in expected_data.keys():
-            print("kk=%s {%s} =?= {%s}" % (kk, expected_data[kk], ansible_data[kk]))
             assert kk in ansible_data.keys()
             assert expected_data[kk] == ansible_data[kk]
         assert expected_data.keys() == ansible_data.keys()
