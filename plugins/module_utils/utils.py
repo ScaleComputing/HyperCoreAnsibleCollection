@@ -11,11 +11,12 @@ __metaclass__ = type
 import uuid
 
 from ..module_utils.errors import InvalidUuidFormatError
-from typing import Any
+from typing import Union, Any
+from ..module_utils.typed_classes import TypedTaskTag, TypedRegistrationToAnsible
 
 
 # Used in case of check mode
-MOCKED_TASK_TAG = dict(
+MOCKED_TASK_TAG = TypedTaskTag(
     createdUUID="0000000000",
     taskTag="00000",
 )
@@ -118,3 +119,10 @@ def is_superset(superset, candidate):
 
 def filter_results(results, filter_data) -> list[Any]:
     return [element for element in results if is_superset(element, filter_data)]
+
+
+def is_changed(
+    before: Union[dict, TypedRegistrationToAnsible, None],
+    after: Union[dict, TypedRegistrationToAnsible, None],
+) -> bool:
+    return not before == after

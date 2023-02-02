@@ -9,6 +9,7 @@ from __future__ import annotations
 from . import errors
 from . import utils
 from ..module_utils.client import Client
+from ..module_utils.typed_classes import TypedTaskTag
 
 __metaclass__ = type
 
@@ -58,35 +59,39 @@ class RestClient:
             )
         return records[0] if records else None
 
-    def create_record(self, endpoint, payload, check_mode, timeout=None):
+    def create_record(
+        self, endpoint, payload, check_mode, timeout=None
+    ) -> TypedTaskTag:
         if check_mode:
             return utils.MOCKED_TASK_TAG
         try:
-            response = self.client.post(
+            response: TypedTaskTag = self.client.post(
                 endpoint, payload, query=_query(), timeout=timeout
             ).json
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
         return response
 
-    def update_record(self, endpoint, payload, check_mode, record=None, timeout=None):
+    def update_record(
+        self, endpoint, payload, check_mode, record=None, timeout=None
+    ) -> TypedTaskTag:
         # No action is possible when updating a record
         if check_mode:
             return utils.MOCKED_TASK_TAG
         try:
-            response = self.client.patch(
+            response: TypedTaskTag = self.client.patch(
                 endpoint, payload, query=_query(), timeout=timeout
             ).json
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
         return response
 
-    def delete_record(self, endpoint, check_mode, timeout=None):
+    def delete_record(self, endpoint, check_mode, timeout=None) -> TypedTaskTag:
         # No action is possible when deleting a record
         if check_mode:
             return utils.MOCKED_TASK_TAG
         try:
-            response = self.client.delete(endpoint, timeout=timeout).json
+            response: TypedTaskTag = self.client.delete(endpoint, timeout=timeout).json
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
         return response

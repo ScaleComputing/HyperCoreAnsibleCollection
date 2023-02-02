@@ -11,14 +11,9 @@ __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
+from ..module_utils.typed_classes import TypedDNSConfigToAnsible
 
-from typing import Union, Any, TypedDict
-
-
-# Use for type hinting.
-class TypedDNSConfigToAnsible(TypedDict):
-    uuid: str
-    name: str
+from typing import Union, Any
 
 
 class Role(PayloadMapper):

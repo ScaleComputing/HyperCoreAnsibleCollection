@@ -12,14 +12,13 @@ from time import sleep
 
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
-
-from typing import Any
+from ..module_utils.typed_classes import TypedTaskTag
 
 
 class TaskTag:
     @classmethod
     def wait_task(
-        cls, rest_client: RestClient, task: dict[Any, Any], check_mode: bool = False
+        cls, rest_client: RestClient, task: TypedTaskTag, check_mode: bool = False
     ):
         if check_mode:
             return

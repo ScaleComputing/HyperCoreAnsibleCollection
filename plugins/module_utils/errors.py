@@ -7,6 +7,8 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from typing import Any
+
 
 class ScaleComputingError(Exception):
     pass
@@ -46,7 +48,7 @@ class MissingValueAnsible(ScaleComputingError):
 
 # In-case argument spec doesn't catch exception
 class MissingValueHypercore(ScaleComputingError):
-    def __init__(self, data):
+    def __init__(self, data: Any):
         self.message = "Missing values from hypercore API - {0}".format(data)
         super(MissingValueHypercore, self).__init__(self.message)
 
