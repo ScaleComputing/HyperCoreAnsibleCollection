@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2023, XLAB Steampunk <steampunk@xlab.si>
 #
@@ -95,17 +96,17 @@ def modify_time_server(
         rest_client=rest_client
     )  # get the state of Time Server before modification
 
-    # Get new time server source host
+    # Get new time_server source host
     new_time_server_source = module.params["source"]
 
     # Init return values and return if no changes were made
-    change, new_state, diff = (
+    change, record, diff = (
         new_time_server_source != before.get("host"),
         old_state,
         dict(before=before, after=old_state),
     )
     if not change:
-        return change, new_state, diff
+        return change, record, diff
 
     # Set the task tag:
     # update_record -> PATCH
@@ -119,12 +120,10 @@ def modify_time_server(
 
     new_time_server = TimeServer.get_by_uuid(module.params, rest_client)
     after = new_time_server.to_ansible()
-    new_state, diff = TimeServer.get_state(rest_client), dict(
-        before=before, after=after
-    )
-    change = old_state != new_state
+    record, diff = TimeServer.get_state(rest_client), dict(before=before, after=after)
+    change = old_state != record
 
-    return change, new_state, diff
+    return change, record, diff
 
 
 def run(module: AnsibleModule, rest_client: RestClient) -> tuple[bool, dict, dict]:
@@ -149,8 +148,8 @@ def main() -> None:
             password=module.params["cluster_instance"]["password"],
         )
         rest_client = RestClient(client)
-        changed, new_state, diff = run(module, rest_client)
-        module.exit_json(changed=changed, new_state=new_state, diff=diff)
+        changed, record, diff = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

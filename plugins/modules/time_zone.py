@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2023, XLAB Steampunk <steampunk@xlab.si>
 #
@@ -529,13 +530,13 @@ def modify_time_zone(
     new_time_zone_entry = module.params["zone"]
 
     # Init return values and return if no changes were made
-    change, new_state, diff = (
+    change, record, diff = (
         new_time_zone_entry != before.get("time_zone"),
         old_state,
         dict(before=before, after=old_state),
     )
     if not change:
-        return change, new_state, diff
+        return change, record, diff
 
     if new_time_zone_entry not in SUPPORTED_ZONES:
         raise errors.ScaleComputingError("Time Zone: Time zone not supported.")
@@ -552,10 +553,10 @@ def modify_time_zone(
 
     new_time_zone = TimeZone.get_by_uuid(module.params, rest_client)
     after = new_time_zone.to_ansible()
-    new_state, diff = TimeZone.get_state(rest_client), dict(before=before, after=after)
-    change = old_state != new_state
+    record, diff = TimeZone.get_state(rest_client), dict(before=before, after=after)
+    change = old_state != record
 
-    return change, new_state, diff
+    return change, record, diff
 
 
 def run(module: AnsibleModule, rest_client: RestClient) -> tuple[bool, dict, dict]:
@@ -580,8 +581,8 @@ def main() -> None:
             password=module.params["cluster_instance"]["password"],
         )
         rest_client = RestClient(client)
-        changed, new_state, diff = run(module, rest_client)
-        module.exit_json(changed=changed, new_state=new_state, diff=diff)
+        changed, record, diff = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

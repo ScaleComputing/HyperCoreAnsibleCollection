@@ -1,0 +1,4 @@
+---
+- name: Modify current Time Zone entries (in HyperCore API settings)
+  scale_computing.hypercore.time_zone:
+    zone: US/Eastern # must be set if not already present in existing entries

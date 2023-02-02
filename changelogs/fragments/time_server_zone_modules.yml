@@ -1,4 +1,0 @@
----
-major_changes:
-  - Added time_server, time_zone, time_server_info and time_zone_info modules.
-    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/82)
