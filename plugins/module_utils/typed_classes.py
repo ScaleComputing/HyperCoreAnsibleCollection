@@ -10,8 +10,9 @@ __metaclass__ = type
 
 from typing import TypedDict, Union, Any
 
+# Typed Classes use for Python hints.
 
-# Use for type hinting.
+# Registration to ansible return dict.
 class TypedRegistrationToAnsible(TypedDict):
     company_name: Union[str, None]
     contact: Union[str, None]
@@ -19,7 +20,7 @@ class TypedRegistrationToAnsible(TypedDict):
     email: Union[str, None]
 
 
-# Use for type hinting.
+# Registration from ansible input dict.
 class TypedRegistrationFromAnsible(TypedDict):
     company_name: Union[str, None]
     contact: Union[str, None]
@@ -27,18 +28,18 @@ class TypedRegistrationFromAnsible(TypedDict):
     email: Union[str, None]
 
 
-# Use for type hinting.
+# Task tag return dict.
 class TypedTaskTag(TypedDict):
     createdUUID: str
     taskTag: str
 
 
-# Use for type hinting.
+# DNSConfig to ansible return dict.
 class TypedDNSConfigToAnsible(TypedDict):
     uuid: str
     name: str
 
-
+# Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
     before: Union[dict[Any, Any], TypedRegistrationToAnsible, None]
     after: Union[dict[Any, Any], TypedRegistrationToAnsible, None]
