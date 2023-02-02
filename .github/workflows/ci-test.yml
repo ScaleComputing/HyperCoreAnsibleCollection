@@ -3,6 +3,10 @@ on:
   - push
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
+# Run only one workflow for specific branch.
+concurrency:
+  group: ${{ github.ref_name }}
+  cancel-in-progress: true
 jobs:
   docs:
     runs-on: [self-hosted]

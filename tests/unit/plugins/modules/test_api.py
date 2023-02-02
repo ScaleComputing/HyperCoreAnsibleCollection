@@ -96,7 +96,6 @@ class TestPutMethod:
         mocker.patch("builtins.open", mocker.mock_open(read_data="this-data"))
         rest_client.put_record.return_value = "this-value"
         result = api.put_record(module, rest_client)
-        print(result)
         assert result == (True, "this-value")
 
 

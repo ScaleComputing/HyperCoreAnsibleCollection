@@ -11,6 +11,7 @@ __metaclass__ = type
 import uuid
 
 from ..module_utils.errors import InvalidUuidFormatError
+from typing import TypedDict, Union
 
 
 # Used in case of check mode
@@ -115,3 +116,7 @@ def is_superset(superset, candidate):
 
 def filter_results(results, filter_data):
     return [element for element in results if is_superset(element, filter_data)]
+
+
+def is_changed(before: Union[dict, TypedDict], after: Union[dict, TypedDict]) -> bool:
+    return not before == after
