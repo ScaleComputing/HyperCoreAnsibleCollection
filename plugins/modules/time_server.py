@@ -67,7 +67,7 @@ results:
       taskTag: 665
 """
 
-
+from typing import Tuple
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils.task_tag import TaskTag
@@ -80,7 +80,7 @@ from ..module_utils.time_server import TimeServer
 # Remove not needed
 def modify_time_server(
     module: AnsibleModule, rest_client: RestClient
-) -> tuple[bool, dict, dict]:
+) -> Tuple[bool, dict, dict]:
     # GET method to get the Time Server by UUID
     time_server = TimeServer.get_by_uuid(module.params, rest_client)
 
@@ -126,7 +126,7 @@ def modify_time_server(
     return change, record, diff
 
 
-def run(module: AnsibleModule, rest_client: RestClient) -> tuple[bool, dict, dict]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
     return modify_time_server(module, rest_client)
 
 
