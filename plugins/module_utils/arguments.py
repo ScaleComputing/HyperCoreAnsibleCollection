@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from ansible.module_utils.basic import env_fallback
+from typing import Any
 
 # TODO - env from /etc/environment is loaded
 # But when env is set in bash session, env seems to be lost on ssh connection to localhost.
@@ -46,5 +47,5 @@ SHARED_SPECS = dict(
 )
 
 
-def get_spec(*param_names):
+def get_spec(*param_names: str) -> dict[Any, Any]:
     return dict((p, SHARED_SPECS[p]) for p in param_names)

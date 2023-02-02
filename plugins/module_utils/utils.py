@@ -11,6 +11,7 @@ __metaclass__ = type
 import uuid
 
 from ..module_utils.errors import InvalidUuidFormatError
+from typing import Any
 
 
 # Used in case of check mode
@@ -27,7 +28,9 @@ def validate_uuid(value):
         raise InvalidUuidFormatError(value)
 
 
-def get_query(input, *field_names, ansible_hypercore_map):
+def get_query(
+    input: dict[Any, Any], *field_names: str, ansible_hypercore_map: dict[Any, Any]
+):
     """
     Wrapps filter_dict and transform_ansible_to_hypercore_query. Prefer to use 'get_query' over filter_dict
     even if there's no mapping between hypercore and ansible columns for the sake of verbosity and consistency
@@ -113,5 +116,5 @@ def is_superset(superset, candidate):
     return True
 
 
-def filter_results(results, filter_data):
+def filter_results(results, filter_data) -> list[Any]:
     return [element for element in results if is_superset(element, filter_data)]

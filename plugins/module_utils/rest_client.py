@@ -4,11 +4,15 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 from . import errors
 from . import utils
+from ..module_utils.client import Client
 
 __metaclass__ = type
+
+from typing import Any, Union
 
 
 def _query(original=None):
@@ -18,10 +22,12 @@ def _query(original=None):
 
 
 class RestClient:
-    def __init__(self, client):
+    def __init__(self, client: Client):
         self.client = client
 
-    def list_records(self, endpoint, query=None, timeout=None):
+    def list_records(
+        self, endpoint: str, query: dict[Any, Any] = None, timeout: float = None
+    ) -> list[Any]:
         """Results are obtained so that first off, all records are obtained and
         then filtered manually"""
         try:
@@ -30,7 +36,13 @@ class RestClient:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
         return utils.filter_results(records, query)
 
-    def get_record(self, endpoint, query=None, must_exist=False, timeout=None):
+    def get_record(
+        self,
+        endpoint: str,
+        query: dict[Any, Any] = None,
+        must_exist: bool = False,
+        timeout: float = None,
+    ) -> Union[dict[Any, Any], None]:
         records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)
         if len(records) > 1:
             raise errors.ScaleComputingError(

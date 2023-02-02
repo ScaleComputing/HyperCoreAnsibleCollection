@@ -73,3 +73,8 @@ integration:  ## Run integration tests
 docs:  ## Build collection documentation
 	pip install -r docs.requirements
 	$(MAKE) -C docs -f Makefile.custom docs
+
+.PHONY: mypy
+mypy: ## Run mypy hint checker
+	pip install -r mypy.requirements
+	mypy -p plugins
