@@ -22,12 +22,13 @@ class Role(PayloadMapper):
         pass
 
     @classmethod
-    def from_hypercore(cls, role_dict):
-        if not role_dict:  # In case for get_record, return None if no result is found
+    def from_hypercore(cls, hypercore_data):
+        if not hypercore_data:
+            # In case for get_record, return None if no result is found
             return None
         return cls(
-            uuid=role_dict["uuid"],
-            name=role_dict["name"],
+            uuid=hypercore_data["uuid"],
+            name=hypercore_data["name"],
         )
 
     def to_hypercore(self):

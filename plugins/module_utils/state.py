@@ -28,3 +28,9 @@ class VMState(str, enum.Enum):
     present = "present"
     absent = "absent"
     set = "set"
+
+
+class State(str, enum.Enum):
+    present = "present"
+    absent = "absent"
+    set = "set"
