@@ -25,7 +25,8 @@ class User(PayloadMapper):
         pass
 
     @classmethod
-    def from_hypercore(cls, user_dict):
+    def from_hypercore(cls, hypercore_data):
+        user_dict = hypercore_data
         if not user_dict:  # In case for get_record, return None if no result is found
             return None
         return cls(

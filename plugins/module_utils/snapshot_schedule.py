@@ -21,7 +21,8 @@ class SnapshotSchedule(PayloadMapper):
         self.recurrences = recurrences
 
     @classmethod
-    def from_ansible(cls, vm_dict):
+    def from_ansible(cls, ansible_data):
+        vm_dict = ansible_data
         return SnapshotSchedule(
             name=vm_dict["name"],
             recurrences=[
@@ -31,7 +32,8 @@ class SnapshotSchedule(PayloadMapper):
         )
 
     @classmethod
-    def from_hypercore(cls, vm_dict):
+    def from_hypercore(cls, hypercore_data):
+        vm_dict = hypercore_data
         if not vm_dict:  # In case for get_record, return None if no result is found
             return None
         return SnapshotSchedule(
@@ -136,7 +138,8 @@ class Recurrence(PayloadMapper):
         self.uuid = uuid
 
     @classmethod
-    def from_ansible(cls, vm_dict):
+    def from_ansible(cls, ansible_data):
+        vm_dict = ansible_data
         if vm_dict.get("remote_retention", None):
             remote_retention = vm_dict["remote_retention"]
         else:
@@ -150,7 +153,8 @@ class Recurrence(PayloadMapper):
         )
 
     @classmethod
-    def from_hypercore(cls, vm_dict):
+    def from_hypercore(cls, hypercore_data):
+        vm_dict = hypercore_data
         if not vm_dict:  # In case for get_record, return None if no result is found
             return None
         return Recurrence(

@@ -521,4 +521,9 @@ class TestMain:
         success, result = run_main(vm_node_affinity)
 
         assert success is False
-        assert "missing required arguments: strict_affinity, vm_name" in result["msg"]
+        # ansible2.9+py3.8 has order "vm_name, strict_affinity"
+        # print("result.msg={}".format(result["msg"]))
+        assert (
+            "missing required arguments: strict_affinity, vm_name" in result["msg"]
+            or "missing required arguments: vm_name, strict_affinity" in result["msg"]
+        )
