@@ -101,6 +101,7 @@ jobs:
   integration-test:
     needs:
       - integration-prepare-env
+      - units-test
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
     env:
