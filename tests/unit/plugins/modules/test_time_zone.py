@@ -85,7 +85,9 @@ class TestModifyTimeZone:
 
             time_zone.modify_time_zone(module, rest_client)
 
-    def test_modify_time_zone_unsupported_zone(self, create_module, rest_client, mocker):
+    def test_modify_time_zone_unsupported_zone(
+        self, create_module, rest_client, mocker
+    ):
         with pytest.raises(errors.ScaleComputingError):
             module = create_module(
                 params=dict(
