@@ -12,6 +12,7 @@ from typing import TypedDict, Union, Any
 
 # Typed Classes use for Python hints.
 
+
 # Registration to ansible return dict.
 class TypedRegistrationToAnsible(TypedDict):
     company_name: Union[str, None]
@@ -38,6 +39,7 @@ class TypedTaskTag(TypedDict):
 class TypedDNSConfigToAnsible(TypedDict):
     uuid: str
     name: str
+
 
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
