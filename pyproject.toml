@@ -40,6 +40,8 @@ module = [
     "plugins.module_utils.vm",
     "plugins.module_utils.rest_client",
     "plugins.module_utils.client",
+    "plugins.module_utils.time_server",
+    "plugins.module_utils.time_zone",
     "plugins.modules.api",
     "plugins.modules.iso_info",
     "plugins.modules.iso",
@@ -65,6 +67,10 @@ module = [
     "plugins.modules.vm",
     "plugins.modules.dns_config",
     "plugins.modules.dns_config_info",
+    "plugins.modules.time_server",
+    "plugins.modules.time_server_info",
+    "plugins.modules.time_zone",
+    "plugins.modules.time_zone_info",
     "plugins.inventory.*"
 ]
 disable_error_code = ["no-untyped-def", "no-untyped-call", "assignment", "type-arg", "var-annotated", "import", "misc", "arg-type", "dict-item", "override", "union-attr", "valid-type"]
