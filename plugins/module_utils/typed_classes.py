@@ -8,7 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from typing import TypedDict, Union, Any
+from typing import TypedDict, Union, Any, Dict
 
 # Typed Classes use for Python hints.
 
@@ -43,5 +43,5 @@ class TypedDNSConfigToAnsible(TypedDict):
 
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
-    before: Union[dict[Any, Any], TypedRegistrationToAnsible, None]
-    after: Union[dict[Any, Any], TypedRegistrationToAnsible, None]
+    before: Union[Dict[Any, Any], TypedRegistrationToAnsible, None]
+    after: Union[Dict[Any, Any], TypedRegistrationToAnsible, None]
