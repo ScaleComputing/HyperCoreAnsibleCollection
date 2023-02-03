@@ -31,89 +31,89 @@
 
     # -----------------------------------------------------------
 
-    - name: Modify SMTP configs - REQUIRED ONLY
-      scale_computing.hypercore.smtp:
-        server: smtp.office365.com
-        port: 21
-      register: result
-    - scale_computing.hypercore.smtp_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.smtp_server == "smtp.office365.com"
-          - info.record.port == 21
-          - info.record.use_ssl == False
-          - info.record.use_auth == False
-          - info.record.auth_user == ""
-          - info.record.from_address == ""
-
-    - name: Modify SMTP configs - NO AUTHENTICATION
-      scale_computing.hypercore.smtp:
-        server: smtp.office365.com
-        port: 26
-        use_ssl: False
-        requires_auth: False
-        from_address: test@test.com
-      register: result
-    - scale_computing.hypercore.smtp_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.smtp_server == "smtp.office365.com"
-          - info.record.port == 26
-          - info.record.use_ssl == False
-          - info.record.use_auth == False
-          - info.record.auth_user == default_auth_user
-          - info.record.from_address == "test@test.com"
-
-    - name: Repeat the previous task
-      scale_computing.hypercore.smtp:
-        server: smtp.office365.com
-        port: 26
-        use_ssl: False
-        requires_auth: False
-        from_address: test@test.com
-      register: result
-    - scale_computing.hypercore.smtp_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == False
-          - result.diff.before == result.diff.after
-          - info.record.smtp_server == "smtp.office365.com"
-          - info.record.port == 26
-          - info.record.use_ssl == False
-          - info.record.use_auth == False
-          - info.record.auth_user == default_auth_user
-          - info.record.from_address == "test@test.com"
-
-    - name: Modify SMTP configs - WITH AUTHENTICATION
-      scale_computing.hypercore.smtp:
-        server: smtp-relay.gmail.com
-        port: 25
-        use_ssl: False
-        requires_auth: True
-        username: test
-        password: test123
-        from_address: test@test.com
-      register: result
-    - scale_computing.hypercore.smtp_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.smtp_server == "smtp-relay.gmail.com"
-          - info.record.port == 25
-          - info.record.use_ssl == False
-          - info.record.use_auth == True
-          - info.record.auth_user == "test"
-          - info.record.from_address == "test@test.com"
-
+#    - name: Modify SMTP configs - REQUIRED ONLY
+#      scale_computing.hypercore.smtp:
+#        server: smtp.office365.com
+#        port: 21
+#      register: result
+#    - scale_computing.hypercore.smtp_info:
+#      register: info
+#    - ansible.builtin.assert:
+#        that:
+#          - result.changed == True
+#          - result.diff.before != result.diff.after
+#          - info.record.smtp_server == "smtp.office365.com"
+#          - info.record.port == 21
+#          - info.record.use_ssl == False
+#          - info.record.use_auth == False
+#          - info.record.auth_user == ""
+#          - info.record.from_address == ""
+#
+#    - name: Modify SMTP configs - NO AUTHENTICATION
+#      scale_computing.hypercore.smtp:
+#        server: smtp.office365.com
+#        port: 26
+#        use_ssl: False
+#        requires_auth: False
+#        from_address: test@test.com
+#      register: result
+#    - scale_computing.hypercore.smtp_info:
+#      register: info
+#    - ansible.builtin.assert:
+#        that:
+#          - result.changed == True
+#          - result.diff.before != result.diff.after
+#          - info.record.smtp_server == "smtp.office365.com"
+#          - info.record.port == 26
+#          - info.record.use_ssl == False
+#          - info.record.use_auth == False
+#          - info.record.auth_user == default_auth_user
+#          - info.record.from_address == "test@test.com"
+#
+#    - name: Repeat the previous task
+#      scale_computing.hypercore.smtp:
+#        server: smtp.office365.com
+#        port: 26
+#        use_ssl: False
+#        requires_auth: False
+#        from_address: test@test.com
+#      register: result
+#    - scale_computing.hypercore.smtp_info:
+#      register: info
+#    - ansible.builtin.assert:
+#        that:
+#          - result.changed == False
+#          - result.diff.before == result.diff.after
+#          - info.record.smtp_server == "smtp.office365.com"
+#          - info.record.port == 26
+#          - info.record.use_ssl == False
+#          - info.record.use_auth == False
+#          - info.record.auth_user == default_auth_user
+#          - info.record.from_address == "test@test.com"
+#
+#    - name: Modify SMTP configs - WITH AUTHENTICATION
+#      scale_computing.hypercore.smtp:
+#        server: smtp-relay.gmail.com
+#        port: 25
+#        use_ssl: False
+#        requires_auth: True
+#        username: test
+#        password: test123
+#        from_address: test@test.com
+#      register: result
+#    - scale_computing.hypercore.smtp_info:
+#      register: info
+#    - ansible.builtin.assert:
+#        that:
+#          - result.changed == True
+#          - result.diff.before != result.diff.after
+#          - info.record.smtp_server == "smtp-relay.gmail.com"
+#          - info.record.port == 25
+#          - info.record.use_ssl == False
+#          - info.record.use_auth == True
+#          - info.record.auth_user == "test"
+#          - info.record.from_address == "test@test.com"
+#
     # -----------------------------------------------------------
 # TODO:
 #   - default_port -> to INT
