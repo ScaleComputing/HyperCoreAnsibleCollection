@@ -1,0 +1,56 @@
+---
+name: Ansible test
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 6 * * *'
+env:
+  NAMESPACE: scale_computing
+  COLLECTION_NAME: hypercore
+  # ANSIBLE_TEST_PREFER_PODMAN: 1
+jobs:
+  sanity:
+    name: sanity test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Perform sanity testing with ansible-test
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          ansible-core-version: stable-2.14
+          target-python-version: 3.11
+          testing-type: sanity
+
+  get_matrix:
+    outputs:
+      version_matrix: ${{ steps.set-matrix.outputs.version_matrix }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - run: python -c "import json, yaml; print('version_matrix=' + json.dumps(yaml.safe_load(open('.github/workflows/files/ansible-test-units-matrix.yml'))))"
+      - id: set-matrix
+        name: set version_matrix output
+        # run: echo "::set-output name=matrix::{\"node\":[10, 12, 14]}"
+        run: python -c "import json, yaml; print('version_matrix=' + json.dumps(yaml.safe_load(open('.github/workflows/files/ansible-test-units-matrix.yml'))))"  >> $GITHUB_OUTPUT
+      - run: cat $GITHUB_OUTPUT
+
+  units:
+    needs: get_matrix
+    name: units ${{ matrix.ansible }}-py${{ matrix.python }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.get_matrix.outputs.version_matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Perform units testing with ansible-test
+        uses: ansible-community/ansible-test-gh-action@release/v1
+        with:
+          ansible-core-version: ${{ matrix.ansible }}
+          target-python-version: ${{ matrix.python }}
+          testing-type: units

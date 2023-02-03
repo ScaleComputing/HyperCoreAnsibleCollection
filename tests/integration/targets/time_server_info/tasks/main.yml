@@ -1,0 +1,32 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  vars:
+    actual_uuid: ""
+    actual_host: ""
+
+  block:
+    - name: Get expected configs
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/TimeSource/timesource_guid
+      register: time_server
+    - ansible.builtin.set_fact:
+        actual_host: "{{ time_server.record.0.host }}"
+        actual_uuid: "{{ time_server.record.0.uuid }}"
+
+    - name: Retrieve info about Time Server
+      scale_computing.hypercore.time_server_info:
+      register: result
+    - ansible.builtin.debug:
+        msg: "{{ result.record }}"
+    - ansible.builtin.assert:
+        that:
+          - result.record != []
+          - "{{ result.record.keys() | sort == ['host', 'latest_task_tag', 'uuid'] }}"
+          - result.record.uuid == actual_uuid
+          - result.record.host == actual_host
+          - result.record.latest_task_tag

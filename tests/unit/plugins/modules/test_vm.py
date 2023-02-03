@@ -1719,7 +1719,11 @@ class TestMain:
     def test_fail_no_required_fields(self, run_main):
         success, result = run_main(vm)
         assert success is False
-        assert result["msg"] == "missing required arguments: state, vm_name"
+        # # ansible2.9+py3.8 has order "vm_name, state"
+        assert (
+            result["msg"] == "missing required arguments: state, vm_name"
+            or result["msg"] == "missing required arguments: vm_name, state"
+        )
 
     def test_fail_required_if(self, run_main):
         params = dict(

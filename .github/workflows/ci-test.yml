@@ -33,7 +33,7 @@ jobs:
           mypy -p plugins
 
   docs:
-    runs-on: [self-hosted]
+    runs-on: [ubuntu-latest]
     container: python:3.10-slim-buster
     steps:
       - name: Checkout
@@ -49,7 +49,7 @@ jobs:
       - run: cd $WORKDIR && ls -al docs/build/html
 
   sanity-test:
-    runs-on: [self-hosted]
+    runs-on: [ubuntu-latest]
     container: python:3.10-slim-buster
     steps:
       - name: Checkout
@@ -69,7 +69,7 @@ jobs:
       - run: cd $WORKDIR && ansible-test sanity
 
   units-test:
-    runs-on: [self-hosted]
+    runs-on: [ubuntu-latest]
     container: python:3.10-slim-buster
     steps:
       - name: Checkout
@@ -125,6 +125,7 @@ jobs:
   integration-test:
     needs:
       - integration-prepare-env
+      - units-test
     runs-on: [self-hosted]
     container: python:3.10-slim-buster
     env:

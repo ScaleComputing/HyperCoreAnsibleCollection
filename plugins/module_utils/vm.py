@@ -161,7 +161,8 @@ class VM(PayloadMapper):
         return self.disks
 
     @classmethod
-    def from_ansible(cls, vm_dict):
+    def from_ansible(cls, ansible_data):
+        vm_dict = ansible_data
         return cls(
             uuid=vm_dict.get("uuid", None),  # No uuid when creating object from ansible
             name=vm_dict["vm_name"],

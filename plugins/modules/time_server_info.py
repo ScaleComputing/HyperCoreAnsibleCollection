@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2023, XLAB Steampunk <steampunk@xlab.si>
 #
@@ -8,69 +7,83 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# DOCUMENTATION = r"""
+# module: time_server_info
+#
+# author:
+#   - Ana Zobec (@anazobec)
+# short_description: List Time Server source configuration on HyperCore API.
+# description:
+#   - Use this module to list information about the Time Server configuration on HyperCore API.
+# version_added: 1.2.0
+# extends_documentation_fragment:
+#   - scale_computing.hypercore.cluster_instance
+# seealso:
+#   - module: scale_computing.hypercore.time_server
+#   - module: scale_computing.hypercore.time_zone
+#   - module: scale_computing.hypercore.time_zone_info
+# """
 
 DOCUMENTATION = r"""
-module: dns_config_info
+module: time_server_info
 
 author:
   - Ana Zobec (@anazobec)
-short_description: List DNS configuration on HyperCore API
+short_description: List Time Server configuration on HyperCore API.
 description:
-  - Use this module to list information about the DNS configuration on HyperCore API.
+  - Use this module to list information about the Time Server configuration on HyperCore API.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:
-  - module: scale_computing.hypercore.dns_config
+  - module: scale_computing.hypercore.time_server
+  - module: scale_computing.hypercore.time_zone
+  - module: scale_computing.hypercore.time_zone_info
 """
 
 
 EXAMPLES = r"""
-- name: List all configurations on DNS configuration on HyperCore API
-  scale_computing.hypercore.dns_config_info:
-  register: dns_config
+- name: List all Time Server source configurations on HyperCore API
+  scale_computing.hypercore.time_server_info:
+  register: time_server
 """
 
 RETURN = r"""
 record:
   description:
-    - DNS configuration record.
+    - Time Server configuration record.
   returned: success
   type: dict
   sample:
-    uuid: "dnsconfig_guid"
-    server_ips:
-      - "1.1.1.1"
-      - "1.0.0.1"
-    search_domains: []
+    uuid: timesource_guid
+    host: pool.ntp.org
     latest_task_tag:
-      completed: 1673946776
-      created: 1673946770
+      completed: 1675169105
+      created: 1675169100
       descriptionParameters: []
-      formattedDescription: "DNSConfig Update"
+      formattedDescription: TimeSource Update
       formattedMessage: ""
       messageParameters: []
-      modified: 1673946776
+      modified: 1675169105
       nodeUUIDs:
-        - "32c5012d-7d7b-49b4-9201-70e02b0d8758"
-      objectUUID: "dnsconfig_guid"
+        - 32c5012d-7d7b-49b4-9201-70e02b0d8758
+      objectUUID: timesource_guid
       progressPercent: 100
-      sessionID: "775155cc-bc4e-445c-9efa-a304f4f66c82"
-      state: "COMPLETE"
-      taskTag: "359"
+      sessionID: b0ef6ff6-e7dc-4b13-80f2-010e1bcbcfbf
+      state: COMPLETE
+      taskTag: 665
 """
-
 
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.dns_config import DNSConfig
+from ..module_utils.time_server import TimeServer
 
 
 def run(rest_client: RestClient):
-    return DNSConfig.get_state(rest_client)
+    return TimeServer.get_state(rest_client)
 
 
 def main():

@@ -28,28 +28,29 @@ class ISO(PayloadMapper):
         self.path = path
 
     @classmethod
-    def from_ansible(cls, vm_dict):
+    def from_ansible(cls, ansible_data):
         # name is always going to be present when this method is used. The rest of the fields are assigned distinct
         # default values when retrieving values from the vm_dict.
         return ISO(
-            name=vm_dict["name"],
-            size=vm_dict.get("size", -1),
+            name=ansible_data["name"],
+            size=ansible_data.get("size", -1),
         )
 
     @classmethod
-    def from_hypercore(cls, vm_dict):
-        if not vm_dict:  # In case for get_record, return None if no result is found
+    def from_hypercore(cls, hypercore_data):
+        if not hypercore_data:
+            # In case for get_record, return None if no result is found
             return None
         return ISO(
-            uuid=vm_dict["uuid"],
-            name=vm_dict["name"],
-            size=vm_dict["size"],
+            uuid=hypercore_data["uuid"],
+            name=hypercore_data["name"],
+            size=hypercore_data["size"],
             mounts=[
                 dict(vm_uuid=mount["vmUUID"], vm_name=mount["vmName"])
-                for mount in vm_dict["mounts"]
+                for mount in hypercore_data["mounts"]
             ],
-            ready_for_insert=vm_dict["readyForInsert"],
-            path=vm_dict["path"],
+            ready_for_insert=hypercore_data["readyForInsert"],
+            path=hypercore_data["path"],
         )
 
     def to_hypercore(self):

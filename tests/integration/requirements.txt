@@ -1,0 +1,2 @@
+# dnspython is used in time_server test
+dnspython==2.3.0
