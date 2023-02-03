@@ -1,0 +1,132 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  vars:
+    default_uuid: ""
+    default_smtp_server: ""
+    default_port: 0
+    default_use_ssl: False
+    default_use_auth: False
+    default_auth_user: ""
+    default_from_address: ""
+
+  block:
+    - name: Get default configs
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/AlertSMTPConfig/smtpconfig_guid
+      register: smtp_config
+    - ansible.builtin.set_fact:
+        default_smtp_server: "{{ smtp_config.record.0.smtpServer }}"
+        default_port: "{{ smtp_config.record.0.port|int }}"
+        default_use_ssl: "{{ smtp_config.record.0.useSSL }}"
+        default_use_auth: "{{ smtp_config.record.0.useAuth }}"
+        default_auth_user: "{{ smtp_config.record.0.authUser }}"
+        default_auth_password: "{{ smtp_config.record.0.authPassword }}"
+        default_from_address: "{{ smtp_config.record.0.fromAddress }}"
+        default_uuid: "{{ smtp_config.record.0.uuid }}"
+
+    # -----------------------------------------------------------
+
+    - name: Modify SMTP configs - REQUIRED ONLY
+      scale_computing.hypercore.smtp:
+        server: smtp.office365.com
+        port: 21
+      register: result
+    - scale_computing.hypercore.smtp_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+          - info.record.smtp_server == "smtp.office365.com"
+          - info.record.port == 21
+          - info.record.use_ssl == False
+          - info.record.use_auth == False
+          - info.record.auth_user == ""
+          - info.record.from_address == ""
+
+    - name: Modify SMTP configs - NO AUTHENTICATION
+      scale_computing.hypercore.smtp:
+        server: smtp.office365.com
+        port: 26
+        use_ssl: False
+        requires_auth: False
+        from_address: test@test.com
+      register: result
+    - scale_computing.hypercore.smtp_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+          - info.record.smtp_server == "smtp.office365.com"
+          - info.record.port == 26
+          - info.record.use_ssl == False
+          - info.record.use_auth == False
+          - info.record.auth_user == default_auth_user
+          - info.record.from_address == "test@test.com"
+
+    - name: Repeat the previous task
+      scale_computing.hypercore.smtp:
+        server: smtp.office365.com
+        port: 26
+        use_ssl: False
+        requires_auth: False
+        from_address: test@test.com
+      register: result
+    - scale_computing.hypercore.smtp_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+          - info.record.smtp_server == "smtp.office365.com"
+          - info.record.port == 26
+          - info.record.use_ssl == False
+          - info.record.use_auth == False
+          - info.record.auth_user == default_auth_user
+          - info.record.from_address == "test@test.com"
+
+    - name: Modify SMTP configs - WITH AUTHENTICATION
+      scale_computing.hypercore.smtp:
+        server: smtp-relay.gmail.com
+        port: 25
+        use_ssl: False
+        requires_auth: True
+        username: test
+        password: test123
+        from_address: test@test.com
+      register: result
+    - scale_computing.hypercore.smtp_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+          - info.record.smtp_server == "smtp-relay.gmail.com"
+          - info.record.port == 25
+          - info.record.use_ssl == False
+          - info.record.use_auth == True
+          - info.record.auth_user == "test"
+          - info.record.from_address == "test@test.com"
+
+    # -----------------------------------------------------------
+# TODO:
+#   - default_port -> to INT
+#   - default_use_ssl -> to BOOL
+#   - default_use_auth -> to BOOL
+#    - name: Restore back to default values
+#      scale_computing.hypercore.api:
+#        action: post
+#        endpoint: /rest/v1/AlertSMTPConfig/smtpconfig_guid
+#        data:
+#          smtpServer: "{{ default_smtp_server }}"
+#          port: "{{ default_port | int }}"
+#          useSSL: "{{ default_use_ssl | bool }}"
+#          useAuth: "{{ default_use_auth | bool }}"
+#          authUser: "{{ default_auth_user }}"
+#          authPassword: "{{ default_auth_password }}"
