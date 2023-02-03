@@ -1,0 +1,4 @@
+---
+- name: Modify current NTP Time Server entries (in HyperCore API settings)
+  scale_computing.hypercore.time_server:
+    source: pool.ntp.org # must be set if not already present in existing entries

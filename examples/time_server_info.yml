@@ -1,0 +1,6 @@
+---
+- name: List current Time Server entries
+  scale_computing.hypercore.time_server_info:
+  register: time_server_info
+- ansible.builtin.debug:
+    msg: "{{ time_server_info }}"

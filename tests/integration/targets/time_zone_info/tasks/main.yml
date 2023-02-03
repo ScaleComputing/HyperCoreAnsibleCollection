@@ -1,0 +1,32 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  vars:
+    actual_uuid: ""
+    actual_zone: ""
+
+  block:
+    - name: Get expected configs
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/TimeZone/timezone_guid
+      register: actual
+    - ansible.builtin.set_fact:
+        actual_zone: "{{ actual.record.0.timeZone }}"
+        actual_uuid: "{{ actual.record.0.uuid }}"
+
+    - name: Retrieve info about Time Zone
+      scale_computing.hypercore.time_zone_info:
+      register: result
+    - ansible.builtin.debug:
+        msg: "{{ result }}"
+    - ansible.builtin.assert:
+        that:
+          - result.record != []
+          - "{{ result.record.keys() | sort == ['latest_task_tag', 'time_zone', 'uuid'] }}"
+          - result.record.uuid == actual_uuid
+          - result.record.time_zone == actual_zone
+          - result.record.latest_task_tag
