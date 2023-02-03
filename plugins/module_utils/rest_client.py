@@ -13,7 +13,7 @@ from ..module_utils.typed_classes import TypedTaskTag
 
 __metaclass__ = type
 
-from typing import Any, Union, Dict
+from typing import Any, Union
 
 
 def _query(original=None):
@@ -27,7 +27,7 @@ class RestClient:
         self.client = client
 
     def list_records(
-        self, endpoint: str, query: Dict[Any, Any] = None, timeout: float = None
+        self, endpoint: str, query: dict[Any, Any] = None, timeout: float = None
     ) -> list[Any]:
         """Results are obtained so that first off, all records are obtained and
         then filtered manually"""
@@ -40,10 +40,10 @@ class RestClient:
     def get_record(
         self,
         endpoint: str,
-        query: Dict[Any, Any] = None,
+        query: dict[Any, Any] = None,
         must_exist: bool = False,
         timeout: float = None,
-    ) -> Union[Dict[Any, Any], None]:
+    ) -> Union[dict[Any, Any], None]:
         records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)
         if len(records) > 1:
             raise errors.ScaleComputingError(

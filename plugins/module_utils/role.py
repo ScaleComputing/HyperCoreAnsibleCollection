@@ -13,7 +13,7 @@ from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedDNSConfigToAnsible
 
-from typing import Union, Any, Dict
+from typing import Union, Any
 
 
 class Role(PayloadMapper):
@@ -22,11 +22,13 @@ class Role(PayloadMapper):
         self.name = name
 
     @classmethod
-    def from_ansible(cls, ansible_data: Dict[Any, Any]) -> None:
+    def from_ansible(cls, ansible_data: dict[Any, Any]) -> None:
         pass
 
     @classmethod
-    def from_hypercore(cls, hypercore_data: Dict[Any, Any]) -> Union[Role, None]:
+    def from_hypercore(
+        cls, hypercore_data: Union[dict[Any, Any], None]
+    ) -> Union[Role, None]:
         if not hypercore_data:
             # In case for get_record, return None if no result is found
             return None
@@ -65,10 +67,8 @@ class Role(PayloadMapper):
         hypercore_dict = rest_client.get_record(
             "/rest/v1/Role/{0}".format(role_uuid), must_exist=must_exist
         )
-        if hypercore_dict:
-            role = cls.from_hypercore(hypercore_dict)
-            return role
-        return None
+        role = cls.from_hypercore(hypercore_dict)
+        return role
 
     @classmethod
     def get_role_from_name(
@@ -77,7 +77,5 @@ class Role(PayloadMapper):
         hypercore_dict = rest_client.get_record(
             "/rest/v1/Role", {"name": role_name}, must_exist=must_exist
         )
-        if hypercore_dict:
-            role = cls.from_hypercore(hypercore_dict)
-            return role
-        return None
+        role = cls.from_hypercore(hypercore_dict)
+        return role

@@ -12,7 +12,7 @@ __metaclass__ = type
 import uuid
 
 from ..module_utils.errors import InvalidUuidFormatError
-from typing import Union, Any, Dict
+from typing import Union, Any
 from ..module_utils.typed_classes import TypedTaskTag, TypedRegistrationToAnsible
 
 
@@ -31,7 +31,7 @@ def validate_uuid(value):
 
 
 def get_query(
-    input: Dict[Any, Any], *field_names: str, ansible_hypercore_map: Dict[Any, Any]
+    input: dict[Any, Any], *field_names: str, ansible_hypercore_map: dict[Any, Any]
 ):
     """
     Wrapps filter_dict and transform_ansible_to_hypercore_query. Prefer to use 'get_query' over filter_dict

@@ -17,7 +17,7 @@ from ..module_utils.typed_classes import (
     TypedRegistrationFromAnsible,
     TypedRegistrationToAnsible,
 )
-from typing import Union, Any, Dict
+from typing import Union, Any
 
 
 class Registration(PayloadMapper):
@@ -52,7 +52,7 @@ class Registration(PayloadMapper):
         return None
 
     @classmethod
-    def from_hypercore(cls, hypercore_data: Dict[Any, Any]) -> Registration:
+    def from_hypercore(cls, hypercore_data: dict[Any, Any]) -> Registration:
         try:
             obj = cls()
             obj.uuid = hypercore_data["uuid"]
@@ -77,7 +77,7 @@ class Registration(PayloadMapper):
         obj.email = ansible_data.get("email", None)
         return obj
 
-    def to_hypercore(self) -> Dict[Any, Any]:
+    def to_hypercore(self) -> dict[Any, Any]:
         hypercore_dict = dict()
         if self.company_name:
             hypercore_dict["companyName"] = self.company_name
