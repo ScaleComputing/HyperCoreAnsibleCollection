@@ -6,18 +6,25 @@
   connection: local
   gather_facts: false
   vars:
-    # source cluster is already exposed via default env vars
-    # for destination cluster we need username and password
-    # host/url also needs to be provided (be we only check it is sane IP as used by out replication tests)
     replication_dest_cluster:
-      host: "{{ lookup('ansible.builtin.env', 'SC_REPLICATION_DEST_HOST') }}"
-      username: "{{ lookup('ansible.builtin.env', 'SC_REPLICATION_DEST_USERNAME') }}"
-      password: "{{ lookup('ansible.builtin.env', 'SC_REPLICATION_DEST_PASSWORD') }}"
+      host: "{{ sc_replication_dest_host }}"
+      username: "{{ sc_replication_dest_username }}"
+      password: "{{ sc_replication_dest_password }}"
+      timeout: "{{ sc_timeout }}"
+    replication_src_cluster:
+      host: "{{ sc_host }}"
+      username: "{{ sc_username }}"
+      password: "{{ sc_password }}"
+      timeout: "{{ sc_timeout }}"
+  vars_files:
+    - ../integration_config.yml
+
   tasks:
     # ==================================================================
     # source cluster
     - name: Get available cluster connection
       scale_computing.hypercore.api:
+        cluster_instance: "{{ replication_src_cluster }}"
         action: get
         endpoint: /rest/v1/RemoteClusterConnection
       register: cluster_connection_info

@@ -8,3 +8,7 @@ smb_server: <example 10.0.0.3>
 smb_share: <example /users>
 smb_username: <example myusername>
 smb_password: <example mypassword>
+# Replication cluster needs to be cleaned up.
+sc_replication_dest_host: <your_host, example https://10.0.0.4>
+sc_replication_dest_username: <your_user4>
+sc_replication_dest_password: <your_password4>

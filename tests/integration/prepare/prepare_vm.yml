@@ -2,12 +2,28 @@
 - name: Create VM for integration tests
   hosts: localhost
   connection: local
+  vars:
+    cluster_instance:
+      host: "{{ sc_host }}"
+      username: "{{ sc_username }}"
+      password: "{{ sc_password }}"
+      timeout: "{{ sc_timeout }}"
+  vars_files:
+    - ../integration_config.yml
+
   tasks:
+  - name: Debug show SC_HOST
+    ansible.builtin.debug:
+      msg: SC_HOST={{ lookup('ansible.builtin.env', 'SC_HOST') }} sc_host={{ sc_host }}
+
   - name: Check if Source VM exists
     scale_computing.hypercore.vm_info:
+      cluster_instance: "{{ cluster_instance }}"
       vm_name: vm-integration-test-source-vm
     register: vm_created_info
-  - ansible.builtin.assert:
+  - name: Check old VM state
+    when: vm_created_info.records | length != 0
+    ansible.builtin.assert:
       that:
         - vm_created_info.records.0.description == "Source VM"
         - vm_created_info.records.0.memory == 536870912
@@ -29,6 +45,7 @@
 
   - name: Create VM
     scale_computing.hypercore.vm:
+      cluster_instance: "{{ cluster_instance }}"
       vm_name: vm-integration-test-source-vm
       description: Source VM
       state: present
@@ -55,6 +72,7 @@
 
   - name: Check that Source VM was created
     scale_computing.hypercore.vm_info:
+      cluster_instance: "{{ cluster_instance }}"
       vm_name: vm-integration-test-source-vm
     register: vm_created_info
   - ansible.builtin.assert:
