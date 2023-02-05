@@ -15,13 +15,17 @@
         actual_uuid: "{{ time_zone.record.0.uuid }}"
 
     # ------------------------------------------------
+    - name: Set initial state
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/TimeZone/timezone_guid
+        data:
+          timeZone: "Europe/Zagreb"
 
     - name: Change time zone
       scale_computing.hypercore.time_zone:
         zone: Europe/Ljubljana
       register: result
-    # TODO Do we miss a wait_task?
-    # See failure at https://github.com/ScaleComputing/HyperCoreAnsibleCollection/actions/runs/4098260884/jobs/7067253372
     - scale_computing.hypercore.time_zone_info:
       register: info
     - ansible.builtin.assert:
