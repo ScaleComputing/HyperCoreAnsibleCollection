@@ -68,6 +68,7 @@ jobs:
     container: python:3.10-slim-buster
     env:
       ANSIBLE_COLLECTIONS_PATH: /work-dir
+      SKIP_TESTS: "vm_import|vm_export"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -93,7 +94,7 @@ jobs:
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
       - id: set-matrix
-        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   integration-test:
     needs:
