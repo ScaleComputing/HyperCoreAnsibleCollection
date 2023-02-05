@@ -68,7 +68,7 @@ jobs:
     container: python:3.10-slim-buster
     env:
       ANSIBLE_COLLECTIONS_PATH: /work-dir
-      SKIP_TESTS: "vm_import|vm_export|dns_config|time_server"
+      SKIP_TESTS: "vm_import|vm_export|dns_config|time_server|time_zone"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -169,7 +169,7 @@ jobs:
     container: python:3.10-slim-buster
     strategy:
       matrix:
-        test_name: [time_server]
+        test_name: [time_server, time_zone]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
