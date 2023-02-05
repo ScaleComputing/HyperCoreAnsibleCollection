@@ -68,7 +68,7 @@ jobs:
     container: python:3.10-slim-buster
     env:
       ANSIBLE_COLLECTIONS_PATH: /work-dir
-      SKIP_TESTS: "vm_import|vm_export"
+      SKIP_TESTS: "vm_import|vm_export|dns_config|time_server"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -106,6 +106,70 @@ jobs:
       matrix:
         # test_name: [user_info]
         test_name: ${{ fromJson(needs.integration-prepare-env.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: apt update
+      - run: apt install -y git make
+      - run: apt install -y genisoimage
+      - run: pip install ansible-core==2.13.1
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+        # TODO - make integration_config.yml a reusable artifact/output of integration-prepare-env
+      - run: |
+          cd $WORKDIR
+          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
+          cat tests/integration/integration_config.yml
+          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
+          ls -al tests/integration/integration_config.yml
+      - run: cd $WORKDIR && ansible-test integration ${{ matrix.test_name }}
+
+  # time_server requires functional DNS, so run it after dns_config test
+  # We cannot "needs" a single job from matrix - see
+  # https://stackoverflow.com/questions/74881221/ci-github-actions-require-only-one-specific-job-in-matrix-to-finish-for-othe
+  integ-part1:
+    needs:
+      - integration-prepare-env
+      - units-test
+    runs-on: [self-hosted2]
+    container: python:3.10-slim-buster
+    strategy:
+      matrix:
+        test_name: [dns_config]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: apt update
+      - run: apt install -y git make
+      - run: apt install -y genisoimage
+      - run: pip install ansible-core==2.13.1
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+        # TODO - make integration_config.yml a reusable artifact/output of integration-prepare-env
+      - run: |
+          cd $WORKDIR
+          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
+          cat tests/integration/integration_config.yml
+          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
+          ls -al tests/integration/integration_config.yml
+      - run: cd $WORKDIR && ansible-test integration ${{ matrix.test_name }}
+
+  integ-part2:
+    needs:
+      - integration-prepare-env
+      - units-test
+      - integ-part1
+    runs-on: [self-hosted2]
+    container: python:3.10-slim-buster
+    strategy:
+      matrix:
+        test_name: [time_server]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
