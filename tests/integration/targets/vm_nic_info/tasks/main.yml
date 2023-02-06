@@ -6,19 +6,23 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   vars:
-    name: XLAB-vm_nic_info_CI_test
+    name: XLAB-vm_nic_info_CI_test_2
 
 
   block:
-    - name: Delete VM with name XLAB-vm_nic_info_CI_test, if it already exists from before
+    - name: List VM with name {{ name }}, if it already exists from before
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ name }}"
+
+    - name: Delete VM with name {{ name }}, if it already exists from before
       scale_computing.hypercore.vm: &delete-XLAB-vm_nic_CI_test
-        vm_name: XLAB-vm_nic_info_CI_test
+        vm_name: "{{ name }}"
         state: absent
       register: result
 
-    - name: Create VM with name XLAB-vm_nic_info_CI_test
+    - name: Create VM with name {{ name }}
       scale_computing.hypercore.vm:
-        vm_name: XLAB-vm_nic_info_CI_test
+        vm_name: "{{ name }}"
         description: Demo VM
         power_state: stop
         state: present
@@ -36,7 +40,7 @@
         that:
           - output is changed
 
-    - name: Create Nic in  {{ name }}
+    - name: Create Nic in {{ name }}
       scale_computing.hypercore.vm_nic:
         vm_name: "{{ name }}"
         items:
