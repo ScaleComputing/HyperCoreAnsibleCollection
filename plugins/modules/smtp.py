@@ -119,7 +119,6 @@ results:
 
 
 from ansible.module_utils.basic import AnsibleModule
-from typing import Tuple
 
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import arguments, errors
@@ -132,7 +131,7 @@ def build_entry(
     api_entry: any,
     module_entry: any,
     module: AnsibleModule = None,  # use module param for debugging
-) -> Tuple[any, bool]:
+) -> tuple[any, bool]:
     if module_entry is None:
         return api_entry, False
 
@@ -148,7 +147,7 @@ def build_entry(
 
 def modify_smtp_config(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, dict, dict]:
+) -> tuple[bool, dict, dict]:
     # GET method to get the SMTP config by UUID
     smtp = SMTP.get_by_uuid(module.params, rest_client)
 
@@ -227,7 +226,7 @@ def modify_smtp_config(
     return change, record, diff
 
 
-def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
+def run(module: AnsibleModule, rest_client: RestClient) -> tuple[bool, dict, dict]:
     return modify_smtp_config(module, rest_client)
 
 
