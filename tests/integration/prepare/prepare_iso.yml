@@ -68,3 +68,46 @@
         - uploaded_iso_info.records | length > 0
         - uploaded_iso_info.records.0.name == "integration-test-disk.iso"
         - uploaded_iso_info.records.0.ready_for_insert is true
+
+  # =========================================================================================
+  # prepare other ISO images we use.
+  # Porteus - 350 MB size, it does respond to ACPI shutdown.
+  # Alternative for ACPI shutdown might be: https://github.com/ivandavidov/minimal (build your own)
+  # https://mirrors.dotsrc.org/porteus/x86_64/Porteus-v5.0/Porteus-XFCE-v5.0-x86_64.iso
+  - name: Upload Proteus ISO image
+    vars:
+      iso_url: https://mirrors.dotsrc.org/porteus/x86_64/Porteus-v5.0/Porteus-XFCE-v5.0-x86_64.iso
+      iso_filename: "{{ iso_url | split('/') | last }}"
+    block:
+      - name: Get {{ iso_filename }} info
+        scale_computing.hypercore.iso_info:
+          cluster_instance: "{{ cluster_instance }}"
+          name: "{{ iso_filename }}"
+        register: uploaded_iso_info
+
+      - name: Download ISO {{ iso_filename }} from URL
+        ansible.builtin.get_url:
+          url: "{{ iso_url }}"
+          dest: /tmp/{{ iso_filename }}
+        when: uploaded_iso_info.records == []
+
+      - name: Upload ISO {{ iso_filename }} to HyperCore
+        scale_computing.hypercore.iso:
+          cluster_instance: "{{ cluster_instance }}"
+          name: "{{ iso_filename }}"
+          source: /tmp/{{ iso_filename }}
+          state: present
+        when: uploaded_iso_info.records == []
+
+      - name: Get integration-test-disk.iso info
+        scale_computing.hypercore.iso_info:
+          cluster_instance: "{{ cluster_instance }}"
+          name: "{{ iso_filename }}"
+        register: uploaded_iso_info
+
+      - ansible.builtin.assert:
+          that:
+            - uploaded_iso_info.records | length > 0
+            - uploaded_iso_info.records.0.name == "{{ iso_filename }}"
+            - uploaded_iso_info.records.0.ready_for_insert is true
+  # =========================================================================================
