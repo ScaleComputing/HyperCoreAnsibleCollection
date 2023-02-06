@@ -92,7 +92,10 @@ jobs:
     container: python:3.10-slim-buster
     env:
       ANSIBLE_COLLECTIONS_PATH: /work-dir
-      SKIP_TESTS: "vm_import|vm_export|dns_config|time_server|time_zone"
+      # vm_import|vm_export - they need SMB server
+      # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
+      # git_issues - slow, do not run on each push. TODO - run them only once a day
+      SKIP_TESTS: "vm_import|vm_export|dns_config|time_server|time_zone|git_issues"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
