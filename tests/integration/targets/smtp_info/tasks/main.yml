@@ -36,12 +36,13 @@
     - ansible.builtin.assert:
         that:
           - result.record != {}
-          - "{{ result.record.keys() | sort == ['auth_user', 'from_address', 'latest_task_tag', 'port', 'smtp_server', 'use_auth', 'use_ssl', 'uuid'] }}"
+          - result.record.keys() | sort == ['auth_password', 'auth_user', 'from_address', 'latest_task_tag', 'port', 'smtp_server', 'use_auth', 'use_ssl', 'uuid']
           - result.record.uuid == actual_uuid
           - result.record.smtp_server == actual_smtp_server
           - "{{ result.record.port | int }} == {{ actual_port | int }}"
           - result.record.use_ssl == actual_use_ssl
           - result.record.use_auth == actual_use_auth
           - result.record.auth_user == actual_auth_user
+          - result.record.auth_password == ""  # API does not return password
           - result.record.from_address == actual_from_address
           - result.record.latest_task_tag
