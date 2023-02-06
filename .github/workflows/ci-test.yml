@@ -8,6 +8,30 @@ concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
 jobs:
+  mypy:
+    name: Type checks (mypy)
+    runs-on: [self-hosted]
+    container: python:3.10-slim-buster
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install requirements
+        shell: bash
+        run: |
+          apt update
+          pip install --upgrade pip wheel
+          pip install mypy==0.991
+
+      - name: Link repo into the correct structure and run mypy
+        shell: bash
+        run: |
+          set -eux
+          mkdir -p $WORKDIR
+          cp -a ./  $WORKDIR
+          cd $WORKDIR
+          mypy -p plugins
+
   docs:
     runs-on: [ubuntu-latest]
     container: python:3.10-slim-buster

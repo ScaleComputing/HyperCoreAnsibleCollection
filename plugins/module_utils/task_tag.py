@@ -11,18 +11,15 @@ __metaclass__ = type
 from time import sleep
 
 from ..module_utils import errors
-from typing import TypedDict
-
-
-# Use for type hinting.
-class TypedTaskTag(TypedDict):
-    createdUUID: str
-    taskTag: str
+from ..module_utils.rest_client import RestClient
+from ..module_utils.typed_classes import TypedTaskTag
 
 
 class TaskTag:
     @classmethod
-    def wait_task(cls, rest_client, task, check_mode=False):
+    def wait_task(
+        cls, rest_client: RestClient, task: TypedTaskTag, check_mode: bool = False
+    ):
         if check_mode:
             return
         if type(task) != dict:

@@ -163,7 +163,12 @@ class TestEnsurePresent:
             True,
             None,
             {
-                "before": {"company_name": "", "contact": "", "phone": "", "email": ""},
+                "before": {
+                    "company_name": None,
+                    "contact": None,
+                    "phone": None,
+                    "email": None,
+                },
                 "after": None,
             },
             False,
@@ -200,7 +205,12 @@ class TestEnsureAbsent:
             True,
             None,
             {
-                "before": {"company_name": "", "contact": "", "phone": "", "email": ""},
+                "before": {
+                    "company_name": None,
+                    "contact": None,
+                    "phone": None,
+                    "email": None,
+                },
                 "after": None,
             },
             False,

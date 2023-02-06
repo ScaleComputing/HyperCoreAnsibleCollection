@@ -1,0 +1,76 @@
+[tool.mypy]
+strict = true
+pretty = true
+show_error_codes = true
+show_error_context = true
+show_column_numbers = true
+warn_unused_configs = true
+color_output = true
+
+namespace_packages = true
+explicit_package_bases = true
+
+# ignores for dependencies without type information
+# ansible basic does not have hints implemented
+[[tool.mypy.overrides]]
+module = [
+    "ansible.*",
+]
+ignore_missing_imports = true
+
+# Overrides error codes for incomplete modules / module_utils
+# Remove once hints are added
+[[tool.mypy.overrides]]
+module = [
+    "plugins.module_utils.arguments",
+    "plugins.module_utils.disk",
+    "plugins.module_utils.errors",
+    "plugins.module_utils.iso",
+    "plugins.module_utils.nic",
+    "plugins.module_utils.node",
+    "plugins.module_utils.user",
+    "plugins.module_utils.dns_config",
+    "plugins.module_utils.remote_cluster",
+    "plugins.module_utils.replication",
+    "plugins.module_utils.snapshot_schedule",
+    "plugins.module_utils.state",
+    "plugins.module_utils.task_tag",
+    "plugins.module_utils.type",
+    "plugins.module_utils.utils",
+    "plugins.module_utils.vm",
+    "plugins.module_utils.rest_client",
+    "plugins.module_utils.client",
+    "plugins.module_utils.time_server",
+    "plugins.module_utils.time_zone",
+    "plugins.modules.api",
+    "plugins.modules.iso_info",
+    "plugins.modules.iso",
+    "plugins.modules.node_info",
+    "plugins.modules.remote_cluster_info",
+    "plugins.modules.snapshot_schedule",
+    "plugins.modules.snapshot_schedule_info",
+    "plugins.modules.task_wait",
+    "plugins.modules.user_info",
+    "plugins.modules.user",
+    "plugins.modules.vm_boot_devices",
+    "plugins.modules.vm_clone",
+    "plugins.modules.vm_disk",
+    "plugins.modules.vm_export",
+    "plugins.modules.vm_import",
+    "plugins.modules.vm_info",
+    "plugins.modules.vm_nic_info",
+    "plugins.modules.vm_nic",
+    "plugins.modules.vm_node_affinity",
+    "plugins.modules.vm_params",
+    "plugins.modules.vm_replication",
+    "plugins.modules.vm_replication_info",
+    "plugins.modules.vm",
+    "plugins.modules.dns_config",
+    "plugins.modules.dns_config_info",
+    "plugins.modules.time_server",
+    "plugins.modules.time_server_info",
+    "plugins.modules.time_zone",
+    "plugins.modules.time_zone_info",
+    "plugins.inventory.*"
+]
+disable_error_code = ["no-untyped-def", "no-untyped-call", "assignment", "type-arg", "var-annotated", "import", "misc", "arg-type", "dict-item", "override", "union-attr", "valid-type"]

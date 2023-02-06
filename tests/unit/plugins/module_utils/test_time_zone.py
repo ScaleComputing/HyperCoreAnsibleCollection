@@ -76,7 +76,6 @@ class TestTimeServer:
         rest_client.list_records.return_value = [self.from_hypercore_dict]
 
         result = TimeZone.get_state(rest_client)
-        print(result)
         assert result == {
             "uuid": "test",
             "time_zone": "US/Eastern",

@@ -12,30 +12,26 @@ __metaclass__ = type
 from ..module_utils.utils import PayloadMapper
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
-from ..module_utils.task_tag import TypedTaskTag
-from typing import TypedDict, Union
-
-
-# Use for type hinting.
-class TypedRegistrationToAnsible(TypedDict):
-    company_name: str
-    contact: str
-    phone: str
-    email: str
+from ..module_utils.typed_classes import (
+    TypedTaskTag,
+    TypedRegistrationFromAnsible,
+    TypedRegistrationToAnsible,
+)
+from typing import Union, Any
 
 
 class Registration(PayloadMapper):
     def __init__(
         self,
-        uuid: str = "",
-        company_name: str = "",
-        contact: str = "",
-        phone: str = "",
-        email: str = "",
-        cluster_id: str = "",
-        cluster_data: str = "",
-        cluster_data_hash: str = "",
-        cluster_data_hash_accepted: str = "",
+        uuid: Union[str, None] = None,
+        company_name: Union[str, None] = None,
+        contact: Union[str, None] = None,
+        phone: Union[str, None] = None,
+        email: Union[str, None] = None,
+        cluster_id: Union[str, None] = None,
+        cluster_data: Union[str, None] = None,
+        cluster_data_hash: Union[str, None] = None,
+        cluster_data_hash_accepted: Union[str, None] = None,
     ):
         self.uuid = uuid
         self.company_name = company_name
@@ -56,7 +52,7 @@ class Registration(PayloadMapper):
         return None
 
     @classmethod
-    def from_hypercore(cls, hypercore_data: dict) -> Registration:
+    def from_hypercore(cls, hypercore_data: dict[Any, Any]) -> Registration:
         try:
             obj = cls()
             obj.uuid = hypercore_data["uuid"]
@@ -73,7 +69,7 @@ class Registration(PayloadMapper):
             raise errors.MissingValueHypercore(e)
 
     @classmethod
-    def from_ansible(cls, ansible_data: dict) -> Registration:
+    def from_ansible(cls, ansible_data: TypedRegistrationFromAnsible) -> Registration:
         obj = cls()
         obj.company_name = ansible_data.get("company_name", None)
         obj.contact = ansible_data.get("contact", None)
@@ -81,7 +77,7 @@ class Registration(PayloadMapper):
         obj.email = ansible_data.get("email", None)
         return obj
 
-    def to_hypercore(self) -> dict:
+    def to_hypercore(self) -> dict[Any, Any]:
         hypercore_dict = dict()
         if self.company_name:
             hypercore_dict["companyName"] = self.company_name

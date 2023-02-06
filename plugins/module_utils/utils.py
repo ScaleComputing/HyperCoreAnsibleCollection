@@ -4,6 +4,7 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 from abc import abstractmethod
 
 __metaclass__ = type
@@ -11,11 +12,12 @@ __metaclass__ = type
 import uuid
 
 from ..module_utils.errors import InvalidUuidFormatError
-from typing import TypedDict, Union
+from typing import Union, Any
+from ..module_utils.typed_classes import TypedTaskTag, TypedRegistrationToAnsible
 
 
 # Used in case of check mode
-MOCKED_TASK_TAG = dict(
+MOCKED_TASK_TAG = TypedTaskTag(
     createdUUID="0000000000",
     taskTag="00000",
 )
@@ -28,7 +30,9 @@ def validate_uuid(value):
         raise InvalidUuidFormatError(value)
 
 
-def get_query(input, *field_names, ansible_hypercore_map):
+def get_query(
+    input: dict[Any, Any], *field_names: str, ansible_hypercore_map: dict[Any, Any]
+):
     """
     Wrapps filter_dict and transform_ansible_to_hypercore_query. Prefer to use 'get_query' over filter_dict
     even if there's no mapping between hypercore and ansible columns for the sake of verbosity and consistency
@@ -114,9 +118,12 @@ def is_superset(superset, candidate):
     return True
 
 
-def filter_results(results, filter_data):
+def filter_results(results, filter_data) -> list[Any]:
     return [element for element in results if is_superset(element, filter_data)]
 
 
-def is_changed(before: Union[dict, TypedDict], after: Union[dict, TypedDict]) -> bool:
+def is_changed(
+    before: Union[dict, TypedRegistrationToAnsible, None],
+    after: Union[dict, TypedRegistrationToAnsible, None],
+) -> bool:
     return not before == after
