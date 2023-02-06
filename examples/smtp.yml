@@ -12,9 +12,9 @@
     server: smtp-relay.gmail.com
     port: 25
     use_ssl: false
-    requires_auth: true
-    username: example
-    password: example123
+    use_auth: true
+    auth_user: example
+    auth_password: example123
     from_address: example@example.com
 
 - name: Modify SMTP configuraiton with required params only
