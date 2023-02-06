@@ -12,7 +12,7 @@
     # ISO has no APCI
     # iso_name: "integration-test.iso"
     # Live ISO with ACPI shutdown support
-    iso_name: "Porteus-XFCE-v5.0-x86_64.iso"
+    # iso_name: "Porteus-XFCE-v5.0-x86_64.iso"
 
   block:
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
