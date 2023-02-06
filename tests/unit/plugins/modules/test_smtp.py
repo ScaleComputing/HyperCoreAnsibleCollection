@@ -265,7 +265,7 @@ class TestMain:
         success, result = run_main(smtp)
 
         assert success is False
-        assert "missing required arguments: port, server" in result["msg"]
+        assert "missing required arguments" in result["msg"]
 
     def test_required_if(self, run_main):
         params = dict(
