@@ -5,6 +5,7 @@
     SC_HOST: "{{ sc_host }}"
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
 
   block:
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
@@ -14,26 +15,14 @@
         state: absent
       register: result
 
+    # integration-test.iso must be already present, we have prepare.yml task
     - name: Get integration-test.iso info
       scale_computing.hypercore.iso_info:
         name: "integration-test.iso"
       register: uploaded_iso_info
-
-    - name: Create a text file
-      command: touch integration.txt
-      when: uploaded_iso_info.records | length == 0
-
-    - name: Create an ISO file
-      command: genisoimage -output integration.iso integration.txt
-      when: uploaded_iso_info.records | length == 0
-
-    - name: Upload ISO image integration-test.iso to HyperCore API
-      scale_computing.hypercore.iso:
-        name: "integration-test.iso"
-        source: "integration.iso"
-        state: present
-      when: uploaded_iso_info.records | length == 0
-      register: result
+    - ansible.builtin.assert:
+        that:
+          - uploaded_iso_info.records | length == 1
 
 # ----------------------------------Job-------------------------------------------------------------------------------------
     - name: Create and start the VM with disks, nics and boot devices set. Attach ISO onto the VM.
