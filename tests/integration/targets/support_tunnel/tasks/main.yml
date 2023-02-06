@@ -17,40 +17,40 @@
     - name: Open support tunnel
       scale_computing.hypercore.support_tunnel:
         state: present
-        code: 4422
+        code: 14422
       register: support_tunnel
     - ansible.builtin.assert:
         that:
           - support_tunnel is changed
-          - support_tunnel.record.tunnel_open == 4422
+          - support_tunnel.record.tunnel_open == 14422
           - support_tunnel.diff.before.tunnel_open == false
-          - support_tunnel.diff.after.tunnel_open == 4422
+          - support_tunnel.diff.after.tunnel_open == 14422
     
     - name: Open support tunnel - check with info module
       scale_computing.hypercore.support_tunnel_info:
       register: support_tunnel
     - ansible.builtin.assert:
         that:
-          - support_tunnel.record.tunnel_open == 4422
+          - support_tunnel.record.tunnel_open == 14422
     
     - name: Open support tunnel - idempotence
       scale_computing.hypercore.support_tunnel:
         state: present
-        code: 4422
+        code: 14422
       register: support_tunnel
     - ansible.builtin.assert:
         that:
           - support_tunnel is not changed
-          - support_tunnel.record.tunnel_open == 4422
-          - support_tunnel.diff.before.tunnel_open == 4422
-          - support_tunnel.diff.after.tunnel_open == 4422
+          - support_tunnel.record.tunnel_open == 14422
+          - support_tunnel.diff.before.tunnel_open == 14422
+          - support_tunnel.diff.after.tunnel_open == 14422
     
     - name: Open support tunnel - check with info module
       scale_computing.hypercore.support_tunnel_info:
       register: support_tunnel
     - ansible.builtin.assert:
         that:
-          - support_tunnel.record.tunnel_open == 4422
+          - support_tunnel.record.tunnel_open == 14422
     
     - name: Close support tunnel
       scale_computing.hypercore.support_tunnel:
@@ -60,7 +60,7 @@
         that:
           - support_tunnel is changed
           - support_tunnel.record.tunnel_open == false
-          - support_tunnel.diff.before.tunnel_open == 4422
+          - support_tunnel.diff.before.tunnel_open == 14422
           - support_tunnel.diff.after.tunnel_open == false
     
     - name: Close support tunnel - check with info module
