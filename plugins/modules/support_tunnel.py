@@ -63,16 +63,16 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
-from ..module_utils.typed_classes import TypedSupportTunnelToAnsible
+from ..module_utils.typed_classes import TypedSupportTunnelToAnsible, TypedDiff
 from ..module_utils.support_tunnel import SupportTunnel
 
 # validate-modules does not agree with "from __future__ import annotations"
-from typing import Tuple, Dict
+from typing import Tuple
 
 
 def open_tunnel(
     module: AnsibleModule, client: Client
-) -> Tuple[bool, TypedSupportTunnelToAnsible, Dict[str, TypedSupportTunnelToAnsible]]:
+) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
     tunnel_status = SupportTunnel.check_tunnel_status(client)
     if tunnel_status.tunnel_open:  # if tunnel already opened
         return (
@@ -91,7 +91,7 @@ def open_tunnel(
 
 def close_tunnel(
     client: Client,
-) -> Tuple[bool, TypedSupportTunnelToAnsible, Dict[str, TypedSupportTunnelToAnsible]]:
+) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
     tunnel_status = SupportTunnel.check_tunnel_status(client)
     if not tunnel_status.tunnel_open:  # if tunnel already closed
         return (
@@ -110,7 +110,7 @@ def close_tunnel(
 
 def run(
     module: AnsibleModule, client: Client
-) -> Tuple[bool, TypedSupportTunnelToAnsible, Dict[str, TypedSupportTunnelToAnsible]]:
+) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
     if module.params["state"] == "present":
         return open_tunnel(module, client)
     else:
