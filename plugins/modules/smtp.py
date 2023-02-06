@@ -43,20 +43,20 @@ options:
         in clear text. Ensure the SMTP server supports SSL/TLS connections.
     required: False
     default: False
-  requires_auth:
+  use_auth:
     type: bool
     description:
-      - Enable/disable authentication with C(username) and C(password).
+      - Enable/disable authentication with C(auth_user) and C(auth_password).
     required: False
     default: False
-  username:
+  auth_user:
     type: str
     description:
-      - Username for authentication if I(requires_auth=True).
-  password:
+      - Username for authentication if I(use_auth=True).
+  auth_password:
     type: str
     description:
-      - Password for authentication if I(requires_auth=True).
+      - Password for authentication if I(use_auth=True).
   from_address:
     type: str
     description:
@@ -73,7 +73,7 @@ EXAMPLES = r"""
     server: smtp-relay.gmail.com
     port: 25
     use_ssl: false
-    requires_auth: false
+    use_auth: false
     from_address: example@example.com
 
 - name: Modify SMTP configuration (authorization enabled)
@@ -81,9 +81,9 @@ EXAMPLES = r"""
     server: smtp-relay.gmail.com
     port: 25
     use_ssl: false
-    requires_auth: true
-    username: example
-    password: example123
+    use_auth: true
+    auth_user: example
+    auth_password: example123
     from_address: example@example.com
 """
 
@@ -172,13 +172,13 @@ def modify_smtp_config(
         before.get("use_ssl"), module.params["use_ssl"]
     )
     new_use_auth, new_use_auth_change_needed = build_entry(
-        before.get("use_auth"), module.params["requires_auth"]
+        before.get("use_auth"), module.params["use_auth"]
     )
     new_auth_user, new_auth_user_change_needed = build_entry(
-        before.get("auth_user"), module.params["username"]
+        before.get("auth_user"), module.params["auth_user"]
     )
     new_auth_password, new_auth_password_change_needed = build_entry(
-        before.get("auth_password"), module.params["password"]
+        before.get("auth_password"), module.params["auth_password"]
     )
     new_from_address, new_from_address_change_needed = build_entry(
         before.get("from_address"), module.params["from_address"]
@@ -196,7 +196,6 @@ def modify_smtp_config(
         old_state,
         dict(before=old_state, after=old_state),
     )
-    module.log("change: " + str(change))
     if not change:
         return change, record, diff
 
@@ -250,19 +249,17 @@ def main() -> None:
                 default=False,
                 required=False,
             ),
-            requires_auth=dict(
+            use_auth=dict(
                 type="bool",
                 default=False,
                 required=False,
             ),
-            username=dict(
+            auth_user=dict(
                 type="str",
-                default="",
                 required=False,
             ),
-            password=dict(
+            auth_password=dict(
                 type="str",
-                default="",
                 no_log=True,
                 required=False,
             ),
@@ -274,11 +271,11 @@ def main() -> None:
         ),
         required_if=[
             (
-                "requires_auth",
+                "use_auth",
                 True,
                 (
-                    "username",
-                    "password",
+                    "auth_user",
+                    "auth_password",
                 ),
             )
         ],

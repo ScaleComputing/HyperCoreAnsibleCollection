@@ -54,7 +54,7 @@
 #        server: smtp.office365.com
 #        port: 26
 #        use_ssl: False
-#        requires_auth: False
+#        use_auth: False
 #        from_address: test@test.com
 #      register: result
 #    - scale_computing.hypercore.smtp_info:
@@ -75,7 +75,7 @@
 #        server: smtp.office365.com
 #        port: 26
 #        use_ssl: False
-#        requires_auth: False
+#        use_auth: False
 #        from_address: test@test.com
 #      register: result
 #    - scale_computing.hypercore.smtp_info:
@@ -96,9 +96,9 @@
 #        server: smtp-relay.gmail.com
 #        port: 25
 #        use_ssl: False
-#        requires_auth: True
-#        username: test
-#        password: test123
+#        use_auth: True
+#        auth_user: test
+#        auth_password: test123
 #        from_address: test@test.com
 #      register: result
 #    - scale_computing.hypercore.smtp_info:
