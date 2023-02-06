@@ -1,0 +1,58 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Get default configs
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/TimeZone/timezone_guid
+      register: time_zone
+    - ansible.builtin.set_fact:
+        actual_zone: "{{ time_zone.record.0.timeZone }}"  # US/Eastern
+        actual_uuid: "{{ time_zone.record.0.uuid }}"
+
+    # ------------------------------------------------
+    - name: Set initial state
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/TimeZone/timezone_guid
+        data:
+          timeZone: "Europe/Zagreb"
+
+    - name: Change time zone
+      scale_computing.hypercore.time_zone:
+        zone: Europe/Ljubljana
+      register: result
+    - scale_computing.hypercore.time_zone_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+          - info.record.time_zone == "Europe/Ljubljana"
+          - info.record.uuid == actual_uuid
+
+    - name: Update with time zone from previous task
+      scale_computing.hypercore.time_zone:
+        zone: Europe/Ljubljana
+      register: result
+    - scale_computing.hypercore.time_zone_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+          - info.record.time_zone == "Europe/Ljubljana"
+          - info.record.uuid == actual_uuid
+
+    # ------------------------------------------------
+
+    - name: Restore back to default
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/TimeZone/timezone_guid
+        data:
+          timeZone: "{{ actual_zone }}"

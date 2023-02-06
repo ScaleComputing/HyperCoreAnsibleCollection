@@ -2,9 +2,29 @@
 - name: upload integration test iso
   hosts: localhost
   connection: local
+#  environment:
+#    # didn't work
+#    SC_HOST: "{{ sc_host }}"
+#    SC_USERNAME: "{{ sc_username }}"
+#    SC_PASSWORD: "{{ sc_password }}"
+#    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    cluster_instance:
+      host: "{{ sc_host }}"
+      username: "{{ sc_username }}"
+      password: "{{ sc_password }}"
+      timeout: "{{ sc_timeout }}"
+  vars_files:
+    - ../integration_config.yml
+
   tasks:
+  - name: Debug show SC_HOST
+    ansible.builtin.debug:
+      msg: SC_HOST={{ lookup('ansible.builtin.env', 'SC_HOST') }} sc_host={{ sc_host }}
+
   - name: Delete the ISO image (if it may exist)
     scale_computing.hypercore.iso:
+      cluster_instance: "{{ cluster_instance }}"
       name: "{{ item }}"
       state: absent
     loop:
@@ -19,6 +39,7 @@
 
   - name: Upload ISO image integration-test.iso to HyperCore API
     scale_computing.hypercore.iso:
+      cluster_instance: "{{ cluster_instance }}"
       name: "{{ item }}"
       source: "integration.iso"
       state: present
@@ -28,6 +49,7 @@
 
   - name: Get integration-test.iso info
     scale_computing.hypercore.iso_info:
+      cluster_instance: "{{ cluster_instance }}"
       name: "integration-test.iso"
     register: uploaded_iso_info
   - ansible.builtin.assert:
@@ -38,6 +60,7 @@
 
   - name: Get integration-test-disk.iso info
     scale_computing.hypercore.iso_info:
+      cluster_instance: "{{ cluster_instance }}"
       name: "integration-test-disk.iso"
     register: uploaded_iso_info
   - ansible.builtin.assert:
