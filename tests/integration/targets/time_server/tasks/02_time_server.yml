@@ -14,7 +14,7 @@
     - ansible.builtin.debug:
         msg: time_server.record {{ time_server.record }}
     - ansible.builtin.set_fact:
-        actual_host: "{{ time_server.record.0.host }}"
+        actual_host: "pool.ntp.org"  # "{{ time_server.record.0.host }}"
         actual_uuid: "{{ time_server.record.0.uuid }}"
 
     # Test cluster is already configured with pool.ntp.org,
@@ -26,12 +26,20 @@
     # File tests/integration/requirements.txt is used with
     # "ansible-test integration time_server -vv --venv",
     # but otherwise - not/not always?
-    - ansible.builtin.command: pip install dnspython==2.3.0
-    - ansible.builtin.command: python -c 'import dns.resolver; ans=dns.resolver.resolve("{{ actual_host }}", "A"); print(str(ans[0]));'
-      changed_when: false
-      register: actual_host_ip_address_result
+
+    # This was needed/useful on previous test cluster (action runner "westfield")
+    # Problem is, the first IP from DNS A record might be down at time of test.
+    #    - ansible.builtin.command: pip install dnspython==2.3.0
+    #    - ansible.builtin.command: python -c 'import dns.resolver; ans=dns.resolver.resolve("{{ actual_host }}", "A"); print(str(ans[0]));'
+    #      changed_when: false
+    #      register: actual_host_ip_address_result
+    #    - ansible.builtin.set_fact:
+    #        actual_host_ip_address: "{{ actual_host_ip_address_result.stdout }}"
+
+    # On cluster 10.5.11.50, [0-3].pool.ntp.org is accepted.
     - ansible.builtin.set_fact:
-        actual_host_ip_address: "{{ actual_host_ip_address_result.stdout }}"
+        actual_host_ip_address: "3.pool.ntp.org"
+
     - name: Set NTP server to IP address {{ actual_host_ip_address }} using api module
       scale_computing.hypercore.api:
         action: patch

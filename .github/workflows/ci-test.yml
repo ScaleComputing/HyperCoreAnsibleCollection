@@ -1,6 +1,13 @@
 name: CI tests
 on:
-  - push
+  push:
+  workflow_dispatch:
+    inputs:
+      run_slow_tests:
+        description: 'Run slow integration tests?'
+        type: boolean
+        required: false
+        default: false
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 # Run only one workflow for specific branch.
@@ -92,6 +99,9 @@ jobs:
     container: python:3.10-slim-buster
     env:
       ANSIBLE_COLLECTIONS_PATH: /work-dir
+      # vm_import|vm_export - they need SMB server
+      # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
+      # git_issues - slow, do not run on each push. TODO - run them only once a day
       SKIP_TESTS: "vm_import|vm_export|dns_config|time_server|time_zone"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -118,7 +128,15 @@ jobs:
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
       - id: set-matrix
-        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+        shell: bash
+        run: |
+          if [[ "${{ inputs.run_slow_tests }}" == "true" ]]
+          then
+            SKIP_TESTS_FINAL="$SKIP_TESTS"
+          else
+            SKIP_TESTS_FINAL="$SKIP_TESTS|git_issues*"
+          fi
+          echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS_FINAL" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   integration-test:
     needs:
@@ -127,6 +145,7 @@ jobs:
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     strategy:
+      fail-fast: false
       matrix:
         # test_name: [user_info]
         test_name: ${{ fromJson(needs.integration-prepare-env.outputs.matrix) }}
@@ -161,6 +180,7 @@ jobs:
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     strategy:
+      fail-fast: false
       matrix:
         test_name: [dns_config]
     steps:
@@ -192,6 +212,7 @@ jobs:
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     strategy:
+      fail-fast: false
       matrix:
         test_name: [time_server, time_zone]
     steps:
