@@ -45,3 +45,8 @@ class TypedDNSConfigToAnsible(TypedDict):
 class TypedDiff(TypedDict):
     before: Union[Dict[Any, Any], TypedRegistrationToAnsible, None]
     after: Union[Dict[Any, Any], TypedRegistrationToAnsible, None]
+
+
+# Support_tunnel to ansible return dict.
+class TypedSupportTunnelToAnsible(TypedDict):
+    tunnel_open: str
