@@ -1,0 +1,14 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  block:
+    - name: Retrieve info about support tunnel status
+      scale_computing.hypercore.support_tunnel_info:
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel.record.keys() | sort == ['tunnel_open']
