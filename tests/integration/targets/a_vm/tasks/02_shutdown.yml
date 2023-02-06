@@ -1,11 +1,18 @@
 ---
 # This is a part of the vm module; testing shutdown logic.
-# The main vm test was devided into smaller tests for sake of synchronous testing.
+# The main vm test was divided into smaller tests for sake of synchronous testing.
+# Question: do we want to test nice ACPI shutdown, or force shutdown, or both?
+# We should test correct force shutdown too.
 - environment:
     SC_HOST: "{{ sc_host }}"
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    # ISO has no APCI
+    # iso_name: "integration-test.iso"
+    # Live ISO with ACPI shutdown support
+    iso_name: "Porteus-XFCE-v5.0-x86_64.iso"
 
   block:
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
@@ -16,9 +23,9 @@
       register: result
 
     # integration-test.iso must be already present, we have prepare.yml task
-    - name: Get integration-test.iso info
+    - name: Get {{ iso_name }} info
       scale_computing.hypercore.iso_info:
-        name: "integration-test.iso"
+        name: "{{ iso_name }}"
       register: uploaded_iso_info
     - ansible.builtin.assert:
         that:
@@ -44,7 +51,7 @@
             size: "{{ '10.1 GB' | human_to_bytes }}"
           - type: ide_cdrom
             disk_slot: 0
-            iso_name: integration-test.iso
+            iso_name: "{{ iso_name }}"
         nics:
           - vlan: 1
             type: RTL8139
@@ -52,6 +59,8 @@
             type: virtio
         boot_devices:
           - type: virtio_disk
+            disk_slot: 0
+          - type: ide_cdrom
             disk_slot: 0
           - type: nic
             nic_vlan: 1
@@ -73,11 +82,13 @@
           - vm_created.record.0.disks.1.disk_slot == 0
           - vm_created.record.0.disks.0.type == "virtio_disk"
           - vm_created.record.0.disks.0.disk_slot == 0
-          - vm_created.record.0.boot_devices | length == 2
+          - vm_created.record.0.boot_devices | length == 3
           - vm_created.record.0.boot_devices.0.type == "virtio_disk"
-          - vm_created.record.0.boot_devices.1.type == "RTL8139"
+          - vm_created.record.0.boot_devices.1.type == "ide_cdrom"
+          - vm_created.record.0.boot_devices.2.type == "RTL8139"
           - vm_created.record.0.boot_devices.0.disk_slot == 0
-          - vm_created.record.0.boot_devices.1.vlan == 1
+          - vm_created.record.0.boot_devices.1.disk_slot == 0
+          - vm_created.record.0.boot_devices.2.vlan == 1
           - vm_created.record.0.power_state == "started"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
@@ -109,11 +120,13 @@
           - vm_created.records.0.disks.1.disk_slot == 0
           - vm_created.records.0.disks.0.type == "virtio_disk"
           - vm_created.records.0.disks.0.disk_slot == 0
-          - vm_created.records.0.boot_devices | length == 2
+          - vm_created.records.0.boot_devices | length == 3
           - vm_created.records.0.boot_devices.0.type == "virtio_disk"
-          - vm_created.records.0.boot_devices.1.type == "RTL8139"
+          - vm_created.records.0.boot_devices.1.type == "ide_cdrom"
+          - vm_created.records.0.boot_devices.2.type == "RTL8139"
           - vm_created.records.0.boot_devices.0.disk_slot == 0
-          - vm_created.records.0.boot_devices.1.vlan == 1
+          - vm_created.records.0.boot_devices.1.disk_slot == 0
+          - vm_created.records.0.boot_devices.2.vlan == 1
           - vm_created.records.0.power_state == "started"
 
 # ----------------------------------Job-------------------------------------------------------------------------------------
@@ -127,14 +140,16 @@
         disks:
           - type: ide_cdrom
             disk_slot: 0
-            iso_name: integration-test.iso
+            iso_name: "{{ iso_name }}"
           - type: virtio_disk
             disk_slot: 1
             size: "{{ '20 GB' | human_to_bytes }}"
           - type: virtio_disk
             disk_slot: 0
         nics: []
-        boot_devices: []
+        boot_devices:
+          - type: ide_cdrom
+            disk_slot: 0
       register: result
     - ansible.builtin.assert:
         that:
@@ -147,11 +162,13 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - result.records[0].boot_devices == []
+          - result.records[0].boot_devices | length == 1
+          - result.records[0].boot_devices.0.type == "ide_cdrom"
+          - result.records[0].boot_devices.0.disk_slot == 0
           - result.records[0].disks.0.type == "virtio_disk"
           - result.records[0].disks.0.disk_slot == 0
           - result.records[0].disks.1.type == "ide_cdrom"
-          - result.records[0].disks.1.iso_name == "integration-test.iso"
+          - result.records[0].disks.1.iso_name == "{{ iso_name }}"
           - result.records[0].disks.2.type == "virtio_disk"
           - result.records[0].disks.2.disk_slot == 1
           - result.records[0].vcpu == 2
@@ -172,11 +189,13 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - result.records[0].boot_devices == []
+          - result.records[0].boot_devices | length == 1
+          - result.records[0].boot_devices.0.type == "ide_cdrom"
+          - result.records[0].boot_devices.0.disk_slot == 0
           - result.records[0].disks.0.type == "virtio_disk"
           - result.records[0].disks.0.disk_slot == 0
           - result.records[0].disks.1.type == "ide_cdrom"
-          - result.records[0].disks.1.iso_name == "integration-test.iso"
+          - result.records[0].disks.1.iso_name == "{{ iso_name }}"
           - result.records[0].disks.2.type == "virtio_disk"
           - result.records[0].disks.2.disk_slot == 1
           - result.records[0].vcpu == 2
@@ -184,17 +203,12 @@
           - result.records[0].power_state == "started"
 
 # TODO: Add shutdown request test.
+# Aha. ACPI shutdown test is above. But we miss force-shutdown case.
 
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
     - name: Delete the VM with name vm-shutdown-test
       scale_computing.hypercore.vm: *delete-vm
       register: result
-
-    - name: Delete locally installed ISO image from current dir
-      ansible.builtin.file:
-        path: integration.iso
-        state: absent
-      register: file_deleted
 
     - name: Assert that record has been deleted
       scale_computing.hypercore.vm_info: *get-vm-by-name
