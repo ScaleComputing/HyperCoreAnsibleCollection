@@ -36,6 +36,7 @@ class TestModifySMTP:
 
     @pytest.mark.parametrize(
         (
+            "description",
             "rc_smtp_server",
             "rc_port",
             "rc_use_ssl",
@@ -62,6 +63,7 @@ class TestModifySMTP:
         [
             (
                 # RC
+                "desc0",
                 "test.com",
                 25,
                 False,
@@ -90,6 +92,7 @@ class TestModifySMTP:
             ),
             (
                 # RC
+                "desc1",
                 "test.com",
                 25,
                 False,
@@ -118,12 +121,13 @@ class TestModifySMTP:
             ),
             (
                 # RC
+                "desc2",
                 "test.com",
                 21,
                 False,
                 True,
                 "test",
-                "123",
+                "",  # rc_auth_password
                 "test@test.com",
                 # PARAMS
                 "test.com",
@@ -131,7 +135,7 @@ class TestModifySMTP:
                 False,
                 True,
                 "test",
-                "123",
+                "123",  # auth_password_param
                 "test@test.com",
                 # EXPECTED
                 "test.com",
@@ -139,15 +143,16 @@ class TestModifySMTP:
                 False,
                 True,
                 "test",
-                "123",
+                "123",  # expected_auth_password
                 "test@test.com",
                 # EXPECTED CHANGE
-                False,
+                True,
             ),
         ],
     )
     def test_modify_smtp_config(
         self,
+        description,
         create_module,
         rest_client,
         task_wait,
@@ -198,7 +203,7 @@ class TestModifySMTP:
             use_ssl=rc_use_ssl,
             use_auth=rc_use_auth,
             auth_user=rc_auth_user,
-            auth_password=rc_auth_password,
+            auth_password=rc_auth_password,  # password is not returned by API
             from_address=rc_from_address,
             latest_task_tag={},
         )

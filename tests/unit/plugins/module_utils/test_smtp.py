@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
+from copy import deepcopy
 
 import pytest
 
@@ -21,7 +22,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-class TestDNSConfig:
+class TestSMTP:
     def setup_method(self):
         self.smtp = SMTP(
             uuid="test",
@@ -41,7 +42,7 @@ class TestDNSConfig:
             useSSL=True,
             useAuth=True,
             authUser="test",
-            authPassword="test123",
+            authPassword="",
             fromAddress="test@test.com",
             latestTaskTag={},
         )
@@ -66,21 +67,32 @@ class TestDNSConfig:
             latest_task_tag={},
         )
 
-    def test_dns_config_to_hypercore(self):
+    def test_smtp_to_hypercore(self):
         assert self.smtp.to_hypercore() == self.to_hypercore_dict
 
-    def test_dns_config_from_hypercore_dict_not_empty(self):
+    def test_smtp_from_hypercore_dict_not_empty(self):
         smtp_from_hypercore = SMTP.from_hypercore(self.from_hypercore_dict)
-        assert self.smtp == smtp_from_hypercore
+        smtp_no_password = deepcopy(self.smtp)
+        smtp_no_password.auth_password = ""
+        print(f"smtp_no_password=   {smtp_no_password}")
+        print(f"smtp_from_hypercore={smtp_from_hypercore}")
+        assert smtp_no_password == smtp_from_hypercore
 
-    def test_dns_config_from_hypercore_dict_empty(self):
-        assert SMTP.from_hypercore([]) is None
+    # SMTP.get_by_uuid could get hypercore_dict=None, but does early exit.
+    # SMTP.list_records could get [], but then for loop does not call .from_hypercore()
+    # Test is not needed.
+    # def test_smtp_from_hypercore_dict_empty(self):
+    #     assert SMTP.from_hypercore([]) is None
 
-    def test_dns_config_to_ansible(self):
+    def test_smtp_to_ansible(self):
+        print(f"self.smtp.to_ansible()={self.smtp.to_ansible()}")
+        print(f"self.ansible_dict=     {self.ansible_dict}")
         assert self.smtp.to_ansible() == self.ansible_dict
 
-    def test_dns_config_from_ansible(self):
-        smtp_from_ansible = SMTP.from_ansible(self.from_hypercore_dict)
+    def test_smtp_from_ansible(self):
+        smtp_from_ansible = SMTP.from_ansible(self.ansible_dict)
+        print(f"self.smtp={self.smtp}")
+        print(f"smtp_from_ansible={smtp_from_ansible}")
         assert self.smtp == smtp_from_ansible
 
     def test_get_by_uuid(self, rest_client):
@@ -105,6 +117,7 @@ class TestDNSConfig:
         rest_client.list_records.return_value = [self.from_hypercore_dict]
 
         result = SMTP.get_state(rest_client)
+        print(f"result={result}")
         assert result == {
             "uuid": "test",
             "smtp_server": "smtp-relay.gmail.com",
@@ -112,6 +125,7 @@ class TestDNSConfig:
             "use_ssl": True,
             "use_auth": True,
             "auth_user": "test",
+            "auth_password": "",
             "from_address": "test@test.com",
             "latest_task_tag": {},
         }

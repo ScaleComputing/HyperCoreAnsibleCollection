@@ -58,6 +58,9 @@ class SMTP(PayloadMapper):
 
     @classmethod
     def from_hypercore(cls, hypercore_data: dict[Any, Any]) -> SMTP:
+        # if hypercore_data is None:
+        #     # makes this sense?
+        #     raise xzy
         return cls(
             uuid=hypercore_data["uuid"],
             smtp_server=hypercore_data["smtpServer"],
@@ -89,7 +92,7 @@ class SMTP(PayloadMapper):
             use_ssl=self.use_ssl,
             use_auth=self.use_auth,
             auth_user=self.auth_user,
-            # auth_password=self.auth_password,
+            auth_password=self.auth_password,
             from_address=self.from_address,
             latest_task_tag=self.latest_task_tag,
         )
@@ -147,6 +150,7 @@ class SMTP(PayloadMapper):
             )
         if len(state) == 0:
             return {}
-        # API does not return password, we get only empty string ""
+        # API does not return password, we get only empty string "".
+        # smtp module cannot be idempotent if authentication is used.
         # state[0].pop("auth_password")
         return state[0]

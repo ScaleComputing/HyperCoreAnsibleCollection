@@ -30,7 +30,8 @@ class TestRun:
                 useSSL=True,
                 useAuth=True,
                 authUser="test",
-                authPassword="test123",
+                # API does not return real password "test123", but only ""
+                authPassword="",
                 fromAddress="test@test.com",
                 latestTaskTag={},
             )
@@ -44,6 +45,7 @@ class TestRun:
             "use_ssl": True,
             "use_auth": True,
             "auth_user": "test",
+            "auth_password": "",
             "from_address": "test@test.com",
             "latest_task_tag": {},
         }
