@@ -130,6 +130,7 @@ jobs:
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     strategy:
+      fail-fast: false
       matrix:
         # test_name: [user_info]
         test_name: ${{ fromJson(needs.integration-prepare-env.outputs.matrix) }}
@@ -164,6 +165,7 @@ jobs:
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     strategy:
+      fail-fast: false
       matrix:
         test_name: [dns_config]
     steps:
@@ -195,6 +197,7 @@ jobs:
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     strategy:
+      fail-fast: false
       matrix:
         test_name: [time_server, time_zone]
     steps:
