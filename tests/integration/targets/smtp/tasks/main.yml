@@ -101,6 +101,7 @@
 
     # -----------------------------------------------------------
 
+    - name: Restore back to default
       scale_computing.hypercore.api:
         action: post
         endpoint: /rest/v1/AlertSMTPConfig/smtpconfig_guid
