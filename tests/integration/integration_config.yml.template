@@ -2,7 +2,8 @@
 sc_host: <your_host, example https://10.0.0.2>
 sc_username: <your_user>
 sc_password: <your_password>
-sc_timeout: 10
+# Seems on loaded API higher timeout is needed
+sc_timeout: 60
 # CI tests for vm_import/vm_export require a SMB server
 smb_server: <example 10.0.0.3>
 smb_share: <example /users>
