@@ -1,4 +1,6 @@
 ---
+# https://github.com/ScaleComputing/HyperCoreAnsibleCollection/actions/runs/4118937247/jobs/7112074082
+# module did open the tunnel, but _info said tunnel is closed
 - environment:
     SC_HOST: "{{ sc_host }}"
     SC_USERNAME: "{{ sc_username }}"
