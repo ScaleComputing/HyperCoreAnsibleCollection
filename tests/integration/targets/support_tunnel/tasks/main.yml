@@ -1,0 +1,106 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  block:
+    - name: Cleanup
+      scale_computing.hypercore.support_tunnel:
+        state: absent
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel.record.open == false
+          - not support_tunnel.record.code
+
+    - name: Open support tunnel
+      scale_computing.hypercore.support_tunnel:
+        state: present
+        code: 4422
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel is changed
+          - support_tunnel.record.open == true
+          - support_tunnel.record.code == 4422
+          - support_tunnel.diff.before.open == false
+          - not support_tunnel.diff.before.code
+          - support_tunnel.diff.after.open == true
+          - support_tunnel.diff.after.code == 4422
+    
+    - name: Open support tunnel - check with info module
+      scale_computing.hypercore.support_tunnel_info:
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel.record.open == true
+          - support_tunnel.record.code == 4422
+    
+    - name: Open support tunnel - idempotence
+      scale_computing.hypercore.support_tunnel:
+        state: present
+        code: 4422
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel is not changed
+          - support_tunnel.record.open == true
+          - support_tunnel.record.code == 4422
+          - support_tunnel.diff.before.open == true
+          - support_tunnel.diff.before.code == 4422
+          - support_tunnel.diff.after.open == true
+          - support_tunnel.diff.after.code == 4422
+    
+    - name: Open support tunnel - check with info module
+      scale_computing.hypercore.support_tunnel_info:
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel.record.open == true
+          - support_tunnel.record.code == 4422
+
+    - name: Close support tunnel
+      scale_computing.hypercore.support_tunnel:
+        state: absent
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel is changed
+          - support_tunnel.record.open == false
+          - not support_tunnel.record.code
+          - support_tunnel.diff.before.open == true
+          - support_tunnel.diff.before.code == 4422
+          - support_tunnel.diff.after.open == false
+          - not support_tunnel.diff.after.code
+    
+    - name: Close support tunnel - check with info module
+      scale_computing.hypercore.support_tunnel_info:
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel.record.open == false
+          - not support_tunnel.record.code
+
+    - name: Close support tunnel - idempotence
+      scale_computing.hypercore.support_tunnel:
+        state: absent
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel is not changed
+          - support_tunnel.record.open == false
+          - not support_tunnel.record.code
+          - support_tunnel.diff.before.open == false
+          - not support_tunnel.diff.before.code
+          - support_tunnel.diff.after.open == false
+          - not support_tunnel.diff.after.code
+    
+    - name: Close support tunnel - check with info module
+      scale_computing.hypercore.support_tunnel_info:
+      register: support_tunnel
+    - ansible.builtin.assert:
+        that:
+          - support_tunnel.record.open == false
+          - not support_tunnel.record.code

@@ -5,10 +5,11 @@
 
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 __metaclass__ = type
 
-from typing import TypedDict, Union, Any, Dict
+from typing import TypedDict, Union, Any
 
 # Typed Classes use for Python hints.
 
@@ -41,7 +42,17 @@ class TypedDNSConfigToAnsible(TypedDict):
     name: str
 
 
+# Support_tunnel to ansible return dict.
+class TypedSupportTunnelToAnsible(TypedDict):
+    open: bool
+    code: Union[int, None]
+
+
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
-    before: Union[Dict[Any, Any], TypedRegistrationToAnsible, None]
-    after: Union[Dict[Any, Any], TypedRegistrationToAnsible, None]
+    before: Union[
+        dict[Any, Any], TypedRegistrationToAnsible, TypedSupportTunnelToAnsible, None
+    ]
+    after: Union[
+        dict[Any, Any], TypedRegistrationToAnsible, TypedSupportTunnelToAnsible, None
+    ]
