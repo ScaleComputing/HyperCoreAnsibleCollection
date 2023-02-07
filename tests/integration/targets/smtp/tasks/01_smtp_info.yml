@@ -1,0 +1,48 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  vars:
+    actual_uuid: ""
+    actual_smtp_server: ""
+    actual_port: 0
+    actual_use_ssl: False
+    actual_use_auth: False
+    actual_auth_user: ""
+    actual_from_address: ""
+
+  block:
+    - name: Get expected configs
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/AlertSMTPConfig/smtpconfig_guid
+      register: smtp_config
+    - ansible.builtin.set_fact:
+        actual_smtp_server: "{{ smtp_config.record.0.smtpServer }}"
+        actual_port: "{{ smtp_config.record.0.port }}"
+        actual_use_ssl: "{{ smtp_config.record.0.useSSL }}"
+        actual_use_auth: "{{ smtp_config.record.0.useAuth }}"
+        actual_auth_user: "{{ smtp_config.record.0.authUser }}"
+        actual_from_address: "{{ smtp_config.record.0.fromAddress }}"
+        actual_uuid: "{{ smtp_config.record.0.uuid }}"
+
+    - name: Retrieve info about SMTP Config
+      scale_computing.hypercore.smtp_info:
+      register: result
+    - ansible.builtin.debug:
+        msg: "{{ result.record }}"
+    - ansible.builtin.assert:
+        that:
+          - result.record != {}
+          - result.record.keys() | sort == ['auth_password', 'auth_user', 'from_address', 'latest_task_tag', 'port', 'smtp_server', 'use_auth', 'use_ssl', 'uuid']
+          - result.record.uuid == actual_uuid
+          - result.record.smtp_server == actual_smtp_server
+          - "{{ result.record.port | int }} == {{ actual_port | int }}"
+          - result.record.use_ssl == actual_use_ssl
+          - result.record.use_auth == actual_use_auth
+          - result.record.auth_user == actual_auth_user
+          - result.record.auth_password == ""  # API does not return password
+          - result.record.from_address == actual_from_address
+          - result.record.latest_task_tag
