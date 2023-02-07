@@ -53,11 +53,12 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - User record.
+    - Support tunnel status.
   returned: success
   type: dict
   sample:
-    - tunnel_open: 4422
+    - open: true
+      code: 4422
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -74,7 +75,7 @@ def open_tunnel(
     module: AnsibleModule, client: Client
 ) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
     tunnel_status = SupportTunnel.check_tunnel_status(client)
-    if tunnel_status.tunnel_open:  # if tunnel already opened
+    if tunnel_status.open:  # if tunnel already opened
         return (
             False,
             tunnel_status.to_ansible(),
@@ -93,7 +94,7 @@ def close_tunnel(
     client: Client,
 ) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
     tunnel_status = SupportTunnel.check_tunnel_status(client)
-    if not tunnel_status.tunnel_open:  # if tunnel already closed
+    if not tunnel_status.open:  # if tunnel already closed
         return (
             False,
             tunnel_status.to_ansible(),

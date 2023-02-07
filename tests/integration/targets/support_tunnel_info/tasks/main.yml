@@ -11,4 +11,4 @@
       register: support_tunnel
     - ansible.builtin.assert:
         that:
-          - support_tunnel.record.keys() | sort == ['tunnel_open']
+          - support_tunnel.record.keys() | sort == ['code', 'open']

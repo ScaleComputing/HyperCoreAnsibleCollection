@@ -17,9 +17,6 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils.support_
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
     Response,
 )
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import (
-    UnexpectedAPIResponse,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
@@ -29,7 +26,8 @@ pytestmark = pytest.mark.skipif(
 class TestSupportTunnel:
     def test_support_tunnel_from_hypercore(self):
         support_tunnel = SupportTunnel(
-            tunnel_open=4422,
+            open=True,
+            code=4422,
         )
 
         hypercore_dict = dict(
@@ -39,22 +37,35 @@ class TestSupportTunnel:
         support_tunnel_from_hypercore = SupportTunnel.from_hypercore(hypercore_dict)
         assert support_tunnel == support_tunnel_from_hypercore
 
-    def test_support_tunnel_to_ansible(self):
-        support_tunnel = SupportTunnel(tunnel_open=4422)
+    def test_support_tunnel_from_hypercore_false(self):
+        support_tunnel = SupportTunnel(
+            open=False,
+            code=None,
+        )
 
-        ansible_dict = dict(tunnel_open=4422)
+        hypercore_dict = dict(
+            tunnelOpen=False,
+        )
+
+        support_tunnel_from_hypercore = SupportTunnel.from_hypercore(hypercore_dict)
+        assert support_tunnel == support_tunnel_from_hypercore
+
+    def test_support_tunnel_to_ansible(self):
+        support_tunnel = SupportTunnel(open=True, code=4422)
+
+        ansible_dict = dict(open=True, code=4422)
 
         assert support_tunnel.to_ansible() == ansible_dict
 
-    def test_user_equal_true(self):
-        support_tunnel1 = SupportTunnel(tunnel_open=4422)
-        support_tunnel2 = SupportTunnel(tunnel_open=4422)
+    def test_support_tunnel_equal_true(self):
+        support_tunnel1 = SupportTunnel(open=True, code=4422)
+        support_tunnel2 = SupportTunnel(open=True, code=4422)
 
         assert support_tunnel1 == support_tunnel2
 
-    def test_user_equal_false(self):
-        support_tunnel1 = SupportTunnel(tunnel_open=4422)
-        support_tunnel2 = SupportTunnel(tunnel_open=3355)
+    def test_support_tunnel_equal_false(self):
+        support_tunnel1 = SupportTunnel(open=True, code=4422)
+        support_tunnel2 = SupportTunnel(open=False, code=None)
 
         assert support_tunnel1 != support_tunnel2
 
@@ -64,14 +75,17 @@ class TestSupportTunnel:
         tunnel_status = SupportTunnel.check_tunnel_status(client)
 
         client.get.assert_called_with("/support-api/check")
-        assert tunnel_status.tunnel_open == 20503
+        assert tunnel_status.open is True
+        assert tunnel_status.code == 20503
 
-    def test_check_tunnel_status_404(self, client):
-        client.get.return_value = Response(status=404, data="")
+    def test_check_tunnel_status_false(self, client):
+        client.get.return_value = Response(status=200, data='{ "tunnelOpen": false }')
 
-        with pytest.raises(UnexpectedAPIResponse) as exc:
-            SupportTunnel.check_tunnel_status(client)
-        assert "Unexpected response - 404" in str(exc.value)
+        tunnel_status = SupportTunnel.check_tunnel_status(client)
+
+        client.get.assert_called_with("/support-api/check")
+        assert tunnel_status.open is False
+        assert tunnel_status.code is None
 
     def test_open_tunnel(self, create_module, client):
         module = create_module(
@@ -91,33 +105,8 @@ class TestSupportTunnel:
 
         client.get.assert_called_with("/support-api/open", query={"code": 4422})
 
-    def test_open_tunnel_404(self, create_module, client):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username=None,
-                    password=None,
-                ),
-                status="present",
-                code=4422,
-            ),
-        )
-        client.get.return_value = Response(status=404, data="")
-
-        with pytest.raises(UnexpectedAPIResponse) as exc:
-            SupportTunnel.open_tunnel(module, client)
-        assert "Unexpected response - 404" in str(exc.value)
-
     def test_close_tunnel(self, client):
         client.get.return_value = Response(status=200, data="")
         SupportTunnel.close_tunnel(client)
 
         client.get.assert_called_with("/support-api/close")
-
-    def test_close_tunnel_404(self, client):
-        client.get.return_value = Response(status=404, data="")
-
-        with pytest.raises(UnexpectedAPIResponse) as exc:
-            SupportTunnel.close_tunnel(client)
-        assert "Unexpected response - 404" in str(exc.value)

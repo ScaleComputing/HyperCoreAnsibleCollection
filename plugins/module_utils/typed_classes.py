@@ -44,7 +44,8 @@ class TypedDNSConfigToAnsible(TypedDict):
 
 # Support_tunnel to ansible return dict.
 class TypedSupportTunnelToAnsible(TypedDict):
-    tunnel_open: str
+    open: bool
+    code: Union[int, None]
 
 
 # Ansible module return Diff dict {before:{} after:{}}
