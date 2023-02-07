@@ -16,7 +16,7 @@ from ..module_utils.typed_classes import (
     TypedSmtpToAnsible,
     TypedSmtpFromAnsible,
 )
-from typing import Union, Any, Dict, Optional
+from typing import Union, Any, Dict
 
 
 class SMTP(PayloadMapper):
