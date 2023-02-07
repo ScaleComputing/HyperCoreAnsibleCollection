@@ -22,6 +22,10 @@ extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:
   - module: scale_computing.hypercore.smtp
+notes:
+  - SMTP authentication can be configured using username and password.
+    In this case the configured username is returned, but password is not.
+    Returned password is always empty string ("").
 """
 
 
@@ -39,6 +43,7 @@ results:
   type: dict
   sample:
     auth_user: ""
+    auth_password: ""
     from_address: PUB6@scalecomputing.com
     latest_task_tag:
       completed: 1675435601

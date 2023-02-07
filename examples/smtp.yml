@@ -17,7 +17,7 @@
     auth_password: example123
     from_address: example@example.com
 
-- name: Modify SMTP configuraiton with required params only
+- name: Modify SMTP configuration with required params only
   scale_computing.hypercore.smtp:
     server: smtp-relay.gmail.com
     port: 25
