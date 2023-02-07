@@ -131,11 +131,13 @@ class CachedRestClient(RestClient):
     # Use ONLY in case, that all task operations are read only. Should hould for all _info
     # modules.
 
-    def __init__(self, client):
+    def __init__(self, client: Client):
         super().__init__(client)
         self.cache = dict()
 
-    def list_records(self, endpoint, query=None, timeout=None):
+    def list_records(
+        self, endpoint: str, query: dict[Any, Any] = None, timeout: float = None
+    ) -> list[Any]:
         if endpoint in self.cache:
             records = self.cache[endpoint]
         else:
