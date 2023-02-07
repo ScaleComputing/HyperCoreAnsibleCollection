@@ -17,6 +17,8 @@ author:
 short_description: Creates, updates or deletes local hypercore user accounts.
 description:
   - Creates, updates or deletes local hypercore user accounts.
+  - The module in general is NOT idempotent. If C(password) needs to be changed, then module will report `changed=True`,
+    even if new password value is the same as old password value.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
