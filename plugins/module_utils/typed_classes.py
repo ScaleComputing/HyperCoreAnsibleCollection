@@ -56,3 +56,28 @@ class TypedDiff(TypedDict):
     after: Union[
         dict[Any, Any], TypedRegistrationToAnsible, TypedSupportTunnelToAnsible, None
     ]
+
+
+# smtp module
+class TypedSmtpToAnsible(TypedDict):
+    uuid: Union[str, None]
+    smtp_server: Union[str, None]
+    port: Union[int, None]
+    use_ssl: Union[bool, None]
+    use_auth: Union[bool, None]
+    auth_user: Union[str, None]
+    # auth_password: Union[str, None]
+    from_address: Union[str, None]
+    latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
+
+
+class TypedSmtpFromAnsible(TypedDict):
+    uuid: Union[str, None]
+    smtp_server: Union[str, None]
+    port: Union[int, None]
+    use_ssl: Union[bool, None]
+    use_auth: Union[bool, None]
+    auth_user: Union[str, None]
+    auth_password: Union[str, None]
+    from_address: Union[str, None]
+    latest_task_tag: Union[TypedTaskTag, None]

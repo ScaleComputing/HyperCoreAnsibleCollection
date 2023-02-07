@@ -119,8 +119,9 @@ results:
 
 
 from ansible.module_utils.basic import AnsibleModule
-from typing import Tuple
 
+from typing import Tuple, Union, Any, Dict
+from ..module_utils.typed_classes import TypedSmtpToAnsible
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
@@ -129,10 +130,10 @@ from ..module_utils.smtp import SMTP
 
 
 def build_entry(
-    api_entry: any,
-    module_entry: any,
+    api_entry: Any,
+    module_entry: Any,
     module: AnsibleModule = None,  # use module param for debugging
-) -> Tuple[any, bool]:
+) -> Tuple[Any, bool]:
     if module_entry is None:
         return api_entry, False
 
@@ -148,7 +149,11 @@ def build_entry(
 
 def modify_smtp_config(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, dict, dict]:
+) -> Tuple[
+    bool,
+    Union[TypedSmtpToAnsible, Dict[Any, Any]],
+    Dict[str, Union[TypedSmtpToAnsible, Dict[Any, Any]]],
+]:
     # GET method to get the SMTP config by UUID
     smtp = SMTP.get_by_uuid(module.params, rest_client)
 
@@ -227,7 +232,13 @@ def modify_smtp_config(
     return change, record, diff
 
 
-def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
+def run(
+    module: AnsibleModule, rest_client: RestClient
+) -> Tuple[
+    bool,
+    Union[TypedSmtpToAnsible, Dict[Any, Any]],
+    Dict[str, Union[TypedSmtpToAnsible, Dict[Any, Any]]],
+]:
     return modify_smtp_config(module, rest_client)
 
 

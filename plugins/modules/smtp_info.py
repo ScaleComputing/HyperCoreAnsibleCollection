@@ -64,17 +64,19 @@ results:
 
 from ansible.module_utils.basic import AnsibleModule
 
+from typing import Union, Dict, Any
+from ..module_utils.typed_classes import TypedSmtpToAnsible
 from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.smtp import SMTP
 
 
-def run(rest_client: RestClient):
+def run(rest_client: RestClient) -> Union[TypedSmtpToAnsible, Dict[Any, Any]]:
     return SMTP.get_state(rest_client)
 
 
-def main():
+def main() -> None:
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(

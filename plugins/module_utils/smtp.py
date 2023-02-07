@@ -4,25 +4,33 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper, get_query
 from ..module_utils import errors
+from ..module_utils.rest_client import RestClient
+from ..module_utils.typed_classes import (
+    TypedTaskTag,
+    TypedSmtpToAnsible,
+    TypedSmtpFromAnsible,
+)
+from typing import Union, Any, Dict, Optional
 
 
 class SMTP(PayloadMapper):
     def __init__(
         self,
-        uuid: str = None,
-        smtp_server: str = None,
-        port: int = None,
-        use_ssl: bool = False,
-        use_auth: bool = False,
-        auth_user: str = None,
-        auth_password: str = None,
-        from_address: str = None,
-        latest_task_tag: {} = None,
+        uuid: Union[str, None] = None,
+        smtp_server: Union[str, None] = None,
+        port: Union[int, None] = None,
+        use_ssl: Union[bool, None] = False,
+        use_auth: Union[bool, None] = False,
+        auth_user: Union[str, None] = None,
+        auth_password: Union[str, None] = None,
+        from_address: Union[str, None] = None,
+        latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None] = None,
     ):
         self.uuid = uuid
         self.smtp_server = smtp_server
@@ -35,24 +43,21 @@ class SMTP(PayloadMapper):
         self.latest_task_tag = latest_task_tag if latest_task_tag is not None else {}
 
     @classmethod
-    def from_ansible(cls, ansible_data):
+    def from_ansible(cls, ansible_data: TypedSmtpFromAnsible) -> SMTP:
         return SMTP(
             uuid=ansible_data["uuid"],
-            smtp_server=ansible_data["smtpServer"],
+            smtp_server=ansible_data["smtp_server"],
             port=ansible_data["port"],
-            use_ssl=ansible_data["useSSL"],
-            use_auth=ansible_data["useAuth"],
-            auth_user=ansible_data["authUser"],
-            auth_password=ansible_data["authPassword"],
-            from_address=ansible_data["fromAddress"],
-            latest_task_tag=ansible_data["latestTaskTag"],
+            use_ssl=ansible_data["use_ssl"],
+            use_auth=ansible_data["use_auth"],
+            auth_user=ansible_data["auth_user"],
+            auth_password=ansible_data["auth_password"],
+            from_address=ansible_data["from_address"],
+            latest_task_tag=ansible_data["latest_task_tag"],
         )
 
     @classmethod
-    def from_hypercore(cls, hypercore_data):
-        if not hypercore_data:
-            return None
-
+    def from_hypercore(cls, hypercore_data: dict[Any, Any]) -> SMTP:
         return cls(
             uuid=hypercore_data["uuid"],
             smtp_server=hypercore_data["smtpServer"],
@@ -65,7 +70,7 @@ class SMTP(PayloadMapper):
             latest_task_tag=hypercore_data["latestTaskTag"],
         )
 
-    def to_hypercore(self):
+    def to_hypercore(self) -> dict[Any, Any]:
         return dict(
             smtpServer=self.smtp_server,
             port=self.port,
@@ -76,7 +81,7 @@ class SMTP(PayloadMapper):
             fromAddress=self.from_address,
         )
 
-    def to_ansible(self):
+    def to_ansible(self) -> TypedSmtpToAnsible:
         return dict(
             uuid=self.uuid,
             smtp_server=self.smtp_server,
@@ -84,13 +89,15 @@ class SMTP(PayloadMapper):
             use_ssl=self.use_ssl,
             use_auth=self.use_auth,
             auth_user=self.auth_user,
-            auth_password=self.auth_password,
+            # auth_password=self.auth_password,
             from_address=self.from_address,
             latest_task_tag=self.latest_task_tag,
         )
 
     # This method is here for testing purposes!
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, SMTP):
+            return NotImplemented
         return all(
             (
                 self.uuid == other.uuid,
@@ -106,17 +113,26 @@ class SMTP(PayloadMapper):
         )
 
     @classmethod
-    def get_by_uuid(cls, ansible_dict, rest_client, must_exist=False):
+    def get_by_uuid(
+        cls,
+        ansible_dict: Dict[Any, Any],
+        rest_client: RestClient,
+        must_exist: bool = False,
+    ) -> Union[SMTP, None]:
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
         hypercore_dict = rest_client.get_record(
             "/rest/v1/AlertSMTPConfig", query, must_exist=must_exist
         )
+        if hypercore_dict is None:
+            return None
         smtp_config_from_hypercore = SMTP.from_hypercore(hypercore_dict)
         return smtp_config_from_hypercore
 
     # This method is being tested with integration tests (dns_config_info)
     @classmethod
-    def get_state(cls, rest_client):
+    def get_state(
+        cls, rest_client: RestClient
+    ) -> Union[TypedSmtpToAnsible, dict[Any, Any]]:
         state = [
             SMTP.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
             for hypercore_dict in rest_client.list_records("/rest/v1/AlertSMTPConfig/")
@@ -131,5 +147,6 @@ class SMTP(PayloadMapper):
             )
         if len(state) == 0:
             return {}
-        state[0].pop("auth_password")
+        # API does not return password, we get only empty string ""
+        # state[0].pop("auth_password")
         return state[0]
