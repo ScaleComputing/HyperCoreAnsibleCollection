@@ -67,6 +67,12 @@ from ..module_utils.rest_client import RestClient, CachedRestClient
 from ..module_utils.utils import get_query
 from ..module_utils.virtual_disk import VirtualDisk
 
+from ..module_utils.hypercore_version import (
+    HyperCoreVersion,
+)
+
+HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"
+
 
 def run(
     module: AnsibleModule, rest_client: RestClient
@@ -90,6 +96,10 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = CachedRestClient(client)
+        hcversion = HyperCoreVersion(rest_client)
+        if not hcversion.verify(HYPERCORE_VERSION_REQUIREMENTS):
+            msg = f"HyperCore server version={hcversion.version} does not match required version {HYPERCORE_VERSION_REQUIREMENTS}"
+            module.fail_json(msg=msg)
         records = run(module, rest_client)
         module.exit_json(changed=False, records=records)
     except errors.ScaleComputingError as e:
