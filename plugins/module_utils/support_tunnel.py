@@ -9,7 +9,6 @@ from __future__ import annotations
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
-from .errors import UnexpectedAPIResponse
 from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.client import Client
 from ..module_utils.typed_classes import TypedSupportTunnelToAnsible
