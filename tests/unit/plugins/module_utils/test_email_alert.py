@@ -8,11 +8,9 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
-from copy import deepcopy
 
 import pytest
 
-from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert import (
     EmailAlert,
 )
