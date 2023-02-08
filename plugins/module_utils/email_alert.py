@@ -9,7 +9,6 @@ __metaclass__ = type
 
 from .rest_client import RestClient
 from ..module_utils.utils import PayloadMapper, get_query
-from ..module_utils import errors
 
 
 class EmailAlert(PayloadMapper):
