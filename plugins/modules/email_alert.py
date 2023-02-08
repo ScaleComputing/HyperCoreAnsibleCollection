@@ -110,6 +110,10 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.email_alert import EmailAlert
 
+# from ..module_utils.typed_classes import TypedEmailAlertToAnsible, TypedDiff
+
+# from typing import List, Tuple, Union, Dict, Any
+
 
 def create_email_alert(module: AnsibleModule, rest_client: RestClient):
     before = EmailAlert.get_state(rest_client)
@@ -189,7 +193,7 @@ def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
     )  # changed, records, diff
 
 
-def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
+def run(module: AnsibleModule, rest_client: RestClient):
     state = module.params["state"]
     if state == "present":
         if module.params["email_new"] is not None:

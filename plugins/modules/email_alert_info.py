@@ -66,13 +66,15 @@ from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.email_alert import EmailAlert
+from ..module_utils.typed_classes import TypedEmailAlertToAnsible
+from typing import List, Union
 
 
-def run(rest_client: RestClient):
+def run(rest_client: RestClient) -> List[Union[TypedEmailAlertToAnsible, None]]:
     return EmailAlert.get_state(rest_client)
 
 
-def main():
+def main() -> None:
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(

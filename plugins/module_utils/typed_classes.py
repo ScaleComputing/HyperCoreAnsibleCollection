@@ -104,3 +104,21 @@ class TypedSmtpFromAnsible(TypedDict):
     auth_password: Union[str, None]
     from_address: Union[str, None]
     latest_task_tag: Union[TypedTaskTag, None]
+
+
+class TypedEmailAlertToAnsible(TypedDict):
+    uuid: Union[str, None]
+    alert_tag_uuid: Union[str, None]
+    email_address: Union[str, None]
+    resend_delay: Union[int, None]
+    silent_period: Union[int, None]
+    latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
+
+
+class TypedEmailAlertFromAnsible(TypedDict):
+    uuid: Union[str, None]
+    alert_tag_uuid: Union[str, None]
+    email_address: Union[str, None]
+    resend_delay: Union[int, None]
+    silent_period: Union[int, None]
+    latest_task_tag: Union[TypedTaskTag, None]
