@@ -5,7 +5,7 @@
     SC_PASSWORD: "{{ sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
-    code: "4422"
+    code: 4422
 
   block:
     - name: Cleanup
@@ -26,11 +26,11 @@
         that:
           - support_tunnel is changed
           - support_tunnel.record.open == true
-          - support_tunnel.record.code == "{{ code }}"
+          - support_tunnel.record.code == {{ code }}
           - support_tunnel.diff.before.open == false
           - not support_tunnel.diff.before.code
           - support_tunnel.diff.after.open == true
-          - support_tunnel.diff.after.code == "{{ code }}"
+          - support_tunnel.diff.after.code == {{ code }}
     
     - name: Open support tunnel - check with info module
       scale_computing.hypercore.support_tunnel_info:
@@ -38,7 +38,7 @@
     - ansible.builtin.assert:
         that:
           - support_tunnel.record.open == true
-          - support_tunnel.record.code == "{{ code }}"
+          - support_tunnel.record.code == {{ code }}
     
     - name: Open support tunnel - idempotence
       scale_computing.hypercore.support_tunnel:
@@ -49,11 +49,11 @@
         that:
           - support_tunnel is not changed
           - support_tunnel.record.open == true
-          - support_tunnel.record.code == "{{ code }}"
+          - support_tunnel.record.code == {{ code }}
           - support_tunnel.diff.before.open == true
-          - support_tunnel.diff.before.code == "{{ code }}"
+          - support_tunnel.diff.before.code == {{ code }}
           - support_tunnel.diff.after.open == true
-          - support_tunnel.diff.after.code == "{{ code }}"
+          - support_tunnel.diff.after.code == {{ code }}
     
     - name: Open support tunnel - check with info module
       scale_computing.hypercore.support_tunnel_info:
@@ -61,7 +61,7 @@
     - ansible.builtin.assert:
         that:
           - support_tunnel.record.open == true
-          - support_tunnel.record.code == "{{ code }}"
+          - support_tunnel.record.code == {{ code }}
 
     - name: Close support tunnel
       scale_computing.hypercore.support_tunnel:
@@ -73,7 +73,7 @@
           - support_tunnel.record.open == false
           - not support_tunnel.record.code
           - support_tunnel.diff.before.open == true
-          - support_tunnel.diff.before.code == "{{ code }}"
+          - support_tunnel.diff.before.code == {{ code }}
           - support_tunnel.diff.after.open == false
           - not support_tunnel.diff.after.code
     

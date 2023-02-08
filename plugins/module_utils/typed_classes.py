@@ -48,11 +48,59 @@ class TypedSupportTunnelToAnsible(TypedDict):
     code: Union[int, None]
 
 
+# User to ansible return dict.
+class TypedUserToAnsible(TypedDict):
+    uuid: str
+    username: str
+    full_name: str
+    roles: list[TypedRoleToAnsible]
+    session_limit: int
+
+
+# Role to ansible return dict.
+class TypedRoleToAnsible(TypedDict):
+    uuid: str
+    name: str
+
+
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
     before: Union[
-        dict[Any, Any], TypedRegistrationToAnsible, TypedSupportTunnelToAnsible, None
+        dict[Any, Any],
+        TypedRegistrationToAnsible,
+        TypedSupportTunnelToAnsible,
+        TypedUserToAnsible,
+        None,
     ]
     after: Union[
-        dict[Any, Any], TypedRegistrationToAnsible, TypedSupportTunnelToAnsible, None
+        dict[Any, Any],
+        TypedRegistrationToAnsible,
+        TypedSupportTunnelToAnsible,
+        TypedUserToAnsible,
+        None,
     ]
+
+
+# smtp module
+class TypedSmtpToAnsible(TypedDict):
+    uuid: Union[str, None]
+    smtp_server: Union[str, None]
+    port: Union[int, None]
+    use_ssl: Union[bool, None]
+    use_auth: Union[bool, None]
+    auth_user: Union[str, None]
+    auth_password: Union[str, None]
+    from_address: Union[str, None]
+    latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
+
+
+class TypedSmtpFromAnsible(TypedDict):
+    uuid: Union[str, None]
+    smtp_server: Union[str, None]
+    port: Union[int, None]
+    use_ssl: Union[bool, None]
+    use_auth: Union[bool, None]
+    auth_user: Union[str, None]
+    auth_password: Union[str, None]
+    from_address: Union[str, None]
+    latest_task_tag: Union[TypedTaskTag, None]
