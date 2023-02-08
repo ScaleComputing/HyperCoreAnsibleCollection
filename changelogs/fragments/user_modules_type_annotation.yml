@@ -1,3 +1,0 @@
----
-minor_changes:
-  - Added type annotation to user modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/96)
