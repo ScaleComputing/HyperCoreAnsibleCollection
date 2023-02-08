@@ -103,7 +103,6 @@ records:
 
 
 from ansible.module_utils.basic import AnsibleModule
-from typing import Tuple
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
