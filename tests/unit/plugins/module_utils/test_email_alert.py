@@ -73,9 +73,7 @@ class TestEmailAlert:
         assert self.email_alert == email_alert_from_ansible
 
     def test_get_by_uuid(self, rest_client):
-        rest_client.get_record.return_value = dict(
-            **self.from_hypercore_dict
-        )
+        rest_client.get_record.return_value = dict(**self.from_hypercore_dict)
         ansible_dict = dict(
             uuid="test",
         )
@@ -99,10 +97,7 @@ class TestEmailAlert:
         result = EmailAlert.get_state(rest_client)
         print(result)
 
-        assert result == [
-            expected,
-            expected
-        ]
+        assert result == [expected, expected]
 
     def test_get_state_no_record(self, rest_client):
         rest_client.list_records.return_value = []

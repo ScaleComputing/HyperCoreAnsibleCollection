@@ -34,14 +34,16 @@ class TestRun:
         ]
 
         result = email_alert_info.run(rest_client)
-        assert result == [{
-            "uuid": "8664ed18-c354-4bab-be96-78dae5f6377f",
-            "alert_tag_uuid": "0",
-            "email_address": "test@test.com",
-            "resend_delay": 123,
-            "silent_period": 123,
-            "latest_task_tag": {},
-        }]
+        assert result == [
+            {
+                "uuid": "8664ed18-c354-4bab-be96-78dae5f6377f",
+                "alert_tag_uuid": "0",
+                "email_address": "test@test.com",
+                "resend_delay": 123,
+                "silent_period": 123,
+                "latest_task_tag": {},
+            }
+        ]
 
     def test_run_record_absent(self, rest_client):
         rest_client.list_records.return_value = []
