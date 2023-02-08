@@ -39,14 +39,10 @@ record:
   returned: success
   type: dict
   sample:
-    cluster_data_hash: data_hash
-    cluster_data_hash_accepted: data_hash_accepted
-    cluster_id: this_cluster_id
     company_name: sample_company
     contact: John Smith
     email: john_smith@sgmail.com
     phone: '777777777'
-    uuid: registration_guid
 """
 
 from ansible.module_utils.basic import AnsibleModule
