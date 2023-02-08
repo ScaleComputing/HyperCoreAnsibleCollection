@@ -11,11 +11,6 @@ import sys
 
 import pytest
 
-from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert import (
-    EmailAlert,
-)
-from ansible_collections.scale_computing.hypercore.plugins.modules import email_alert
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (2, 7), reason="requires python2.7 or higher"
