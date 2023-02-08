@@ -11,4 +11,6 @@
     - ansible.builtin.assert:
         that:
           - emails.records != []
-          - emails.records[0].keys() | sort == ['alert_tag_uuid', 'email_address', 'latest_task_tag', 'resend_delay', 'silent_period', 'uuid']
+          - emails.records[0].keys() | sort ==
+            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            'resend_delay', 'silent_period', 'uuid']

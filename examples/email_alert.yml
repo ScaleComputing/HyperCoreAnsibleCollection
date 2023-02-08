@@ -2,37 +2,16 @@
 # --------------- Module email_alert
 - name: Create Email alert recipient
   scale_computing.hypercore.email_alert:
-    uuid: 8664ed18-c354-4bab-be96-78dae5f6377f # required; required if (state=test)
-    email_address: example@example.com # required
-    resend_delay: 86400 # not required
-    silent_period: 900 # not required
+    email: example@example.com
     state: present # absent, test --> create, delete, test
 
-# only ONE of the following parameters are required:
-# - uuid
-# - email_address
-
-# If parameter uuid is provided
-# - if (state=present) change the Email Alert Recipient with that uuid.
-# - if (state=absent)  delete the Email Alert Recipient with that uuid.
-# Else
-# - If (state=present) create a new Email Alert Recipient.
-# - If (state=absent)  delete all Email Alert Recipients with the provided email_address.
-
-# - uuid is not fixed
-# - every email alert recipient has an additional uuid (alertTagUUID),
-#   which seems to always be set to "0" ==> Do I need to make this dynamic/modifyable or
-#   can I just always set it to "0" ??
-
-# --------------- Module email_alert_info
-- name: List all Email alert recipients
-  scale_computing.hypercore.email_alert_info:
-  register: info
-- ansible.builtin.debug:
-    msg: "{{ info }}"
-
-# ------ new example email_alert
-- name: Create Email alert recipient
+- name: Modify previously created Email alert recipient
   scale_computing.hypercore.email_alert:
-    email: old@old.com
-    email_new: new@new.com
+    email: example@example.com
+    email_new: new@example.com
+    state: present
+
+- name: Remove Email alert recipient
+  scale_computing.hypercore.email_alert:
+    email: new@example.com
+    state: absent
