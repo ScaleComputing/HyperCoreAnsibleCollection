@@ -5,21 +5,6 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   block:
-#    - name: Add Email alert recipient
-#      scale_computing.hypercore.api:
-#        action: post
-#        endpoint: /rest/v1/AlertEmailTarget
-#        data:
-#          emailAddress: test1
-#
-#    - name: Add some Email alert recipient
-#      scale_computing.hypercore.api:
-#        action: post
-#        endpoint: /rest/v1/AlertEmailTarget
-#        data:
-#          emailAddress: test2
-
-
     - name: Retrieve info about Email alert recipients
       scale_computing.hypercore.email_alert_info:
       register: emails
@@ -27,15 +12,3 @@
         that:
           - emails.records != []
           - emails.records[0].keys() | sort == ['alert_tag_uuid', 'email_address', 'latest_task_tag', 'resend_delay', 'silent_period', 'uuid']
-
-#    - name: Check if new email test1 exists
-#      ansible.builtin.fail:
-#        msg: "New email is not present!"
-#      when: item.email_address == test1
-#      loop: "{{ emails.records }}"
-#
-#    - name: Check if new email test2 exists
-#      ansible.builtin.fail:
-#        msg: "New email is not present!"
-#      when: item.email_address == test2
-#      loop: "{{ emails.records }}"

@@ -31,7 +31,6 @@
 - ansible.builtin.debug:
     msg: "{{ info }}"
 
-
 # ------ new example email_alert
 - name: Create Email alert recipient
   scale_computing.hypercore.email_alert:

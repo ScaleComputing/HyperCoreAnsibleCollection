@@ -114,57 +114,79 @@ from ..module_utils.email_alert import EmailAlert
 def create_email_alert(module: AnsibleModule, rest_client: RestClient):
     before = EmailAlert.get_state(rest_client)
     for item in before:
-        module.warn(str(item))
         if item.get("email_address") == module.params["email"]:
             return False, before, dict(before=before, after=before)
     EmailAlert.create(
         rest_client=rest_client,
-        payload=dict(
-            emailAddress=module.params["email"]
-        ),
+        payload=dict(emailAddress=module.params["email"]),
         check_mode=module.check_mode,
     )
     after = EmailAlert.get_state(rest_client)
-    return after != before, after, dict(before=before, after=after)  # changed, records, diff
+    return (
+        after != before,
+        after,
+        dict(before=before, after=after),
+    )  # changed, records, diff
 
 
 def update_email_alert(module: AnsibleModule, rest_client: RestClient):
-    before = EmailAlert.get_state(rest_client)  # get the records of emailAlert endpoint before update
+    before = EmailAlert.get_state(
+        rest_client
+    )  # get the records of emailAlert endpoint before update
 
     # Get record of old emailAlert by email
-    old_email = EmailAlert.get_by_email(dict(email_address=module.params["email"]), rest_client)
+    old_email = EmailAlert.get_by_email(
+        dict(email_address=module.params["email"]), rest_client
+    )
 
     if not old_email:
-        old_email = EmailAlert.get_by_email(dict(email_address=module.params["email_new"]), rest_client)
+        old_email = EmailAlert.get_by_email(
+            dict(email_address=module.params["email_new"]), rest_client
+        )
         if not old_email:
-            raise errors.ScaleComputingError("Email Alert: Can't update a nonexistent email.")
+            raise errors.ScaleComputingError(
+                "Email Alert: Can't update a nonexistent email."
+            )
 
     # Return if there are no changes
-    if (module.params["email_new"] == old_email.to_ansible().get("email_address")
-            or module.params["email_new"] == module.params["email"]):
+    if (
+        module.params["email_new"] == old_email.to_ansible().get("email_address")
+        or module.params["email_new"] == module.params["email"]
+    ):
         return False, before, dict(before=before, after=before)
 
     # Otherwise, update with new email address
     old_email.update(
         rest_client=rest_client,
-        payload=dict(
-            emailAddress=module.params["email_new"]
-        ),
+        payload=dict(emailAddress=module.params["email_new"]),
         check_mode=module.check_mode,
     )
-    after = EmailAlert.get_state(rest_client)  # get the records od emailAlert endpoint after update
-    return after != before, after, dict(before=before, after=after)  # changed, records, diff
+    after = EmailAlert.get_state(
+        rest_client
+    )  # get the records od emailAlert endpoint after update
+    return (
+        after != before,
+        after,
+        dict(before=before, after=after),
+    )  # changed, records, diff
 
 
 def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
     before = EmailAlert.get_state(rest_client)
-    delete_email = EmailAlert.get_by_email(dict(email_address=module.params["email"]), rest_client)
+    delete_email = EmailAlert.get_by_email(
+        dict(email_address=module.params["email"]), rest_client
+    )
     if not delete_email:
-        raise errors.ScaleComputingError("Email Alert: The email you're trying to remove, doesn't exist.")
+        module.warn("Email Alert: The email you're trying to remove, doesn't exist.")
+        return False, before, dict(before=before, after=before)
     delete_email.delete(rest_client, module.check_mode)
 
     after = EmailAlert.get_state(rest_client)
-    return after != before, after, dict(before=before, after=after)  # changed, records, diff
+    return (
+        after != before,
+        after,
+        dict(before=before, after=after),
+    )  # changed, records, diff
 
 
 def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
@@ -178,7 +200,11 @@ def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dic
     else:  # state == "test"
         module.warn("state=test not yet implemented.")
 
-    return False, EmailAlert.get_state(rest_client), dict(before=[], after=[])  # changed, records, diff
+    return (
+        False,
+        EmailAlert.get_state(rest_client),
+        dict(before=[], after=[]),
+    )  # changed, records, diff
 
 
 def main() -> None:
@@ -198,7 +224,7 @@ def main() -> None:
                 type="str",
                 choices=["present", "absent", "test"],
                 required=True,
-            )
+            ),
         ),
     )
 

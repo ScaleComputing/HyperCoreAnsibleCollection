@@ -96,7 +96,11 @@ class EmailAlert(PayloadMapper):
 
     @classmethod
     def get_by_email(cls, ansible_dict, rest_client, must_exist=False):
-        query = get_query(ansible_dict, "email_address", ansible_hypercore_map=dict(email_address="emailAddress"))
+        query = get_query(
+            ansible_dict,
+            "email_address",
+            ansible_hypercore_map=dict(email_address="emailAddress"),
+        )
         hypercore_dict = rest_client.get_record(
             "/rest/v1/AlertEmailTarget", query, must_exist=must_exist
         )
@@ -118,7 +122,9 @@ class EmailAlert(PayloadMapper):
         rest_client.create_record("/rest/v1/AlertEmailTarget/", payload, check_mode)
 
     def update(self, rest_client: RestClient, payload, check_mode=False):
-        rest_client.update_record(f"/rest/v1/AlertEmailTarget/{self.uuid}", payload, check_mode)
+        rest_client.update_record(
+            f"/rest/v1/AlertEmailTarget/{self.uuid}", payload, check_mode
+        )
 
     def delete(self, rest_client: RestClient, check_mode=False):
         rest_client.delete_record(f"/rest/v1/AlertEmailTarget/{self.uuid}", check_mode)
