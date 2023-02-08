@@ -1,4 +1,4 @@
 ---
 major_changes:
   - Added email_alert and email_alert_info modules.
-    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/82)
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/99)
