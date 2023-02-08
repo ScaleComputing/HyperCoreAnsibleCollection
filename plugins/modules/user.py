@@ -17,6 +17,8 @@ author:
 short_description: Creates, updates or deletes local hypercore user accounts.
 description:
   - Creates, updates or deletes local hypercore user accounts.
+  - The module in general is NOT idempotent. If C(password) needs to be changed, then module will report `changed=True`,
+    even if new password value is the same as old password value.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -115,18 +117,22 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.rest_client import CachedRestClient
 from ..module_utils.user import User
 from ..module_utils.role import Role
+from ..module_utils.typed_classes import TypedUserToAnsible, TypedDiff
+from typing import List, Tuple, Union, Dict, Any
 
 
-def get_role_uuids(module, rest_client: RestClient):
+def get_role_uuids(module: AnsibleModule, rest_client: RestClient) -> List[str]:
     # CachedRestClient is beneficial here since we use for loop and make get requests to the same endpoint many times
     role_uuids = []
     for role_name in module.params["roles"]:
         role = Role.get_role_from_name(role_name, rest_client, must_exist=True)
-        role_uuids.append(role.uuid)
+        role_uuids.append(role.uuid)  # type: ignore # since must_exist=True, role is never None
     return role_uuids
 
 
-def data_for_create_user(module, rest_client: RestClient):
+def data_for_create_user(
+    module: AnsibleModule, rest_client: RestClient
+) -> Dict[Any, Any]:
     data = {}
     data["username"] = module.params[
         "username"
@@ -142,7 +148,9 @@ def data_for_create_user(module, rest_client: RestClient):
     return data
 
 
-def create_user(module, rest_client: RestClient):
+def create_user(
+    module: AnsibleModule, rest_client: RestClient
+) -> Tuple[bool, TypedUserToAnsible, TypedDiff]:
     data = data_for_create_user(module, rest_client)
     user = User.create(rest_client, data).to_ansible(rest_client)
     return (
@@ -152,7 +160,9 @@ def create_user(module, rest_client: RestClient):
     )
 
 
-def data_for_update_user(module, rest_client: RestClient, user):
+def data_for_update_user(
+    module: AnsibleModule, rest_client: RestClient, user: User
+) -> Dict[Any, Any]:
     data = {}
     if module.params["username_new"]:
         if user.username != module.params["username_new"]:
@@ -174,35 +184,40 @@ def data_for_update_user(module, rest_client: RestClient, user):
     return data
 
 
-def update_user(module, rest_client: RestClient, user):
+def update_user(
+    module: AnsibleModule, rest_client: RestClient, user: User
+) -> Tuple[bool, TypedUserToAnsible, TypedDiff]:
     data = data_for_update_user(module, rest_client, user)
     if data:
         user.update(rest_client, data)
-        user_after = User.get_user_from_uuid(
-            user.uuid, rest_client, must_exist=True
-        ).to_ansible(rest_client)
-        user = user.to_ansible(rest_client)
+        user_after = User.get_user_from_uuid(user.uuid, rest_client, must_exist=True)
+        user_after_to_ansible = user_after.to_ansible(rest_client)  # type: ignore # user_after is never None
+        user_to_ansible = user.to_ansible(rest_client)
         return (
             True,
-            user_after,
-            dict(before=user, after=user_after),
+            user_after_to_ansible,
+            dict(before=user_to_ansible, after=user_after_to_ansible),
         )
-    user = user.to_ansible(rest_client)
+    user_to_ansible = user.to_ansible(rest_client)
     return (
         False,
-        user,
-        dict(before=user, after=user),
+        user_to_ansible,
+        dict(before=user_to_ansible, after=user_to_ansible),
     )
 
 
-def delete_user(rest_client: RestClient, user):
+def delete_user(
+    rest_client: RestClient, user: Union[User, None]
+) -> Tuple[bool, Union[TypedUserToAnsible, Dict[None, None]], TypedDiff]:
     if not user:
-        return False, dict(), dict(before={}, after={})
+        return (False, dict(), dict(before={}, after={}))
     user.delete(rest_client)
-    return True, dict(), dict(before=user.to_ansible(rest_client), after={})
+    return (True, dict(), dict(before=user.to_ansible(rest_client), after={}))
 
 
-def run(module, rest_client: RestClient):
+def run(
+    module: AnsibleModule, rest_client: RestClient
+) -> Tuple[bool, Union[TypedUserToAnsible, Dict[None, None]], TypedDiff]:
     user = User.get_user_from_username(
         module.params["username"], rest_client, must_exist=False
     )
@@ -211,11 +226,11 @@ def run(module, rest_client: RestClient):
             return update_user(module, rest_client, user)
         else:
             return create_user(module, rest_client)
-    if module.params["state"] == "absent":
+    else:
         return delete_user(rest_client, user)
 
 
-def main():
+def main() -> None:
     module = AnsibleModule(
         supports_check_mode=False,
         argument_spec=dict(
@@ -249,7 +264,7 @@ def main():
 
     try:
         client = Client.get_client(module.params["cluster_instance"])
-        rest_client = CachedRestClient(client)
+        rest_client = CachedRestClient(client)  # type: ignore
         changed, record, diff = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:

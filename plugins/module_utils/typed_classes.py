@@ -48,13 +48,36 @@ class TypedSupportTunnelToAnsible(TypedDict):
     code: Union[int, None]
 
 
+# User to ansible return dict.
+class TypedUserToAnsible(TypedDict):
+    uuid: str
+    username: str
+    full_name: str
+    roles: list[TypedRoleToAnsible]
+    session_limit: int
+
+
+# Role to ansible return dict.
+class TypedRoleToAnsible(TypedDict):
+    uuid: str
+    name: str
+
+
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
     before: Union[
-        dict[Any, Any], TypedRegistrationToAnsible, TypedSupportTunnelToAnsible, None
+        dict[Any, Any],
+        TypedRegistrationToAnsible,
+        TypedSupportTunnelToAnsible,
+        TypedUserToAnsible,
+        None,
     ]
     after: Union[
-        dict[Any, Any], TypedRegistrationToAnsible, TypedSupportTunnelToAnsible, None
+        dict[Any, Any],
+        TypedRegistrationToAnsible,
+        TypedSupportTunnelToAnsible,
+        TypedUserToAnsible,
+        None,
     ]
 
 
