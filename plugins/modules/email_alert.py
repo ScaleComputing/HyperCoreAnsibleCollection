@@ -38,7 +38,7 @@ options:
     choices: [ present, absent, test ]
     description:
       - The desired state of the email alert recipient on HyperCore API.
-      - If I(state=present) and C(email_new) wasn't provided, 
+      - If I(state=present) and C(email_new) wasn't provided,
         a new Email Alert Recipient will be added on the HyperCore API.
       - If I(state=absent), the Email Alert Recipient with the provided
         C(email) will be removed from HyperCore API.
@@ -61,12 +61,12 @@ EXAMPLES = r"""
     email: example@example.com
     email_new: new@example.com
     state: present
-    
+
 - name: Remove previously updated Email Alert Recipient
   scale_computing.hypercore.email_alert:
     email: new@example.com
     state: absent
-    
+
 - name: Send a test email to an Email Alert Recipient
   scale_computing.hypercore.email_alert:
     email: recipient@example.com
