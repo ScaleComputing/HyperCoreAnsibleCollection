@@ -161,9 +161,38 @@ def modify_smtp_config(
     # GET method to get the SMTP config by UUID
     smtp = SMTP.get_by_uuid(module.params, rest_client)
 
-    # If SMTP config doesn't exist, raise an exception (error)
+    if module.params["auth_password"] is None:
+        new_auth_password = ""
+    else:
+        new_auth_password = module.params["auth_password"]
+    if module.params["auth_user"] is None:
+        new_auth_user = ""
+    else:
+        new_auth_user = module.params["auth_user"]
+
+    payload = dict(
+        smtpServer=module.params["server"],
+        port=module.params["port"],
+        useSSL=module.params["use_ssl"],
+        useAuth=module.params["use_auth"],
+        authUser=new_auth_user,
+        authPassword=new_auth_password,
+        fromAddress=module.params["from_address"],
+    )
+
+    # If SMTP config doesn't exist, create the
+    # SMTP config with given parameters
     if not smtp:
-        raise errors.ScaleComputingError("SMTP: There is no SMTP configuration.")
+        module.warn("SMTP: There is no SMTP configuration.")
+        create_task_tag = rest_client.create_record(
+            endpoint="/rest/v1/AlertSMTPConfig",
+            payload=payload,
+            check_mode=module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, create_task_tag)
+        # created_smtp = SMTP.get_by_uuid(module.params, rest_client)
+        record = SMTP.get_state(rest_client)
+        return True, record, dict(before={}, after=record)
 
     # Otherwise, continue with modifying the configuration
     before = smtp.to_ansible()

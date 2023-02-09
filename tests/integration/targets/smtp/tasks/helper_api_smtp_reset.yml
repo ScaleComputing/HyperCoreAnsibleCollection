@@ -1,0 +1,24 @@
+---
+# Reset SMTP configuration when testing is finished.
+# Configure SMTP using raw API module.
+# Should work even when all other modules are broken.
+
+- name: Show desired smtp_config
+  ansible.builtin.debug:
+    var: smtp_config
+
+# port: "{{ smtp_config.port | int }}"
+# The port will be string, not int, and HyperCore API will reject request.
+# See also https://stackoverflow.com/questions/52487396/pass-integer-variable-to-task-without-losing-the-integer-type
+# ANSIBLE_JINJA2_NATIVE=True would help, but I do not want to assume users have this set.
+# So instead, just check port 25 is requested.
+- name: Check desired port==25
+  ansible.builtin.assert:
+    that:
+      - smtp_config.port == 25
+
+- name: Delete all AlertSMTPConfig objects
+  include_tasks: helper_api_smtp_delete_all.yml
+
+- name: Create one AlertSMTPConfig object
+  include_tasks: helper_api_smtp_create_one.yml

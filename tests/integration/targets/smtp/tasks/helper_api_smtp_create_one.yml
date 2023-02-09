@@ -1,0 +1,38 @@
+---
+# Create SMTP config.
+# Assumes all AlertSMTPConfig were deleted before.
+
+# port: "{{ smtp_config.port | int }}"
+# The port will be string, not int, and HyperCore API will reject request.
+# See also https://stackoverflow.com/questions/52487396/pass-integer-variable-to-task-without-losing-the-integer-type
+# ANSIBLE_JINJA2_NATIVE=True would help, but I do not want to assume users have this set.
+# So instead, just check port 25 is requested.
+- name: Check desired port==25
+  ansible.builtin.assert:
+    that:
+      - smtp_config.port == 25
+
+# Create/POST, not update/PATCH!
+- name: Create a desired SMTP config
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/AlertSMTPConfig
+    data:
+      smtpServer: "{{ smtp_config.host }}"
+      # port: "{{ smtp_config.port | int }}"
+      port: 25
+      useSSL: "{{ smtp_config.use_ssl }}"
+      useAuth: "{{ smtp_config.use_auth }}"
+      authUser: "{{ smtp_config.auth_user }}"
+      authPassword: "{{ smtp_config.auth_password }}"
+      fromAddress: "{{ smtp_config.from_address }}"
+# TODO wait on TaskTag
+
+- name: Get current AlertSMTPConfig
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/AlertSMTPConfig
+  register: smtp_config_result
+- name: Show current AlertSMTPConfig
+  ansible.builtin.debug:
+    var: smtp_config_result
