@@ -1,0 +1,20 @@
+---
+# Remove SMTP config.
+# Task does not set empty values for host, port etc.,
+# it removes the AlertSMTPConfig object(s) on server.
+
+- name: Get current AlertSMTPConfig
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/AlertSMTPConfig
+  register: smtp_config_result
+- name: Show current AlertSMTPConfig
+  ansible.builtin.debug:
+    var: smtp_config_result
+
+- name: Remove all existing SMTP configs
+  scale_computing.hypercore.api:
+    action: delete
+    endpoint: /rest/v1/AlertSMTPConfig/{{ item.uuid }}
+  with_items: "{{ smtp_config_result.record }}"
+# TODO wait on TaskTag
