@@ -1,22 +1,57 @@
 ---
-- name: Get expected configs
-  scale_computing.hypercore.api:
-    action: get
-    endpoint: /rest/v1/DNSConfig/dnsconfig_guid
-  register: dns_config
-- ansible.builtin.set_fact:
-    actual_server_ips: "{{ dns_config.record.0.serverIPs }}"
-    actual_search_domains: "{{ dns_config.record.0.searchDomains }}"
-    actual_uuid: "{{ dns_config.record.0.uuid }}"
+# -------------------------------------------------------------------
+- include_tasks: helper_api_dns_delete_all.yml
 
-- name: Retrieve info about DNS Config
+- name: Retrieve info about DNS Config - unconfigured cluster
+  scale_computing.hypercore.dns_config_info:
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.changed == False
+      - result.record == {}
+
+# -------------------------------------------------------------------
+
+- include_tasks: helper_api_dns_create_one.yml
+  vars:
+    dns_config:
+      search_domains:
+        - aa.example.com
+        - bb.example.com
+      dns_servers:
+        - 8.8.4.4
+        - 8.8.8.8
+
+- name: Retrieve info about DNS Config - configured cluster
   scale_computing.hypercore.dns_config_info:
   register: result
 - ansible.builtin.assert:
     that:
       - result.record != []
       - "{{ result.record.keys() | sort == ['latest_task_tag', 'search_domains', 'server_ips', 'uuid'] }}"
-      - result.record.uuid == actual_uuid
-      - result.record.server_ips == actual_server_ips
-      - result.record.search_domains == actual_search_domains  # fails if set to [], [""] or ['']
+      - result.record.uuid == "dnsconfig_guid"
+      - result.record.server_ips == ["8.8.4.4", "8.8.8.8"]
+      - result.record.search_domains == ["aa.example.com", "bb.example.com"]
+      - result.record.latest_task_tag
+
+# -------------------------------------------------------------------
+
+- name: Prepare for test - DNSConfig object with empty values
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/DNSConfig/dnsconfig_guid
+    data:
+      searchDomains: []
+      serverIPs: []
+
+- name: Retrieve info about DNS Config - configured cluster with emtpy values
+  scale_computing.hypercore.dns_config_info:
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result.record != []
+      - "{{ result.record.keys() | sort == ['latest_task_tag', 'search_domains', 'server_ips', 'uuid'] }}"
+      - result.record.uuid == "dnsconfig_guid"
+      - result.record.server_ips == []
+      - result.record.search_domains == []
       - result.record.latest_task_tag
