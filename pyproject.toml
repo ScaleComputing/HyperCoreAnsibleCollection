@@ -50,8 +50,6 @@ module = [
     "plugins.modules.snapshot_schedule",
     "plugins.modules.snapshot_schedule_info",
     "plugins.modules.task_wait",
-    "plugins.modules.user_info",
-    "plugins.modules.user",
     "plugins.modules.vm_boot_devices",
     "plugins.modules.vm_clone",
     "plugins.modules.vm_disk",

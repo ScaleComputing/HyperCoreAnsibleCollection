@@ -1,0 +1,23 @@
+---
+- name: Modify SMTP configuration without authentication
+  scale_computing.hypercore.smtp:
+    server: smtp-relay.gmail.com
+    port: 25
+    use_ssl: false
+    requires_auth: false
+    from_address: example@example.com
+
+- name: Modify SMTP configuration with authentication
+  scale_computing.hypercore.smtp:
+    server: smtp-relay.gmail.com
+    port: 25
+    use_ssl: false
+    use_auth: true
+    auth_user: example
+    auth_password: example123
+    from_address: example@example.com
+
+- name: Modify SMTP configuration with required params only
+  scale_computing.hypercore.smtp:
+    server: smtp-relay.gmail.com
+    port: 25
