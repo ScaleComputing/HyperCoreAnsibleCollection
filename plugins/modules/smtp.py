@@ -190,8 +190,8 @@ def modify_smtp_config(
             check_mode=module.check_mode,
         )
         TaskTag.wait_task(rest_client, create_task_tag)
-        created_smtp = SMTP.get_by_uuid(module.params, rest_client)
-        record = created_smtp.get_state(rest_client)
+        # created_smtp = SMTP.get_by_uuid(module.params, rest_client)
+        record = SMTP.get_state(rest_client)
         return True, record, dict(before={}, after=record)
 
     # Otherwise, continue with modifying the configuration
