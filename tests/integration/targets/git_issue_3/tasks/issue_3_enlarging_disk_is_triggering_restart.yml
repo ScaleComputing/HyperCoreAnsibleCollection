@@ -10,7 +10,7 @@
 # ----------------------------------Setup-----------------------------------------------------------------------------
 - name: Make source vm
   scale_computing.hypercore.vm:
-    vm_name: XLAB-test-disk-enlarged 
+    vm_name: XLAB-test-disk-enlarged
     memory: "{{ '1 GB'|human_to_bytes}}"
     description: "test"
     tags:
@@ -48,7 +48,7 @@
 
 - name: Make source running vm
   scale_computing.hypercore.vm:
-    vm_name: XLAB-test-disk-enlarged-running 
+    vm_name: XLAB-test-disk-enlarged-running
     memory: "{{ '1 GB'|human_to_bytes}}"
     description: "test"
     tags:
