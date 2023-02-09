@@ -192,6 +192,26 @@ def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
     )  # changed, records, diff
 
 
+def send_test(module: AnsibleModule, rest_client: RestClient):
+    before = EmailAlert.get_state(rest_client)
+
+    if module.params["email_new"] is not None:
+        module.warn("Email Alert: parameter 'email_new' is not needed.")
+
+    send_email = EmailAlert.get_by_email(
+        dict(email_address=module.params["email"]), rest_client
+    )
+    if not send_email:
+        module.warn("Email Alert: can't send a test email to a nonexistent recipient.")
+
+    send_email.test(
+        rest_client=rest_client,
+    )
+
+    after = EmailAlert.get_state(rest_client)
+    return after != before, after, dict(before=before, after=after)
+
+
 def run(module: AnsibleModule, rest_client: RestClient):
     state = module.params["state"]
     if state == "present":
@@ -200,14 +220,9 @@ def run(module: AnsibleModule, rest_client: RestClient):
         return create_email_alert(module, rest_client)
     elif state == "absent":
         return delete_email_alert(module, rest_client)
-    else:  # state == "test"
-        module.warn("state=test not yet implemented.")
 
-    return (
-        False,
-        EmailAlert.get_state(rest_client),
-        dict(before=[], after=[]),
-    )  # changed, records, diff
+    # Else, state == "test"
+    return send_test(module, rest_client)
 
 
 def main() -> None:

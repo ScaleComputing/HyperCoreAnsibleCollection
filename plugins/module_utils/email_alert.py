@@ -8,6 +8,8 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from .rest_client import RestClient
+
+# from .client import Client
 from ..module_utils.utils import PayloadMapper, get_query
 
 from ..module_utils.typed_classes import (
@@ -162,3 +164,12 @@ class EmailAlert(PayloadMapper):
         check_mode: bool = False,
     ) -> None:
         rest_client.delete_record(f"/rest/v1/AlertEmailTarget/{self.uuid}", check_mode)
+
+    def test(
+        self,
+        rest_client: RestClient,
+    ) -> TypedTaskTag:
+        response = rest_client.client.post(
+            f"/rest/v1/AlertEmailTarget/{self.uuid}/test", None
+        )
+        return response
