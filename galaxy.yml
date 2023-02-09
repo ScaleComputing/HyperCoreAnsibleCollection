@@ -18,13 +18,10 @@ documentation: https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs
 homepage: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
 issues: https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues
 build_ignore:
-  - .idea
-  - .gitignore
+  - .*
   - tests
   - docs
   # all this should be under hacking/ or similar
-  - .ansible-lint
-  - .flake8
   - ci-infra
   - DEVELOPMENT.md
   - docs.requirements
@@ -34,4 +31,3 @@ build_ignore:
   # files used during local testing/building
   - ansible.cfg
   - examples
-  - .gitlab-ci.yml
