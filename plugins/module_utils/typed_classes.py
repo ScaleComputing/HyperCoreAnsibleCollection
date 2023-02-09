@@ -66,18 +66,16 @@ class TypedRoleToAnsible(TypedDict):
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
     before: Union[
-        dict[Any, Any],
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
-        None,
+        None
     ]
     after: Union[
-        dict[Any, Any],
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
-        None,
+        None
     ]
 
 
