@@ -5,25 +5,54 @@
 # 1.1.1.1 1.0.0.1 - cloudflare
 # 8.8.8.8 8.8.4.4 - google
 
-- name: Get default configs
-  scale_computing.hypercore.api:
-    action: get
-    endpoint: /rest/v1/DNSConfig/dnsconfig_guid
-  register: dns_config
-- ansible.builtin.set_fact:
-    default_server_ips: "{{ dns_config.record.0.serverIPs }}"
-    default_search_domains: "{{ dns_config.record.0.searchDomains }}"
-    actual_uuid: "{{ dns_config.record.0.uuid }}"
+# -----------------------------------------------------------
+- name: Prepare for test - DNSConfig object missing - unconfigured cluster
+  include_tasks: helper_api_dns_delete_all.yml
 
-- name: Prepare for test
+- name: Create DNSConfig on unconfigured cluster
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - example.com
+    dns_servers:
+      - 8.8.8.8
+      - 1.0.0.1
+    state: set
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == True
+      - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.com"]
+      - info.record.server_ips == ["8.8.8.8", "1.0.0.1"]
+      - info.record.uuid == "dnsconfig_guid"
+
+- name: Create DNSConfig on unconfigured cluster - idempotence
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - example.com
+    dns_servers:
+      - 8.8.8.8
+      - 1.0.0.1
+    state: set
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == False
+      # - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.com"]
+      - info.record.server_ips == ["8.8.8.8", "1.0.0.1"]
+      - info.record.uuid == "dnsconfig_guid"
+
+# -----------------------------------------------------------
+- name: Prepare for test - DNSConfig object with empty values
   scale_computing.hypercore.api:
     action: post
     endpoint: /rest/v1/DNSConfig/dnsconfig_guid
     data:
       searchDomains: []
       serverIPs: []
-
-# -----------------------------------------------------------
 
 - name: Overwrite all entries (search_domains, dns_servers)
   scale_computing.hypercore.dns_config:
@@ -43,7 +72,7 @@
       - result.diff.before != result.diff.after
       - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
       - info.record.server_ips == ["1.1.1.1", "5.6.7.8"]
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 - name: Do the previous task again - Overwrite all entries (search_domains, dns_servers)
   scale_computing.hypercore.dns_config:
@@ -63,7 +92,7 @@
       - result.diff.before == result.diff.after
       - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
       - info.record.server_ips == ["1.1.1.1", "5.6.7.8"]
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 - name: PREPEND new 'dns_servers' to existing DNS config
   scale_computing.hypercore.dns_config:
@@ -80,7 +109,7 @@
       - result.diff.before != result.diff.after
       - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
       - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8"]
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 - name: Do the previous task again - PREPEND new 'dns_servers' to existing DNS config
   scale_computing.hypercore.dns_config:
@@ -97,7 +126,7 @@
       - result.diff.before == result.diff.after
       - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
       - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8"]
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 - name: PREPEND new 'search_domains' to existing DNS config
   scale_computing.hypercore.dns_config:
@@ -113,7 +142,7 @@
       - result.diff.before != result.diff.after
       - info.record.search_domains == ["example.domain0.com", "example.domain1.com", "example.domain2.com"]
       - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8"]
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 - name: PREPEND to 'search_domains' with duplicates
   scale_computing.hypercore.dns_config:
@@ -130,7 +159,7 @@
       - result.diff.before != result.diff.after
       - info.record.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com"]
       - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8"]
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 - name: APPEND new 'dns_servers' to existing DNS config
   scale_computing.hypercore.dns_config:
@@ -147,7 +176,7 @@
       - result.diff.before != result.diff.after
       - info.record.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com"]
       - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 - name: APPEND new 'search_domains' to existing DNS config
   scale_computing.hypercore.dns_config:
@@ -163,7 +192,7 @@
       - result.diff.before != result.diff.after
       - info.record.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com", "example.domain3.com"]
       - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 - name: Clear all entries by using 'state=set'
   scale_computing.hypercore.dns_config:
@@ -179,7 +208,7 @@
       - result.diff.before != result.diff.after
       - info.record.search_domains == []
       - info.record.server_ips == []
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 - name: Do the previous taks again - Clear all entries by using 'state=set'
   scale_computing.hypercore.dns_config:
@@ -195,7 +224,7 @@
       - result.diff.before == result.diff.after
       - info.record.search_domains == []
       - info.record.server_ips == []
-      - info.record.uuid == actual_uuid
+      - info.record.uuid == "dnsconfig_guid"
 
 # -----------------------------------------------------------
 
