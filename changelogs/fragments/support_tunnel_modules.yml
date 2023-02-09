@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Added support_tunnel_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/92)
+  - Added support_tunnel module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/92)

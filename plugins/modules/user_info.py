@@ -66,19 +66,25 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
 from ..module_utils.user import User
 from ..module_utils.utils import get_query
+from ..module_utils.typed_classes import TypedUserToAnsible
+from typing import List, Union
 
 
-def run(module, rest_client):
+def run(
+    module: AnsibleModule, rest_client: RestClient
+) -> List[Union[TypedUserToAnsible, None]]:
     query = get_query(
         module.params, "username", ansible_hypercore_map=dict(username="username")
     )
     return [
-        User.from_hypercore(hypercore_data=hypercore_dict).to_ansible(rest_client)
+        User.from_hypercore(hypercore_data=hypercore_dict).to_ansible(  # type: ignore
+            rest_client
+        )
         for hypercore_dict in rest_client.list_records("/rest/v1/User", query)
     ]
 
 
-def main():
+def main() -> None:
     module = AnsibleModule(
         supports_check_mode=True,
         argument_spec=dict(

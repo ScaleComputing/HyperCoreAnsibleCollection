@@ -11,7 +11,7 @@ __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
-from ..module_utils.typed_classes import TypedDNSConfigToAnsible
+from ..module_utils.typed_classes import TypedRoleToAnsible
 
 from typing import Union, Any
 
@@ -22,7 +22,7 @@ class Role(PayloadMapper):
         self.name = name
 
     @classmethod
-    def from_ansible(cls, ansible_data: dict[Any, Any]) -> None:
+    def from_ansible(cls, ansible_data: Any) -> None:
         pass
 
     @classmethod
@@ -40,7 +40,7 @@ class Role(PayloadMapper):
     def to_hypercore(self) -> None:
         pass
 
-    def to_ansible(self) -> TypedDNSConfigToAnsible:
+    def to_ansible(self) -> TypedRoleToAnsible:
         return dict(
             uuid=self.uuid,
             name=self.name,

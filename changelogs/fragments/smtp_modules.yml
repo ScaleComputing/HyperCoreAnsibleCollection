@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Added smtp and smtp_info modules.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/93)

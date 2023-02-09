@@ -5,10 +5,11 @@
 
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 __metaclass__ = type
 
-from typing import TypedDict, Union, Any, Dict
+from typing import TypedDict, Union, Any
 
 # Typed Classes use for Python hints.
 
@@ -41,7 +42,63 @@ class TypedDNSConfigToAnsible(TypedDict):
     name: str
 
 
+# Support_tunnel to ansible return dict.
+class TypedSupportTunnelToAnsible(TypedDict):
+    open: bool
+    code: Union[int, None]
+
+
+# User to ansible return dict.
+class TypedUserToAnsible(TypedDict):
+    uuid: str
+    username: str
+    full_name: str
+    roles: list[TypedRoleToAnsible]
+    session_limit: int
+
+
+# Role to ansible return dict.
+class TypedRoleToAnsible(TypedDict):
+    uuid: str
+    name: str
+
+
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
-    before: Union[Dict[Any, Any], TypedRegistrationToAnsible, None]
-    after: Union[Dict[Any, Any], TypedRegistrationToAnsible, None]
+    before: Union[
+        TypedRegistrationToAnsible,
+        TypedSupportTunnelToAnsible,
+        TypedUserToAnsible,
+        None,
+    ]
+    after: Union[
+        TypedRegistrationToAnsible,
+        TypedSupportTunnelToAnsible,
+        TypedUserToAnsible,
+        None,
+    ]
+
+
+# smtp module
+class TypedSmtpToAnsible(TypedDict):
+    uuid: Union[str, None]
+    smtp_server: Union[str, None]
+    port: Union[int, None]
+    use_ssl: Union[bool, None]
+    use_auth: Union[bool, None]
+    auth_user: Union[str, None]
+    auth_password: Union[str, None]
+    from_address: Union[str, None]
+    latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
+
+
+class TypedSmtpFromAnsible(TypedDict):
+    uuid: Union[str, None]
+    smtp_server: Union[str, None]
+    port: Union[int, None]
+    use_ssl: Union[bool, None]
+    use_auth: Union[bool, None]
+    auth_user: Union[str, None]
+    auth_password: Union[str, None]
+    from_address: Union[str, None]
+    latest_task_tag: Union[TypedTaskTag, None]
