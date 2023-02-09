@@ -51,9 +51,9 @@ class Client:
     def __init__(
         self,
         host: str,
-        username: str = None,
-        password: str = None,
-        timeout: float = None,
+        username: str,
+        password: str,
+        timeout: float,
     ):
         if not (host or "").startswith(("https://", "http://")):
             raise ScaleComputingError(
