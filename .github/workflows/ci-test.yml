@@ -1,13 +1,6 @@
 name: CI tests
 on:
   push:
-  workflow_dispatch:
-    inputs:
-      run_slow_tests:
-        description: 'Run slow integration tests?'
-        type: boolean
-        required: false
-        default: false
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 # Run only one workflow for specific branch.
@@ -129,14 +122,7 @@ jobs:
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
       - id: set-matrix
         shell: bash
-        run: |
-          if [[ "${{ inputs.run_slow_tests }}" == "true" ]]
-          then
-            SKIP_TESTS_FINAL="$SKIP_TESTS"
-          else
-            SKIP_TESTS_FINAL="$SKIP_TESTS|git_issues*"
-          fi
-          echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS_FINAL" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   integration-test:
     needs:
