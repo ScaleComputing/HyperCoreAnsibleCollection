@@ -167,21 +167,6 @@
           - registration_create.record.email == "{{ default_email }}"
           - registration_create.record.phone == "{{ default_phone }}"
 
-    - name: GET Registration info FINAL
-      scale_computing.hypercore.api:
-        endpoint: rest/v1/Registration
-        action: get
-      register: registration_info
-    - ansible.builtin.assert:
-        that:
-          - registration_info is succeeded
-          - registration_info is not changed
-          - registration_info.record | length == 1
-          - registration_info.record.0.companyName == "{{ default_company_name }}"
-          - registration_info.record.0.contact == "{{ default_contact }}"
-          - registration_info.record.0.email == "{{ default_email }}"
-          - registration_info.record.0.phone == "{{ default_phone }}"
-
     - name: GET Registration info (check info module) FINAL
       scale_computing.hypercore.registration_info:
       register: result
