@@ -69,13 +69,13 @@ class TypedDiff(TypedDict):
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
-        None
+        None,
     ]
     after: Union[
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
-        None
+        None,
     ]
 
 
