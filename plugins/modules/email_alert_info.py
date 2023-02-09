@@ -83,11 +83,7 @@ def main() -> None:
     )
 
     try:
-        client = Client(
-            host=module.params["cluster_instance"]["host"],
-            username=module.params["cluster_instance"]["username"],
-            password=module.params["cluster_instance"]["password"],
-        )
+        client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
         records = run(rest_client)
         module.exit_json(changed=False, records=records)

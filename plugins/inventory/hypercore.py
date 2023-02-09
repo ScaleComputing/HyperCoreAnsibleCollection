@@ -223,11 +223,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             host = os.getenv("SC_HOST")
             username = os.getenv("SC_USERNAME")
             password = os.getenv("SC_PASSWORD")
+            timeout = os.getenv("SC_TIMEOUT")
         except KeyError:
             raise errors.ScaleComputingError(
                 "Missing parameters: sc_host, sc_username, sc_password."
             )
-        client = Client(host, username, password)
+        client = Client(host, username, password, timeout)
         rest_client = RestClient(client)
 
         vms = rest_client.list_records("/rest/v1/VirDomain")
