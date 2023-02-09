@@ -85,8 +85,8 @@ from ..module_utils.utils import is_changed
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.state import State
-from ..module_utils.registration import Registration
-from ..module_utils.typed_classes import TypedRegistrationToAnsible, TypedDiff
+from ..module_utils.oidc import Oidc
+from ..module_utils.typed_classes import TypedOidcToAnsible, TypedDiff
 from ..module_utils.task_tag import TaskTag
 from typing import Union, Tuple
 
@@ -94,23 +94,42 @@ from typing import Union, Tuple
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
-    registration_obj: Union[Registration, None],
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff, bool]:
+    oidc_obj: Union[Oidc, None],
+) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
+    before = oidc_obj.to_ansible() if oidc_obj else None
+    oidc_obj_ansible = Oidc.from_ansible(module.params)
+    if oidc_obj is None:
+        task = oidc_obj_ansible.send_create_request(rest_client)
+    else:
+        task = oidc_obj_ansible.send_update_request(rest_client)
+    TaskTag.wait_task(rest_client, task)
+    updated_oidc = Oidc.get(rest_client)
+    after = updated_oidc.to_ansible() if updated_oidc else None
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def ensure_absent(
     module: AnsibleModule,
     rest_client: RestClient,
-    registration_obj: Union[Registration, None],
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff, bool]:
+    oidc_obj: Union[Oidc, None],
+) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
+    before = oidc_obj.to_ansible() if oidc_obj else None
+    after = None
+    if oidc_obj:
+        task = oidc_obj.send_delete_request(rest_client)
+        TaskTag.wait_task(rest_client, task)
+        updated_oidc = Oidc.get(rest_client)
+        after = updated_oidc.to_ansible() if updated_oidc else None
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff, bool]:
-    return ensure_absent(module, rest_client, registration_obj)
+) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
+    oidc_obj = Oidc.get(rest_client)
+    if module.params["state"] == State.present:
+        return ensure_present(module, rest_client, oidc_obj)
+    return ensure_absent(module, rest_client, oidc_obj)
 
 
 def main() -> None:
@@ -131,6 +150,7 @@ def main() -> None:
             ),
             shared_secret=dict(
                 type="str",
+                no_log=False,
             ),
             certificate=dict(
                 type="str",
@@ -138,6 +158,12 @@ def main() -> None:
             config_url=dict(type="str", required=True),
             scopes=dict(type="str", required=True),
         ),
+        required_one_of=[
+            (
+                "certificate",
+                "shared_secret",
+            ),
+        ],
     )
 
     try:

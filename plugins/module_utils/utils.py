@@ -13,7 +13,11 @@ import uuid
 
 from ..module_utils.errors import InvalidUuidFormatError
 from typing import Union, Any
-from ..module_utils.typed_classes import TypedTaskTag, TypedRegistrationToAnsible
+from ..module_utils.typed_classes import (
+    TypedTaskTag,
+    TypedRegistrationToAnsible,
+    TypedOidcToAnsible,
+)
 
 
 # Used in case of check mode
@@ -123,7 +127,7 @@ def filter_results(results, filter_data) -> list[Any]:
 
 
 def is_changed(
-    before: Union[dict, TypedRegistrationToAnsible, None],
-    after: Union[dict, TypedRegistrationToAnsible, None],
+    before: Union[TypedOidcToAnsible, TypedRegistrationToAnsible, None],
+    after: Union[TypedOidcToAnsible, TypedRegistrationToAnsible, None],
 ) -> bool:
     return not before == after

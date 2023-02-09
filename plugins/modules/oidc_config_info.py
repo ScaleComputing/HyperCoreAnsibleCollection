@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: oidc_config
+module: oidc_config_info
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
@@ -21,9 +21,6 @@ version_added: 1.1.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso: []
-options:
-notes:
-  - C(check_mode) is not supported.
 """
 
 EXAMPLES = r"""
