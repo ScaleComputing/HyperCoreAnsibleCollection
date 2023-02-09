@@ -1,0 +1,16 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Retrieve info about Email alert recipients
+      scale_computing.hypercore.email_alert_info:
+      register: emails
+    - ansible.builtin.assert:
+        that:
+          - emails.records != []
+          - emails.records[0].keys() | sort ==
+            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            'resend_delay', 'silent_period', 'uuid']

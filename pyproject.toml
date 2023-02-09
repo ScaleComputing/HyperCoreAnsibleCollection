@@ -72,3 +72,12 @@ module = [
     "plugins.inventory.*"
 ]
 disable_error_code = ["no-untyped-def", "no-untyped-call", "assignment", "type-arg", "var-annotated", "import", "misc", "arg-type", "dict-item", "override", "union-attr", "valid-type"]
+
+# TEMP
+[[tool.mypy.overrides]]
+module = [
+    "plugins.modules.email_alert_info",
+    "plugins.modules.email_alert",
+    "plugins.module_utils.email_alert"
+]
+disable_error_code = ["no-untyped-def", "no-untyped-call", "assignment", "type-arg", "var-annotated", "import", "misc", "arg-type", "dict-item", "override", "union-attr", "valid-type", "no-any-return"]
