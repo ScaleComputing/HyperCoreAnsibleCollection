@@ -156,7 +156,7 @@ def create_user(
     return (
         True,
         user,
-        dict(before={}, after=user),
+        dict(before=None, after=user),
     )
 
 
@@ -210,9 +210,9 @@ def delete_user(
     rest_client: RestClient, user: Union[User, None]
 ) -> Tuple[bool, Union[TypedUserToAnsible, Dict[None, None]], TypedDiff]:
     if not user:
-        return (False, dict(), dict(before={}, after={}))
+        return (False, dict(), dict(before=None, after=None))
     user.delete(rest_client)
-    return (True, dict(), dict(before=user.to_ansible(rest_client), after={}))
+    return (True, dict(), dict(before=user.to_ansible(rest_client), after=None))
 
 
 def run(
