@@ -8,6 +8,11 @@
   block:
     - include_tasks: 01_smtp_info.yml
     - include_tasks: 02_smtp.yml
+      vars:
+        test_on_emtpy_cluster: False
+    - include_tasks: 02_smtp.yml
+      vars:
+        test_on_emtpy_cluster: True
   always:
     - include_tasks: helper_api_smtp_reset.yml
       vars:
