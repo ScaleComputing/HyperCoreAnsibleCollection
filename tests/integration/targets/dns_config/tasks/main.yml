@@ -8,3 +8,7 @@
   block:
     - include_tasks: 01_dns_config_info.yml
     - include_tasks: 02_dns_config.yml
+  always:
+    - include_tasks: helper_api_dns_reset.yml
+      vars:
+        dns_config: "{{ sc_config[sc_host].dns_config }}"

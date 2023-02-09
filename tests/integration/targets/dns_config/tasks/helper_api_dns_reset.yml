@@ -1,0 +1,14 @@
+---
+# Reset DNS resolver configuration when testing is finished.
+# Configure DNS using raw API module.
+# Should work even when all other modules are broken.
+
+- name: Show desired dns_config
+  ansible.builtin.debug:
+    var: dns_config
+
+- name: Delete all DNSConfig objects
+  include_tasks: helper_api_dns_delete_all.yml
+
+- name: Create one DNSConfig object
+  include_tasks: helper_api_dns_create_one.yml

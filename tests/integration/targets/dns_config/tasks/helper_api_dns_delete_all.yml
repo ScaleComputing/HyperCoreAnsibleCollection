@@ -1,0 +1,20 @@
+---
+# Remove DNS config.
+# Task does not set empty values for host, port etc.,
+# it removes the DNSConfig object(s) on server.
+
+- name: Get current DNSConfig
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/DNSConfig
+  register: dns_config_result
+- name: Show current DNSConfig
+  ansible.builtin.debug:
+    var: dns_config_result
+
+- name: Remove all existing DNS configs
+  scale_computing.hypercore.api:
+    action: delete
+    endpoint: /rest/v1/DNSConfig/{{ item.uuid }}
+  with_items: "{{ dns_config_result.record }}"
+# TODO wait on TaskTag

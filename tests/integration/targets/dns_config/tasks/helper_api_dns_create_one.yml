@@ -1,0 +1,22 @@
+---
+# Create DNS config.
+# Assumes all DNSConfig were deleted before.
+
+# Create/POST, not update/PATCH!
+- name: Create a desired DNS config
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/DNSConfig
+    data:
+      searchDomains: "{{ dns_config.search_domains | list }}"
+      serverIPs: "{{ dns_config.dns_servers }}"
+# TODO wait on TaskTag
+
+- name: Get current DNSConfig
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/DNSConfig
+  register: dns_config_result
+- name: Show current DNSConfig
+  ansible.builtin.debug:
+    var: dns_config_result
