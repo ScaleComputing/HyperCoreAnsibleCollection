@@ -1,6 +1,12 @@
 ---
-- name: List all Email alert recipients
-  scale_computing.hypercore.email_alert_info:
-  register: info
-- ansible.builtin.debug:
-    msg: "{{ info }}"
+- name: Example email_alert_info module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: List all Email alert recipients
+      scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.debug:
+        msg: "{{ info }}"
