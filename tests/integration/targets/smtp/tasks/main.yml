@@ -8,3 +8,7 @@
   block:
     - include_tasks: 01_smtp_info.yml
     - include_tasks: 02_smtp.yml
+  always:
+    - include_tasks: helper_api_smtp_reset.yml
+      vars:
+        smtp_config: "{{ sc_config[sc_host].smtp }}"
