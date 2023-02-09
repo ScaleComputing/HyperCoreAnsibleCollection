@@ -161,14 +161,9 @@ def modify_smtp_config(
     # GET method to get the SMTP config by UUID
     smtp = SMTP.get_by_uuid(module.params, rest_client)
 
-    if module.params["auth_password"] is None:
-        new_auth_password = ""
-    else:
-        new_auth_password = module.params["auth_password"]
-    if module.params["auth_user"] is None:
-        new_auth_user = ""
-    else:
-        new_auth_user = module.params["auth_user"]
+    new_auth_password = build_entry("", module.params["auth_password"])[0]
+    new_auth_user = build_entry("", module.params["auth_user"])[0]
+    new_from_address = build_entry("", module.params["from_address"])[0]
 
     payload = dict(
         smtpServer=module.params["server"],
@@ -177,7 +172,7 @@ def modify_smtp_config(
         useAuth=module.params["use_auth"],
         authUser=new_auth_user,
         authPassword=new_auth_password,
-        fromAddress=module.params["from_address"],
+        fromAddress=new_from_address,
     )
 
     # If SMTP config doesn't exist, create the
@@ -221,6 +216,9 @@ def modify_smtp_config(
     new_from_address, new_from_address_change_needed = build_entry(
         before.get("from_address"), module.params["from_address"]
     )
+
+    if new_from_address is None:
+        new_from_address = ""
 
     # Init return values and return if no changes were made
     change, record, diff = (
@@ -309,7 +307,6 @@ def main() -> None:
             ),
             from_address=dict(
                 type="str",
-                default="",
                 required=False,
             ),
         ),
