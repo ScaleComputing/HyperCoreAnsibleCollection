@@ -13,9 +13,10 @@ module: oidc_config
 
 author:
   - Domen Dobnikar (@domen_dobnikar)
-short_description: Returns information about openID connect configurations.
+short_description: Returns information about openID connect configuration.
 description:
-  - Can list openID connect configurations.
+  - Can list openID connect configuration.
+  - One openID connect configuration per cluster is supported.
 version_added: 1.1.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -46,22 +47,25 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
-from ..module_utils.utils import is_changed
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
-from ..module_utils.typed_classes import TypedRegistrationToAnsible, TypedDiff
-from typing import Union, Tuple
+from ..module_utils.oidc import Oidc
+from ..module_utils.rest_client import CachedRestClient
+from ..module_utils.typed_classes import TypedOidcToAnsible
+from typing import Union
 
 
 def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff, bool]:
-    return ensure_absent(module, rest_client, registration_obj)
+    module: AnsibleModule, rest_client: CachedRestClient
+) -> Union[TypedOidcToAnsible, None]:
+    oidc_list = rest_client.list_records("/rest/v1/OIDCConfig")
+    if oidc_list:
+        return Oidc.from_hypercore(oidc_list[0]).to_ansible()
+    return None
 
 
 def main() -> None:
     module = AnsibleModule(
-        supports_check_mode=False,
+        supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
         ),
@@ -69,9 +73,9 @@ def main() -> None:
 
     try:
         client = Client.get_client(module.params["cluster_instance"])
-        rest_client = RestClient(client=client)
-        changed, record, diff = run(module, rest_client)
-        module.exit_json(changed=changed, record=record, diff=diff)
+        rest_client = CachedRestClient(client=client)
+        record = run(module, rest_client)
+        module.exit_json(changed=False, record=record)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

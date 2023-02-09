@@ -135,14 +135,8 @@ def main() -> None:
             certificate=dict(
                 type="str",
             ),
-            config_url=dict(
-                type="str",
-                required=True
-            ),
-            scopes=dict(
-                type="str",
-                required=True
-            ),
+            config_url=dict(type="str", required=True),
+            scopes=dict(type="str", required=True),
         ),
     )
 

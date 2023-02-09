@@ -63,18 +63,37 @@ class TypedRoleToAnsible(TypedDict):
     name: str
 
 
+# OIDC to ansible return dict.
+class TypedOidcToAnsible(TypedDict):
+    client_id: Union[str, None]
+    config_url: Union[str, None]
+    scopes: Union[str, None]
+    certificate: Union[str, None]
+
+
+# OIDC from ansible dict.
+class TypedOidcFromAnsible(TypedDict):
+    client_id: str
+    config_url: str
+    scopes: str
+    certificate: str
+    shared_secret: str
+
+
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
     before: Union[
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
+        TypedOidcToAnsible,
         None,
     ]
     after: Union[
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
+        TypedOidcToAnsible,
         None,
     ]
 
