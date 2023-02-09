@@ -43,7 +43,7 @@
       - info.record.auth_password == ""
       # BUG, from_address should not be reset
       # Ignore for today.
-      # - info.record.from_address == "ci-test@example.com"
+      - info.record.from_address == "ci-test@example.com"
       - result.record == info.record
 
 - name: Modify SMTP configs - REQUIRED ONLY - idempotence
@@ -64,9 +64,7 @@
       - info.record.use_auth == False
       - info.record.auth_user == ""
       - info.record.auth_password == ""
-      # BUG, from_address should not be reset
-      # TODO expected value depends on test_on_emtpy_cluster flag.
-      # - info.record.from_address == "ci-test@example.com"
+      - info.record.from_address == "ci-test@example.com"
       - result.record == info.record
 
 
