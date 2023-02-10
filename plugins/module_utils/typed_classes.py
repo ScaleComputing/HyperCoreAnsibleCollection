@@ -120,3 +120,17 @@ class TypedEmailAlertFromAnsible(TypedDict):
     resend_delay: Union[int, None]
     silent_period: Union[int, None]
     latest_task_tag: Union[TypedTaskTag, None]
+
+
+class TypedVirtualDiskToAnsible(TypedDict):
+    name: Union[str, None]
+    uuid: Union[str, None]
+    block_size: Union[int, None]
+    size: Union[int, None]
+    # allocated_size: int
+    replication_factor: Union[int, None]
+
+
+class TypedVirtualDiskFromAnsible(TypedDict):
+    name: Union[str, None]
+    # uuid: str
