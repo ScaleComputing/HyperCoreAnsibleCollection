@@ -56,7 +56,7 @@ EXAMPLES = r"""
     email: example@example.com
     state: present
 
-- name: Update previously create Email Alert Recipient
+- name: Update previously created Email Alert Recipient
   scale_computing.hypercore.email_alert:
     email: example@example.com
     email_new: new@example.com
@@ -180,7 +180,7 @@ def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
         dict(email_address=module.params["email"]), rest_client
     )
     if not delete_email:
-        module.warn("Email Alert: The email you're trying to remove, doesn't exist.")
+        module.warn("Email Alert: The email you're trying to remove doesn't exist.")
         return False, before, dict(before=before, after=before)
     delete_email.delete(rest_client, module.check_mode)
 
@@ -194,9 +194,6 @@ def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
 
 def send_test(module: AnsibleModule, rest_client: RestClient):
     before = EmailAlert.get_state(rest_client)
-
-    if module.params["email_new"] is not None:
-        module.warn("Email Alert: parameter 'email_new' is not needed.")
 
     send_email = EmailAlert.get_by_email(
         dict(email_address=module.params["email"]), rest_client
@@ -215,7 +212,7 @@ def send_test(module: AnsibleModule, rest_client: RestClient):
 def run(module: AnsibleModule, rest_client: RestClient):
     state = module.params["state"]
     if state == "present":
-        if module.params["email_new"] is not None:
+        if module.params["email_new"] != "":
             return update_email_alert(module, rest_client)
         return create_email_alert(module, rest_client)
     elif state == "absent":
@@ -236,6 +233,7 @@ def main() -> None:
             ),
             email_new=dict(
                 type="str",
+                default="",
                 required=False,
             ),
             state=dict(
@@ -244,6 +242,7 @@ def main() -> None:
                 required=True,
             ),
         ),
+        required_if=[("state", "present", ("email_new",))]
     )
 
     try:
