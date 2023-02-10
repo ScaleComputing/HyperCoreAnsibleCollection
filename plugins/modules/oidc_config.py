@@ -15,22 +15,17 @@ author:
   - Domen Dobnikar (@domen_dobnikar)
 short_description: Handles openID connect configuration.
 description:
-  - Can create, update or delete openID connect configuration.
+  - Can create or update openID connect configuration.
 version_added: 1.1.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso: []
 options:
-  state:
-    description:
-      - Desired state of the openID connect configuration.
-    choices: [ present, absent ]
-    type: str
-    required: True
   client_id:
     description:
       - Provided by authentication server when configuring a new client.
     type: str
+    required: True
   shared_secret:
     description:
       - Provided by authentication server for client authentication.
@@ -108,28 +103,11 @@ def ensure_present(
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
-def ensure_absent(
-    module: AnsibleModule,
-    rest_client: RestClient,
-    oidc_obj: Union[Oidc, None],
-) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
-    before = oidc_obj.to_ansible() if oidc_obj else None
-    after = None
-    if oidc_obj:
-        task = oidc_obj.send_delete_request(rest_client)
-        TaskTag.wait_task(rest_client, task)
-        updated_oidc = Oidc.get(rest_client)
-        after = updated_oidc.to_ansible() if updated_oidc else None
-    return is_changed(before, after), after, dict(before=before, after=after)
-
-
 def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
     oidc_obj = Oidc.get(rest_client)
-    if module.params["state"] == State.present:
-        return ensure_present(module, rest_client, oidc_obj)
-    return ensure_absent(module, rest_client, oidc_obj)
+    return ensure_present(module, rest_client, oidc_obj)
 
 
 def main() -> None:
@@ -137,16 +115,9 @@ def main() -> None:
         supports_check_mode=False,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            state=dict(
-                type="str",
-                choices=[
-                    "present",
-                    "absent",
-                ],
-                required=True,
-            ),
             client_id=dict(
                 type="str",
+                required=True,
             ),
             shared_secret=dict(
                 type="str",
