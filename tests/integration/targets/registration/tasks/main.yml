@@ -5,8 +5,25 @@
     SC_PASSWORD: "{{ sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
 
+  vars:
+    default_company_name: ""
+    default_contact: ""
+    default_email: ""
+    default_phone: ""
+
 # ----------------------------------Setup------------------------------------------------------------------------
   block:
+    - name: GET Registration info (original info)
+      scale_computing.hypercore.api:
+        endpoint: rest/v1/Registration
+        action: get
+      register: registration_original
+    - ansible.builtin.set_fact:
+        default_company_name: "{{ registration_original.record.0.companyName }}"
+        default_contact: "{{ registration_original.record.0.contact }}"
+        default_email: "{{ registration_original.record.0.email }}"
+        default_phone: "{{ registration_original.record.0.phone }}"
+
     - name: Delete current registration
       scale_computing.hypercore.registration:
         state: absent
@@ -45,6 +62,19 @@
           - registration_info.record.0.email == "jonh.doe@gmail.com"
           - registration_info.record.0.phone == "056777888"
 
+    - name: GET Registration info (check info module)
+      scale_computing.hypercore.registration_info:
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is not changed
+          - result.record
+          - result.record.company_name == "My company"
+          - result.record.contact == "John Doe"
+          - result.record.email == "jonh.doe@gmail.com"
+          - result.record.phone == "056777888"
+
     - name: Update registration
       scale_computing.hypercore.registration:
         company_name: New company
@@ -77,6 +107,19 @@
           - registration_info.record.0.email == "janez.novak@gmail.com"
           - registration_info.record.0.phone == "031777888"
 
+    - name: GET Registration info (check info module) after update
+      scale_computing.hypercore.registration_info:
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is not changed
+          - result.record
+          - result.record.company_name == "New company"
+          - result.record.contact == "Janez Novak"
+          - result.record.email == "janez.novak@gmail.com"
+          - result.record.phone == "031777888"
+
     - name: Delete current registration
       scale_computing.hypercore.registration:
         state: absent
@@ -97,35 +140,42 @@
           - registration_info is not changed
           - registration_info.record | length == 0
 
+    - name: GET Registration info (check info module) after delete
+      scale_computing.hypercore.registration_info:
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is not changed
+          - result.record == None
+
 # Don't delete here, we don't want to have a pop-up window at the end of this test.
     - name: Re-create registration
       scale_computing.hypercore.registration:
-        company_name: My company
-        contact: John Doe
-        email: jonh.doe@gmail.com
-        phone: 056777888
+        company_name: "{{ default_company_name }}"
+        contact: "{{ default_contact }}"
+        email: "{{ default_email }}"
+        phone: "{{ default_phone }}"
         state: present
       register: registration_create
     - ansible.builtin.assert:
         that:
           - registration_create is succeeded
           - registration_create is changed
-          - registration_create.record.company_name == "My company"
-          - registration_create.record.contact == "John Doe"
-          - registration_create.record.email == "jonh.doe@gmail.com"
-          - registration_create.record.phone == "056777888"
+          - registration_create.record.company_name == "{{ default_company_name }}"
+          - registration_create.record.contact == "{{ default_contact }}"
+          - registration_create.record.email == "{{ default_email }}"
+          - registration_create.record.phone == "{{ default_phone }}"
 
-    - name: GET Registration info FINAL
-      scale_computing.hypercore.api:
-        endpoint: rest/v1/Registration
-        action: get
-      register: registration_info
+    - name: GET Registration info (check info module) FINAL
+      scale_computing.hypercore.registration_info:
+      register: result
     - ansible.builtin.assert:
         that:
-          - registration_info is succeeded
-          - registration_info is not changed
-          - registration_info.record | length == 1
-          - registration_info.record.0.companyName == "My company"
-          - registration_info.record.0.contact == "John Doe"
-          - registration_info.record.0.email == "jonh.doe@gmail.com"
-          - registration_info.record.0.phone == "056777888"
+          - result is succeeded
+          - result is not changed
+          - result.record
+          - result.record.company_name == "{{ default_company_name }}"
+          - result.record.contact == "{{ default_contact }}"
+          - result.record.email == "{{ default_email }}"
+          - result.record.phone == "{{ default_phone }}"
