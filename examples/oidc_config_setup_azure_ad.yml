@@ -13,13 +13,13 @@
     - name: Show oidc config entries
       debug:
         var: oidc_config_info_results
-    
+
     - name: Create or update OIDC config
       scale_computing.hypercore.oidc_config:
-      client_id: "d2298ec0-0596-49d2-9554-840a2fe20603"
-      shared_secret: "~0lI5n-_8dNbWmrrqqTE1v1iBcfO4__jfx"
-      config_url: "https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration"
-      scopes: "openid+profile"
+      client_id: d2298ec0-0596-49d2-9554-840a2fe20603
+      shared_secret: ~0lI5n-_8dNbWmrrqqTE1v1iBcfO4__jfx
+      config_url: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
+      scopes: openid+profile
 
     - name: List updated oidc config
       scale_computing.hypercore.oidc_config_info:
