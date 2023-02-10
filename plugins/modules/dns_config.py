@@ -160,7 +160,7 @@ def modify_dns_config(
     new_dns_servers = build_entry_list([], module.params["dns_servers"], state)[0]
     new_search_domains = build_entry_list([], module.params["search_domains"], state)[0]
 
-    # If DNS config doesn't exist, raise an exception (error)
+    # If DNS config doesn't exist, create one.
     if not dns_config:
         module.warn("DNS Config: There is no DNS configuration.")
         create_task_tag = rest_client.create_record(
