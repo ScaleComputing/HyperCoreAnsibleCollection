@@ -155,17 +155,28 @@ def modify_dns_config(
     # GET method to get the DNS Config by UUID
     dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
 
-    # If DNS config doesn't exist, raise an exception (error)
+    state = module.params["state"]  # state param value from module
+
+    new_dns_servers = build_entry_list([], module.params["dns_servers"], state)[0]
+    new_search_domains = build_entry_list([], module.params["search_domains"], state)[0]
+
+    # If DNS config doesn't exist, create one.
     if not dns_config:
-        raise errors.ScaleComputingError("DNS Config: There is no DNS configuration.")
+        module.warn("DNS Config: There is no DNS configuration.")
+        create_task_tag = rest_client.create_record(
+            endpoint="/rest/v1/DNSConfig",
+            payload=dict(searchDomains=new_search_domains, serverIPs=new_dns_servers),
+            check_mode=module.check_mode,
+        )
+        TaskTag.wait_task(rest_client, create_task_tag)
+        after = DNSConfig.get_by_uuid(module.params, rest_client).to_ansible()
+        return True, DNSConfig.get_state(rest_client), dict(before={}, after=after)
 
     # Otherwise, continue with modifying the configuration
     before = dns_config.to_ansible()
     old_state = DNSConfig.get_state(
         rest_client
     )  # get the state of DNS config before modification
-
-    state = module.params["state"]  # state param value from module
 
     # Set action according to specified state param
     action = "create"
