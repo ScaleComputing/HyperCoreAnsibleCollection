@@ -17,6 +17,7 @@
       - 8.8.8.8
       - 1.0.0.1
     state: set
+  register: result
 - scale_computing.hypercore.dns_config_info:
   register: info
 - ansible.builtin.assert:
@@ -35,6 +36,7 @@
       - 8.8.8.8
       - 1.0.0.1
     state: set
+  register: result
 - scale_computing.hypercore.dns_config_info:
   register: info
 - ansible.builtin.assert:
@@ -228,10 +230,11 @@
 
 # -----------------------------------------------------------
 
-- name: Restore back to default values
-  scale_computing.hypercore.api:
-    action: post
-    endpoint: /rest/v1/DNSConfig/dnsconfig_guid
-    data:
-      searchDomains: "{{ default_search_domains }}"
-      serverIPs: "{{ default_server_ips }}"
+# This task is not needed? Tests get through without it, but with it, they don't.
+#- name: Restore back to default values
+#  scale_computing.hypercore.api:
+#    action: post
+#    endpoint: /rest/v1/DNSConfig/dnsconfig_guid
+#    data:
+#      searchDomains: "{{ default_search_domains }}"
+#      serverIPs: "{{ default_server_ips }}"
