@@ -172,8 +172,6 @@ def modify_dns_config(
         after = DNSConfig.get_by_uuid(module.params, rest_client).to_ansible()
         return True, DNSConfig.get_state(rest_client), dict(before={}, after=after)
 
-    module.warn("HERE!")
-
     # Otherwise, continue with modifying the configuration
     before = dns_config.to_ansible()
     old_state = DNSConfig.get_state(
