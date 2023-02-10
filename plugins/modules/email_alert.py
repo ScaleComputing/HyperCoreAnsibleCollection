@@ -242,7 +242,7 @@ def main() -> None:
                 required=True,
             ),
         ),
-        required_if=[("state", "present", ("email_new",))]
+        required_if=[("state", "present", ("email_new",))],
     )
 
     try:
