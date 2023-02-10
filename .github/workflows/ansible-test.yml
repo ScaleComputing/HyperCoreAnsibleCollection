@@ -2,9 +2,17 @@
 name: Ansible test
 on:
   push:
+    paths:
+      - "meta/**"
+      - "plugins/**"
+      - "roles/**"
+      - "tests/**"
+      - "*requirements*"
+      - "*.py"
+      - "*ansible*"
   # pull_request:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: "0 6 * * *"
 env:
   NAMESPACE: scale_computing
   COLLECTION_NAME: hypercore
