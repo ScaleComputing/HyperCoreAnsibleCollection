@@ -91,6 +91,7 @@ jobs:
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     env:
+      DEBIAN_FRONTEND: noninteractive
       ANSIBLE_COLLECTIONS_PATH: /work-dir
       # vm_import|vm_export - they need SMB server
       # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
@@ -105,7 +106,7 @@ jobs:
       - run: apt update
       - run: apt install -y git make
       - run: pip install ansible-core==2.13.1
-      - run: apt install -y genisoimage
+      - run: apt install -y genisoimage qemu-utils
       - run: apt install -y jq
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
@@ -130,6 +131,8 @@ jobs:
       - units-test
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
+    env:
+      DEBIAN_FRONTEND: noninteractive
     strategy:
       fail-fast: false
       matrix:
@@ -141,7 +144,7 @@ jobs:
       - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
       - run: apt update
       - run: apt install -y git make
-      - run: apt install -y genisoimage
+      - run: apt install -y genisoimage qemu-utils
       - run: pip install ansible-core==2.13.1
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
@@ -165,6 +168,8 @@ jobs:
       - units-test
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
+    env:
+      DEBIAN_FRONTEND: noninteractive
     strategy:
       fail-fast: false
       matrix:
@@ -175,7 +180,7 @@ jobs:
       - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
       - run: apt update
       - run: apt install -y git make
-      - run: apt install -y genisoimage
+      - run: apt install -y genisoimage qemu-utils
       - run: pip install ansible-core==2.13.1
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
@@ -197,6 +202,8 @@ jobs:
       - integ-part1
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
+    env:
+      DEBIAN_FRONTEND: noninteractive
     strategy:
       fail-fast: false
       matrix:
@@ -207,7 +214,7 @@ jobs:
       - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
       - run: apt update
       - run: apt install -y git make
-      - run: apt install -y genisoimage
+      - run: apt install -y genisoimage qemu-utils
       - run: pip install ansible-core==2.13.1
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
