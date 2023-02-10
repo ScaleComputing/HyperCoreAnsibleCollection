@@ -44,9 +44,6 @@ class EmailAlert(PayloadMapper):
             uuid=ansible_data["uuid"],
             alert_tag_uuid=ansible_data["alert_tag_uuid"],
             email_address=ansible_data["email_address"],
-            resend_delay=ansible_data["resend_delay"],
-            silent_period=ansible_data["silent_period"],
-            latest_task_tag=ansible_data["latest_task_tag"],
         )
 
     @classmethod
