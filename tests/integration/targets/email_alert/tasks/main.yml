@@ -7,6 +7,8 @@
   vars:
     new_email: new@test.com
     create_email: test@test.com
+    new_email_2: new_2@test.com
+    create_email_2: test_2@test.com
 
   block:
     - name: Get starting emails
@@ -164,6 +166,21 @@
           - result.changed == False
           - result.diff.before == result.diff.after
     - ansible.builtin.assert: *test2
+
+    # -----------------------------------------------------------
+    # Invalid parameter combination
+    # email_new makes sense only with state=present
+    # Should fail also if neither email nor email_new is present on HyperCore.
+    - name: Modify/rename existing Email Alert Recipient - with state=absent
+      scale_computing.hypercore.email_alert:
+        email: "{{ create_email_2 }}"
+        email_new: "{{ new_email_2 }}"
+        state: absent
+      register: result
+      ignore_errors: True
+    - ansible.builtin.assert:
+        that:
+          - result is failed
 
     # -----------------------------------------------------------
 
