@@ -6,7 +6,9 @@ import sys
 
 import pytest
 
-from ansible_collections.scale_computing.hypercore.plugins.modules import oidc_config_info
+from ansible_collections.scale_computing.hypercore.plugins.modules import (
+    oidc_config_info,
+)
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc import (
     Oidc,
 )
@@ -41,7 +43,9 @@ class TestMain:
 
 
 class TestRun:
-    def test_run_oidc_info_without_record(self, create_module, rest_client, mocker) -> None:
+    def test_run_oidc_info_without_record(
+        self, create_module, rest_client, mocker
+    ) -> None:
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -56,7 +60,9 @@ class TestRun:
         assert isinstance(results, tuple)
         assert results == (False, None)
 
-    def test_run_oidc_info_with_record(self, create_module, rest_client, mocker) -> None:
+    def test_run_oidc_info_with_record(
+        self, create_module, rest_client, mocker
+    ) -> None:
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -66,11 +72,33 @@ class TestRun:
                 ),
             )
         )
-        oidc_obj = Oidc(uuid="123", client_id="123", config_url="this_config", certificate="this_cert", scopes="this_scopes")
-        rest_client.list_records.return_value = [dict(uuid="123", client_id="123", config_url="this_config", certificate="this_cert", scopes="this_scopes")]
+        oidc_obj = Oidc(
+            uuid="123",
+            client_id="123",
+            config_url="this_config",
+            certificate="this_cert",
+            scopes="this_scopes",
+        )
+        rest_client.list_records.return_value = [
+            dict(
+                uuid="123",
+                client_id="123",
+                config_url="this_config",
+                certificate="this_cert",
+                scopes="this_scopes",
+            )
+        ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.from_hypercore"
         ).return_value = oidc_obj
         results = oidc_config_info.run(module, rest_client)
         assert isinstance(results, tuple)
-        assert results == (False, dict(client_id="123", config_url="this_config", certificate="this_cert", scopes="this_scopes"))
+        assert results == (
+            False,
+            dict(
+                client_id="123",
+                config_url="this_config",
+                certificate="this_cert",
+                scopes="this_scopes",
+            ),
+        )
