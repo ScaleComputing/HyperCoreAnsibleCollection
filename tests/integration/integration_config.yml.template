@@ -29,7 +29,7 @@ sc_config:
       dns_servers:
         - 1.1.1.1
         - 1.0.0.1
-      search_domains: ""
+      search_domains: []
     registration:
       company_name: Scale Computing
       contact: <firstname secondname>
