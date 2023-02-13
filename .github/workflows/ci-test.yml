@@ -1,6 +1,14 @@
 name: CI tests
 on:
   push:
+  workflow_dispatch:
+    inputs:
+      integ_tests:
+        description: |-
+          List integration tests to run.
+          Use "*" to run all tests.
+          Use regex like 'node|^git_issue' to run only subset.
+        default: ""
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 # Run only one workflow for specific branch.
@@ -123,7 +131,8 @@ jobs:
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
       - id: set-matrix
         shell: bash
-        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS" | grep -E $"{{ github.event.inputs.integ_tests }}" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+    if: "${{ github.event.inputs.integ_tests }}"
 
   integration-test:
     needs:
