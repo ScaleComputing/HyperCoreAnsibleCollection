@@ -96,7 +96,7 @@ jobs:
       - run: cd $WORKDIR && ansible-test coverage report --omit 'tests/*' --show-missing
 
   integration-prepare-env:
-    runs-on: [ubuntu-latest]
+    runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     env:
       DEBIAN_FRONTEND: noninteractive
@@ -110,28 +110,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-#      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
       - run: apt update
-#      - run: apt install -y git make
-#      - run: pip install ansible-core==2.13.1
-#      - run: apt install -y genisoimage qemu-utils
+      - run: apt install -y git make
+      - run: pip install ansible-core==2.13.1
+      - run: apt install -y genisoimage qemu-utils
       - run: apt install -y jq
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-#      - run: ansible-galaxy collection install community.general
-#      - run: |
-#          cd $WORKDIR
-#          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
-#          cat tests/integration/integration_config.yml
-#          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
-#          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
-#          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
-#          ls -al tests/integration/integration_config.yml
-#      - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
-#      - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
+      - run: ansible-galaxy collection install community.general
+      - run: |
+          cd $WORKDIR
+          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
+          cat tests/integration/integration_config.yml
+          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
+          ls -al tests/integration/integration_config.yml
+      - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
+      - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
       - id: set-matrix
         shell: bash
-        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS" | grep -E "${{ github.event.inputs.integ_tests }}" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS" | grep -E $"{{ github.event.inputs.integ_tests }}" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
     if: "${{ github.event.inputs.integ_tests }}"
 
   integration-test:
