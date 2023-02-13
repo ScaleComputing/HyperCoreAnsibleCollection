@@ -4,6 +4,9 @@
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout * 10 }}"
+  vars:
+    time_server_a: 2.pool.ntp.org
+    time_server_b: 3.pool.ntp.org
 
   block:
     - name: Get default configs
