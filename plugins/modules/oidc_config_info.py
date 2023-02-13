@@ -48,12 +48,12 @@ from ..module_utils.client import Client
 from ..module_utils.oidc import Oidc
 from ..module_utils.rest_client import CachedRestClient
 from ..module_utils.typed_classes import TypedOidcToAnsible
-from typing import Union
+from typing import Union, Tuple
 
 
 def run(
     module: AnsibleModule, rest_client: CachedRestClient
-) -> Union[TypedOidcToAnsible, None]:
+) -> Tuple[bool, Union[TypedOidcToAnsible, None]]:
     oidc_list = rest_client.list_records("/rest/v1/OIDCConfig")
     if oidc_list:
         return False, Oidc.from_hypercore(oidc_list[0]).to_ansible()
