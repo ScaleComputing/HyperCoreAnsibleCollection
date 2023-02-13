@@ -56,8 +56,8 @@ def run(
 ) -> Union[TypedOidcToAnsible, None]:
     oidc_list = rest_client.list_records("/rest/v1/OIDCConfig")
     if oidc_list:
-        return Oidc.from_hypercore(oidc_list[0]).to_ansible()
-    return None
+        return False, Oidc.from_hypercore(oidc_list[0]).to_ansible()
+    return False, None
 
 
 def main() -> None:
@@ -71,8 +71,8 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = CachedRestClient(client=client)
-        record = run(module, rest_client)
-        module.exit_json(changed=False, record=record)
+        changed, record = run(module, rest_client)
+        module.exit_json(changed=changed, record=record)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 
