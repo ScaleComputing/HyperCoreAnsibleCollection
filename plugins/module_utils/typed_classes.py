@@ -121,3 +121,35 @@ class TypedSmtpFromAnsible(TypedDict):
     auth_password: Union[str, None]
     from_address: Union[str, None]
     latest_task_tag: Union[TypedTaskTag, None]
+
+
+class TypedEmailAlertToAnsible(TypedDict):
+    uuid: Union[str, None]
+    alert_tag_uuid: Union[str, None]
+    email_address: Union[str, None]
+    resend_delay: Union[int, None]
+    silent_period: Union[int, None]
+    latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
+
+
+class TypedEmailAlertFromAnsible(TypedDict):
+    uuid: Union[str, None]
+    alert_tag_uuid: Union[str, None]
+    email_address: Union[str, None]
+    resend_delay: Union[int, None]
+    silent_period: Union[int, None]
+    latest_task_tag: Union[TypedTaskTag, None]
+
+
+class TypedVirtualDiskToAnsible(TypedDict):
+    name: Union[str, None]
+    uuid: Union[str, None]
+    block_size: Union[int, None]
+    size: Union[int, None]
+    # allocated_size: int
+    replication_factor: Union[int, None]
+
+
+class TypedVirtualDiskFromAnsible(TypedDict):
+    name: Union[str, None]
+    # uuid: str

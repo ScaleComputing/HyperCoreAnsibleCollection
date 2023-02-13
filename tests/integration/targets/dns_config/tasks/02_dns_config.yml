@@ -1,213 +1,229 @@
 ---
-- environment:
-    SC_HOST: "{{ sc_host }}"
-    SC_USERNAME: "{{ sc_username }}"
-    SC_PASSWORD: "{{ sc_password }}"
+# Try to use only valid public DNS servers during testing
+# At least the first entry should be a valid DNS resolver server.
+# Well known servers:
+# 1.1.1.1 1.0.0.1 - cloudflare
+# 8.8.8.8 8.8.4.4 - google
 
-  vars:
-    default_server_ips: []
-    default_search_domains: []
-    actual_uuid: ""
+# -----------------------------------------------------------
+- name: Prepare for test - DNSConfig object missing - unconfigured cluster
+  include_tasks: helper_api_dns_delete_all.yml
 
-  block:
-    - name: Get default configs
-      scale_computing.hypercore.api:
-        action: get
-        endpoint: /rest/v1/DNSConfig/dnsconfig_guid
-      register: dns_config
-    - ansible.builtin.set_fact:
-        default_server_ips: "{{ dns_config.record.0.serverIPs }}"
-        default_search_domains: "{{ dns_config.record.0.searchDomains }}"
-        actual_uuid: "{{ dns_config.record.0.uuid }}"
+- name: Create DNSConfig on unconfigured cluster
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - example.com
+    dns_servers:
+      - 8.8.8.8
+      - 1.0.0.1
+    state: set
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == True
+      - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.com"]
+      - info.record.server_ips == ["8.8.8.8", "1.0.0.1"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: Prepare for test
-      scale_computing.hypercore.api:
-        action: post
-        endpoint: /rest/v1/DNSConfig/dnsconfig_guid
-        data:
-          searchDomains: []
-          serverIPs: []
+- name: Create DNSConfig on unconfigured cluster - idempotence
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - example.com
+    dns_servers:
+      - 8.8.8.8
+      - 1.0.0.1
+    state: set
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == False
+      # - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.com"]
+      - info.record.server_ips == ["8.8.8.8", "1.0.0.1"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    # -----------------------------------------------------------
+# -----------------------------------------------------------
+- name: Prepare for test - DNSConfig object with empty values
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/DNSConfig/dnsconfig_guid
+    data:
+      searchDomains: []
+      serverIPs: []
 
-    - name: Overwrite all entries (search_domains, dns_servers)
-      scale_computing.hypercore.dns_config:
-        search_domains:
-          - example.domain1.com
-          - example.domain2.com
-        dns_servers:
-          - 1.2.3.4
-          - 5.6.7.8
-        state: set
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
-          - info.record.server_ips == ["1.2.3.4", "5.6.7.8"]
-          - info.record.uuid == actual_uuid
+- name: Overwrite all entries (search_domains, dns_servers)
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - example.domain1.com
+      - example.domain2.com
+    dns_servers:
+      - 1.1.1.1
+      - 5.6.7.8
+    state: set
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == True
+      - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
+      - info.record.server_ips == ["1.1.1.1", "5.6.7.8"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: Do the previous task again - Overwrite all entries (search_domains, dns_servers)
-      scale_computing.hypercore.dns_config:
-        search_domains:
-          - example.domain1.com
-          - example.domain2.com
-        dns_servers:
-          - 1.2.3.4
-          - 5.6.7.8
-        state: set
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == False
-          - result.diff.before == result.diff.after
-          - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
-          - info.record.server_ips == ["1.2.3.4", "5.6.7.8"]
-          - info.record.uuid == actual_uuid
+- name: Do the previous task again - Overwrite all entries (search_domains, dns_servers)
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - example.domain1.com
+      - example.domain2.com
+    dns_servers:
+      - 1.1.1.1
+      - 5.6.7.8
+    state: set
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == False
+      - result.diff.before == result.diff.after
+      - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
+      - info.record.server_ips == ["1.1.1.1", "5.6.7.8"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: PREPEND new 'dns_servers' to existing DNS config
-      scale_computing.hypercore.dns_config:
-        dns_servers:
-          - 0.0.0.0
-          - 0.1.1.1
-        state: before
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
-          - info.record.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8"]
-          - info.record.uuid == actual_uuid
+- name: PREPEND new 'dns_servers' to existing DNS config
+  scale_computing.hypercore.dns_config:
+    dns_servers:
+      - 1.0.0.1
+      - 0.1.1.1
+    state: before
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == True
+      - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
+      - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: Do the previous task again - PREPEND new 'dns_servers' to existing DNS config
-      scale_computing.hypercore.dns_config:
-        dns_servers:
-          - 0.0.0.0
-          - 0.1.1.1
-        state: before
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == False
-          - result.diff.before == result.diff.after
-          - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
-          - info.record.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8"]
-          - info.record.uuid == actual_uuid
+- name: Do the previous task again - PREPEND new 'dns_servers' to existing DNS config
+  scale_computing.hypercore.dns_config:
+    dns_servers:
+      - 1.0.0.1
+      - 0.1.1.1
+    state: before
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == False
+      - result.diff.before == result.diff.after
+      - info.record.search_domains == ["example.domain1.com", "example.domain2.com"]
+      - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: PREPEND new 'search_domains' to existing DNS config
-      scale_computing.hypercore.dns_config:
-        search_domains:
-          - example.domain0.com
-        state: before
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.search_domains == ["example.domain0.com", "example.domain1.com", "example.domain2.com"]
-          - info.record.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8"]
-          - info.record.uuid == actual_uuid
+- name: PREPEND new 'search_domains' to existing DNS config
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - example.domain0.com
+    state: before
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == True
+      - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.domain0.com", "example.domain1.com", "example.domain2.com"]
+      - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: PREPEND to 'search_domains' with duplicates
-      scale_computing.hypercore.dns_config:
-        search_domains:
-          - example.domain1.com
-          - example.domain0.com
-        state: before
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com"]
-          - info.record.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8"]
-          - info.record.uuid == actual_uuid
+- name: PREPEND to 'search_domains' with duplicates
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - example.domain1.com
+      - example.domain0.com
+    state: before
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == True
+      - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com"]
+      - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: APPEND new 'dns_servers' to existing DNS config
-      scale_computing.hypercore.dns_config:
-        dns_servers:
-          - 9.9.9.9
-          - 0.9.9.9
-        state: after
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com"]
-          - info.record.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
-          - info.record.uuid == actual_uuid
+- name: APPEND new 'dns_servers' to existing DNS config
+  scale_computing.hypercore.dns_config:
+    dns_servers:
+      - 9.9.9.9
+      - 0.9.9.9
+    state: after
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == True
+      - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com"]
+      - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: APPEND new 'search_domains' to existing DNS config
-      scale_computing.hypercore.dns_config:
-        search_domains:
-          - example.domain3.com
-        state: after
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com", "example.domain3.com"]
-          - info.record.server_ips == ["0.0.0.0", "0.1.1.1", "1.2.3.4", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
-          - info.record.uuid == actual_uuid
+- name: APPEND new 'search_domains' to existing DNS config
+  scale_computing.hypercore.dns_config:
+    search_domains:
+      - example.domain3.com
+    state: after
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == True
+      - result.diff.before != result.diff.after
+      - info.record.search_domains == ["example.domain1.com", "example.domain0.com", "example.domain2.com", "example.domain3.com"]
+      - info.record.server_ips == ["1.0.0.1", "0.1.1.1", "1.1.1.1", "5.6.7.8", "9.9.9.9", "0.9.9.9"]
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: Clear all entries by using 'state=set'
-      scale_computing.hypercore.dns_config:
-        search_domains: []
-        dns_servers: []
-        state: set
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == True
-          - result.diff.before != result.diff.after
-          - info.record.search_domains == []
-          - info.record.server_ips == []
-          - info.record.uuid == actual_uuid
+- name: Clear all entries by using 'state=set'
+  scale_computing.hypercore.dns_config:
+    search_domains: []
+    dns_servers: []
+    state: set
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == True
+      - result.diff.before != result.diff.after
+      - info.record.search_domains == []
+      - info.record.server_ips == []
+      - info.record.uuid == "dnsconfig_guid"
 
-    - name: Do the previous taks again - Clear all entries by using 'state=set'
-      scale_computing.hypercore.dns_config:
-        search_domains: []
-        dns_servers: []
-        state: set
-      register: result
-    - scale_computing.hypercore.dns_config_info:
-      register: info
-    - ansible.builtin.assert:
-        that:
-          - result.changed == False
-          - result.diff.before == result.diff.after
-          - info.record.search_domains == []
-          - info.record.server_ips == []
-          - info.record.uuid == actual_uuid
-
-    # -----------------------------------------------------------
-
-    - name: Restore back to default values
-      scale_computing.hypercore.api:
-        action: post
-        endpoint: /rest/v1/DNSConfig/dnsconfig_guid
-        data:
-          searchDomains: "{{ default_search_domains }}"
-          serverIPs: "{{ default_server_ips }}"
+- name: Do the previous taks again - Clear all entries by using 'state=set'
+  scale_computing.hypercore.dns_config:
+    search_domains: []
+    dns_servers: []
+    state: set
+  register: result
+- scale_computing.hypercore.dns_config_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result.changed == False
+      - result.diff.before == result.diff.after
+      - info.record.search_domains == []
+      - info.record.server_ips == []
+      - info.record.uuid == "dnsconfig_guid"

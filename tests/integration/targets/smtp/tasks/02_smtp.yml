@@ -17,6 +17,11 @@
       from_address: "ci-test@example.com"
 
 # -----------------------------------------------------------
+# expected_from_address depends on test_on_emtpy_cluster value
+- name: Set expected_from_address
+  set_fact:
+    expected_from_address: "{{ test_on_emtpy_cluster | ternary('', 'ci-test@example.com') }}"
+
 - name: Remove all SMTP config
   include_tasks: helper_api_smtp_delete_all.yml
   when: test_on_emtpy_cluster
@@ -43,7 +48,7 @@
       - info.record.auth_password == ""
       # BUG, from_address should not be reset
       # Ignore for today.
-      # - info.record.from_address == "ci-test@example.com"
+      - info.record.from_address == expected_from_address
       - result.record == info.record
 
 - name: Modify SMTP configs - REQUIRED ONLY - idempotence
@@ -64,9 +69,7 @@
       - info.record.use_auth == False
       - info.record.auth_user == ""
       - info.record.auth_password == ""
-      # BUG, from_address should not be reset
-      # TODO expected value depends on test_on_emtpy_cluster flag.
-      # - info.record.from_address == "ci-test@example.com"
+      - info.record.from_address == expected_from_address
       - result.record == info.record
 
 
@@ -172,6 +175,30 @@
       # - result.diff.before == result.diff.after
       - info.record.smtp_server == "smtp-relay.gmail.com"
       - info.record.port == 25
+      - info.record.use_ssl == False
+      - info.record.use_auth == True
+      - info.record.auth_user == "test"
+      - info.record.auth_password == ""
+      - info.record.from_address == "test@test.com"
+      - result.record == info.record
+
+# Omitted parameters should be unmodified.
+- name: Modify SMTP configs - WITH AUTHENTICATION - partial update
+  scale_computing.hypercore.smtp:
+    server: smtp-relay.gmail.com
+    port: 26
+  register: result
+- scale_computing.hypercore.smtp_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      # is not idempotent, but before == after
+      - result.changed == True
+      # Complication "before == after" fails too
+      # latest_task_tag has different sessionID, modifiedTime etc.
+      # - result.diff.before == result.diff.after
+      - info.record.smtp_server == "smtp-relay.gmail.com"
+      - info.record.port == 26
       - info.record.use_ssl == False
       - info.record.use_auth == True
       - info.record.auth_user == "test"

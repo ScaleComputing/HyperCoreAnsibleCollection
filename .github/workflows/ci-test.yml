@@ -1,13 +1,6 @@
 name: CI tests
 on:
   push:
-  workflow_dispatch:
-    inputs:
-      run_slow_tests:
-        description: 'Run slow integration tests?'
-        type: boolean
-        required: false
-        default: false
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 # Run only one workflow for specific branch.
@@ -98,6 +91,7 @@ jobs:
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     env:
+      DEBIAN_FRONTEND: noninteractive
       ANSIBLE_COLLECTIONS_PATH: /work-dir
       # vm_import|vm_export - they need SMB server
       # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
@@ -112,7 +106,7 @@ jobs:
       - run: apt update
       - run: apt install -y git make
       - run: pip install ansible-core==2.13.1
-      - run: apt install -y genisoimage
+      - run: apt install -y genisoimage qemu-utils
       - run: apt install -y jq
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
@@ -129,14 +123,7 @@ jobs:
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
       - id: set-matrix
         shell: bash
-        run: |
-          if [[ "${{ inputs.run_slow_tests }}" == "true" ]]
-          then
-            SKIP_TESTS_FINAL="$SKIP_TESTS"
-          else
-            SKIP_TESTS_FINAL="$SKIP_TESTS|git_issues*"
-          fi
-          echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS_FINAL" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   integration-test:
     needs:
@@ -144,6 +131,8 @@ jobs:
       - units-test
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
+    env:
+      DEBIAN_FRONTEND: noninteractive
     strategy:
       fail-fast: false
       matrix:
@@ -155,7 +144,7 @@ jobs:
       - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
       - run: apt update
       - run: apt install -y git make
-      - run: apt install -y genisoimage
+      - run: apt install -y genisoimage qemu-utils
       - run: pip install ansible-core==2.13.1
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
@@ -179,6 +168,8 @@ jobs:
       - units-test
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
+    env:
+      DEBIAN_FRONTEND: noninteractive
     strategy:
       fail-fast: false
       matrix:
@@ -189,7 +180,7 @@ jobs:
       - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
       - run: apt update
       - run: apt install -y git make
-      - run: apt install -y genisoimage
+      - run: apt install -y genisoimage qemu-utils
       - run: pip install ansible-core==2.13.1
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
@@ -211,6 +202,8 @@ jobs:
       - integ-part1
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
+    env:
+      DEBIAN_FRONTEND: noninteractive
     strategy:
       fail-fast: false
       matrix:
@@ -221,7 +214,7 @@ jobs:
       - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
       - run: apt update
       - run: apt install -y git make
-      - run: apt install -y genisoimage
+      - run: apt install -y genisoimage qemu-utils
       - run: pip install ansible-core==2.13.1
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR

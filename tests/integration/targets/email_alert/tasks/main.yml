@@ -1,0 +1,174 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  vars:
+    new_email: new@test.com
+    create_email: test@test.com
+
+  block:
+    - name: Get starting emails
+      scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.set_fact:
+        starting_emails: "{{ info.records }}"
+
+    - name: Prepare for test - cleanup (also test Remove with loop)
+      scale_computing.hypercore.email_alert:
+        email: "{{ item.email_address }}"
+        state: absent
+      loop: "{{ starting_emails }}"
+    - scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - info.records == []
+          - info.records|length == 0|int
+
+    # -----------------------------------------------------------
+
+    - name: Create new Email Alert Recipient
+      scale_computing.hypercore.email_alert:
+        email: "{{ create_email }}"
+        state: present
+      register: result
+    - scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - ansible.builtin.assert: &test0
+        that:
+          - result.records != []
+          - result.records[0].keys() | sort ==
+            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            'resend_delay', 'silent_period', 'uuid']
+          - info.records|length == 1|int
+          - info.records[0].email_address == "{{ create_email }}"
+
+    - name: Create new Email Alert Recipient - idempotence
+      scale_computing.hypercore.email_alert:
+        email: "{{ create_email }}"
+        state: present
+      register: result
+    - scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - ansible.builtin.assert: *test0
+
+    - name: Modify existing Email Alert Recipient
+      scale_computing.hypercore.email_alert:
+        email: "{{ create_email }}"
+        email_new: "{{ new_email }}"
+        state: present
+      register: result
+    - scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - ansible.builtin.assert: &test1
+        that:
+          - result.records != []
+          - result.records[0].keys() | sort ==
+            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            'resend_delay', 'silent_period', 'uuid']
+          - info.records|length == 1|int
+
+    - name: Modify existing Email Alert Recipient - idempotence
+      scale_computing.hypercore.email_alert:
+        email: "{{ create_email }}"
+        email_new: "{{ new_email }}"
+        state: present
+      register: result
+    - scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - ansible.builtin.assert: *test1
+
+
+    - name: Modify existing Email Alert Recipient - with same emails
+      scale_computing.hypercore.email_alert:
+        email: "{{ new_email }}"
+        email_new: "{{ new_email }}"
+        state: present
+      register: result
+    - scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+          - info.records|length == 1|int
+          - result.records != []
+          - result.records[0].keys() | sort ==
+            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            'resend_delay', 'silent_period', 'uuid']
+
+
+    - name: Send test email to an existing Email Alert Recipient
+      scale_computing.hypercore.email_alert:
+        email: "{{ new_email }}"
+        state: test
+      register: result
+    - scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.debug:
+        msg: "{{ result }}"
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+          - info.records|length == 1|int
+          - result.records != []
+          - result.records[0].keys() | sort ==
+            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            'resend_delay', 'silent_period', 'uuid']
+
+
+    - name: Remove previously created Email Alert Recipient
+      scale_computing.hypercore.email_alert:
+        email: "{{ new_email }}"
+        state: absent
+      register: result
+    - scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - ansible.builtin.assert: &test2
+        that:
+          - info.records|length == 0|int
+          - result.records == []
+
+    - name: Remove previously created Email Alert Recipient - idempotence
+      scale_computing.hypercore.email_alert:
+        email: "{{ new_email }}"
+        state: absent
+      register: result
+    - scale_computing.hypercore.email_alert_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - ansible.builtin.assert: *test2
+
+    # -----------------------------------------------------------
+
+    - name: Restore back to default
+      scale_computing.hypercore.email_alert:
+        email: "{{ item.email_address }}"
+        state: present
+      loop: "{{ starting_emails }}"

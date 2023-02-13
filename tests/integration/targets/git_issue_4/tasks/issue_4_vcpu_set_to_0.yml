@@ -10,7 +10,7 @@
 # ----------------------------------Setup-----------------------------------------------------------------------------
 - name: Make source vm
   scale_computing.hypercore.vm:
-    vm_name: XLAB-test-vcpu-set 
+    vm_name: XLAB-test-vcpu-set
     memory: "{{ '1 GB'|human_to_bytes}}"
     description: "blabla"
     tags:

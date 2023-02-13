@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Added registration and registration_info module.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/98)

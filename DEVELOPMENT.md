@@ -85,3 +85,14 @@ Sample ansible.cfg is there to ensure collection does not need to be installed.
 ```yaml
 ansible-playbook -i localhost, examples/iso_info.yml -v
 ```
+
+## Creating a release
+
+Releases are automatically created when a tag is created with a name matching
+`v*.*.*`. Before tagging a commit, create a release issue and complete all of
+the prerequisites.
+
+- Create a new release issue with the "[New
+  release](https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues/new/choose)."
+  template
+- Complete each of the items in the release steps checklist

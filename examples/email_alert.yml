@@ -1,0 +1,27 @@
+---
+- name: Example email_alert module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create Email alert recipient
+      scale_computing.hypercore.email_alert:
+        email: example@example.com
+        state: present # absent, test --> create, delete, test
+
+    - name: Send a test email
+      scale_computing.hypercore.email_alert:
+        email: example@example.com
+        state: test
+
+    - name: Modify previously created Email alert recipient
+      scale_computing.hypercore.email_alert:
+        email: example@example.com
+        email_new: new@example.com
+        state: present
+
+    - name: Remove Email alert recipient
+      scale_computing.hypercore.email_alert:
+        email: new@example.com
+        state: absent
