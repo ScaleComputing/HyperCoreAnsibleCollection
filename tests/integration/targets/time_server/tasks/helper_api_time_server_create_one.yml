@@ -1,0 +1,21 @@
+---
+# Create TimeSource config.
+# Assumes all TimeSource were deleted before.
+
+# Create/POST, not update/PATCH!
+- name: Create a desired TimeSource config
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/TimeSource
+    data:
+      host: "{{ time_server_config.source }}"
+# TODO wait on TaskTag
+
+- name: Get current TimeSource
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/TimeSource
+  register: time_server_config_result
+- name: Show current TimeSource
+  ansible.builtin.debug:
+    var: time_server_config_result

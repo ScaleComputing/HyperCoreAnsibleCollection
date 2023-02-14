@@ -4,54 +4,20 @@
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout * 10 }}"
+  vars:
+    time_server_a: 2.pool.ntp.org
+    time_server_b: 3.pool.ntp.org
+    actual_uuid: timesource_guid
 
   block:
-    - name: Get default configs
-      scale_computing.hypercore.api:
-        action: get
-        endpoint: /rest/v1/TimeSource/timesource_guid
-      register: time_server
-    - ansible.builtin.debug:
-        msg: time_server.record {{ time_server.record }}
-    - ansible.builtin.set_fact:
-        actual_host: "pool.ntp.org"  # "{{ time_server.record.0.host }}"
-        actual_uuid: "{{ time_server.record.0.uuid }}"
-
-    # Test cluster is already configured with pool.ntp.org,
-    # but it does not want to accept 0.pool.ntp.org.
-    # We will reconfigure it using corresponding IP address.
-    # Assumption: ansible-controller is running close to HyperCore server,
-    # so that returned IP address will be accepted by HyperCore server.
-    # How to install python dependencies for ansible-test?
-    # File tests/integration/requirements.txt is used with
-    # "ansible-test integration time_server -vv --venv",
-    # but otherwise - not/not always?
-
-    # This was needed/useful on previous test cluster (action runner "westfield")
-    # Problem is, the first IP from DNS A record might be down at time of test.
-    #    - ansible.builtin.command: pip install dnspython==2.3.0
-    #    - ansible.builtin.command: python -c 'import dns.resolver; ans=dns.resolver.resolve("{{ actual_host }}", "A"); print(str(ans[0]));'
-    #      changed_when: false
-    #      register: actual_host_ip_address_result
-    #    - ansible.builtin.set_fact:
-    #        actual_host_ip_address: "{{ actual_host_ip_address_result.stdout }}"
-
-    # On cluster 10.5.11.50, [0-3].pool.ntp.org is accepted.
-    - ansible.builtin.set_fact:
-        actual_host_ip_address: "3.pool.ntp.org"
-
-    - name: Set NTP server to IP address {{ actual_host_ip_address }} using api module
-      scale_computing.hypercore.api:
-        action: patch
-        endpoint: /rest/v1/TimeSource/timesource_guid
-        data:
-          host: "{{ actual_host_ip_address }}"
+    - name: Remove all TimeServer objects
+      include_tasks: helper_api_time_server_delete_all.yml
 
     # ------------------------------------------------
 
-    - name: Change NTP server
+    - name: Create TimeServer object
       scale_computing.hypercore.time_server:
-        source: "{{ actual_host }}"
+        source: "{{ time_server_a }}"
       register: result
     - scale_computing.hypercore.time_server_info:
       register: info
@@ -59,12 +25,12 @@
         that:
           - result.changed == True
           - result.diff.before != result.diff.after
-          - info.record.host == actual_host
+          - info.record.host == time_server_a
           - info.record.uuid == actual_uuid
 
-    - name: Update with NTP server from previous task
+    - name: Create TimeServer object - idempotence
       scale_computing.hypercore.time_server:
-        source: "{{ actual_host }}"
+        source: "{{ time_server_a }}"
       register: result
     - scale_computing.hypercore.time_server_info:
       register: info
@@ -72,14 +38,31 @@
         that:
           - result.changed == False
           - result.diff.before == result.diff.after
-          - info.record.host == actual_host
+          - info.record.host == time_server_a
           - info.record.uuid == actual_uuid
 
-    # ------------------------------------------------
-  always:
-    - name: Restore back to default
-      scale_computing.hypercore.api:
-        action: post
-        endpoint: /rest/v1/TimeSource/timesource_guid
-        data:
-          host: "{{ actual_host }}"
+    - name: Change NTP server
+      scale_computing.hypercore.time_server:
+        source: "{{ time_server_b }}"
+      register: result
+    - scale_computing.hypercore.time_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+          - info.record.host == time_server_b
+          - info.record.uuid == actual_uuid
+
+    - name: Change NTP server - idempotence
+      scale_computing.hypercore.time_server:
+        source: "{{ time_server_b }}"
+      register: result
+    - scale_computing.hypercore.time_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+          - info.record.host == time_server_b
+          - info.record.uuid == actual_uuid

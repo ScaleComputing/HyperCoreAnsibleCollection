@@ -1,0 +1,18 @@
+---
+# Remove TimeSource config.
+
+- name: Get current TimeSource
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/TimeSource
+  register: time_server_config_result
+- name: Show current TimeSource
+  ansible.builtin.debug:
+    var: time_server_config_result
+
+- name: Remove all existing TimeSource configs
+  scale_computing.hypercore.api:
+    action: delete
+    endpoint: /rest/v1/TimeSource/{{ item.uuid }}
+  with_items: "{{ time_server_config_result.record }}"
+# TODO wait on TaskTag
