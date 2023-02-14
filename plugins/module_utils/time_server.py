@@ -65,7 +65,7 @@ class TimeServer(PayloadMapper):
         )
 
     @classmethod
-    def get_by_uuid(cls, ansible_dict, rest_client, must_exist=True):
+    def get_by_uuid(cls, ansible_dict, rest_client, must_exist=False):
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
         hypercore_dict = rest_client.get_record(
             "/rest/v1/TimeSource", query, must_exist=must_exist
