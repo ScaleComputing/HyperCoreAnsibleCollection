@@ -180,7 +180,6 @@ def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
         dict(email_address=module.params["email"]), rest_client
     )
     if not delete_email:
-        module.warn("Email Alert: The email you're trying to remove doesn't exist.")
         return False, before, dict(before=before, after=before)
     delete_email.delete(rest_client, module.check_mode)
 
@@ -198,7 +197,7 @@ def send_test(module: AnsibleModule, rest_client: RestClient):
     send_email = EmailAlert.get_by_email(
         dict(email_address=module.params["email"]), rest_client
     )
-    if not send_email:
+    if not send_email:  # should the module notify user, that the email he's trying to test doesn't exist?
         module.warn("Email Alert: can't send a test email to a nonexistent recipient.")
 
     send_email.test(
