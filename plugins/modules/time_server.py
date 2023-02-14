@@ -84,25 +84,20 @@ def modify_time_server(
     # GET method to get the Time Server by UUID
     time_server = TimeServer.get_by_uuid(module.params, rest_client)
 
-    # Get new time_server source host
-    new_time_server_source = module.params["source"]
-
-    # If Time Server doesn't exist, create one
+    # If Time Server doesn't exist, raise an exception (error)
     if not time_server:
-        create_task_tag = rest_client.create_record(
-            endpoint="/rest/v1/TimeSource",
-            payload=dict(host=new_time_server_source),
-            check_mode=module.check_mode,
+        raise errors.ScaleComputingError(
+            "Time Server: There is no Time Server configuration."
         )
-        TaskTag.wait_task(rest_client, create_task_tag)
-        after = TimeServer.get_state(rest_client)
-        return True, {}, dict(before={}, after=after)
 
     # Otherwise, continue with modifying the configuration
     before = time_server.to_ansible()
     old_state = TimeServer.get_state(
         rest_client=rest_client
     )  # get the state of Time Server before modification
+
+    # Get new time_server source host
+    new_time_server_source = module.params["source"]
 
     # Init return values and return if no changes were made
     change, record, diff = (
