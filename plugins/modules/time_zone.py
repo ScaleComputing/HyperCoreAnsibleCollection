@@ -514,20 +514,25 @@ def modify_time_zone(
     # GET method to get the Time Server by UUID
     time_zone = TimeZone.get_by_uuid(module.params, rest_client)
 
-    # If Time Server doesn't exist, raise an exception (error)
+    # Get new time zone
+    new_time_zone_entry = module.params["zone"]
+
+    # If Time Zone doesn't exist, create one
     if not time_zone:
-        raise errors.ScaleComputingError(
-            "Time Zone: There is no Time Zone configuration."
+        create_task_tag = rest_client.create_record(
+            endpoint="/rest/v1/TimeZone",
+            payload=dict(timeZone=new_time_zone_entry),
+            check_mode=module.check_mode,
         )
+        TaskTag.wait_task(rest_client, create_task_tag)
+        new_state = TimeZone.get_state(rest_client)
+        return True, {}, dict(before={}, after=new_state)
 
     # Otherwise, continue with modifying the configuration
     before = time_zone.to_ansible()
     old_state = TimeZone.get_state(
         rest_client=rest_client
     )  # get the state of Time Server before modification
-
-    # Get new time zone
-    new_time_zone_entry = module.params["zone"]
 
     # Init return values and return if no changes were made
     change, record, diff = (

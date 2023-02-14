@@ -1,0 +1,14 @@
+---
+# Reset time zone configuration when testing is finished.
+# Configure using raw API module.
+# Should work even when all other modules are broken.
+
+- name: Show desired time_zone_config
+  ansible.builtin.debug:
+    var: time_zone_config
+
+- name: Delete all TimeZone objects
+  include_tasks: helper_api_time_zone_delete_all.yml
+
+- name: Create one TimeZone object
+  include_tasks: helper_api_time_zone_create_one.yml

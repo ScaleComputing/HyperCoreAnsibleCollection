@@ -1,0 +1,21 @@
+---
+# Create TimeZone config.
+# Assumes all TimeZone were deleted before.
+
+# Create/POST, not update/PATCH!
+- name: Create a desired TimeZone config
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/TimeZone
+    data:
+      timeZone: "{{ time_zone_config.zone }}"
+# TODO wait on TaskTag
+
+- name: Get current TimeZone
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/TimeZone
+  register: time_zone_config_result
+- name: Show current TimeZone
+  ansible.builtin.debug:
+    var: time_zone_config_result
