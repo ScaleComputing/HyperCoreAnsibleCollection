@@ -17,6 +17,8 @@
     - ansible.builtin.set_fact:
         starting_emails: "{{ info.records }}"
 
+    # -----------------------------------------------------------
+
     - name: Prepare for test - cleanup (also test Remove with loop)
       scale_computing.hypercore.email_alert:
         email: "{{ item.email_address }}"
@@ -44,8 +46,8 @@
           - result.diff.before != result.diff.after
     - ansible.builtin.assert: &test0
         that:
-          - result.records != []
-          - result.records[0].keys() | sort ==
+          - result.record != {}
+          - result.record.keys() | sort ==
             ['alert_tag_uuid', 'email_address', 'latest_task_tag',
             'resend_delay', 'silent_period', 'uuid']
           - info.records|length == 1|int
@@ -78,8 +80,8 @@
           - result.diff.before != result.diff.after
     - ansible.builtin.assert: &test1
         that:
-          - result.records != []
-          - result.records[0].keys() | sort ==
+          - result.record != {}
+          - result.record.keys() | sort ==
             ['alert_tag_uuid', 'email_address', 'latest_task_tag',
             'resend_delay', 'silent_period', 'uuid']
           - info.records|length == 1|int
@@ -99,7 +101,7 @@
     - ansible.builtin.assert: *test1
 
 
-    - name: Modify existing Email Alert Recipient - with same emails
+    - name: Modify existing Email Alert Recipient - email==email_new
       scale_computing.hypercore.email_alert:
         email: "{{ new_email }}"
         email_new: "{{ new_email }}"
@@ -112,8 +114,8 @@
           - result.changed == False
           - result.diff.before == result.diff.after
           - info.records|length == 1|int
-          - result.records != []
-          - result.records[0].keys() | sort ==
+          - result.record != {}
+          - result.record.keys() | sort ==
             ['alert_tag_uuid', 'email_address', 'latest_task_tag',
             'resend_delay', 'silent_period', 'uuid']
 
@@ -132,8 +134,8 @@
           - result.changed == False
           - result.diff.before == result.diff.after
           - info.records|length == 1|int
-          - result.records != []
-          - result.records[0].keys() | sort ==
+          - result.record != {}
+          - result.record.keys() | sort ==
             ['alert_tag_uuid', 'email_address', 'latest_task_tag',
             'resend_delay', 'silent_period', 'uuid']
 
@@ -152,7 +154,7 @@
     - ansible.builtin.assert: &test2
         that:
           - info.records|length == 0|int
-          - result.records == []
+          - result.record == {}
 
     - name: Remove previously created Email Alert Recipient - idempotence
       scale_computing.hypercore.email_alert:

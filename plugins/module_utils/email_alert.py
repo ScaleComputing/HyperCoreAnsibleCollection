@@ -143,8 +143,12 @@ class EmailAlert(PayloadMapper):
         rest_client: RestClient,
         payload: Dict[Any, Any],
         check_mode: bool = False,
-    ) -> None:
-        rest_client.create_record("/rest/v1/AlertEmailTarget/", payload, check_mode)
+    ):
+        task_tag = rest_client.create_record("/rest/v1/AlertEmailTarget/", payload, check_mode)
+        email_alert = cls.get_by_uuid(
+            dict(uuid=task_tag["createdUUID"]), rest_client, must_exist=True,
+        )
+        return email_alert
 
     def update(
         self,
