@@ -220,7 +220,7 @@ def send_test(module: AnsibleModule, rest_client: RestClient):
 def run(module: AnsibleModule, rest_client: RestClient):
     state = module.params["state"]
     if state == "present":
-        if module.params["email_new"] != "":
+        if module.params["email_new"] is not None:
             return update_email_alert(module, rest_client)
         return create_email_alert(module, rest_client)
     elif state == "absent":
@@ -241,7 +241,7 @@ def main() -> None:
             ),
             email_new=dict(
                 type="str",
-                default="",
+                # default="",
                 required=False,
             ),
             state=dict(
@@ -250,7 +250,7 @@ def main() -> None:
                 required=True,
             ),
         ),
-        required_if=[("state", "present", ("email_new",))],
+        # required_if=[("state", "present", ("email_new",))],  # means: if state==present, then email_new must be set. Having default value for email_new makes this not so obvious.
     )
 
     try:
