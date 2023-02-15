@@ -63,18 +63,27 @@ class TypedRoleToAnsible(TypedDict):
     name: str
 
 
+# Cluster to ansible return dict.
+class TypedClusterToAnsible(TypedDict):
+    uuid: str
+    name: str
+    icos_version: str
+
+
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
     before: Union[
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
+        TypedClusterToAnsible,
         None,
     ]
     after: Union[
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
+        TypedClusterToAnsible,
         None,
     ]
 
