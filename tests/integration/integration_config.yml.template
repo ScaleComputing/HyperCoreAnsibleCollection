@@ -43,3 +43,5 @@ sc_config:
       use_auth: false
       auth_user: ""
       auth_password: ""
+    email_alert:
+      - someone@scalecomputing.com

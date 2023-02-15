@@ -9,6 +9,7 @@
     create_email: test@test.com
     new_email_2: new_2@test.com
     create_email_2: test_2@test.com
+    email_alert_config: "{{ sc_config[sc_host].email_alert }}"
 
   block:
     - name: Get starting emails
@@ -185,9 +186,23 @@
           - result is failed
 
     # -----------------------------------------------------------
+  always:
+    - name: Get current email_alert
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/AlertEmailTarget
+      register: api_email_alert_result
 
-    - name: Restore back to default
-      scale_computing.hypercore.email_alert:
-        email: "{{ item.email_address }}"
-        state: present
-      loop: "{{ starting_emails }}"
+    - name: Remove current email_alert
+      scale_computing.hypercore.api:
+        action: delete
+        endpoint: /rest/v1/AlertEmailTarget/{{ item.uuid }}
+      loop: "{{ api_email_alert_result.record }}"
+
+    - name: Create configured email_alert
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/AlertEmailTarget
+        data:
+          emailAddress: "{{ item }}"
+      loop: "{{ email_alert_config }}"
