@@ -71,3 +71,11 @@ class Cluster(PayloadMapper):
         return rest_client.update_record(
             f"/rest/v1/Cluster/{self.uuid}", dict(clusterName=name_new), check_mode
         )
+
+    @staticmethod
+    def shutdown(
+        rest_client: RestClient, force_shutdown: bool = False, check_mode: bool = False
+    ) -> None:
+        rest_client.create_record(
+            "/rest/v1/Cluster/shutdown", dict(forceShutdown=force_shutdown), check_mode
+        )
