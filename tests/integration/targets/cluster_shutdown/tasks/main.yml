@@ -1,4 +1,4 @@
----
+# ---
 # - environment:
 #     SC_HOST: "{{ sc_host }}"
 #     SC_USERNAME: "{{ sc_username }}"

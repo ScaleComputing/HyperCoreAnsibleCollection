@@ -39,15 +39,11 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-record:
-  description:
-    - Cluster that was shutdown.
-  returned: success
-  type: dict
-  sample:
-    - icos_version: 9.2.11.210763
-      name: PUB5
-      uuid: a5d9148c-37f7-4b43-843c-196751d3c050
+shutdown:
+  description: C(true) if the cluster has been shut down.
+  returned: always
+  type: bool
+  sample: true
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -56,20 +52,11 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.cluster import Cluster
-from ..module_utils.typed_classes import TypedDiff
-from typing import Tuple, Dict
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Dict[None, None], TypedDiff]:
-    cluster = Cluster.get(rest_client)
+def run(module: AnsibleModule, rest_client: RestClient) -> bool:
     Cluster.shutdown(rest_client, module.params["force_shutdown"])
-    return (
-        True,
-        dict(),
-        dict(before=cluster.to_ansible(), after=None),
-    )  # WHAT TO RETURN?
+    return True
 
 
 def main() -> None:
@@ -84,8 +71,8 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
-        record = run(module, rest_client)
-        module.exit_json(record=record)
+        shutdown = run(module, rest_client)
+        module.exit_json(shutdown=shutdown)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 
