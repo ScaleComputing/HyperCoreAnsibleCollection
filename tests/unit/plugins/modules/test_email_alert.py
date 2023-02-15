@@ -10,6 +10,9 @@ __metaclass__ = type
 import sys
 
 import pytest
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert import EmailAlert
+from ansible_collections.scale_computing.hypercore.plugins.modules import email_alert
+
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
 )
@@ -21,7 +24,27 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestModifyEmailAlert:
-    pass
+    def setup_method(self):
+        self.cluster_instance = dict(
+            host="https://0.0.0.0",
+            username="admin",
+            password="admin",
+        )
+
+    def test_create_email_alert(self, create_module, rest_client, task_wait, mocker):
+        module = create_module(
+            params=dict(
+                cluster_instance=self.cluster_instance,
+                email_alert="test@test.com",
+                state="present",
+            )
+        )
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert.EmailAlert.get_state"
+        )
+        rest_client.create_record.return_value = {
+            "taskTag": 123,
+        }
 
 
 class TestMain:
