@@ -56,7 +56,7 @@ EXAMPLES = r"""
     email: example@example.com
     state: present
 
-- name: Update previously create Email Alert Recipient
+- name: Update previously created Email Alert Recipient
   scale_computing.hypercore.email_alert:
     email: example@example.com
     email_new: new@example.com
@@ -78,27 +78,27 @@ records:
   description:
     - Output from modifying entries of the Email Alert Recipients on HyperCore API.
   returned: success
-  type: list
+  type: dict
   sample:
-    - alert_tag_uuid: 0
-      email_address: sample@sample.com
-      latest_task_tag:
-        completed: 1675680830
-        created: 1675680830
-        descriptionParameters: []
-        formattedDescription: Create Alert Email Target
-        formattedMessage: ""
-        messageParameters: []
-        modified: 1675680830
-        nodeUUIDs: []
-        objectUUID: 8664ed18-c354-4bab-be96-78dae5f6377f
-        progressPercent: 100
-        sessionID: 2bed8c34-1ef3-4366-8895-360f4f786afe
-        state: COMPLETE
-        taskTag: 813
-      resend_delay: 86400
-      silent_period: 900
-      uuid: 8664ed18-c354-4bab-be96-78dae5f6377f
+    alert_tag_uuid: 0
+    email_address: sample@sample.com
+    latest_task_tag:
+      completed: 1675680830
+      created: 1675680830
+      descriptionParameters: []
+      formattedDescription: Create Alert Email Target
+      formattedMessage: ""
+      messageParameters: []
+      modified: 1675680830
+      nodeUUIDs: []
+      objectUUID: 8664ed18-c354-4bab-be96-78dae5f6377f
+      progressPercent: 100
+      sessionID: 2bed8c34-1ef3-4366-8895-360f4f786afe
+      state: COMPLETE
+      taskTag: 813
+    resend_delay: 86400
+    silent_period: 900
+    uuid: 8664ed18-c354-4bab-be96-78dae5f6377f
 """
 
 
@@ -115,28 +115,30 @@ from ..module_utils.email_alert import EmailAlert
 
 
 def create_email_alert(module: AnsibleModule, rest_client: RestClient):
-    before = EmailAlert.get_state(rest_client)
-    for item in before:
-        if item.get("email_address") == module.params["email"]:
-            return False, before, dict(before=before, after=before)
-    EmailAlert.create(
+    email_alert = EmailAlert.get_by_email(
+        dict(email_address=module.params["email"]), rest_client
+    )
+
+    # If that email alert recipient already exists, it will not be created again (no duplicates)
+    if email_alert:
+        before = email_alert.to_ansible()
+        return False, before, dict(before=before, after=before)
+
+    # Otherwise, create that email alert recipient
+    create_email = EmailAlert.create(
         rest_client=rest_client,
         payload=dict(emailAddress=module.params["email"]),
         check_mode=module.check_mode,
     )
-    after = EmailAlert.get_state(rest_client)
+    after = create_email.to_ansible()
     return (
-        after != before,
+        True,
         after,
-        dict(before=before, after=after),
+        dict(before={}, after=after),
     )  # changed, records, diff
 
 
 def update_email_alert(module: AnsibleModule, rest_client: RestClient):
-    before = EmailAlert.get_state(
-        rest_client
-    )  # get the records of emailAlert endpoint before update
-
     # Get record of old emailAlert by email
     old_email = EmailAlert.get_by_email(
         dict(email_address=module.params["email"]), rest_client
@@ -151,6 +153,8 @@ def update_email_alert(module: AnsibleModule, rest_client: RestClient):
                 "Email Alert: Can't update a nonexistent email."
             )
 
+    before = old_email.to_ansible()
+
     # Return if there are no changes
     if (
         module.params["email_new"] == old_email.to_ansible().get("email_address")
@@ -164,9 +168,11 @@ def update_email_alert(module: AnsibleModule, rest_client: RestClient):
         payload=dict(emailAddress=module.params["email_new"]),
         check_mode=module.check_mode,
     )
-    after = EmailAlert.get_state(
-        rest_client
-    )  # get the records od emailAlert endpoint after update
+    new_email = EmailAlert.get_by_email(
+        dict(email_address=module.params["email_new"]), rest_client
+    )
+    after = new_email.to_ansible()
+
     return (
         after != before,
         after,
@@ -175,40 +181,43 @@ def update_email_alert(module: AnsibleModule, rest_client: RestClient):
 
 
 def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
-    before = EmailAlert.get_state(rest_client)
     delete_email = EmailAlert.get_by_email(
         dict(email_address=module.params["email"]), rest_client
     )
+
     if not delete_email:
-        module.warn("Email Alert: The email you're trying to remove, doesn't exist.")
-        return False, before, dict(before=before, after=before)
+        return False, {}, dict(before={}, after={})
+
+    before = delete_email.to_ansible()
     delete_email.delete(rest_client, module.check_mode)
 
-    after = EmailAlert.get_state(rest_client)
     return (
-        after != before,
-        after,
-        dict(before=before, after=after),
+        True,
+        {},
+        dict(before=before, after={}),
     )  # changed, records, diff
 
 
 def send_test(module: AnsibleModule, rest_client: RestClient):
-    before = EmailAlert.get_state(rest_client)
-
-    if module.params["email_new"] is not None:
-        module.warn("Email Alert: parameter 'email_new' is not needed.")
-
     send_email = EmailAlert.get_by_email(
         dict(email_address=module.params["email"]), rest_client
     )
-    if not send_email:
+
+    if (
+        not send_email
+    ):  # should the module notify user, that the email he's trying to test doesn't exist?
         module.warn("Email Alert: can't send a test email to a nonexistent recipient.")
 
+    before = send_email.to_ansible()
     send_email.test(
         rest_client=rest_client,
     )
 
-    after = EmailAlert.get_state(rest_client)
+    after_send_email = EmailAlert.get_by_email(
+        dict(email_address=module.params["email"]), rest_client
+    )
+    after = after_send_email.to_ansible()
+
     return after != before, after, dict(before=before, after=after)
 
 
@@ -223,6 +232,12 @@ def run(module: AnsibleModule, rest_client: RestClient):
 
     # Else, state == "test"
     return send_test(module, rest_client)
+
+
+def validate_params(module):
+    if module.params["email_new"] is not None and module.params["state"] != "present":
+        msg = "email_new can be used only if state==present"
+        module.fail_json(msg=msg)
 
 
 def main() -> None:
@@ -249,8 +264,9 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
-        changed, records, diff = run(module, rest_client)
-        module.exit_json(changed=changed, records=records, diff=diff)
+        validate_params(module)
+        changed, record, diff = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

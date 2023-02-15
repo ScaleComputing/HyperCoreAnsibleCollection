@@ -72,7 +72,11 @@ class TestEmailAlert:
 
     def test_email_alert_from_ansible(self):
         email_alert_from_ansible = EmailAlert.from_ansible(self.ansible_dict)
-        assert self.email_alert == email_alert_from_ansible
+        assert email_alert_from_ansible == EmailAlert(
+            uuid=email_alert_from_ansible.uuid,
+            alert_tag_uuid=email_alert_from_ansible.alert_tag_uuid,
+            email_address=email_alert_from_ansible.email_address,
+        )
 
     def test_get_by_uuid(self, rest_client):
         rest_client.get_record.return_value = dict(**self.from_hypercore_dict)
@@ -107,20 +111,10 @@ class TestEmailAlert:
         result = EmailAlert.get_state(rest_client)
         assert result == []
 
-    # def test_get_by_email(self, rest_client):
-    #     other_hypercore_dict = self.from_hypercore_dict
-    #     other_hypercore_dict["email_address"] = "test1@test.com"
-    #     rest_client.get_record.return_value = [
-    #         self.from_hypercore_dict,
-    #     ]
-    #
-    #     result = EmailAlert.get_by_email(dict(email_address="test@test.com"), rest_client)
-    #     print(result)
-    #     assert result == {
-    #         "uuid": "8664ed18-c354-4bab-be96-78dae5f6377f",
-    #         "alert_tag_uuid": "0",
-    #         "email_address": "test@test.com",
-    #         "resend_delay": 123,
-    #         "silent_period": 123,
-    #         "latest_task_tag": {},
-    #     }
+    def test_get_by_email(self, rest_client):
+        rest_client.get_record.return_value = dict(**self.from_hypercore_dict)
+
+        result = EmailAlert.get_by_email(
+            dict(email_address="test@test.com"), rest_client
+        )
+        assert result == self.email_alert

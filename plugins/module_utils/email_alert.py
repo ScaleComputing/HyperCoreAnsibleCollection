@@ -44,9 +44,6 @@ class EmailAlert(PayloadMapper):
             uuid=ansible_data["uuid"],
             alert_tag_uuid=ansible_data["alert_tag_uuid"],
             email_address=ansible_data["email_address"],
-            resend_delay=ansible_data["resend_delay"],
-            silent_period=ansible_data["silent_period"],
-            latest_task_tag=ansible_data["latest_task_tag"],
         )
 
     @classmethod
@@ -146,8 +143,16 @@ class EmailAlert(PayloadMapper):
         rest_client: RestClient,
         payload: Dict[Any, Any],
         check_mode: bool = False,
-    ) -> None:
-        rest_client.create_record("/rest/v1/AlertEmailTarget/", payload, check_mode)
+    ):
+        task_tag = rest_client.create_record(
+            "/rest/v1/AlertEmailTarget/", payload, check_mode
+        )
+        email_alert = cls.get_by_uuid(
+            dict(uuid=task_tag["createdUUID"]),
+            rest_client,
+            must_exist=True,
+        )
+        return email_alert
 
     def update(
         self,
