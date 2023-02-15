@@ -51,6 +51,12 @@
           - cluster.record.name == "name_updated"
 
   always:
+    # This fails with
+    #   fatal: [testhost]: FAILED! => {"changed": false, "msg": "Unexpected response - 500 b'{\"error\":\"An internal error occurred\"}'"}
+    # A guess: after 2 PATCH, the 3rd one cannot be executed until previous tasks are finished.
+    # A hint: module should wait on previous taskTag to be finished even before it tries to modify name,
+    # and also wait on taskTag to finish after it modifies name.
+    # Then this will work even if user or some other app is also modifying the name.
     - name: Set back the normal cluster_name
       scale_computing.hypercore.api:
         action: patch

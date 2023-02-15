@@ -67,6 +67,7 @@ class Cluster(PayloadMapper):
         rest_client.update_record(
             f"/rest/v1/Cluster/{self.uuid}", dict(clusterName=name_new), check_mode
         )
+        # TODO wait on taskTag
         # returned:
         # {
         #     "taskTag": "",
