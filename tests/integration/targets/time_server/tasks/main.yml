@@ -9,3 +9,7 @@
   block:
     - include_tasks: 01_time_server_info.yml
     - include_tasks: 02_time_server.yml
+  always:
+    - include_tasks: helper_api_time_server_reset.yml
+      vars:
+        time_server_config: "{{ sc_config[sc_host].time_server }}"

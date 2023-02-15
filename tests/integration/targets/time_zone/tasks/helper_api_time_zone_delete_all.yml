@@ -1,0 +1,18 @@
+---
+# Remove TimeZone config.
+
+- name: Get current TimeZone
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/TimeZone
+  register: time_zone_config_result
+- name: Show current TimeZone
+  ansible.builtin.debug:
+    var: time_zone_config_result
+
+- name: Remove all existing TimeZone configs
+  scale_computing.hypercore.api:
+    action: delete
+    endpoint: /rest/v1/TimeZone/{{ item.uuid }}
+  with_items: "{{ time_zone_config_result.record }}"
+# TODO wait on TaskTag

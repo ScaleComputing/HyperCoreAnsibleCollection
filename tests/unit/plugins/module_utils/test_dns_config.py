@@ -15,9 +15,13 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils import e
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.dns_config import (
     DNSConfig,
 )
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
+    MIN_PYTHON_VERSION,
+)
 
 pytestmark = pytest.mark.skipif(
-    sys.version_info < (2, 7), reason="requires2.7 or higher"
+    sys.version_info < MIN_PYTHON_VERSION,
+    reason=f"requires python{MIN_PYTHON_VERSION[0]}.{MIN_PYTHON_VERSION[1]} or higher",
 )
 
 

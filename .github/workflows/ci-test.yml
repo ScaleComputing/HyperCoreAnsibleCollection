@@ -1,6 +1,23 @@
 name: CI tests
 on:
   push:
+  workflow_dispatch:
+    inputs:
+      integ_tests_include:
+        description: |-
+          List integration tests to include.
+          Use "*" to run all tests.
+          Use regex like 'node|^git_issue' to run only a subset.
+        default: ""
+      # vm_import|vm_export - they need SMB server
+      # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
+      # git_issues - slow, do not run on each push. TODO - run them only once a day
+      integ_tests_exclude:
+        description: |-
+          List integration tests to exclude.
+          Use "*" to exclude all tests.
+          Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
+        default: "^dns_config$|^vm_import$|^vm_export$"
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 # Run only one workflow for specific branch.
@@ -124,7 +141,14 @@ jobs:
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
       - id: set-matrix
         shell: bash
-        run: echo "matrix=$(ls -r $WORKDIR/tests/integration/targets | grep -v -E "$SKIP_TESTS" | jq -R -s -c 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+        run: |-
+          echo "matrix=$(
+            ls -r $WORKDIR/tests/integration/targets |
+            grep -v -E "${{ github.event.inputs.integ_tests_exclude }}" |
+            grep -E "${{ github.event.inputs.integ_tests_include }}" |
+            jq -R -s -c 'split("\n")[:-1]'
+          )" >> $GITHUB_OUTPUT
+    if: "${{ github.event.inputs.integ_tests_include }}"
 
   integration-test:
     needs:

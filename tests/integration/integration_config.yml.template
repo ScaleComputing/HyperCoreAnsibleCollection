@@ -29,7 +29,7 @@ sc_config:
       dns_servers:
         - 1.1.1.1
         - 1.0.0.1
-      search_domains: ""
+      search_domains: []
     registration:
       company_name: Scale Computing
       contact: <firstname secondname>
@@ -49,3 +49,5 @@ sc_config:
       shared_secret: "~0lI5n-_8dNbWmrrqqTE1v1iBcfO4__jfx"
       config_url: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
       scopes: "openid+profile"
+    email_alert:
+      - someone@scalecomputing.com

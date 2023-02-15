@@ -3,25 +3,28 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  vars:
+    email: example@example.com
+    email_new: new@example.com
 
   tasks:
     - name: Create Email alert recipient
       scale_computing.hypercore.email_alert:
-        email: example@example.com
+        email: "{{ email }}"
         state: present # absent, test --> create, delete, test
 
     - name: Send a test email
       scale_computing.hypercore.email_alert:
-        email: example@example.com
+        email: "{{ email }}"
         state: test
 
     - name: Modify previously created Email alert recipient
       scale_computing.hypercore.email_alert:
-        email: example@example.com
-        email_new: new@example.com
+        email: "{{ email }}"
+        email_new: "{{ email_new }}"
         state: present
 
     - name: Remove Email alert recipient
       scale_computing.hypercore.email_alert:
-        email: new@example.com
+        email: "{{ email_new }}"
         state: absent

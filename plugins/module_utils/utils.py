@@ -20,6 +20,9 @@ from ..module_utils.typed_classes import (
 )
 
 
+MIN_PYTHON_VERSION = (3, 8)
+
+
 # Used in case of check mode
 MOCKED_TASK_TAG = TypedTaskTag(
     createdUUID="0000000000",

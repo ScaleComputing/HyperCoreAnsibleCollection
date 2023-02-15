@@ -8,3 +8,7 @@
   block:
     - include_tasks: 01_time_zone_info.yml
     - include_tasks: 02_time_zone.yml
+  always:
+    - include_tasks: helper_api_time_zone_reset.yml
+      vars:
+        time_zone_config: "{{ sc_config[sc_host].time_zone }}"
