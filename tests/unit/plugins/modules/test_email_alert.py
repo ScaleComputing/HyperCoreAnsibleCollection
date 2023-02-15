@@ -10,10 +10,6 @@ __metaclass__ = type
 import sys
 
 import pytest
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert import (
-    EmailAlert,
-)
-from ansible_collections.scale_computing.hypercore.plugins.modules import email_alert
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
@@ -34,13 +30,14 @@ class TestModifyEmailAlert:
         )
 
     def test_create_email_alert(self, create_module, rest_client, task_wait, mocker):
-        module = create_module(
-            params=dict(
-                cluster_instance=self.cluster_instance,
-                email_alert="test@test.com",
-                state="present",
-            )
-        )
+        # tests seems to be unfinished
+        # module = create_module(
+        #     params=dict(
+        #         cluster_instance=self.cluster_instance,
+        #         email_alert="test@test.com",
+        #         state="present",
+        #     )
+        # )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert.EmailAlert.get_state"
         )
