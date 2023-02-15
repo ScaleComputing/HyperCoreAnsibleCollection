@@ -80,6 +80,13 @@ class TypedOidcFromAnsible(TypedDict):
     shared_secret: str
 
 
+# Cluster to ansible return dict.
+class TypedClusterToAnsible(TypedDict):
+    uuid: str
+    name: str
+    icos_version: str
+
+
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
     before: Union[
@@ -87,6 +94,7 @@ class TypedDiff(TypedDict):
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
         TypedOidcToAnsible,
+        TypedClusterToAnsible,
         None,
     ]
     after: Union[
@@ -94,6 +102,7 @@ class TypedDiff(TypedDict):
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
         TypedOidcToAnsible,
+        TypedClusterToAnsible,
         None,
     ]
 

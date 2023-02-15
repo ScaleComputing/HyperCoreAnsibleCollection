@@ -17,10 +17,7 @@ sc_replication_dest_password: <your_password4>
 # sc_config is specific for each test cluster
 # The values should be set after tests, to ensure cluster is left in functional state.
 sc_config:
-  <sc_host>:
-    support_tunnel:
-      open: true
-      code: "4422"
+  base_cfg: &base_cfg
     time_server:
       source: pool.ntp.org
     time_zone:
@@ -35,6 +32,13 @@ sc_config:
       contact: <firstname secondname>
       email: someone@scalecomputing.com
       phone: "123 456 7890"
+  <sc_host>:
+    <<: *base_cfg
+    cluster:
+      name: PUBx
+    support_tunnel:
+      open: true
+      code: "4422"
     smtp:
       host: smtp-relay.gmail.com
       port: 25
