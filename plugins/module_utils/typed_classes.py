@@ -70,6 +70,10 @@ class TypedClusterToAnsible(TypedDict):
     icos_version: str
 
 
+class TypedCertificateToAnsible(TypedDict):
+    certificate: str
+
+
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
     before: Union[
@@ -77,6 +81,7 @@ class TypedDiff(TypedDict):
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
         TypedClusterToAnsible,
+        TypedCertificateToAnsible,
         None,
     ]
     after: Union[
@@ -84,6 +89,7 @@ class TypedDiff(TypedDict):
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
         TypedClusterToAnsible,
+        TypedCertificateToAnsible,
         None,
     ]
 
