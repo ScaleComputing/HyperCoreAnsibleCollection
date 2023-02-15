@@ -114,5 +114,7 @@ class TestEmailAlert:
     def test_get_by_email(self, rest_client):
         rest_client.get_record.return_value = dict(**self.from_hypercore_dict)
 
-        result = EmailAlert.get_by_email(dict(email_address="test@test.com"), rest_client)
+        result = EmailAlert.get_by_email(
+            dict(email_address="test@test.com"), rest_client
+        )
         assert result == self.email_alert

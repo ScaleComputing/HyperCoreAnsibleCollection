@@ -10,7 +10,9 @@ __metaclass__ = type
 import sys
 
 import pytest
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert import EmailAlert
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert import (
+    EmailAlert,
+)
 from ansible_collections.scale_computing.hypercore.plugins.modules import email_alert
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (

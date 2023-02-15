@@ -115,7 +115,9 @@ from ..module_utils.email_alert import EmailAlert
 
 
 def create_email_alert(module: AnsibleModule, rest_client: RestClient):
-    email_alert = EmailAlert.get_by_email(dict(email_address=module.params["email"]), rest_client)
+    email_alert = EmailAlert.get_by_email(
+        dict(email_address=module.params["email"]), rest_client
+    )
 
     # If that email alert recipient already exists, it will not be created again (no duplicates)
     if email_alert:
@@ -201,7 +203,9 @@ def send_test(module: AnsibleModule, rest_client: RestClient):
         dict(email_address=module.params["email"]), rest_client
     )
 
-    if not send_email:  # should the module notify user, that the email he's trying to test doesn't exist?
+    if (
+        not send_email
+    ):  # should the module notify user, that the email he's trying to test doesn't exist?
         module.warn("Email Alert: can't send a test email to a nonexistent recipient.")
 
     before = send_email.to_ansible()
@@ -231,8 +235,7 @@ def run(module: AnsibleModule, rest_client: RestClient):
 
 
 def validate_params(module):
-    if module.params["email_new"] is not None and\
-            module.params["state"] != "present":
+    if module.params["email_new"] is not None and module.params["state"] != "present":
         msg = "email_new can be used only if state==present"
         module.fail_json(msg=msg)
 
