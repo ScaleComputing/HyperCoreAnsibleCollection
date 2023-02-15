@@ -9,7 +9,7 @@ __metaclass__ = type
 
 import sys
 
-import unittest.mock as mock
+from unittest import mock
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
