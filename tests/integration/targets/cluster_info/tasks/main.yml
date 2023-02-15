@@ -7,9 +7,9 @@
 
   block:
     - name: Retrieve cluster name
-      scale_computing.hypercore.cluster_name_info:
+      scale_computing.hypercore.cluster_info:
       register: cluster
     - ansible.builtin.assert:
         that:
           - cluster.record != []
-          - cluster.record.keys() | sort == ['name', 'uuid']
+          - cluster.record.keys() | sort == ['icos_version', 'name', 'uuid']

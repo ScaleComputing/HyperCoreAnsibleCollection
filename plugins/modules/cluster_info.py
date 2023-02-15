@@ -9,13 +9,13 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 DOCUMENTATION = r"""
-module: cluster_name_info
+module: cluster_info
 
 author:
   - Polona Mihalič (@PolonaM)
-short_description: Retrieve cluster name.
+short_description: Retrieve cluster info.
 description:
-  - Retrieve cluster name from the HyperCore API endpoint C(/rest/v1/Cluster).
+  - Retrieve cluster's uuid, name and icos version from the HyperCore API endpoint C(/rest/v1/Cluster).
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -24,19 +24,21 @@ seealso:
 """
 
 EXAMPLES = r"""
-- name: Get cluster name
-  scale_computing.hypercore.cluster_name_info:
+- name: Get cluster info
+  scale_computing.hypercore.cluster_info:
   register: result
 """
 
 RETURN = r"""
 record:
   description:
-    - Cluster name.
+    - Cluster info.
   returned: success
   type: dict
   sample:
-    - name: PUB4
+    - icos_version: 9.2.11.210763
+      name: PUB4
+      uuid: a5d9148c-37f7-4b43-843c-196751d3c050
 """
 
 from ansible.module_utils.basic import AnsibleModule

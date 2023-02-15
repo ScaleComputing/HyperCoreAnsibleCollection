@@ -15,9 +15,10 @@ from typing import Any
 
 
 class Cluster(PayloadMapper):
-    def __init__(self, uuid: str, name: str):
+    def __init__(self, uuid: str, name: str, icos_version: str):
         self.uuid = uuid
         self.name = name
+        self.icos_version = icos_version
 
     @classmethod
     def from_ansible(cls, ansible_data: dict[Any, Any]) -> None:
@@ -28,6 +29,7 @@ class Cluster(PayloadMapper):
         return cls(
             uuid=hypercore_data["uuid"],
             name=hypercore_data["clusterName"],
+            icos_version=hypercore_data["icosVersion"],
         )
 
     def to_hypercore(self) -> None:
@@ -37,6 +39,7 @@ class Cluster(PayloadMapper):
         return dict(
             uuid=self.uuid,
             name=self.name,
+            icos_version=self.icos_version,
         )
 
     def __eq__(self, other: object) -> bool:
@@ -50,6 +53,7 @@ class Cluster(PayloadMapper):
             (
                 self.uuid == other.uuid,
                 self.name == other.name,
+                self.icos_version == other.icos_version,
             )
         )
 
