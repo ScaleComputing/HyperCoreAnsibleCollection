@@ -10,7 +10,7 @@ __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
-from ..module_utils.typed_classes import TypedClusterToAnsible
+from ..module_utils.typed_classes import TypedClusterToAnsible, TypedTaskTag
 from typing import Any
 
 
@@ -67,13 +67,7 @@ class Cluster(PayloadMapper):
 
     def update_name(
         self, rest_client: RestClient, name_new: str, check_mode: bool = False
-    ) -> None:
-        rest_client.update_record(
+    ) -> TypedTaskTag:
+        return rest_client.update_record(
             f"/rest/v1/Cluster/{self.uuid}", dict(clusterName=name_new), check_mode
         )
-        # TODO wait on taskTag
-        # returned:
-        # {
-        #     "taskTag": "",
-        #     "createdUUID": ""
-        # }

@@ -9,7 +9,7 @@
 
   block:
     - name: Retrieve cluster name
-      scale_computing.hypercore.cluster_name_info:
+      scale_computing.hypercore.cluster_info:
       register: cluster_initial
 
     - name: Update cluster name
@@ -19,13 +19,13 @@
     - ansible.builtin.assert:
         that:
           - cluster is changed
-          - cluster.record.keys() | sort == ['name', 'uuid']
+          - cluster.record.keys() | sort == ['icos_version', 'name', 'uuid']
           - cluster.record.name == "name_updated"
           - cluster.diff.before.name == cluster_initial.record.name
           - cluster.diff.after.name == "name_updated"
     
     - name: Check if cluster name is updated
-      scale_computing.hypercore.cluster_name_info:
+      scale_computing.hypercore.cluster_info:
       register: cluster
     - ansible.builtin.assert:
         that:
@@ -38,26 +38,39 @@
     - ansible.builtin.assert:
         that:
           - cluster is not changed
-          - cluster.record.keys() | sort == ['name', 'uuid']
+          - cluster.record.keys() | sort == ['icos_version', 'name', 'uuid']
           - cluster.record.name == "name_updated"
           - cluster.diff.before.name == "name_updated"
           - cluster.diff.after.name == "name_updated"
     
     - name: Retrieve cluster name
-      scale_computing.hypercore.cluster_name_info:
+      scale_computing.hypercore.cluster_info:
       register: cluster
     - ansible.builtin.assert:
         that:
           - cluster.record.name == "name_updated"
+    
+    - name: Set back the initial cluster name
+      scale_computing.hypercore.cluster_name:
+        name_new: "{{ cluster_initial.record.name }}"
+      register: cluster
+    - ansible.builtin.assert:
+        that:
+          - cluster is changed
+          - cluster.record.keys() | sort == ['icos_version', 'name', 'uuid']
+          - cluster.record.name == cluster_initial.record.name
+          - cluster.diff.before.name == "name_updated"
+          - cluster.diff.after.name == cluster_initial.record.name
+    
+    - name: Check if cluster name is updated
+      scale_computing.hypercore.cluster_info:
+      register: cluster
+    - ansible.builtin.assert:
+        that:
+          - cluster.record.name == cluster_initial.record.name
 
   always:
-    # This fails with
-    #   fatal: [testhost]: FAILED! => {"changed": false, "msg": "Unexpected response - 500 b'{\"error\":\"An internal error occurred\"}'"}
-    # A guess: after 2 PATCH, the 3rd one cannot be executed until previous tasks are finished.
-    # A hint: module should wait on previous taskTag to be finished even before it tries to modify name,
-    # and also wait on taskTag to finish after it modifies name.
-    # Then this will work even if user or some other app is also modifying the name.
-    - name: Set back the normal cluster_name
+    - name: Set back the initial cluster_name
       scale_computing.hypercore.api:
         action: patch
         endpoint: /rest/v1/Cluster/{{ cluster_initial.record.uuid }}

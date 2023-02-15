@@ -67,7 +67,7 @@ class TypedRoleToAnsible(TypedDict):
 class TypedClusterToAnsible(TypedDict):
     uuid: str
     name: str
-    icos_vesrion: str
+    icos_version: str
 
 
 # Ansible module return Diff dict {before:{} after:{}}

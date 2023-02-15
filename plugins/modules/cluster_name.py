@@ -21,7 +21,7 @@ version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:
-  - module: scale_computing.hypercore.cluster_name_info
+  - module: scale_computing.hypercore.cluster_info
 options:
   name_new:
       description:
@@ -46,7 +46,9 @@ record:
   returned: success
   type: dict
   sample:
-    - name: updated_cluster_name
+    - icos_version: 9.2.11.210763
+      name: updated_cluster_name
+      uuid: a5d9148c-37f7-4b43-843c-196751d3c050
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -55,6 +57,7 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.cluster import Cluster
+from ..module_utils.task_tag import TaskTag
 from ..module_utils.typed_classes import TypedClusterToAnsible, TypedDiff
 from typing import Tuple
 from ..module_utils.hypercore_version import (
@@ -74,7 +77,8 @@ def run(
             cluster.to_ansible(),
             dict(before=cluster.to_ansible(), after=cluster.to_ansible()),
         )
-    cluster.update_name(rest_client, module.params["name_new"])
+    task_tag = cluster.update_name(rest_client, module.params["name_new"])
+    TaskTag.wait_task(rest_client, task_tag)
     cluster_updated = Cluster.get(rest_client)
     return (
         True,
