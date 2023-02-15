@@ -11,9 +11,8 @@ import sys
 
 import pytest
 
-from ansible_collections.scale_computing.hypercore.plugins.modules import (
-    cluster_name_info,
-)
+from ansible_collections.scale_computing.hypercore.plugins.modules import cluster_info
+
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < (3, 8), reason="requires python3.8 or higher"
@@ -25,11 +24,13 @@ class TestRun:
         rest_client.get_record.return_value = dict(
             clusterName="PUB4",
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
+            icosVersion="9.2.11.210763",
         )
 
-        record = cluster_name_info.run(rest_client)
+        record = cluster_info.run(rest_client)
 
         assert record == dict(
             name="PUB4",
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
+            icos_version="9.2.11.210763",
         )

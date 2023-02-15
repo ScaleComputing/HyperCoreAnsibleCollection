@@ -20,10 +20,12 @@ class TestCluster:
         cluster = Cluster(
             name="PUB4",
             uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            icos_version="9.2.11.210763",
         )
         hypercore_dict = dict(
             clusterName="PUB4",
             uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            icosVersion="9.2.11.210763",
         )
 
         cluster_from_hypercore = Cluster.from_hypercore(hypercore_dict)
@@ -33,11 +35,13 @@ class TestCluster:
         cluster = Cluster(
             name="PUB4",
             uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            icos_version="9.2.11.210763",
         )
 
         ansible_dict = dict(
             name="PUB4",
             uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            icos_version="9.2.11.210763",
         )
 
         assert cluster.to_ansible() == ansible_dict
@@ -46,10 +50,12 @@ class TestCluster:
         cluster1 = Cluster(
             name="PUB4",
             uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            icos_version="9.2.11.210763",
         )
         cluster2 = Cluster(
             name="PUB4",
             uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            icos_version="9.2.11.210763",
         )
 
         assert cluster1 == cluster2
@@ -58,10 +64,12 @@ class TestCluster:
         cluster1 = Cluster(
             name="PUB5",
             uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            icos_version="9.2.11.210763",
         )
         cluster2 = Cluster(
             name="PUB4",
             uuid="f01249a6-2369-4471-bbc2-b4997067b6a6",
+            icos_version="9.2.11.210763",
         )
 
         assert cluster1 != cluster2
@@ -70,6 +78,7 @@ class TestCluster:
         rest_client.get_record.return_value = dict(
             clusterName="PUB4",
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
+            icosVersion="9.2.11.210763",
         )
 
         cluster = Cluster.get(rest_client)
@@ -77,6 +86,7 @@ class TestCluster:
         assert cluster == Cluster(
             name="PUB4",
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
+            icos_version="9.2.11.210763",
         )
 
     def test_cluster_update_name(self, rest_client):
@@ -84,6 +94,7 @@ class TestCluster:
         cluster = Cluster(
             name="PUB4",
             uuid="51e6d073-7566-4273-9196-58720117bd7f",
+            icos_version="9.2.11.210763",
         )
 
         cluster.update_name(rest_client, name_new)
