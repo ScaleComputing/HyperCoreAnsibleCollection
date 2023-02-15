@@ -1,0 +1,28 @@
+---
+# Test oidc_config and oidc_config_info modules
+
+- name: Create or update OIDC config (different App - "Scale-test-xlab" in AzureAD)
+  scale_computing.hypercore.oidc_config:
+    client_id: "59a6f398-f0c0-405c-a315-08decbe77124"
+    shared_secret: "Fx_8Q~hmbH8Shr3BzfcxZfjlSNbtxTpb23NiqbwU"
+    config_url: "https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration"
+    scopes: "openid+profile"
+  register: oidc_config
+- ansible.builtin.assert:
+    that:
+      - oidc_config is succeeded
+      - oidc_config is changed
+      - oidc_config.record.client_id == "59a6f398-f0c0-405c-a315-08decbe77124"
+      - oidc_config.record.config_url == "https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration"
+      - oidc_config.record.scopes == "openid+profile"
+
+- name: Read OIDC config - make sure it is updated
+  scale_computing.hypercore.oidc_config_info:
+  register: oidc_config_info_data
+- ansible.builtin.assert:
+    that:
+      - oidc_config_info_data is succeeded
+      - oidc_config_info_data is not changed
+      - oidc_config_info_data.record.client_id == "59a6f398-f0c0-405c-a315-08decbe77124"
+      - oidc_config_info_data.record.config_url == "https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration"
+      - oidc_config_info_data.record.scopes == "openid+profile"

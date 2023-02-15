@@ -95,8 +95,9 @@ jobs:
       ANSIBLE_COLLECTIONS_PATH: /work-dir
       # vm_import|vm_export - they need SMB server
       # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
+      # oidc needs valid dns
       # git_issues - slow, do not run on each push. TODO - run them only once a day
-      SKIP_TESTS: "vm_import|vm_export|dns_config|time_server|time_zone"
+      SKIP_TESTS: "vm_import|vm_export|dns_config|time_server|time_zone|oidc"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -207,7 +208,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test_name: [time_server, time_zone]
+        test_name: [time_server, time_zone, oidc]
     steps:
       - name: Checkout
         uses: actions/checkout@v3

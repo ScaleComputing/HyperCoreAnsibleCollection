@@ -108,7 +108,7 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get"
         ).return_value = {}
-        result = oidc_config.ensure_present(module, rest_client, None)
+        result = oidc_config.ensure_present(module, rest_client, None, True)
         assert isinstance(result, tuple)
         assert result == (False, None, {"before": None, "after": None})
 
@@ -136,7 +136,9 @@ class TestEnsurePresent:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get"
         ).return_value = {}
         mocker_registration = Oidc()
-        result = oidc_config.ensure_present(module, rest_client, mocker_registration)
+        result = oidc_config.ensure_present(
+            module, rest_client, mocker_registration, True
+        )
         assert isinstance(result, tuple)
         assert result == (
             True,

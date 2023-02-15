@@ -67,7 +67,7 @@ record:
   returned: success
   type: dict
   sample:
-    client_ID: 1234
+    client_id: 1234
     certificate: this_certificate
     config_url: https://somewhere.com/this/endpoint
     scopes: required_scopes
@@ -83,12 +83,14 @@ from ..module_utils.oidc import Oidc
 from ..module_utils.typed_classes import TypedOidcToAnsible, TypedDiff
 from ..module_utils.task_tag import TaskTag
 from typing import Union, Tuple
+from time import sleep
 
 
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
     oidc_obj: Union[Oidc, None],
+    unit: bool,
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
     before = oidc_obj.to_ansible() if oidc_obj else None
     oidc_obj_ansible = Oidc.from_ansible(module.params)
@@ -96,6 +98,8 @@ def ensure_present(
         task = oidc_obj_ansible.send_create_request(rest_client)
     else:
         task = oidc_obj_ansible.send_update_request(rest_client)
+    if not unit:
+        sleep(10)  # Wait for the cluster login (Avoid BAD GATEWAY response)
     TaskTag.wait_task(rest_client, task)
     updated_oidc = Oidc.get(rest_client)
     after = updated_oidc.to_ansible() if updated_oidc else None
@@ -103,10 +107,10 @@ def ensure_present(
 
 
 def run(
-    module: AnsibleModule, rest_client: RestClient
+    module: AnsibleModule, rest_client: RestClient, unit: bool = False
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
     oidc_obj = Oidc.get(rest_client)
-    return ensure_present(module, rest_client, oidc_obj)
+    return ensure_present(module, rest_client, oidc_obj, unit)
 
 
 def main() -> None:

@@ -1,0 +1,13 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  block:
+    - include_tasks: oidc_config.yml
+  always:
+    - include_tasks: oidc_reset.yml
+      vars:
+        oidc_config: "{{ sc_config[sc_host].oidc }}"
