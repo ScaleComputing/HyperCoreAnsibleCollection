@@ -230,6 +230,13 @@ def run(module: AnsibleModule, rest_client: RestClient):
     return send_test(module, rest_client)
 
 
+def validate_params(module):
+    if module.params["email_new"] is not None and\
+            module.params["state"] != "present":
+        msg = "email_new can be used only if state==present"
+        module.fail_json(msg=msg)
+
+
 def main() -> None:
     module = AnsibleModule(
         supports_check_mode=False,
@@ -241,7 +248,6 @@ def main() -> None:
             ),
             email_new=dict(
                 type="str",
-                # default="",
                 required=False,
             ),
             state=dict(
@@ -250,12 +256,12 @@ def main() -> None:
                 required=True,
             ),
         ),
-        # required_if=[("state", "present", ("email_new",))],  # means: if state==present, then email_new must be set. Having default value for email_new makes this not so obvious.
     )
 
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
+        validate_params(module)
         changed, record, diff = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
