@@ -207,6 +207,7 @@ def send_test(module: AnsibleModule, rest_client: RestClient):
         not send_email
     ):  # should the module notify user, that the email he's trying to test doesn't exist?
         module.warn("Email Alert: can't send a test email to a nonexistent recipient.")
+        return False, {}, dict(before={}, after={})
 
     before = send_email.to_ansible()
     send_email.test(
