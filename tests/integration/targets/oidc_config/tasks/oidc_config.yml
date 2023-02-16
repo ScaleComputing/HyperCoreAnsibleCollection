@@ -55,6 +55,8 @@
       - oidc_config_info_data.record.client_id == "{{ oidc_config.client_id_test }}"
       - oidc_config_info_data.record.config_url == "{{ oidc_config.config_url_test }}"
       - oidc_config_info_data.record.scopes == "openid+profile"
+
+#-------------------------------------------------------------------------------
 # Here we want to test robustness - we call module in tight loop, and expect module to handle
 # all reconnect/retry (502 bad gateway) problems.
 - name: Create or update OIDC config - in loop
