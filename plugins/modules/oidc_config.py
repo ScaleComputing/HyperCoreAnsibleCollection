@@ -88,20 +88,21 @@ from time import sleep
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
-    oidc_obj: Union[Oidc, None],
     unit: bool,
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
-    before = oidc_obj.to_ansible() if oidc_obj else None
     oidc_obj_ansible = Oidc.from_ansible(module.params)
-    if oidc_obj is None:
-        task = oidc_obj_ansible.send_create_request(rest_client)
-    else:
-        task = oidc_obj_ansible.send_update_request(rest_client)
-    module.warn(f"task={task}")
     # If we get "502 bad gateway" during reconfiguration, we need to retry.
     max_retries = 10
     for ii in range(max_retries):
         try:
+            oidc_obj = Oidc.get(rest_client)
+            module.warn(f"oidc_obj={oidc_obj}")
+            before = oidc_obj.to_ansible() if oidc_obj else None
+            if oidc_obj is None:
+                task = oidc_obj_ansible.send_create_request(rest_client)
+            else:
+                task = oidc_obj_ansible.send_update_request(rest_client)
+            module.warn(f"task={task}")
             TaskTag.wait_task(rest_client, task)
             module.warn(f"task={task} is finished")
             break
@@ -121,9 +122,7 @@ def ensure_present(
 def run(
     module: AnsibleModule, rest_client: RestClient, unit: bool = False
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
-    oidc_obj = Oidc.get(rest_client)
-    module.warn(f"oidc_obj={oidc_obj}")
-    return ensure_present(module, rest_client, oidc_obj, unit)
+    return ensure_present(module, rest_client, unit)
 
 
 def main() -> None:
