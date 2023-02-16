@@ -20,11 +20,11 @@
 - name: Replace current OIDC values
   scale_computing.hypercore.api:
     action: patch
-    endpoint: /rest/v1/OIDCConfig/{{ oidc_config.uuid }}
+    endpoint: /rest/v1/OIDCConfig/oidcconfig_uuid
     data:
-      clientID: "{{ oidc_config.client_id }}"
-      sharedSecret: "{{ oidc_config.shared_secret }}"
-      configurationURL: "{{ oidc_config.config_url }}"
+      clientID: "{{ oidc_config.client_id_default }}"
+      sharedSecret: "{{ oidc_config.shared_secret_default }}"
+      configurationURL: "{{ oidc_config.config_url_default }}"
       scopes: "{{ oidc_config.scopes }}"
   ignore_errors: true # We always get BAD GATEWAY here for some reason (Seems like API issue)
 

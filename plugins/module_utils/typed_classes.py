@@ -68,7 +68,6 @@ class TypedOidcToAnsible(TypedDict):
     client_id: Union[str, None]
     config_url: Union[str, None]
     scopes: Union[str, None]
-    certificate: Union[str, None]
 
 
 # OIDC from ansible dict.

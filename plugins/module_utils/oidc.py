@@ -85,7 +85,6 @@ class Oidc(PayloadMapper):
     def to_ansible(self) -> TypedOidcToAnsible:
         return dict(
             client_id=self.client_id,
-            certificate=self.certificate,
             config_url=self.config_url,
             scopes=self.scopes,
         )

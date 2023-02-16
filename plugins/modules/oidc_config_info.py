@@ -36,7 +36,6 @@ record:
   type: dict
   sample:
     client_id: 1234
-    certificate: this_certificate
     config_url: https://somewhere.com/this/endpoint
     scopes: required_scopes
 """

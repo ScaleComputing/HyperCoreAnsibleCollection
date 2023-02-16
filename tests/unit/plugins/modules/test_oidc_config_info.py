@@ -12,9 +12,13 @@ from ansible_collections.scale_computing.hypercore.plugins.modules import (
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc import (
     Oidc,
 )
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
+    MIN_PYTHON_VERSION,
+)
 
 pytestmark = pytest.mark.skipif(
-    sys.version_info < (2, 7), reason="requires python2.7 or higher"
+    sys.version_info < MIN_PYTHON_VERSION,
+    reason=f"requires python{MIN_PYTHON_VERSION[0]}.{MIN_PYTHON_VERSION[1]} or higher",
 )
 
 
@@ -84,7 +88,6 @@ class TestRun:
                 uuid="123",
                 client_id="123",
                 config_url="this_config",
-                certificate="this_cert",
                 scopes="this_scopes",
             )
         ]
@@ -98,7 +101,6 @@ class TestRun:
             dict(
                 client_id="123",
                 config_url="this_config",
-                certificate="this_cert",
                 scopes="this_scopes",
             ),
         )

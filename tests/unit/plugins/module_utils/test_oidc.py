@@ -14,9 +14,13 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc import (
     Oidc,
 )
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
+    MIN_PYTHON_VERSION,
+)
 
 pytestmark = pytest.mark.skipif(
-    sys.version_info < (2, 7), reason="requires python2.7 or higher"
+    sys.version_info < MIN_PYTHON_VERSION,
+    reason=f"requires python{MIN_PYTHON_VERSION[0]}.{MIN_PYTHON_VERSION[1]} or higher",
 )
 
 
@@ -82,7 +86,7 @@ class TestFromHypercore:
 
 
 class TestToAnsible:
-    def test_data_to_ansible_registration(self) -> None:
+    def test_data_to_ansible_oidc(self) -> None:
         oidc_obj = Oidc(
             client_id="bla",
             certificate="doubleBLA",
@@ -94,7 +98,6 @@ class TestToAnsible:
         assert isinstance(result, dict)
         assert result == dict(
             client_id="bla",
-            certificate="doubleBLA",
             scopes="tripleBLA",
             config_url="this_config",
         )

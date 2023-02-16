@@ -68,7 +68,6 @@ record:
   type: dict
   sample:
     client_id: 1234
-    certificate: this_certificate
     config_url: https://somewhere.com/this/endpoint
     scopes: required_scopes
 """
@@ -124,10 +123,11 @@ def main() -> None:
             ),
             shared_secret=dict(
                 type="str",
-                no_log=False,
+                no_log=True,
             ),
             certificate=dict(
                 type="str",
+                no_log=True,
             ),
             config_url=dict(type="str", required=True),
             scopes=dict(type="str", required=True),
