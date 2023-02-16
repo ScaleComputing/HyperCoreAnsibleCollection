@@ -26,3 +26,26 @@
       - oidc_config_info_data.record.client_id == "{{ oidc_config.client_id_test }}"
       - oidc_config_info_data.record.config_url == "{{ oidc_config.config_url_test }}"
       - oidc_config_info_data.record.scopes == "openid+profile"
+
+# Idempotence test does not apply, shared_secret is not returned, and module needs to always set it.
+# Here we want to test robustness - we call module in tight loop, and expect module to handle
+# all reconnect/retry (502 bad gateway) problems.
+- name: Create or update OIDC config - in loop
+  scale_computing.hypercore.oidc_config:
+    client_id: "{{ oidc_config.client_id_test }}"
+    shared_secret: "{{ oidc_config.shared_secret_test }}"
+    config_url: "{{ oidc_config.config_url_test }}"
+    scopes: "openid+profile"
+  loop: "{{ range(0, 10, 1) | list }}"
+  register: oidc_config_all
+- ansible.builtin.assert:
+    that:
+      - oidc_config_all is succeeded
+      # - oidc_config_one is succeeded
+      - oidc_config_one is changed
+      - oidc_config_one.record.client_id == "{{ oidc_config.client_id_test }}"
+      - oidc_config_one.record.config_url == "{{ oidc_config.config_url_test }}"
+      - oidc_config_one.record.scopes == "openid+profile"
+  loop: "{{ oidc_config_all.results }}"
+  loop_control:
+    label: "oidc_config_one"
