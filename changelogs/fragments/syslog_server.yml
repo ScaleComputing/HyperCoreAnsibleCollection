@@ -1,4 +1,4 @@
 ---
 major_changes:
   - Added syslog_server and syslog_server_info modules.
-    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/99)
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/120)
