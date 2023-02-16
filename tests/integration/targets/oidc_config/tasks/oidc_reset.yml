@@ -26,7 +26,13 @@
       sharedSecret: "{{ oidc_config.shared_secret_default }}"
       configurationURL: "{{ oidc_config.config_url_default }}"
       scopes: "{{ oidc_config.scopes }}"
-  ignore_errors: true # We always get BAD GATEWAY here for some reason (Seems like API issue)
+  # Frequently we get HTML document with "502 Bad Gateway" message,
+  # instead of normal json response (with taskTag etc).
+  # If this happens, just retry after short delay.
+  register: api_oidc_result
+  retries: 5
+  delay: 5
+  until: api_oidc_result is succeeded
 
 - name: Wait N sec - Cluster needs to finish login
   ansible.builtin.pause:
