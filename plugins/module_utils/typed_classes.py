@@ -63,6 +63,22 @@ class TypedRoleToAnsible(TypedDict):
     name: str
 
 
+# OIDC to ansible return dict.
+class TypedOidcToAnsible(TypedDict):
+    client_id: Union[str, None]
+    config_url: Union[str, None]
+    scopes: Union[str, None]
+
+
+# OIDC from ansible dict.
+class TypedOidcFromAnsible(TypedDict):
+    client_id: str
+    config_url: str
+    scopes: str
+    certificate: str
+    shared_secret: str
+
+
 # Cluster to ansible return dict.
 class TypedClusterToAnsible(TypedDict):
     uuid: str
@@ -76,6 +92,7 @@ class TypedDiff(TypedDict):
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
+        TypedOidcToAnsible,
         TypedClusterToAnsible,
         None,
     ]
@@ -83,6 +100,7 @@ class TypedDiff(TypedDict):
         TypedRegistrationToAnsible,
         TypedSupportTunnelToAnsible,
         TypedUserToAnsible,
+        TypedOidcToAnsible,
         TypedClusterToAnsible,
         None,
     ]

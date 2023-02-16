@@ -47,5 +47,13 @@ sc_config:
       use_auth: false
       auth_user: ""
       auth_password: ""
+    oidc:
+      client_id_default: <default value>
+      shared_secret_default: <default value>
+      config_url_default: <default value>
+      scopes: "openid+profile"
+      client_id_test: <test value>
+      shared_secret_test: <test value>
+      config_url_test: <test value>
     email_alert:
       - someone@scalecomputing.com
