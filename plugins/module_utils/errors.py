@@ -23,6 +23,7 @@ class UnexpectedAPIResponse(ScaleComputingError):
         self.message = "Unexpected response - {0} {1}".format(
             response.status, response.data
         )
+        self.response_status = response.status
         super(UnexpectedAPIResponse, self).__init__(self.message)
 
 

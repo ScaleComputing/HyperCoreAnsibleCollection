@@ -75,7 +75,7 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
-from ..module_utils.utils import is_changed
+from ..module_utils.errors import UnexpectedAPIResponse
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.oidc import Oidc
@@ -97,8 +97,22 @@ def ensure_present(
         task = oidc_obj_ansible.send_create_request(rest_client)
     else:
         task = oidc_obj_ansible.send_update_request(rest_client)
-    TaskTag.wait_task(rest_client, task)
+    module.warn(f"task={task}")
+    # If we get "502 bad gateway" during reconfiguration, we need to retry.
+    max_retries = 10
+    for ii in range(max_retries):
+        try:
+            TaskTag.wait_task(rest_client, task)
+            module.warn(f"task={task} is finished")
+            break
+        except UnexpectedAPIResponse as ex:
+            module.warn(f"task={task} wait_task error: ex={ex}")
+            if ex.response_status == 502:
+                continue
+            else:
+                raise
     updated_oidc = Oidc.get(rest_client)
+    module.warn(f"updated_oidc={updated_oidc}")
     after = updated_oidc.to_ansible() if updated_oidc else None
     # We always sent POST or PATCH, so it is always changed=True
     return True, after, dict(before=before, after=after)
@@ -108,6 +122,7 @@ def run(
     module: AnsibleModule, rest_client: RestClient, unit: bool = False
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
     oidc_obj = Oidc.get(rest_client)
+    module.warn(f"oidc_obj={oidc_obj}")
     return ensure_present(module, rest_client, oidc_obj, unit)
 
 
