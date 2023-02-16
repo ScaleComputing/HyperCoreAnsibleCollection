@@ -102,7 +102,8 @@ def ensure_present(
     TaskTag.wait_task(rest_client, task)
     updated_oidc = Oidc.get(rest_client)
     after = updated_oidc.to_ansible() if updated_oidc else None
-    return is_changed(before, after), after, dict(before=before, after=after)
+    # We always sent POST or PATCH, so it is always changed=True
+    return True, after, dict(before=before, after=after)
 
 
 def run(
