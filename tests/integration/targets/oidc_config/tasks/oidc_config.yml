@@ -10,11 +10,11 @@
   register: oidc_config_set
 - ansible.builtin.assert:
     that:
-      - oidc_config is succeeded
-      - oidc_config is changed
-      - oidc_config.record.client_id == "{{ oidc_config.client_id_test }}"
-      - oidc_config.record.config_url == "{{ oidc_config.config_url_test }}"
-      - oidc_config.record.scopes == "openid+profile"
+      - oidc_config_set is succeeded
+      - oidc_config_set is changed
+      - oidc_config_set.record.client_id == "{{ oidc_config.client_id_test }}"
+      - oidc_config_set.record.config_url == "{{ oidc_config.config_url_test }}"
+      - oidc_config_set.record.scopes == "openid+profile"
 
 - name: Read OIDC config - make sure it is updated
   scale_computing.hypercore.oidc_config_info:
