@@ -143,3 +143,25 @@ class TypedVirtualDiskToAnsible(TypedDict):
 class TypedVirtualDiskFromAnsible(TypedDict):
     name: Union[str, None]
     # uuid: str
+
+
+class TypedSyslogServerToAnsible(TypedDict):
+    uuid: Union[str, None]
+    alert_tag_uuid: Union[str, None]
+    host: Union[str, None]
+    port: Union[int, None]
+    protocol: Union[str, None]
+    resend_delay: Union[int, None]
+    silent_period: Union[int, None]
+    latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
+
+
+class TypedSyslogServerFromAnsible(TypedDict):
+    uuid: Union[str, None]
+    alert_tag_uuid: Union[str, None]
+    host: Union[str, None]
+    port: Union[int, None]
+    protocol: Union[str, None]
+    resend_delay: Union[int, None]
+    silent_period: Union[int, None]
+    latest_task_tag: Union[TypedTaskTag, None]

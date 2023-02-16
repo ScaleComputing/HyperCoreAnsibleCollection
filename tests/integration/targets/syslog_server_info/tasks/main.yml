@@ -1,0 +1,18 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  block:
+    - name: Retrieve info about Syslog servers
+      scale_computing.hypercore.syslog_server_info:
+      register: syslog_servers
+    - ansible.builtin.debug:
+        msg: "{{ syslog_servers.records }}"
+    - ansible.builtin.assert:
+        that:
+          - syslog_servers.records != []
+          - syslog_servers.records[0].keys() | sort ==
+            ['alert_tag_uuid', 'host', 'latest_task_tag', 'port',
+            'protocol', 'resend_delay', 'silent_period', 'uuid']
