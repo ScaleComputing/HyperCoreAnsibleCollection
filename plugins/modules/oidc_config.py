@@ -97,8 +97,6 @@ def ensure_present(
         task = oidc_obj_ansible.send_create_request(rest_client)
     else:
         task = oidc_obj_ansible.send_update_request(rest_client)
-    if not unit:
-        sleep(10)  # Wait for the cluster login (Avoid BAD GATEWAY response)
     TaskTag.wait_task(rest_client, task)
     updated_oidc = Oidc.get(rest_client)
     after = updated_oidc.to_ansible() if updated_oidc else None
