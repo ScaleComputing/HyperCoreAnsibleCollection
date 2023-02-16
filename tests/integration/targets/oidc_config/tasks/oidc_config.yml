@@ -32,8 +32,8 @@
 # all reconnect/retry (502 bad gateway) problems.
 - name: Create or update OIDC config - in loop
   scale_computing.hypercore.oidc_config:
-    client_id: "{{ oidc_config.client_id_test }}"
-    shared_secret: "{{ oidc_config.shared_secret_test }}"
+    client_id: "{{ oidc_config.client_id_test }}-{{ item }}"
+    shared_secret: "{{ oidc_config.shared_secret_test }}-{{ item }}"
     config_url: "{{ oidc_config.config_url_test }}"
     scopes: "openid+profile"
   loop: "{{ range(0, 10, 1) | list }}"
