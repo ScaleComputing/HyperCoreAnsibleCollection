@@ -60,13 +60,24 @@ from ..module_utils.utils import is_changed
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedDiff, TypedCertificateToAnsible
+
 from typing import Union, Tuple
+import requests, os
+
+
+def verify_certificate():
+    # raise errors.ScaleComputingError(os.getcwd())
+    response = requests.get('https://google.com/', cert=('bla.pem', 'bla-key.pem'))
+    raise errors.ScaleComputingError(response)
 
 
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
 ) -> Tuple[bool, Union[TypedCertificateToAnsible, None], TypedDiff, bool]:
+    before = None
+    after = None
+    verify_certificate()
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
