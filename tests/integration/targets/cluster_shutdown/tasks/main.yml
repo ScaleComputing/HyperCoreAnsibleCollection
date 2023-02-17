@@ -1,11 +1,47 @@
-# ---
-# - environment:
-#     SC_HOST: "{{ sc_host }}"
-#     SC_USERNAME: "{{ sc_username }}"
-#     SC_PASSWORD: "{{ sc_password }}"
-#     SC_TIMEOUT: "{{ sc_timeout }}"
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
 
-#   block:
-#     - name: Shutdown cluster
-#       scale_computing.hypercore.cluster_shutdown:
-#         force_shutdown: false
+  block:
+    - name: Test connect to SC_HOST API url - before
+      ansible.builtin.uri:
+        url: "{{ sc_host }}"
+        timeout: 5
+        validate_certs: False
+
+    - name: Shutdown cluster
+      scale_computing.hypercore.cluster_shutdown:
+        force_shutdown: false
+      register: cluster_shutdown_result
+
+    - name: Check cluster_shutdown_result
+      ansible.builtin.assert:
+        that:
+          - cluster_shutdown_result is succeeded
+          - cluster_shutdown_result.shutdown is true
+
+    # Maybe module should wait.
+    # But API down does not mean host OS is fully down.
+    - name: Test connect to SC_HOST API url - wait on shutdown
+      ansible.builtin.wait_for:
+        host: "{{ sc_host | replace('https://', '') }}"
+        port: 443
+        timeout: 300
+        state: stopped
+
+    - name: Test connect to SC_HOST API url - after shutdown
+      ansible.builtin.uri:
+        url: "{{ sc_host }}"
+        timeout: 5
+        validate_certs: False
+      ignore_errors: True
+      register: host_url_result
+
+    - name: Check cluster API is not reachable
+      ansible.builtin.assert:
+        that:
+          - host_url_result is failed
+          - ('urlopen error [Errno 111] Connection refused') in host_url_result.msg
