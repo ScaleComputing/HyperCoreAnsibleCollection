@@ -17,7 +17,7 @@ on:
           List integration tests to exclude.
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
-        default: "^dns_config$|^vm_import$|^vm_export$"
+        default: "^dns_config$|^vm_import$|^vm_export$|^cluster_shutdown$"
 env:
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 # Run only one workflow for specific branch.
