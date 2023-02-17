@@ -75,7 +75,7 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
-from ..module_utils.utils import is_changed
+from ..module_utils.errors import UnexpectedAPIResponse
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.oidc import Oidc
@@ -88,28 +88,39 @@ from time import sleep
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
-    oidc_obj: Union[Oidc, None],
-    unit: bool,
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
-    before = oidc_obj.to_ansible() if oidc_obj else None
     oidc_obj_ansible = Oidc.from_ansible(module.params)
-    if oidc_obj is None:
-        task = oidc_obj_ansible.send_create_request(rest_client)
-    else:
-        task = oidc_obj_ansible.send_update_request(rest_client)
-    if not unit:
-        sleep(10)  # Wait for the cluster login (Avoid BAD GATEWAY response)
-    TaskTag.wait_task(rest_client, task)
+    # If we get "502 bad gateway" during reconfiguration, we need to retry.
+    max_retries = 10
+    for ii in range(max_retries):
+        try:
+            oidc_obj = Oidc.get(rest_client)
+            before = oidc_obj.to_ansible() if oidc_obj else None
+            if oidc_obj is None:
+                task = oidc_obj_ansible.send_create_request(rest_client)
+            else:
+                task = oidc_obj_ansible.send_update_request(rest_client)
+            TaskTag.wait_task(rest_client, task)
+            break
+        except UnexpectedAPIResponse as ex:
+            if ex.response_status in [500, 502]:
+                module.warn(
+                    f"API misbehaving during reconfiguration, retry {ii+1}/{max_retries}"
+                )
+                sleep(1)
+                continue
+            else:
+                raise
     updated_oidc = Oidc.get(rest_client)
     after = updated_oidc.to_ansible() if updated_oidc else None
-    return is_changed(before, after), after, dict(before=before, after=after)
+    # We always sent POST or PATCH, so it is always changed=True
+    return True, after, dict(before=before, after=after)
 
 
 def run(
-    module: AnsibleModule, rest_client: RestClient, unit: bool = False
+    module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
-    oidc_obj = Oidc.get(rest_client)
-    return ensure_present(module, rest_client, oidc_obj, unit)
+    return ensure_present(module, rest_client)
 
 
 def main() -> None:

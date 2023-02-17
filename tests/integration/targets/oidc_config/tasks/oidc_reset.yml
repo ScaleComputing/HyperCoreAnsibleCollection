@@ -1,20 +1,23 @@
 ---
 # Reset OIDC values in the webUI
 
-- name: Wait N sec - Cluster needs to finish login
-  ansible.builtin.pause:
-    seconds: 15
-
+# The oidc_config module should wait on reconfiguration to finish -
+# this will make it easy to use.
+# This recovery playbook does wait on any previous OIDC reconfiguration to finish anyway.
+# The recovery should work also if module is "incorrectly" implemented.
+# We cannot wait on TaskTag of previous OIDC reconfiguration, because we do not know it.
+# The observed problem is that also "GET /rest/v1/OIDCConfig" returns "502 Bad Gateway".
 - name: Get current oidc values
   scale_computing.hypercore.api:
     action: get
     endpoint: /rest/v1/OIDCConfig
   register: oidc_config_result
+  retries: 5
+  delay: 5
+  until: oidc_config_result is succeeded
+
 - name: Show current OIDC
   ansible.builtin.debug:
-    var: oidc_config_result
-
-- ansible.builtin.debug:
     var: oidc_config_result
 
 - name: Replace current OIDC values
@@ -26,8 +29,19 @@
       sharedSecret: "{{ oidc_config.shared_secret_default }}"
       configurationURL: "{{ oidc_config.config_url_default }}"
       scopes: "{{ oidc_config.scopes }}"
-  ignore_errors: true # We always get BAD GATEWAY here for some reason (Seems like API issue)
+  # Frequently we get HTML document with "502 Bad Gateway" message,
+  # instead of normal json response (with taskTag etc).
+  # If this happens, just retry after short delay.
+  register: api_oidc_result
+  retries: 5
+  delay: 5
+  until: api_oidc_result is succeeded
 
 - name: Wait N sec - Cluster needs to finish login
-  ansible.builtin.pause:
-    seconds: 15
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/TaskTag/{{ api_oidc_result.record.taskTag }}
+  register: api_tasktag_result
+  retries: 5
+  delay: 5
+  until: api_tasktag_result.record[0].state == "COMPLETE"
