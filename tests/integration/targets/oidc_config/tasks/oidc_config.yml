@@ -71,10 +71,8 @@
     that:
       - oidc_config_all is succeeded
       # - oidc_config_one is succeeded
-      - oidc_config_one is changed
-      - oidc_config_one.record.client_id == "{{ oidc_config.client_id_test }}"
-      - oidc_config_one.record.config_url == "{{ oidc_config.config_url_test }}"
-      - oidc_config_one.record.scopes == "openid+profile"
+      - item is changed
+      - (oidc_config.client_id_test + '-') in item.record.client_id
+      - item.record.config_url == "{{ oidc_config.config_url_test }}"
+      - item.record.scopes == "openid+profile"
   loop: "{{ oidc_config_all.results }}"
-  loop_control:
-    label: "oidc_config_one"

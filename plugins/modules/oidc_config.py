@@ -96,24 +96,21 @@ def ensure_present(
     for ii in range(max_retries):
         try:
             oidc_obj = Oidc.get(rest_client)
-            module.warn(f"oidc_obj={oidc_obj}")
             before = oidc_obj.to_ansible() if oidc_obj else None
             if oidc_obj is None:
                 task = oidc_obj_ansible.send_create_request(rest_client)
             else:
                 task = oidc_obj_ansible.send_update_request(rest_client)
-            module.warn(f"task={task}")
             TaskTag.wait_task(rest_client, task)
-            module.warn(f"task={task} is finished")
             break
         except UnexpectedAPIResponse as ex:
-            module.warn(f"task={task} wait_task error: ex={ex}")
-            if ex.response_status == 502:
+            if ex.response_status in [500, 502]:
+                module.warn(f"API misbehaving during reconfiguration, retry {ii+1}/{max_retries}")
+                sleep(1)
                 continue
             else:
                 raise
     updated_oidc = Oidc.get(rest_client)
-    module.warn(f"updated_oidc={updated_oidc}")
     after = updated_oidc.to_ansible() if updated_oidc else None
     # We always sent POST or PATCH, so it is always changed=True
     return True, after, dict(before=before, after=after)
