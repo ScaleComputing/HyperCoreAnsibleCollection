@@ -111,10 +111,34 @@ class TestEnsurePresent:
         ).return_value = {}
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get"
-        ).return_value = {}
-        result = oidc_config.ensure_present(module, rest_client, None, True)
+        ).side_effect = [
+            None,
+            Oidc(
+                client_id="this_client",
+                certificate="",
+                config_url="this_config_url",
+                scopes="this_scopes",
+            ),
+        ]
+        result = oidc_config.ensure_present(module, rest_client)
+        # print(f"result={result}")
         assert isinstance(result, tuple)
-        assert result == (False, None, {"before": None, "after": None})
+        assert result == (
+            True,
+            {
+                "client_id": "this_client",
+                "scopes": "this_scopes",
+                "config_url": "this_config_url",
+            },
+            {
+                "before": None,
+                "after": {
+                    "client_id": "this_client",
+                    "scopes": "this_scopes",
+                    "config_url": "this_config_url",
+                },
+            },
+        )
 
     def test_ensure_present_when_update_oidc(self, create_module, rest_client, mocker):
         module = create_module(
@@ -136,23 +160,46 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag.TaskTag.wait_task"
         ).return_value = {}
+        # mocker.patch(
+        #     "ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get"
+        # ).return_value = {}
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get"
-        ).return_value = {}
-        mocker_registration = Oidc()
-        result = oidc_config.ensure_present(
-            module, rest_client, mocker_registration, True
-        )
+        ).side_effect = [
+            Oidc(
+                client_id="cid",
+                certificate="",
+                config_url="this_config_url",
+                scopes="this_scopes",
+            ),
+            Oidc(
+                client_id="this_client",
+                certificate="",
+                config_url="this_config_url",
+                scopes="this_scopes",
+            ),
+        ]
+
+        result = oidc_config.ensure_present(module, rest_client)
+        # print(f"result={result}")
         assert isinstance(result, tuple)
         assert result == (
             True,
-            None,
+            {
+                "client_id": "this_client",
+                "scopes": "this_scopes",
+                "config_url": "this_config_url",
+            },
             {
                 "before": {
-                    "client_id": None,
-                    "scopes": None,
-                    "config_url": None,
+                    "client_id": "cid",
+                    "scopes": "this_scopes",
+                    "config_url": "this_config_url",
                 },
-                "after": None,
+                "after": {
+                    "client_id": "this_client",
+                    "scopes": "this_scopes",
+                    "config_url": "this_config_url",
+                },
             },
         )

@@ -88,7 +88,6 @@ from time import sleep
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
-    unit: bool,
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
     oidc_obj_ansible = Oidc.from_ansible(module.params)
     # If we get "502 bad gateway" during reconfiguration, we need to retry.
@@ -119,9 +118,9 @@ def ensure_present(
 
 
 def run(
-    module: AnsibleModule, rest_client: RestClient, unit: bool = False
+    module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Union[TypedOidcToAnsible, None], TypedDiff]:
-    return ensure_present(module, rest_client, unit)
+    return ensure_present(module, rest_client)
 
 
 def main() -> None:
