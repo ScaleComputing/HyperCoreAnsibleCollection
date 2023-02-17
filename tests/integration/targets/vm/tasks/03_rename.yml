@@ -70,7 +70,7 @@
         memory: "{{ '512 MB' | human_to_bytes }}"
         vcpu: 1
         # attach_guest_tools_iso: false
-        # power_state: stop
+        power_state: stop
         disks: []
         nics: []
         # boot_devices: []
@@ -107,7 +107,7 @@
         memory: "{{ '512 MB' | human_to_bytes }}"
         vcpu: 1
         # attach_guest_tools_iso: false
-        # power_state: stop
+        power_state: stop
         disks: []
         nics: []
         # boot_devices: []
