@@ -359,6 +359,16 @@ class VM(PayloadMapper):
         return vm_from_hypercore
 
     @classmethod
+    def get_by_old_or_new_name(cls, ansible_dict, rest_client):
+        vm_old_name = VM.get_by_name(ansible_dict, rest_client)
+        vm_new_name = VM.get_by_name(ansible_dict, rest_client, name_field="vm_name_new") if ansible_dict.get("vm_name_new") is not None else None
+        if vm_old_name and vm_new_name:
+            # Having two candidate VMs is error, we cannot decide which VM to modify.
+            raise ScaleComputingError(f"More than one VM matches requirement vm_name=={ansible_dict['vm_name']} or vm_name_new=={ansible_dict['vm_name_new']}")
+        vm = vm_old_name or vm_new_name
+        return vm
+
+    @classmethod
     def import_vm(cls, rest_client, ansible_dict):
         cloud_init = cls.create_cloud_init_payload(ansible_dict)
         data = cls.create_export_or_import_vm_payload(
@@ -1302,9 +1312,7 @@ class ManageVMNics(Nic):
             raise errors.MissingValueAnsible(
                 "items, cannot be null, empty must be set to []"
             )
-        updated_virtual_machine = VM.get(
-            query={"name": module.params["vm_name"]}, rest_client=rest_client
-        )[0]
+        updated_virtual_machine = VM.get_by_old_or_new_name(module.params, rest_client=rest_client)
         if module.params["state"] == NicState.set or not called_from_vm_nic:
             # Check if any nics need to be deleted from the vm
             if updated_virtual_machine.delete_unused_nics_to_hypercore_vm(

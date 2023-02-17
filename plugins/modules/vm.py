@@ -373,16 +373,7 @@ def _set_vm_params(module, rest_client, vm):
 
 
 def ensure_present(module, rest_client):
-    vm_before_old_name = VM.get_by_name(module.params, rest_client)
-    if module.params["vm_name_new"] is None:
-        vm_before_new_name = None
-    else:
-        vm_before_new_name = VM.get_by_name(module.params, rest_client, name_field="vm_name_new")
-        if vm_before_old_name and vm_before_new_name:
-            # Having two possible VMs is error, we cannot decide which VM to modify.
-            module.exit_json(f"More than one VM matches requirement vm_name=={module.params['vm_name']} or vm_name_new=={module.params['vm_name_new']}")
-    vm_before = vm_before_old_name or vm_before_new_name
-
+    vm_before = VM.get_by_old_or_new_name(module.params, rest_client)
     reboot = False
     if vm_before:
         before = vm_before.to_ansible()  # for output

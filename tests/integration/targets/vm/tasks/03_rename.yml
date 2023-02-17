@@ -94,7 +94,7 @@
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
     # Rename VM a to b, no other params - idempotence
-    - name: Rename VM {{ vm_name_a }} to {{ vm_name_b }}
+    - name: Rename VM {{ vm_name_a }} to {{ vm_name_b }} - idempotence
       scale_computing.hypercore.vm:
         vm_name: "{{ vm_name_a }}"
         vm_name_new: "{{ vm_name_b }}"
