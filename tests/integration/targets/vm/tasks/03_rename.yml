@@ -92,6 +92,43 @@
           - vm_info_b_result.records.0.description == "VM rename CI test"
           - vm_info_b_result.records.0.vm_name == "{{ vm_name_b }}"
 
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+    # Rename VM a to b, no other params - idempotence
+    - name: Rename VM {{ vm_name_a }} to {{ vm_name_b }}
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name_a }}"
+        vm_name_new: "{{ vm_name_b }}"
+        state: present
+        # description: VM rename CI test
+        # tags:
+        #   - Xlab
+        #   - mytag1
+        #   - mytag2
+        memory: "{{ '512 MB' | human_to_bytes }}"
+        vcpu: 1
+        # attach_guest_tools_iso: false
+        # power_state: stop
+        disks: []
+        nics: []
+        # boot_devices: []
+      register: vm_result
+    - name: Get info about VM {{ vm_name_a }}
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name_a }}"
+      register: vm_info_a_result
+    - name: Get info about VM {{ vm_name_b }}
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name_b }}"
+      register: vm_info_b_result
+    - ansible.builtin.assert:
+        that:
+          - vm_result is not changed
+          - vm_result.record.0.description == "VM rename CI test"
+          - vm_result.record.0.vm_name == "{{ vm_name_b }}"
+          - vm_info_a_result.records == []
+          - vm_info_b_result.records.0.description == "VM rename CI test"
+          - vm_info_b_result.records.0.vm_name == "{{ vm_name_b }}"
+
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
     - name: Delete the VMs
       scale_computing.hypercore.vm:
