@@ -38,9 +38,25 @@ class TestModifyEmailAlert:
         self.magic = mock.MagicMock()
 
     @pytest.mark.parametrize(
-        ("rc_email_alert",),
+        (
+            "rc_email_alert",
+            "expected_return",
+        ),
         [
-            (None,),
+            (
+                None,
+                (
+                    True,
+                    dict(
+                        uuid="test",
+                        alert_tag_uuid="0",
+                        email_address="test@test.com",
+                        resend_delay=123,
+                        silent_period=123,
+                        latest_task_tag={},
+                    ),
+                ),
+            ),
             (
                 EmailAlert(
                     uuid="test",
@@ -50,11 +66,28 @@ class TestModifyEmailAlert:
                     silent_period=123,
                     latest_task_tag={},
                 ),
+                (
+                    False,
+                    dict(
+                        uuid="test",
+                        alert_tag_uuid="0",
+                        email_address="test@test.com",
+                        resend_delay=123,
+                        silent_period=123,
+                        latest_task_tag={},
+                    ),
+                ),
             ),
         ],
     )
     def test_create_email_alert(
-        self, create_module, rest_client, task_wait, mocker, rc_email_alert
+        self,
+        create_module,
+        rest_client,
+        task_wait,
+        mocker,
+        rc_email_alert,
+        expected_return,
     ):
         module = create_module(
             params=dict(
@@ -69,8 +102,7 @@ class TestModifyEmailAlert:
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert.EmailAlert.get_by_uuid"
-        ).return_value = EmailAlert(uuid=task_tag["createdUUID"])
-
+        ).return_value = EmailAlert(**expected_return[1])
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert.EmailAlert.get_by_email"
         ).return_value = rc_email_alert
@@ -81,6 +113,8 @@ class TestModifyEmailAlert:
             payload=dict(emailAddress="test@test.com"),
             check_mode=False,
         )
+
+        changed, record, diff = email_alert.create_email_alert(module, rest_client)
         EmailAlert.create = mock.create_autospec(EmailAlert.create)
         email_alert.create_email_alert(module, rest_client)
         if not rc_email_alert:
@@ -88,16 +122,57 @@ class TestModifyEmailAlert:
         else:
             EmailAlert.create.assert_not_called()
 
+        assert changed == expected_return[0]
+        assert record == expected_return[1]  # after
+
     @pytest.mark.parametrize(
-        ("rc_email", "email", "email_new"),
+        ("rc_email", "email", "email_new", "expected_return"),
         [
-            ("email", "test@test.com", "new@test.com"),
-            (None, "test@test.com", "new@test.com"),
-            ("email", "test@test.com", "test@test.com"),
+            (
+                "email",
+                "test@test.com",
+                "new@test.com",
+                (
+                    True,
+                    dict(
+                        uuid="test",
+                        alert_tag_uuid="0",
+                        email_address="new@test.com",
+                        resend_delay=123,
+                        silent_period=123,
+                        latest_task_tag={},
+                    ),
+                ),
+            ),
+            (None, "test@test.com", "new@test.com", None),
+            (
+                "email",
+                "test@test.com",
+                "test@test.com",
+                (
+                    False,
+                    dict(
+                        uuid="test",
+                        alert_tag_uuid="0",
+                        email_address="test@test.com",
+                        resend_delay=123,
+                        silent_period=123,
+                        latest_task_tag={},
+                    ),
+                ),
+            ),
         ],
     )
     def test_update_email_alert(
-        self, create_module, rest_client, task_wait, mocker, rc_email, email, email_new
+        self,
+        create_module,
+        rest_client,
+        task_wait,
+        mocker,
+        rc_email,
+        email,
+        email_new,
+        expected_return,
     ):
         update_email = ""
         if rc_email == "email":
@@ -108,9 +183,6 @@ class TestModifyEmailAlert:
             update_email = email
         else:
             email_on_client = None
-
-        print("update_email: " + str(update_email))
-        print("email_on_client: " + str(email_on_client))
 
         if email_on_client:
             rc_email_alert = EmailAlert(
@@ -135,9 +207,15 @@ class TestModifyEmailAlert:
         task_tag = {
             "taskTag": 123,
         }
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert.EmailAlert.get_by_email"
-        ).return_value = rc_email_alert
+
+        if not expected_return:
+            mocker.patch(
+                "ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert.EmailAlert.get_by_email"
+            ).return_value = rc_email_alert
+        else:
+            mocker.patch(
+                "ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert.EmailAlert.get_by_email"
+            ).side_effect = [rc_email_alert, EmailAlert(**expected_return[1])]
         rest_client.update_record.return_value = task_tag
 
         called_with_dict = dict(
@@ -145,26 +223,31 @@ class TestModifyEmailAlert:
             payload=dict(emailAddress=update_email),
             check_mode=False,
         )
-        print(rc_email_alert)
-
-        EmailAlert.update = mock.create_autospec(EmailAlert.update)
 
         if rc_email_alert:
-            email_alert.update_email_alert(module, rest_client)
+            # changed, record, diff = email_alert.update_email_alert(module, rest_client)
+
+            EmailAlert.update = mock.create_autospec(EmailAlert.update)
+            changed, record, diff = email_alert.update_email_alert(module, rest_client)
+
             if update_email == email_on_client or email == email_new:
                 EmailAlert.update.assert_not_called()
             else:
                 EmailAlert.update.assert_called_once_with(
                     rc_email_alert, **called_with_dict
                 )
+
+            assert changed == expected_return[0]
+            assert record == expected_return[1]
+
         else:
             with pytest.raises(errors.ScaleComputingError):
                 email_alert.update_email_alert(module, rest_client)
 
     @pytest.mark.parametrize(
-        ("rc_email_alert", "email"),
+        ("rc_email_alert", "email", "expected_return"),
         [
-            (None, "test@test.com"),
+            (None, "test@test.com", (False, {})),
             (
                 EmailAlert(
                     uuid="test",
@@ -175,11 +258,19 @@ class TestModifyEmailAlert:
                     latest_task_tag={},
                 ),
                 "test@test.com",
+                (True, {}),
             ),
         ],
     )
     def test_delete_email_alert(
-        self, create_module, rest_client, task_wait, mocker, rc_email_alert, email
+        self,
+        create_module,
+        rest_client,
+        task_wait,
+        mocker,
+        rc_email_alert,
+        email,
+        expected_return,
     ):
         module = create_module(
             params=dict(
@@ -201,6 +292,8 @@ class TestModifyEmailAlert:
             check_mode=False,
         )
 
+        changed, record, diff = email_alert.delete_email_alert(module, rest_client)
+
         EmailAlert.delete = mock.create_autospec(EmailAlert.delete)
         email_alert.delete_email_alert(module, rest_client)
         if rc_email_alert:
@@ -209,6 +302,9 @@ class TestModifyEmailAlert:
             )
         else:
             EmailAlert.delete.assert_not_called()
+
+        assert changed == expected_return[0]
+        assert record == expected_return[1]
 
     @pytest.mark.parametrize(
         ("rc_email_alert", "email"),
@@ -297,5 +393,7 @@ class TestMain:
             state=state,
         )
         success, result = run_main(email_alert, params)
+
+        print(result)
 
         assert success is True
