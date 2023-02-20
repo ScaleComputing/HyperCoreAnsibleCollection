@@ -104,3 +104,23 @@ class TestCluster:
             {"clusterName": "Updated_name"},
             False,
         )
+
+    def test_cluster_shutdown(self, rest_client):
+        force_shutdown = True
+
+        Cluster.shutdown(rest_client, force_shutdown)
+
+        rest_client.create_record.assert_called_with(
+            "/rest/v1/Cluster/shutdown",
+            {"forceShutdown": True},
+            False,
+        )
+
+    def test_cluster_shutdown_default_force_shutdown(self, rest_client):
+        Cluster.shutdown(rest_client)
+
+        rest_client.create_record.assert_called_with(
+            "/rest/v1/Cluster/shutdown",
+            {"forceShutdown": False},
+            False,
+        )
