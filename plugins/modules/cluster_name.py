@@ -64,7 +64,7 @@ from ..module_utils.hypercore_version import (
     HyperCoreVersion,
 )
 
-HYPERCORE_VERSION_REQUIREMENTS = ">=9.1.9 <9.2.0 || >=9.2.10"
+HYPERCORE_VERSION_REQUIREMENTS = "==9.1.21 || >=9.2.11"
 
 
 def run(
