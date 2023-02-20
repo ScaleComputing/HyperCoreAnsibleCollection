@@ -23,12 +23,12 @@ seealso: []
 options:
   certificate:
     description:
-      - Plain text of the X.509 PEM-encode certificate.
+      - File containing the X.509 PEM-encode certificate.
     type: str
     required: true
   private_key:
     description:
-      - Plain text of the RSA PEM-encoded private key.
+      - File containing the RSA PEM-encoded private key.
     type: str
     required: true
 notes:
@@ -38,8 +38,8 @@ notes:
 EXAMPLES = r"""
 - name: Upload new certificate
   scale_computing.hypercore.certificate:
-    private_key: this_is_the_private_key
-    certificate: this_is_the_certificate
+    private_key: "{{ lookup('file', 'private_key.key') }}"
+    certificate: "{{ lookup('file', 'scale_cert.cer') }}"
 """
 
 RETURN = r"""
@@ -59,25 +59,33 @@ from ..module_utils import arguments, errors
 from ..module_utils.utils import is_changed
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.typed_classes import TypedDiff, TypedCertificateToAnsible
+from ..module_utils.typed_classes import TypedDiff, TypedCertificateToAnsible, TypedTaskTag
+from ..module_utils.task_tag import TaskTag
 
 from typing import Union, Tuple
-import requests, os
+import requests, ssl
 
 
-def verify_certificate():
-    # raise errors.ScaleComputingError(os.getcwd())
-    response = requests.get('https://google.com/', cert=('bla.pem', 'bla-key.pem'))
-    raise errors.ScaleComputingError(response)
+def get_certificate(module: AnsibleModule, rest_client: RestClient) -> str:
+    host = module.params["cluster_instance"]["host"].replace("https://", "").replace("http://", "")
+    cert = ssl.get_server_certificate((host, 443))
+    return cert
+
+
+def upload_cert(module: AnsibleModule, rest_client: RestClient) -> TypedTaskTag:
+    payload = dict(certificate=module.params["certificate"], privateKey=module.params["private_key"])
+    response = rest_client.create_record("/rest/v1/Certificate", payload, False)
+    return response
 
 
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
 ) -> Tuple[bool, Union[TypedCertificateToAnsible, None], TypedDiff, bool]:
-    before = None
-    after = None
-    verify_certificate()
+    before = get_certificate(module, rest_client)
+    task = upload_cert(module, rest_client)
+    TaskTag.wait_task(rest_client, task)
+    after = get_certificate(module, rest_client)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
