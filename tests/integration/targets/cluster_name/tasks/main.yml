@@ -76,6 +76,7 @@
         endpoint: /rest/v1/Cluster/{{ cluster_initial.record.uuid }}
         data:
           clusterName: "{{ cluster_config.name }}"
+      when: "'does not match required version' not in cluster.msg"
 
     - name: Get current cluster name
       scale_computing.hypercore.api:
