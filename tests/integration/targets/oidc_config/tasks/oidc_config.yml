@@ -1,0 +1,78 @@
+---
+# Test oidc_config and oidc_config_info modules
+
+#-------------------------------------------------------------------------------
+- name: Create or update OIDC config (different App - "Scale-test-xlab" in AzureAD)
+  scale_computing.hypercore.oidc_config:
+    client_id: "{{ oidc_config.client_id_test }}"
+    shared_secret: "{{ oidc_config.shared_secret_test }}"
+    config_url: "{{ oidc_config.config_url_test }}"
+    scopes: "openid+profile"
+  register: oidc_config_set
+- ansible.builtin.assert:
+    that:
+      - oidc_config_set is succeeded
+      - oidc_config_set is changed
+      - oidc_config_set.record.client_id == "{{ oidc_config.client_id_test }}"
+      - oidc_config_set.record.config_url == "{{ oidc_config.config_url_test }}"
+      - oidc_config_set.record.scopes == "openid+profile"
+
+- name: Read OIDC config - make sure it is updated
+  scale_computing.hypercore.oidc_config_info:
+  register: oidc_config_info_data
+- ansible.builtin.assert:
+    that:
+      - oidc_config_info_data is succeeded
+      - oidc_config_info_data is not changed
+      - oidc_config_info_data.record.client_id == "{{ oidc_config.client_id_test }}"
+      - oidc_config_info_data.record.config_url == "{{ oidc_config.config_url_test }}"
+      - oidc_config_info_data.record.scopes == "openid+profile"
+
+#-------------------------------------------------------------------------------
+# Idempotence test does not apply, shared_secret is not returned, and module needs to always set it.
+- name: Create or update OIDC config (different App - "Scale-test-xlab" in AzureAD) - not idempotent
+  scale_computing.hypercore.oidc_config:
+    client_id: "{{ oidc_config.client_id_test }}"
+    shared_secret: "{{ oidc_config.shared_secret_test }}"
+    config_url: "{{ oidc_config.config_url_test }}"
+    scopes: "openid+profile"
+  register: oidc_config_set
+- ansible.builtin.assert:
+    that:
+      - oidc_config_set is succeeded
+      - oidc_config_set is changed
+      - oidc_config_set.record.client_id == "{{ oidc_config.client_id_test }}"
+      - oidc_config_set.record.config_url == "{{ oidc_config.config_url_test }}"
+      - oidc_config_set.record.scopes == "openid+profile"
+
+- name: Read OIDC config - make sure it is updated - not idempotent
+  scale_computing.hypercore.oidc_config_info:
+  register: oidc_config_info_data
+- ansible.builtin.assert:
+    that:
+      - oidc_config_info_data is succeeded
+      - oidc_config_info_data is not changed
+      - oidc_config_info_data.record.client_id == "{{ oidc_config.client_id_test }}"
+      - oidc_config_info_data.record.config_url == "{{ oidc_config.config_url_test }}"
+      - oidc_config_info_data.record.scopes == "openid+profile"
+
+#-------------------------------------------------------------------------------
+# Here we want to test robustness - we call module in tight loop, and expect module to handle
+# all reconnect/retry (502 bad gateway) problems.
+- name: Create or update OIDC config - in loop
+  scale_computing.hypercore.oidc_config:
+    client_id: "{{ oidc_config.client_id_test }}-{{ item }}"
+    shared_secret: "{{ oidc_config.shared_secret_test }}-{{ item }}"
+    config_url: "{{ oidc_config.config_url_test }}"
+    scopes: "openid+profile"
+  loop: "{{ range(0, 10, 1) | list }}"
+  register: oidc_config_all
+- ansible.builtin.assert:
+    that:
+      - oidc_config_all is succeeded
+      # - oidc_config_one is succeeded
+      - item is changed
+      - (oidc_config.client_id_test + '-') in item.record.client_id
+      - item.record.config_url == "{{ oidc_config.config_url_test }}"
+      - item.record.scopes == "openid+profile"
+  loop: "{{ oidc_config_all.results }}"

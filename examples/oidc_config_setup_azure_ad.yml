@@ -1,0 +1,30 @@
+---
+- name: Example oidc_config module and oidc_config_info module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    # ------------------------------------------------------
+    - name: List oidc config
+      scale_computing.hypercore.oidc_config_info:
+      register: oidc_config_info_results
+
+    - name: Show oidc config entries
+      debug:
+        var: oidc_config_info_results
+
+    - name: Create or update OIDC config
+      scale_computing.hypercore.oidc_config:
+        client_id: <your_client_id>
+        shared_secret: <your_shared_secret>
+        config_url: <your_configuration_url>
+        scopes: <your_scopes>
+
+    - name: List updated oidc config
+      scale_computing.hypercore.oidc_config_info:
+      register: oidc_config_info_results
+
+    - name: Show updated oidc config entries
+      debug:
+        var: oidc_config_info_results

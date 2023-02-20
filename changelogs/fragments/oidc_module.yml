@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Added oidc_config and oidc_config_info module.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/106)
