@@ -23,6 +23,7 @@
           - cluster.record.name == "name_updated"
           - cluster.diff.before.name == cluster_initial.record.name
           - cluster.diff.after.name == "name_updated"
+      register: cluster # to catch assertion error msg for rescue
     
     - name: Check if cluster name is updated
       scale_computing.hypercore.cluster_info:
@@ -30,6 +31,7 @@
     - ansible.builtin.assert:
         that:
           - cluster.record.name == "name_updated"
+      register: cluster # to catch assertion error msg for rescue
     
     - name: Update cluster name - idempotence
       scale_computing.hypercore.cluster_name:
@@ -42,6 +44,7 @@
           - cluster.record.name == "name_updated"
           - cluster.diff.before.name == "name_updated"
           - cluster.diff.after.name == "name_updated"
+      register: cluster # to catch assertion error msg for rescue
     
     - name: Retrieve cluster name
       scale_computing.hypercore.cluster_info:
@@ -49,6 +52,7 @@
     - ansible.builtin.assert:
         that:
           - cluster.record.name == "name_updated"
+      register: cluster # to catch assertion error msg for rescue
     
     - name: Set back the initial cluster name
       scale_computing.hypercore.cluster_name:
@@ -61,6 +65,7 @@
           - cluster.record.name == cluster_initial.record.name
           - cluster.diff.before.name == "name_updated"
           - cluster.diff.after.name == cluster_initial.record.name
+      register: cluster # to catch assertion error msg for rescue
     
     - name: Check if cluster name is updated
       scale_computing.hypercore.cluster_info:
@@ -68,8 +73,9 @@
     - ansible.builtin.assert:
         that:
           - cluster.record.name == cluster_initial.record.name
+      register: cluster # to catch assertion error msg for rescue
 
-  always:
+  rescue:
     - name: Set back the initial cluster_name
       scale_computing.hypercore.api:
         action: patch
