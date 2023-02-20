@@ -3,18 +3,20 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  vars:
+    syslog_server: 10.5.11.222
 
   tasks:
     - name: Create Syslog server
       scale_computing.hypercore.syslog_server:
-        host: 10.5.11.222 # [ REQUIRED ]
+        host: "{{ syslog_server }}" # [ REQUIRED ]
         port: 514 # [ OPTIONAL ]
         protocol: udp # tcp --> [ OPTIONAL ]
         state: present # absent --> create, delete [ REQUIRED ]
 
     - name: Update existing Syslog server
       scale_computing.hypercore.syslog_server:
-        host: 10.5.11.222 # [ REQUIRED ]
+        host: "{{ syslog_server }}" # [ REQUIRED ]
         host_new: 1.2.3.4 # host IP to update the existing one with [ OPTIONAL ] -> if not specified, CREATE will be made.
         port: 514 # can also be different from the existing  [ OPTIONAL ]
         protocol: udp # can also be different from the existing  [ OPTIONAL ]
@@ -24,8 +26,13 @@
     # Deleting by "host".
     - name: Delete Syslog server
       scale_computing.hypercore.syslog_server:
-        host: 10.5.11.222 # [ REQUIRED ]
+        host: 1.2.3.4 # [ REQUIRED ]
         state: absent
+
+    - name: Create Syslog server again
+      scale_computing.hypercore.syslog_server:
+        host: "{{ syslog_server }}"
+        state: present
 
     # ------------- Module syslog_server_list_info
     - name: List all Syslog servers
