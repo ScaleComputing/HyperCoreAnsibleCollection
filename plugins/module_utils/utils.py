@@ -130,7 +130,7 @@ def filter_results(results, filter_data) -> list[Any]:
 
 
 def is_changed(
-    before: Union[TypedOidcToAnsible, TypedRegistrationToAnsible, None],
-    after: Union[TypedOidcToAnsible, TypedRegistrationToAnsible, None],
+    before: Union[str, TypedOidcToAnsible, TypedRegistrationToAnsible, None],
+    after: Union[str, TypedOidcToAnsible, TypedRegistrationToAnsible, None],
 ) -> bool:
     return not before == after

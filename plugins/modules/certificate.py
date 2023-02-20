@@ -59,21 +59,32 @@ from ..module_utils import arguments, errors
 from ..module_utils.utils import is_changed
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.typed_classes import TypedDiff, TypedCertificateToAnsible, TypedTaskTag
+from ..module_utils.typed_classes import (
+    TypedDiff,
+    TypedTaskTag,
+)
 from ..module_utils.task_tag import TaskTag
 
 from typing import Union, Tuple
-import requests, ssl
+import ssl
+from time import sleep
 
 
-def get_certificate(module: AnsibleModule, rest_client: RestClient) -> str:
-    host = module.params["cluster_instance"]["host"].replace("https://", "").replace("http://", "")
+def get_certificate(module: AnsibleModule) -> str:
+    host = (
+        module.params["cluster_instance"]["host"]
+        .replace("https://", "")
+        .replace("http://", "")
+    )
     cert = ssl.get_server_certificate((host, 443))
     return cert
 
 
 def upload_cert(module: AnsibleModule, rest_client: RestClient) -> TypedTaskTag:
-    payload = dict(certificate=module.params["certificate"], privateKey=module.params["private_key"])
+    payload = dict(
+        certificate=module.params["certificate"],
+        privateKey=module.params["private_key"],
+    )
     response = rest_client.create_record("/rest/v1/Certificate", payload, False)
     return response
 
@@ -81,17 +92,30 @@ def upload_cert(module: AnsibleModule, rest_client: RestClient) -> TypedTaskTag:
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
-) -> Tuple[bool, Union[TypedCertificateToAnsible, None], TypedDiff, bool]:
-    before = get_certificate(module, rest_client)
-    task = upload_cert(module, rest_client)
-    TaskTag.wait_task(rest_client, task)
-    after = get_certificate(module, rest_client)
+) -> Tuple[bool, Union[str, None], TypedDiff]:
+    before = get_certificate(module)
+    if before.replace("\n", "") == module.params["certificate"].replace("\n", ""):
+        return False, None, dict(before=None, after=None)
+    else:
+        task = upload_cert(module, rest_client)
+        max_retries = 10
+        for ii in range(max_retries):
+            try:
+                TaskTag.wait_task(rest_client, task)
+                break
+            except errors.ScaleComputingError as ex:  # ConnectionRefusedError not working
+                if str(ex) == "[Errno 111] Connection refused":
+                    sleep(2)
+                    continue
+                else:
+                    raise
+        after = get_certificate(module)
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedCertificateToAnsible, None], TypedDiff, bool]:
+) -> Tuple[bool, Union[str, None], TypedDiff]:
     return ensure_present(module, rest_client)
 
 
@@ -103,6 +127,7 @@ def main() -> None:
             private_key=dict(
                 type="str",
                 required=True,
+                no_log=True,
             ),
             certificate=dict(
                 type="str",
