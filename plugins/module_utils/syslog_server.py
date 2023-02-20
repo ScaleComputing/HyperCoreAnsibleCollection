@@ -47,7 +47,6 @@ class SyslogServer(PayloadMapper):
     def from_ansible(cls, ansible_data: TypedSyslogServerFromAnsible):
         return SyslogServer(
             uuid=ansible_data["uuid"],
-            alert_tag_uuid=ansible_data["alert_tag_uuid"],
             host=ansible_data["host"],
             port=ansible_data["port"],
             protocol=ansible_data["protocol"],
@@ -70,12 +69,9 @@ class SyslogServer(PayloadMapper):
 
     def to_hypercore(self) -> dict[Any, Any]:
         return dict(
-            alertTagUUID=self.alert_tag_uuid,
             host=self.host,
             port=self.port,
             protocol=self.protocol,
-            resendDelay=self.resend_delay,
-            silentPeriod=self.silent_period,
         )
 
     def to_ansible(self) -> TypedSyslogServerToAnsible:

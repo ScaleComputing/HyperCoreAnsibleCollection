@@ -16,8 +16,8 @@
       scale_computing.hypercore.syslog_server:
         host: 10.5.11.222 # [ REQUIRED ]
         host_new: 1.2.3.4 # host IP to update the existing one with [ OPTIONAL ] -> if not specified, CREATE will be made.
-        port: 514 # can also be different than the existing  [ OPTIONAL ]
-        protocol: udp # can also be different than the existing  [ OPTIONAL ]
+        port: 514 # can also be different from the existing  [ OPTIONAL ]
+        protocol: udp # can also be different from the existing  [ OPTIONAL ]
         state: present # absent --> create, delete [ REQUIRED ]
 
     # When deleting, only "host" param is required.

@@ -1,0 +1,177 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+
+  vars:
+    default_port: 514
+    tcp_protocol: SYSLOG_PROTOCOL_TCP
+    udp_protocol: SYSLOG_PROTOCOL_UDP
+    create_syslog_server:
+      host: 0.0.0.0
+      port: 42
+      protocol: tcp
+    new_host: 1.2.3.4
+
+  block:
+    - name: Get starting hosts
+      scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.set_fact:
+        starting_servers: "{{ info.records }}"
+
+    # -----------------------------------------------------------
+
+    - name: Get current syslog_server
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/AlertSyslogTarget
+      register: api_syslog_server_result
+
+    - name: Remove current syslog_server
+      scale_computing.hypercore.api:
+        action: delete
+        endpoint: /rest/v1/AlertSyslogTarget/{{ item.uuid }}
+      loop: "{{ api_syslog_server_result.record }}"
+
+    # -----------------------------------------------------------
+
+    - name: Create new Syslog server - REQUIRED ONLY
+      scale_computing.hypercore.syslog_server:
+        host: "{{ create_syslog_server.host }}"
+        state: present
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - ansible.builtin.assert: &test0
+        that:
+          - result.record != {}
+          - result.record.keys() | sort ==
+            [ 'alert_tag_uuid', 'host', 'latest_task_tag', 'port',
+            'protocol', 'resend_delay', 'silent_period', 'uuid' ]
+          - info.records|length == 1|int
+          - info.records[0].host == "{{ create_syslog_server.host }}"
+          - info.records[0].port == default_port
+          - info.records[0].protocol == "{{ udp_protocol }}"
+
+    - name: Create new Syslog server - REQUIRED ONLY - idempotence
+      scale_computing.hypercore.syslog_server:
+        host: "{{ create_syslog_server.host }}"
+        state: present
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - ansible.builtin.assert: *test0
+
+    - name: Update Syslog server
+      scale_computing.hypercore.syslog_server: '{{ create_syslog_server | combine({"state": "present"}) }}'
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - ansible.builtin.assert: &test1
+        that:
+          - result.record != {}
+          - result.record.keys() | sort ==
+            [ 'alert_tag_uuid', 'host', 'latest_task_tag', 'port',
+            'protocol', 'resend_delay', 'silent_period', 'uuid' ]
+          - info.records|length == 1|int
+          - info.records[0].host == "{{ create_syslog_server.host }}"
+          - info.records[0].port == create_syslog_server.port
+          - info.records[0].protocol == "{{ tcp_protocol }}"
+
+    - name: Update Syslog server - idempotence
+      scale_computing.hypercore.syslog_server: '{{ create_syslog_server | combine({"state": "present"}) }}'
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - ansible.builtin.assert: *test1
+
+    - name: Update Syslog server - HOST ONLY
+      scale_computing.hypercore.syslog_server:
+        host: "{{ create_syslog_server.host }}"
+        host_new: "{{ new_host }}"
+        state: present
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - ansible.builtin.assert: &test2
+        that:
+          - result.record != {}
+          - result.record.keys() | sort ==
+            [ 'alert_tag_uuid', 'host', 'latest_task_tag', 'port',
+            'protocol', 'resend_delay', 'silent_period', 'uuid' ]
+          - info.records|length == 1|int
+          - info.records[0].host == "{{ new_host }}"
+          - info.records[0].port == create_syslog_server.port
+          - info.records[0].protocol == "{{ tcp_protocol }}"
+
+    - name: Update Syslog server - HOST ONLY - idempotence
+      scale_computing.hypercore.syslog_server:
+        host: "{{ create_syslog_server.host }}"
+        host_new: "{{ new_host }}"
+        state: present
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - ansible.builtin.assert: *test2
+
+    - name: Delete Syslog server
+      scale_computing.hypercore.syslog_server:
+        host: "{{ new_host }}"
+        state: absent
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - ansible.builtin.assert: &test3
+        that:
+          - info.records|length == 0|int
+          - result.record == {}
+
+    - name: Delete Syslog server - idempotence
+      scale_computing.hypercore.syslog_server:
+        host: "{{ new_host }}"
+        state: absent
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - ansible.builtin.assert: *test3
+
+    # -----------------------------------------------------------
+
+# DEFAULTS:
+#  10.5.11.222
+#  514
+#  UDP

@@ -50,8 +50,9 @@ options:
     choices: [ present, absent ]
     description:
       - The desired state of the syslog server on HyperCore API.
-      - If I(state=present) and C(host_new) wasn't provided,
-        a new Syslog server will be added on the HyperCore API.
+      - If I(state=present) a new Syslog server will be added,
+        or existing Syslog server with matching C(host) will be updated.
+      - C(host) of existing Syslog server can be changed by specifying both C(host) and C(host_new).
       - If I(state=absent), the Syslog server with the provided
         C(host) will be removed from HyperCore API.
     required: True
@@ -130,17 +131,12 @@ def get_protocol(protocol: str):
     return UDP if protocol == "udp" else TCP
 
 
-def create_syslog_server(module: AnsibleModule, rest_client: RestClient):
-    syslog_server = SyslogServer.get_by_host(
-        host=module.params["host"], rest_client=rest_client
-    )
-
+def create_syslog_server(
+    syslog_server: SyslogServer, module: AnsibleModule, rest_client: RestClient
+):
     protocol = get_protocol(module.params["protocol"])
 
     # If that syslog server already exists, it will not be created again (no duplicates)
-    if syslog_server:
-        before = syslog_server.to_ansible()
-        return False, before, dict(before=before, after=before)
 
     # Otherwise, create that syslog server
     create_syserver = SyslogServer.create(
@@ -167,14 +163,12 @@ def build_new_entry(param_val, api_val, default):
     return new_entry
 
 
-def build_update_payload(
-    module: AnsibleModule, rest_client: RestClient, syslog_server: SyslogServer
-):
-    payload = {
-        "host": syslog_server.host,
-        "port": syslog_server.port,
-        "protocol": syslog_server.protocol,
-    }
+def build_update_payload(module: AnsibleModule, syslog_server: SyslogServer):
+    payload = dict(
+        host=syslog_server.host,
+        port=syslog_server.port,
+        protocol=syslog_server.protocol,
+    )
     if module.params["host_new"] and syslog_server.host != module.params["host_new"]:
         payload["host"] = module.params["host_new"]
     if (
@@ -189,26 +183,27 @@ def build_update_payload(
     return payload
 
 
-def update_syslog_server(module: AnsibleModule, rest_client: RestClient):
-    # Get record of old syslogServer by host
-    old_syserver = SyslogServer.get_by_host(
-        host=module.params["host"], rest_client=rest_client
-    )
+def update_syslog_server(
+    old_syserver: SyslogServer, module: AnsibleModule, rest_client: RestClient
+):
+    old_syserver_tmp = old_syserver
+    if not old_syserver:
+        if module.params["host_new"]:
+            old_syserver_tmp = SyslogServer.get_by_host(
+                module.params["host_new"], rest_client
+            )
+    if not old_syserver_tmp:
+        return False, {}, dict(before={}, after={})
 
-    before = old_syserver.to_ansible()
-    payload = build_update_payload(module, rest_client, old_syserver)
-
-    module.warn("payload: " + str(payload))
+    before = old_syserver_tmp.to_ansible()
+    payload = build_update_payload(module, old_syserver_tmp)
+    before_payload = old_syserver_tmp.to_hypercore()
 
     # Return if there are no changes
-    if payload == {
-        "host": before.get("host"),
-        "port": before.get("port"),
-        "protocol": before.get("protocol"),
-    }:
+    if not before or payload == before_payload:
         return False, before, dict(before=before, after=before)
 
-    # Otherwise, update with new email address
+    # Otherwise, update with new parameters
     old_syserver.update(
         rest_client=rest_client,
         payload=payload,
@@ -227,11 +222,9 @@ def update_syslog_server(module: AnsibleModule, rest_client: RestClient):
     )  # changed, records, diff
 
 
-def delete_syslog_server(module: AnsibleModule, rest_client: RestClient):
-    delete_syserver = SyslogServer.get_by_host(
-        host=module.params["host"], rest_client=rest_client
-    )
-
+def delete_syslog_server(
+    delete_syserver: SyslogServer, module: AnsibleModule, rest_client: RestClient
+):
     if not delete_syserver:
         return False, {}, dict(before={}, after={})
 
@@ -251,23 +244,23 @@ def run(module: AnsibleModule, rest_client: RestClient):
     )
     state = module.params["state"]
     if state == "present":
-        if syslog_server:
-            return update_syslog_server(module, rest_client)
-        return create_syslog_server(module, rest_client)
+        if syslog_server or module.params["host_new"] is not None:
+            return update_syslog_server(syslog_server, module, rest_client)
+        return create_syslog_server(syslog_server, module, rest_client)
 
     # Else if state == "absent":
-    return delete_syslog_server(module, rest_client)
+    return delete_syslog_server(syslog_server, module, rest_client)
 
 
 def validate_params(module):
     params = []
-    if module.params["state"] != "present":
+    if module.params["state"] != "present":  # if state == "absent"
         if module.params["host_new"] is not None:
-            params += "host_new"
+            params.append("host_new")
         if module.params["port"] is not None:
-            params += "port"
+            params.append("port")
         if module.params["protocol"] is not None:
-            params += "protocol"
+            params.append("protocol")
 
     if params:
         msg = ", ".join(params) + " can be used only if state==present"
@@ -309,7 +302,7 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
-        validate_params(module)
+        # validate_params(module)  # might actually not be needed
         changed, record, diff = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
