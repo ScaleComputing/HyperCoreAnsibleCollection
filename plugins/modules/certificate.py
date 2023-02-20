@@ -49,7 +49,6 @@ record:
   returned: success
   type: dict
   sample:
-    private_key: this_is_the_private_key
     certificate: this_is_the_certificate
 """
 
@@ -94,10 +93,13 @@ def ensure_present(
     rest_client: RestClient,
 ) -> Tuple[bool, Union[str, None], TypedDiff]:
     before = get_certificate(module)
+    # Don't upload if not necessary
     if before.replace("\n", "") == module.params["certificate"].replace("\n", ""):
         return False, None, dict(before=None, after=None)
     else:
         task = upload_cert(module, rest_client)
+        # After certificate is uploaded the cluster loses connection
+        # Try 10 times to get task status
         max_retries = 10
         for ii in range(max_retries):
             try:
