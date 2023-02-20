@@ -121,19 +121,22 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.syslog_server import SyslogServer
+from ..module_utils.typed_classes import TypedSyslogServerToAnsible, TypedDiff
+from typing import List, Tuple, Union, Dict, Any
+
 
 UDP = "SYSLOG_PROTOCOL_UDP"  # default
 TCP = "SYSLOG_PROTOCOL_TCP"
 DEFAULT_PORT = 514
 
 
-def get_protocol(protocol: str):
+def get_protocol(protocol: str) -> str:
     return UDP if protocol == "udp" else TCP
 
 
 def create_syslog_server(
-    syslog_server: SyslogServer, module: AnsibleModule, rest_client: RestClient
-):
+    module: AnsibleModule, rest_client: RestClient
+) -> Tuple[bool, TypedSyslogServerToAnsible, TypedDiff]:
     protocol = get_protocol(module.params["protocol"])
 
     # If that syslog server already exists, it will not be created again (no duplicates)
@@ -156,14 +159,18 @@ def create_syslog_server(
     )  # changed, records, diff
 
 
-def build_new_entry(param_val, api_val, default):
+def build_new_entry(
+    param_val: Union[str, int], api_val: Union[str, int], default: Union[str, int]
+) -> Any:
     new_entry = api_val
     if param_val and (param_val != default and param_val != api_val):
         new_entry = param_val
     return new_entry
 
 
-def build_update_payload(module: AnsibleModule, syslog_server: SyslogServer):
+def build_update_payload(
+    module: AnsibleModule, syslog_server: SyslogServer
+) -> Dict[Any, Any]:
     payload = dict(
         host=syslog_server.host,
         port=syslog_server.port,
@@ -185,13 +192,13 @@ def build_update_payload(module: AnsibleModule, syslog_server: SyslogServer):
 
 def update_syslog_server(
     old_syserver: SyslogServer, module: AnsibleModule, rest_client: RestClient
-):
+) -> Tuple[bool, Union[TypedSyslogServerToAnsible, Dict[None, None]], TypedDiff]:
     old_syserver_tmp = old_syserver
     if not old_syserver:
         if module.params["host_new"]:
             old_syserver_tmp = SyslogServer.get_by_host(
                 module.params["host_new"], rest_client
-            )
+            )  # type: ignore
     if not old_syserver_tmp:
         return False, {}, dict(before={}, after={})
 
@@ -213,7 +220,7 @@ def update_syslog_server(
     new_syserver = SyslogServer.get_by_host(
         host=payload["host"], rest_client=rest_client
     )
-    after = new_syserver.to_ansible()
+    after = new_syserver.to_ansible()  # type: ignore
 
     return (
         after != before,
@@ -224,7 +231,7 @@ def update_syslog_server(
 
 def delete_syslog_server(
     delete_syserver: SyslogServer, module: AnsibleModule, rest_client: RestClient
-):
+) -> Tuple[bool, Union[TypedSyslogServerToAnsible, Dict[None, None]], TypedDiff]:
     if not delete_syserver:
         return False, {}, dict(before={}, after={})
 
@@ -238,21 +245,23 @@ def delete_syslog_server(
     )  # changed, records, diff
 
 
-def run(module: AnsibleModule, rest_client: RestClient):
+def run(
+    module: AnsibleModule, rest_client: RestClient
+) -> Tuple[bool, Union[TypedSyslogServerToAnsible, Dict[None, None]], TypedDiff]:
     syslog_server = SyslogServer.get_by_host(
         host=module.params["host"], rest_client=rest_client
     )
     state = module.params["state"]
     if state == "present":
         if syslog_server or module.params["host_new"] is not None:
-            return update_syslog_server(syslog_server, module, rest_client)
-        return create_syslog_server(syslog_server, module, rest_client)
+            return update_syslog_server(syslog_server, module, rest_client)  # type: ignore
+        return create_syslog_server(module, rest_client)
 
     # Else if state == "absent":
-    return delete_syslog_server(syslog_server, module, rest_client)
+    return delete_syslog_server(syslog_server, module, rest_client)  # type: ignore
 
 
-def validate_params(module):
+def validate_params(module: AnsibleModule) -> None:
     params = []
     if module.params["state"] != "present":  # if state == "absent"
         if module.params["host_new"] is not None:

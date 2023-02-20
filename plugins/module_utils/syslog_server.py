@@ -10,7 +10,6 @@ __metaclass__ = type
 
 from .rest_client import RestClient
 
-# from .client import Client
 from ..module_utils.utils import PayloadMapper, get_query
 from ..module_utils.task_tag import TaskTag
 
@@ -19,7 +18,7 @@ from ..module_utils.typed_classes import (
     TypedSyslogServerToAnsible,
     TypedSyslogServerFromAnsible,
 )
-from typing import Union, Any, Dict
+from typing import List, Union, Any, Dict
 
 
 class SyslogServer(PayloadMapper):
@@ -44,7 +43,7 @@ class SyslogServer(PayloadMapper):
         self.latest_task_tag = latest_task_tag if latest_task_tag is not None else {}
 
     @classmethod
-    def from_ansible(cls, ansible_data: TypedSyslogServerFromAnsible):
+    def from_ansible(cls, ansible_data: TypedSyslogServerFromAnsible) -> SyslogServer:
         return SyslogServer(
             uuid=ansible_data["uuid"],
             host=ansible_data["host"],
@@ -53,7 +52,9 @@ class SyslogServer(PayloadMapper):
         )
 
     @classmethod
-    def from_hypercore(cls, hypercore_data: dict[Any, Any]):
+    def from_hypercore(
+        cls, hypercore_data: Dict[Any, Any]
+    ) -> Union[SyslogServer, None]:
         if not hypercore_data:
             return None
         return cls(
@@ -67,7 +68,7 @@ class SyslogServer(PayloadMapper):
             latest_task_tag=hypercore_data["latestTaskTag"],
         )
 
-    def to_hypercore(self) -> dict[Any, Any]:
+    def to_hypercore(self) -> Dict[Any, Any]:
         return dict(
             host=self.host,
             port=self.port,
@@ -109,12 +110,12 @@ class SyslogServer(PayloadMapper):
         ansible_dict: Dict[Any, Any],
         rest_client: RestClient,
         must_exist: bool = False,
-    ):
+    ) -> Union[SyslogServer, None]:
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
         hypercore_dict = rest_client.get_record(
             "/rest/v1/AlertSyslogTarget", query, must_exist=must_exist
         )
-        syslog_server_from_hypercore = cls.from_hypercore(hypercore_dict)
+        syslog_server_from_hypercore = cls.from_hypercore(hypercore_dict)  # type: ignore
         return syslog_server_from_hypercore
 
     @classmethod
@@ -123,21 +124,21 @@ class SyslogServer(PayloadMapper):
         host: str,
         rest_client: RestClient,
         must_exist: bool = False,
-    ):
+    ) -> Union[SyslogServer, None]:
         hypercore_dict = rest_client.get_record(
             "/rest/v1/AlertSyslogTarget", {"host": host}, must_exist=must_exist
         )
 
-        syslog_server = SyslogServer.from_hypercore(hypercore_dict)
+        syslog_server = SyslogServer.from_hypercore(hypercore_dict)  # type: ignore
         return syslog_server
 
     @classmethod
     def get_state(
         cls,
         rest_client: RestClient,
-    ):
+    ) -> List[Union[TypedSyslogServerToAnsible, None]]:
         state = [
-            SyslogServer.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
+            cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
             for hypercore_dict in rest_client.list_records(
                 "/rest/v1/AlertSyslogTarget/"
             )
@@ -151,7 +152,7 @@ class SyslogServer(PayloadMapper):
         rest_client: RestClient,
         payload: Dict[Any, Any],
         check_mode: bool = False,
-    ):
+    ) -> SyslogServer:
         task_tag = rest_client.create_record(
             "/rest/v1/AlertSyslogTarget/", payload, check_mode
         )
@@ -161,7 +162,7 @@ class SyslogServer(PayloadMapper):
             rest_client,
             must_exist=True,
         )
-        return syslog_server
+        return syslog_server  # type: ignore
 
     def update(
         self,
