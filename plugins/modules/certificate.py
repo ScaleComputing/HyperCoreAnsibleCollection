@@ -103,8 +103,9 @@ def ensure_present(
             try:
                 TaskTag.wait_task(rest_client, task)
                 break
-            except errors.ScaleComputingError as ex:  
-                # ConnectionRefusedError not working
+            except (
+                errors.ScaleComputingError
+            ) as ex:  # ConnectionRefusedError not working
                 if str(ex) == "[Errno 111] Connection refused":
                     sleep(2)
                     continue
