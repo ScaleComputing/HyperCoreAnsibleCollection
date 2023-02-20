@@ -130,6 +130,8 @@ def create_email_alert(module: AnsibleModule, rest_client: RestClient):
         payload=dict(emailAddress=module.params["email"]),
         check_mode=module.check_mode,
     )
+
+    # after = create_email.to_ansible()
     after = create_email.to_ansible()
     return (
         True,
@@ -174,7 +176,7 @@ def update_email_alert(module: AnsibleModule, rest_client: RestClient):
     after = new_email.to_ansible()
 
     return (
-        after != before,
+        True,
         after,
         dict(before=before, after=after),
     )  # changed, records, diff
