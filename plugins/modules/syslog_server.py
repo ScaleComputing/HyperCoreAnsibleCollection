@@ -159,15 +159,6 @@ def create_syslog_server(
     )  # changed, records, diff
 
 
-def build_new_entry(
-    param_val: Union[str, int], api_val: Union[str, int], default: Union[str, int]
-) -> Any:
-    new_entry = api_val
-    if param_val and (param_val != default and param_val != api_val):
-        new_entry = param_val
-    return new_entry
-
-
 def build_update_payload(
     module: AnsibleModule, syslog_server: SyslogServer
 ) -> Dict[Any, Any]:
@@ -261,21 +252,6 @@ def run(
     return delete_syslog_server(syslog_server, module, rest_client)  # type: ignore
 
 
-def validate_params(module: AnsibleModule) -> None:
-    params = []
-    if module.params["state"] != "present":  # if state == "absent"
-        if module.params["host_new"] is not None:
-            params.append("host_new")
-        if module.params["port"] is not None:
-            params.append("port")
-        if module.params["protocol"] is not None:
-            params.append("protocol")
-
-    if params:
-        msg = ", ".join(params) + " can be used only if state==present"
-        module.fail_json(msg=msg)
-
-
 def main() -> None:
     module = AnsibleModule(
         supports_check_mode=False,
@@ -311,7 +287,6 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
-        # validate_params(module)  # might actually not be needed
         changed, record, diff = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
