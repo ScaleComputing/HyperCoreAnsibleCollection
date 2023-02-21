@@ -51,7 +51,6 @@ class TestModifySMTP:
             "smtp_server_param",
             "port_param",
             "use_ssl_param",
-            "use_auth_param",
             "auth_user_param",
             "auth_password_param",
             "from_address_param",
@@ -78,7 +77,6 @@ class TestModifySMTP:
                 # PARAMS
                 "test.com",
                 21,
-                False,
                 False,
                 "",
                 "",
@@ -108,7 +106,6 @@ class TestModifySMTP:
                 "test.com",
                 21,
                 True,
-                True,
                 "test",
                 "123",
                 "test@test.com",
@@ -137,7 +134,6 @@ class TestModifySMTP:
                 "test.com",
                 21,
                 False,
-                True,
                 "test",
                 "123",  # auth_password_param
                 "test@test.com",
@@ -171,7 +167,6 @@ class TestModifySMTP:
         smtp_server_param,
         port_param,
         use_ssl_param,
-        use_auth_param,
         auth_user_param,
         auth_password_param,
         from_address_param,
@@ -192,7 +187,6 @@ class TestModifySMTP:
                 server=smtp_server_param,
                 port=port_param,
                 use_ssl=use_ssl_param,
-                use_auth=use_auth_param,
                 auth_user=auth_user_param,
                 auth_password=auth_password_param,
                 from_address=from_address_param,
@@ -248,7 +242,6 @@ class TestModifySMTP:
                     server="test.com",
                     port=25,
                     use_ssl=True,
-                    use_auth=True,
                     auth_user="test",
                     auth_password="123",
                     from_address="test@test.com",
@@ -278,24 +271,11 @@ class TestMain:
             or "missing required arguments: server, port" in result["msg"]
         )
 
-    def test_required_if(self, run_main):
-        params = dict(
-            cluster_instance=self.cluster_instance,
-            server="test.com",
-            port=25,
-            use_auth=True,
-        )
-        success, result = run_main(smtp, params)
-
-        assert success is False
-        assert result["msg"]
-
     @pytest.mark.parametrize(
         (
             "server",
             "port",
             "use_ssl",
-            "use_auth",
             "auth_user",
             "auth_password",
             "from_address",
@@ -304,7 +284,6 @@ class TestMain:
             (
                 "test.com",
                 25,
-                True,
                 True,
                 "test",
                 "123",
@@ -317,12 +296,10 @@ class TestMain:
                 None,
                 None,
                 None,
-                None,
             ),
             (
                 "test.com",
                 25,
-                False,
                 False,
                 None,
                 None,
@@ -336,7 +313,6 @@ class TestMain:
         server,
         port,
         use_ssl,
-        use_auth,
         auth_user,
         auth_password,
         from_address,
@@ -345,7 +321,6 @@ class TestMain:
             cluster_instance=self.cluster_instance,
             server=server,
             port=port,
-            use_auth=use_auth,
             auth_user=auth_user,
             auth_password=auth_password,
             from_address=from_address,
