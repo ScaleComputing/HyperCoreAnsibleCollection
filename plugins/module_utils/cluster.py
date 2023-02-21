@@ -8,8 +8,10 @@ from __future__ import annotations
 
 __metaclass__ = type
 
+from time import sleep
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
+from ..module_utils.errors import ScaleComputingError
 from ..module_utils.typed_classes import TypedClusterToAnsible, TypedTaskTag
 from typing import Any
 
@@ -76,6 +78,24 @@ class Cluster(PayloadMapper):
     def shutdown(
         rest_client: RestClient, force_shutdown: bool = False, check_mode: bool = False
     ) -> None:
-        rest_client.create_record(
-            "/rest/v1/Cluster/shutdown", dict(forceShutdown=force_shutdown), check_mode
-        )
+        try:
+            rest_client.create_record(
+                "/rest/v1/Cluster/shutdown",
+                dict(forceShutdown=force_shutdown),
+                check_mode,
+            )
+        except ScaleComputingError as e:
+            # To avoid timeout when there are a lot of VMs to shutdown
+            if "Request timed out" in str(e):
+                try:
+                    while True:
+                        # get cluster until "[Errno 111] Connection refused"
+                        Cluster.get(rest_client)
+                        sleep(5)
+                except ScaleComputingError as e2:
+                    if "Connection refused" in str(e2):  # cluster is shutdown
+                        pass
+                    else:
+                        raise e2  # Some other unexpected error
+            else:
+                raise e  # UnexpectedAPIResponse error
