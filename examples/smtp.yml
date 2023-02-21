@@ -12,7 +12,6 @@
     server: smtp-relay.gmail.com
     port: 25
     use_ssl: false
-    use_auth: true
     auth_user: example
     auth_password: example123
     from_address: example@example.com
