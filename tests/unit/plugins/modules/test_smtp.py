@@ -224,7 +224,6 @@ class TestModifySMTP:
                 smtpServer=expected_smtp_server,
                 port=expected_port,
                 useSSL=expected_use_ssl,
-                useAuth=expected_use_auth,
                 authUser=expected_auth_user,
                 authPassword=expected_auth_password,
                 fromAddress=expected_from_address,

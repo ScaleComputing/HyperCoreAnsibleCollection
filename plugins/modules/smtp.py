@@ -169,7 +169,6 @@ def modify_smtp_config(
         smtpServer=module.params["server"],
         port=module.params["port"],
         useSSL=module.params["use_ssl"],
-        useAuth=module.params["use_auth"],
         authUser=new_auth_user,
         authPassword=new_auth_password,
         fromAddress=new_from_address,
@@ -204,9 +203,6 @@ def modify_smtp_config(
     new_use_ssl, new_use_ssl_change_needed = build_entry(
         before.get("use_ssl"), module.params["use_ssl"]
     )
-    new_use_auth, new_use_auth_change_needed = build_entry(
-        before.get("use_auth"), module.params["use_auth"]
-    )
     new_auth_user, new_auth_user_change_needed = build_entry(
         before.get("auth_user"), module.params["auth_user"]
     )
@@ -225,7 +221,6 @@ def modify_smtp_config(
         new_smtp_server_change_needed
         or new_port_change_needed
         or new_use_ssl_change_needed
-        or new_use_auth_change_needed
         or new_auth_user_change_needed
         or new_auth_password_change_needed
         or new_from_address_change_needed,
@@ -240,7 +235,6 @@ def modify_smtp_config(
         smtpServer=new_smtp_server,
         port=new_port,
         useSSL=new_use_ssl,
-        useAuth=new_use_auth,
         authUser=new_auth_user,
         authPassword=new_auth_password,
         fromAddress=new_from_address,
