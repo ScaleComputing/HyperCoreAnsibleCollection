@@ -1,0 +1,8 @@
+---
+major_changes:
+  - Added cluster_name and cluster_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/112)
+  - Added cluster_shutdown module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/117)
+
+minor_changes:
+  - Updated version check in cluster_name module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/123)
+  - Fixed timeout error in cluster_shutdown module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/127)

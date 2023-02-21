@@ -14,9 +14,9 @@ module: cluster_shutdown
 
 author:
   - Polona Mihalič (@PolonaM)
-short_description: Shutdown cluster.
+short_description: Shutdown the cluster.
 description:
-  - Shutdown cluster.
+  - Shutdown the cluster. All running VirDomains will be restarted on next system boot.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -72,7 +72,7 @@ def main() -> None:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
         shutdown = run(module, rest_client)
-        module.exit_json(shutdown=shutdown)
+        module.exit_json(changed=True, shutdown=shutdown)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 
