@@ -1,9 +1,11 @@
-name: CI tests
+name: integ-test
 on:
-  push:
+  schedule:
+    - cron: "0 6 * * *"
   workflow_dispatch:
     inputs:
       integ_tests_include:
+        type: string
         description: |-
           List integration tests to include.
           Use "*" to run all tests.
@@ -13,6 +15,7 @@ on:
       # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
       # git_issues - slow, do not run on each push. TODO - run them only once a day
       integ_tests_exclude:
+        type: string
         description: |-
           List integration tests to exclude.
           Use "*" to exclude all tests.
@@ -24,94 +27,17 @@ env:
 concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
+
 jobs:
-  mypy:
-    name: Type checks (mypy)
-    runs-on: [self-hosted]
-    container: python:3.10-slim-buster
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Install requirements
-        shell: bash
-        run: |
-          apt update
-          pip install --upgrade pip wheel
-          pip install mypy==0.991
-
-      - name: Link repo into the correct structure and run mypy
-        shell: bash
-        run: |
-          set -eux
-          mkdir -p $WORKDIR
-          cp -a ./  $WORKDIR
-          cd $WORKDIR
-          mypy -p plugins
-
-  docs:
-    runs-on: [ubuntu-latest]
-    container: python:3.10-slim-buster
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-        # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
-        #
-      - run: cd $WORKDIR && make docs
-      - run: cd $WORKDIR && ls -al docs/build/html
-
-  sanity-test:
-    runs-on: [ubuntu-latest]
-    container: python:3.10-slim-buster
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-      - run: pip install ansible-core==2.13.1
-        # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
-        # Same as "make sanity"
-        # TODO reuse Makefile
-      - run: cd $WORKDIR && black -t py38 --check --diff --color plugins tests/unit
-      - run: cd $WORKDIR && ansible-lint
-      - run: cd $WORKDIR && flake8 --exclude tests/output/
-      - run: cd $WORKDIR && ansible-test sanity
-
-  units-test:
-    runs-on: [ubuntu-latest]
-    container: python:3.10-slim-buster
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-      - run: pip install ansible-core==2.13.1
-        # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
-        # Same as "make units"
-        # TODO reuse Makefile
-      - run: cd $WORKDIR && ansible-test units --coverage
-      - run: cd $WORKDIR && ansible-test coverage html --requirements
-      - run: cd $WORKDIR && ansible-test coverage report --omit 'tests/*' --show-missing
-
+  # This should be run at least once before first integration tests run.
+  # As long as prepared HC3 host remains prepared, we do not need (except on very first run)
+  # to delay integ-test until integration-prepare-env finishes.
   integration-prepare-env:
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     env:
       DEBIAN_FRONTEND: noninteractive
       ANSIBLE_COLLECTIONS_PATH: /work-dir
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -134,21 +60,42 @@ jobs:
           ls -al tests/integration/integration_config.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
+    if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
+
+  integ-matrix:
+    runs-on: [ubuntu-latest]
+    container: python:3.10-slim-buster
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      ANSIBLE_COLLECTIONS_PATH: /work-dir
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: apt update
+      - run: apt install -y jq
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+      # We want to run all integ tests periodically - "integ_tests_include || '*'", the '*' is used.
+      # When running with workflow-dispatch, user is required to put some non-empty string into integ_tests_include.
+      - run: echo INTEG_TESTS_EXCLUDE="${{ github.event.inputs.integ_tests_exclude || '^no-test-to-exclude-awyvfks$' }}"
+      - run: echo INTEG_TESTS_INCLUDE="${{ github.event.inputs.integ_tests_include || '*' }}"
       - id: set-matrix
         shell: bash
         run: |-
           echo "matrix=$(
             ls -r $WORKDIR/tests/integration/targets |
-            grep -v -E "${{ github.event.inputs.integ_tests_exclude }}" |
-            grep -E "${{ github.event.inputs.integ_tests_include }}" |
+            grep -v -E "${{ github.event.inputs.integ_tests_exclude || '^no-test-to-exclude-awyvfks$' }}" |
+            grep -E "${{ github.event.inputs.integ_tests_include || '*' }}" |
             jq -R -s -c 'split("\n")[:-1]'
           )" >> $GITHUB_OUTPUT
-    if: "${{ github.event.inputs.integ_tests_include }}"
+    if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
 
-  integration-test:
+  integ:
     needs:
-      - integration-prepare-env
-      - units-test
+      - integ-matrix
+      # - units-test
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     env:
@@ -157,7 +104,7 @@ jobs:
       fail-fast: false
       matrix:
         # test_name: [user_info]
-        test_name: ${{ fromJson(needs.integration-prepare-env.outputs.matrix) }}
+        test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -181,7 +128,7 @@ jobs:
 
   replica_cleanup:
     needs:
-      - integration-test
+      - integ
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     env:
@@ -209,8 +156,8 @@ jobs:
 
   smb_cleanup:
     needs:
-      - integration-test
-    runs-on: [self-hosted]  # TODO
+      - integ
+    runs-on: [self-hosted2]
     container: python:3.10-slim-buster
     steps:
       - name: Checkout
