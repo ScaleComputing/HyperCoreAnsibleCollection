@@ -46,7 +46,6 @@ sc_config:
       port: 25
       use_ssl: false
       from_address: PUBx@scalecomputing.com
-      use_auth: false
       auth_user: ""
       auth_password: ""
     oidc:

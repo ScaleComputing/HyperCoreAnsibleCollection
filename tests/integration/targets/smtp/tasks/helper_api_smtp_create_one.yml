@@ -22,7 +22,6 @@
       # port: "{{ smtp_config.port | int }}"
       port: 25
       useSSL: "{{ smtp_config.use_ssl }}"
-      useAuth: "{{ smtp_config.use_auth }}"
       authUser: "{{ smtp_config.auth_user }}"
       authPassword: "{{ smtp_config.auth_password }}"
       fromAddress: "{{ smtp_config.from_address }}"

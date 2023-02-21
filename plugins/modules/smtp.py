@@ -285,11 +285,6 @@ def main() -> None:
                 default=False,
                 required=False,
             ),
-            use_auth=dict(
-                type="bool",
-                default=False,
-                required=False,
-            ),
             auth_user=dict(
                 type="str",
                 required=False,
@@ -304,16 +299,6 @@ def main() -> None:
                 required=False,
             ),
         ),
-        required_if=[
-            (
-                "use_auth",
-                True,
-                (
-                    "auth_user",
-                    "auth_password",
-                ),
-            )
-        ],
     )
 
     try:
