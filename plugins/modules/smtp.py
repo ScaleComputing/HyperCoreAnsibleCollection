@@ -43,12 +43,6 @@ options:
         in clear text. Ensure the SMTP server supports SSL/TLS connections.
     required: False
     default: False
-  use_auth:
-    type: bool
-    description:
-      - Enable/disable authentication with C(auth_user) and C(auth_password).
-    required: False
-    default: False
   auth_user:
     type: str
     description:
@@ -76,7 +70,6 @@ EXAMPLES = r"""
     server: smtp-relay.gmail.com
     port: 25
     use_ssl: false
-    use_auth: false
     from_address: example@example.com
 
 - name: Modify SMTP configuration (authorization enabled)
@@ -84,7 +77,6 @@ EXAMPLES = r"""
     server: smtp-relay.gmail.com
     port: 25
     use_ssl: false
-    use_auth: true
     auth_user: example
     auth_password: example123
     from_address: example@example.com
