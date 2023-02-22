@@ -116,6 +116,7 @@ jobs:
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
       - run: ansible-galaxy collection install community.crypto
+      - run: ansible-galaxy collection list
         # TODO - make integration_config.yml a reusable artifact/output of integration-prepare-env
       - run: |
           cd $WORKDIR
