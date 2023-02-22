@@ -5,6 +5,8 @@
     SC_PASSWORD: "{{ sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
 
+  connection: local
+
   block:
     - name: Get default cert from cluster
       community.crypto.get_certificate:
