@@ -360,13 +360,21 @@ class VM(PayloadMapper):
     @classmethod
     def get_by_old_or_new_name(cls, ansible_dict, rest_client, must_exist=False):
         vm_old_name = VM.get_by_name(ansible_dict, rest_client)
-        vm_new_name = VM.get_by_name(ansible_dict, rest_client, name_field="vm_name_new") if ansible_dict.get("vm_name_new") is not None else None
+        vm_new_name = (
+            VM.get_by_name(ansible_dict, rest_client, name_field="vm_name_new")
+            if ansible_dict.get("vm_name_new") is not None
+            else None
+        )
         if vm_old_name and vm_new_name:
             # Having two candidate VMs is error, we cannot decide which VM to modify.
-            raise errors.ScaleComputingError(f"More than one VM matches requirement vm_name=={ansible_dict['vm_name']} or vm_name_new=={ansible_dict['vm_name_new']}")
+            raise errors.ScaleComputingError(
+                f"More than one VM matches requirement vm_name=={ansible_dict['vm_name']} or vm_name_new=={ansible_dict['vm_name_new']}"
+            )
         vm = vm_old_name or vm_new_name
         if must_exist and vm is None:
-            raise errors.VMNotFound(f"vm_name={ansible_dict['vm_name']} or vm_name_new={ansible_dict['vm_name_new']}")
+            raise errors.VMNotFound(
+                f"vm_name={ansible_dict['vm_name']} or vm_name_new={ansible_dict['vm_name_new']}"
+            )
         return vm
 
     @classmethod
@@ -583,7 +591,7 @@ class VM(PayloadMapper):
         # Type is type of the device, for example disk or nic
         filtered_results = filter_results(results, query)
         if len(filtered_results) > 1:
-            raise ScaleComputingError(
+            raise errors.ScaleComputingError(
                 "{0} isn't uniquely identifyed by {1} in the VM.".format(
                     object_type, query
                 )
@@ -691,7 +699,7 @@ class VM(PayloadMapper):
             "scale_computing.hypercore.vm_nic",
         ):
             return False
-        raise ScaleComputingError(
+        raise errors.ScaleComputingError(
             "Setting disks and/or is currently only supported in two of the following modules:"
             "scale_computing.hypercore.vm_disk, scale_computing.hypercore.vm, scale_computing.hypercore.vm_nic"
         )
@@ -1047,7 +1055,7 @@ class ManageVMDisks:
         # It's important to check if items is equal to empty list and empty list only (no None-s)
         # This method is going to be called in vm_disk class only.
         if module.params["items"] != []:
-            raise ScaleComputingError(
+            raise errors.ScaleComputingError(
                 "If force set to true, items should be set to empty list"
             )
         # Delete all disks
@@ -1313,7 +1321,9 @@ class ManageVMNics(Nic):
             raise errors.MissingValueAnsible(
                 "items, cannot be null, empty must be set to []"
             )
-        updated_virtual_machine = VM.get_by_old_or_new_name(module.params, rest_client=rest_client)
+        updated_virtual_machine = VM.get_by_old_or_new_name(
+            module.params, rest_client=rest_client
+        )
         if module.params["state"] == NicState.set or not called_from_vm_nic:
             # Check if any nics need to be deleted from the vm
             if updated_virtual_machine.delete_unused_nics_to_hypercore_vm(
