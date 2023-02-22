@@ -23,6 +23,7 @@
           - cluster.record.name == "name_updated"
           - cluster.diff.before.name == cluster_initial.record.name
           - cluster.diff.after.name == "name_updated"
+      register: cluster # to catch assertion msg for always
     
     - name: Check if cluster name is updated
       scale_computing.hypercore.cluster_info:
@@ -30,6 +31,7 @@
     - ansible.builtin.assert:
         that:
           - cluster.record.name == "name_updated"
+      register: cluster # to catch assertion msg for always
     
     - name: Update cluster name - idempotence
       scale_computing.hypercore.cluster_name:
@@ -42,6 +44,7 @@
           - cluster.record.name == "name_updated"
           - cluster.diff.before.name == "name_updated"
           - cluster.diff.after.name == "name_updated"
+      register: cluster # to catch assertion msg for always
     
     - name: Retrieve cluster name
       scale_computing.hypercore.cluster_info:
@@ -49,6 +52,7 @@
     - ansible.builtin.assert:
         that:
           - cluster.record.name == "name_updated"
+      register: cluster # to catch assertion msg for always
     
     - name: Set back the initial cluster name
       scale_computing.hypercore.cluster_name:
@@ -61,6 +65,7 @@
           - cluster.record.name == cluster_initial.record.name
           - cluster.diff.before.name == "name_updated"
           - cluster.diff.after.name == cluster_initial.record.name
+      register: cluster # to catch assertion msg for always
     
     - name: Check if cluster name is updated
       scale_computing.hypercore.cluster_info:
@@ -68,6 +73,7 @@
     - ansible.builtin.assert:
         that:
           - cluster.record.name == cluster_initial.record.name
+      register: cluster # to catch assertion msg for always
 
   always:
     - name: Set back the initial cluster_name
@@ -76,6 +82,7 @@
         endpoint: /rest/v1/Cluster/{{ cluster_initial.record.uuid }}
         data:
           clusterName: "{{ cluster_config.name }}"
+      when: "'does not match required version' not in cluster.msg"
 
     - name: Get current cluster name
       scale_computing.hypercore.api:

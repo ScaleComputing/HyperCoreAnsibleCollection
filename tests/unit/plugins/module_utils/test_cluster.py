@@ -9,9 +9,13 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.cluster import (
     Cluster,
 )
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
+    MIN_PYTHON_VERSION,
+)
 
 pytestmark = pytest.mark.skipif(
-    sys.version_info < (3, 8), reason="requires python3.8 or higher"
+    sys.version_info < MIN_PYTHON_VERSION,
+    reason=f"requires python{MIN_PYTHON_VERSION[0]}.{MIN_PYTHON_VERSION[1]} or higher",
 )
 
 
@@ -102,5 +106,25 @@ class TestCluster:
         rest_client.update_record.assert_called_with(
             "/rest/v1/Cluster/51e6d073-7566-4273-9196-58720117bd7f",
             {"clusterName": "Updated_name"},
+            False,
+        )
+
+    def test_cluster_shutdown(self, rest_client):
+        force_shutdown = True
+
+        Cluster.shutdown(rest_client, force_shutdown)
+
+        rest_client.create_record.assert_called_with(
+            "/rest/v1/Cluster/shutdown",
+            {"forceShutdown": True},
+            False,
+        )
+
+    def test_cluster_shutdown_default_force_shutdown(self, rest_client):
+        Cluster.shutdown(rest_client)
+
+        rest_client.create_record.assert_called_with(
+            "/rest/v1/Cluster/shutdown",
+            {"forceShutdown": False},
             False,
         )

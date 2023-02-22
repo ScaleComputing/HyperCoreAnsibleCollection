@@ -32,6 +32,8 @@ sc_config:
       contact: <firstname secondname>
       email: someone@scalecomputing.com
       phone: "123 456 7890"
+    cluster_shutdown:
+      magic_allow_string: "oh-no-no"  # use "allow-cluster-shutdown-test" to allow this integration test
   <sc_host>:
     <<: *base_cfg
     cluster:
@@ -44,7 +46,6 @@ sc_config:
       port: 25
       use_ssl: false
       from_address: PUBx@scalecomputing.com
-      use_auth: false
       auth_user: ""
       auth_password: ""
     oidc:

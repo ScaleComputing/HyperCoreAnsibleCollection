@@ -43,12 +43,6 @@ options:
         in clear text. Ensure the SMTP server supports SSL/TLS connections.
     required: False
     default: False
-  use_auth:
-    type: bool
-    description:
-      - Enable/disable authentication with C(auth_user) and C(auth_password).
-    required: False
-    default: False
   auth_user:
     type: str
     description:
@@ -76,7 +70,6 @@ EXAMPLES = r"""
     server: smtp-relay.gmail.com
     port: 25
     use_ssl: false
-    use_auth: false
     from_address: example@example.com
 
 - name: Modify SMTP configuration (authorization enabled)
@@ -84,7 +77,6 @@ EXAMPLES = r"""
     server: smtp-relay.gmail.com
     port: 25
     use_ssl: false
-    use_auth: true
     auth_user: example
     auth_password: example123
     from_address: example@example.com
@@ -169,7 +161,6 @@ def modify_smtp_config(
         smtpServer=module.params["server"],
         port=module.params["port"],
         useSSL=module.params["use_ssl"],
-        useAuth=module.params["use_auth"],
         authUser=new_auth_user,
         authPassword=new_auth_password,
         fromAddress=new_from_address,
@@ -204,9 +195,6 @@ def modify_smtp_config(
     new_use_ssl, new_use_ssl_change_needed = build_entry(
         before.get("use_ssl"), module.params["use_ssl"]
     )
-    new_use_auth, new_use_auth_change_needed = build_entry(
-        before.get("use_auth"), module.params["use_auth"]
-    )
     new_auth_user, new_auth_user_change_needed = build_entry(
         before.get("auth_user"), module.params["auth_user"]
     )
@@ -225,7 +213,6 @@ def modify_smtp_config(
         new_smtp_server_change_needed
         or new_port_change_needed
         or new_use_ssl_change_needed
-        or new_use_auth_change_needed
         or new_auth_user_change_needed
         or new_auth_password_change_needed
         or new_from_address_change_needed,
@@ -240,7 +227,6 @@ def modify_smtp_config(
         smtpServer=new_smtp_server,
         port=new_port,
         useSSL=new_use_ssl,
-        useAuth=new_use_auth,
         authUser=new_auth_user,
         authPassword=new_auth_password,
         fromAddress=new_from_address,
@@ -291,11 +277,6 @@ def main() -> None:
                 default=False,
                 required=False,
             ),
-            use_auth=dict(
-                type="bool",
-                default=False,
-                required=False,
-            ),
             auth_user=dict(
                 type="str",
                 required=False,
@@ -310,16 +291,6 @@ def main() -> None:
                 required=False,
             ),
         ),
-        required_if=[
-            (
-                "use_auth",
-                True,
-                (
-                    "auth_user",
-                    "auth_password",
-                ),
-            )
-        ],
     )
 
     try:
