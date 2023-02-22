@@ -110,8 +110,11 @@ class TestPresent:
         results = certificate.ensure_present(module, rest_client)
         assert results == (
             True,
-            "this_certificate",
-            {"before": "not_this_certificate", "after": "this_certificate"},
+            {"certificate": "this_certificate"},
+            {
+                "before": {"certificate": "not_this_certificate"},
+                "after": {"certificate": "this_certificate"},
+            },
         )
 
 

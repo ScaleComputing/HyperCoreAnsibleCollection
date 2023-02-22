@@ -61,6 +61,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import (
     TypedDiff,
     TypedTaskTag,
+    TypedCertificateToAnsible,
 )
 from ..module_utils.task_tag import TaskTag
 
@@ -91,10 +92,12 @@ def upload_cert(module: AnsibleModule, rest_client: RestClient) -> TypedTaskTag:
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
-) -> Tuple[bool, Union[str, None], TypedDiff]:
-    before = get_certificate(module)
+) -> Tuple[bool, Union[TypedCertificateToAnsible, None], TypedDiff]:
+    before: TypedCertificateToAnsible = dict(certificate=get_certificate(module))
     # Don't upload if not necessary
-    if before.replace("\n", "") == module.params["certificate"].replace("\n", ""):
+    if before["certificate"].replace("\n", "") == module.params["certificate"].replace(
+        "\n", ""
+    ):
         return False, None, dict(before=None, after=None)
     else:
         task = upload_cert(module, rest_client)
@@ -113,13 +116,13 @@ def ensure_present(
                     continue
                 else:
                     raise errors.ScaleComputingError(ex)
-        after = get_certificate(module)
+        after: TypedCertificateToAnsible = dict(certificate=get_certificate(module))
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[str, None], TypedDiff]:
+) -> Tuple[bool, Union[TypedCertificateToAnsible, None], TypedDiff]:
     return ensure_present(module, rest_client)
 
 

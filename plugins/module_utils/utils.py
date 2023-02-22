@@ -17,6 +17,7 @@ from ..module_utils.typed_classes import (
     TypedTaskTag,
     TypedRegistrationToAnsible,
     TypedOidcToAnsible,
+    TypedCertificateToAnsible,
 )
 
 
@@ -130,7 +131,11 @@ def filter_results(results, filter_data) -> list[Any]:
 
 
 def is_changed(
-    before: Union[str, TypedOidcToAnsible, TypedRegistrationToAnsible, None],
-    after: Union[str, TypedOidcToAnsible, TypedRegistrationToAnsible, None],
+    before: Union[
+        TypedCertificateToAnsible, TypedOidcToAnsible, TypedRegistrationToAnsible, None
+    ],
+    after: Union[
+        TypedCertificateToAnsible, TypedOidcToAnsible, TypedRegistrationToAnsible, None
+    ],
 ) -> bool:
     return not before == after
