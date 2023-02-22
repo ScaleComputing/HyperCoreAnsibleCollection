@@ -5,12 +5,14 @@
   gather_facts: false
 
   tasks:
-    # More info about openssl_privatekey module (https://docs.ansible.com/ansible/latest/collections/community/crypto/openssl_privatekey_module.html)
+    # More info about openssl_privatekey module
+    # (https://docs.ansible.com/ansible/latest/collections/community/crypto/openssl_privatekey_module.html)
     - name: generate private key with openSSL
       community.crypto.openssl_privatekey:
         path: private_key_example.pem
 
-    # More info about openssl_csr module (https://docs.ansible.com/ansible/latest/collections/community/crypto/openssl_csr_module.html#parameter-authority_cert_issuer)
+    # More info about openssl_csr module
+    # (https://docs.ansible.com/ansible/latest/collections/community/crypto/openssl_csr_module.html#parameter-authority_cert_issuer)
     - name: Generate an OpenSSL Certificate Signing Request
       community.crypto.openssl_csr:
         path: crs_example.csr
@@ -23,20 +25,18 @@
         state_or_province_name: CA
         locality_name: San Francisco
 
-    # More info about x509_certificate module (https://docs.ansible.com/ansible/latest/collections/community/crypto/x509_certificate_module.html#ansible-collections-community-crypto-x509-certificate-module) 
+    # More info about x509_certificate module
+    # (https://docs.ansible.com/ansible/latest/collections/community/crypto/x509_certificate_module.html#ansible-collections-community-crypto-x509-certificate-module)
     - name: Generate a Self Signed OpenSSL certificate with generated private_key and certificate signing request
       community.crypto.x509_certificate:
         path: certificate_example.crt
         csr_path: crs_example.csr
         privatekey_path: private_key_example.pem
         provider: selfsigned
-    
+
     - name: upload generated certificate and private_key with certificate module
       scale_computing.hypercore.certificate:
         cluster_instance:
-          host: 'https://10.5.11.50'
-          username: 'xlab'
-          password: 'xlab2022'
         private_key: "{{ lookup('file', 'private_key_example.pem') }}"
         certificate: "{{ lookup('file', 'certificate_example.crt') }}"
       register: certificate_info
