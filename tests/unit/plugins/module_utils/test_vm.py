@@ -4104,6 +4104,7 @@ class TestManageVMNics:
             )
         )
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        rest_client.get_record.return_value = self._get_empty_test_vm()
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
@@ -4132,6 +4133,7 @@ class TestManageVMNics:
             )
         )
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        rest_client.get_record.return_value = self._get_empty_test_vm()
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
@@ -4166,10 +4168,11 @@ class TestManageVMNics:
         ]
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
         rest_client.get_record.side_effect = [
-            self._get_nic_1_dict(),
-            {"state": ""},
+            self._get_nic_1_dict(),  # virtio
+            self._get_nic_2(),  # RTL8139
             self._get_nic_2(),
             {"state": ""},
+            self._get_empty_test_vm(),
         ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -4250,10 +4253,11 @@ class TestManageVMNics:
         ]
         rest_client.list_records.return_value = [self._get_empty_test_vm()]
         rest_client.get_record.side_effect = [
-            self._get_nic_1_dict(),
-            {"state": ""},
+            self._get_nic_1_dict(),  # virtio
+            self._get_nic_2(),  # RTL8139
             self._get_nic_2(),
             {"state": ""},
+            self._get_empty_test_vm(),
         ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
