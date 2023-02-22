@@ -1,0 +1,22 @@
+---
+# Reset certificate values in the webUI
+# Generate test private key and sign test certificate with openSSL
+
+- name: Replace current certificate values
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/Certificate
+    data:
+      certificate: "{{ certificate.certificate_default }}"
+      privateKey: "{{ certificate.private_key_default }}"
+  register: api_certificate_result
+  until: api_certificate_result is succeeded
+
+- name: Wait N sec - Cluster needs to finish login
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/TaskTag/{{ api_certificate_result.record.taskTag }}
+  register: api_tasktag_result
+  retries: 5
+  delay: 5
+  until: api_tasktag_result.record[0].state == "COMPLETE"

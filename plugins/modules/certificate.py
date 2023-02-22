@@ -23,12 +23,12 @@ seealso: []
 options:
   certificate:
     description:
-      - File containing the X.509 PEM-encode certificate.
+      - File location containing the X.509 PEM-encode certificate.
     type: str
     required: true
   private_key:
     description:
-      - File containing the RSA PEM-encoded private key.
+      - File location containing the RSA PEM-encoded private key.
     type: str
     required: true
 notes:
@@ -38,7 +38,7 @@ notes:
 EXAMPLES = r"""
 - name: Upload new certificate
   scale_computing.hypercore.certificate:
-    private_key: "{{ lookup('file', 'private_key.key') }}"
+    private_key: "{{ lookup('file', 'private_key.pem') }}"
     certificate: "{{ lookup('file', 'scale_cert.cer') }}"
 """
 
@@ -112,7 +112,7 @@ def ensure_present(
                     sleep(2)
                     continue
                 else:
-                    raise
+                    raise errors.ScaleComputingError(ex)
         after = get_certificate(module)
     return is_changed(before, after), after, dict(before=before, after=after)
 
