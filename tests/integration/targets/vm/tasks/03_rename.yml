@@ -129,6 +129,50 @@
           - vm_info_b_result.records.0.description == "VM rename CI test"
           - vm_info_b_result.records.0.vm_name == "{{ vm_name_b }}"
 
+# ---------------------------------- vm_params rename ------------------------------------------------------------------------
+    # Rename VM b to a, no other params
+    - name: Rename VM {{ vm_name_b }} to {{ vm_name_a }} - vm_params
+      scale_computing.hypercore.vm_params:
+        vm_name: "{{ vm_name_b }}"
+        vm_name_new: "{{ vm_name_a }}"
+      register: vm_result
+    - name: Get info about VM {{ vm_name_a }}
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name_a }}"
+      register: vm_info_a_result
+    - name: Get info about VM {{ vm_name_b }}
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name_b }}"
+      register: vm_info_b_result
+    - ansible.builtin.assert:
+        that:
+          - vm_result is changed
+          - vm_info_a_result.records.0.description == "VM rename CI test"
+          - vm_info_a_result.records.0.vm_name == "{{ vm_name_a }}"
+          - vm_info_b_result.records == []
+
+# ---------------------------------- vm_params rename - Idempotence check------------------------------------------------------------------------
+    # Rename VM b to a, no other params - idempotence
+    - name: Rename VM {{ vm_name_a }} to {{ vm_name_b }} - vm_params, idempotence
+      scale_computing.hypercore.vm_params:
+        vm_name: "{{ vm_name_b }}"
+        vm_name_new: "{{ vm_name_a }}"
+      register: vm_result
+    - name: Get info about VM {{ vm_name_a }}
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name_a }}"
+      register: vm_info_a_result
+    - name: Get info about VM {{ vm_name_b }}
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name_b }}"
+      register: vm_info_b_result
+    - ansible.builtin.assert:
+        that:
+          - vm_result is not changed
+          - vm_info_a_result.records.0.description == "VM rename CI test"
+          - vm_info_a_result.records.0.vm_name == "{{ vm_name_a }}"
+          - vm_info_b_result.records == []
+
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
     - name: Delete the VMs
       scale_computing.hypercore.vm:
