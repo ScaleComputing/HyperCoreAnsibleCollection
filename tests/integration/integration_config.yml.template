@@ -34,6 +34,8 @@ sc_config:
       phone: "123 456 7890"
     cluster_shutdown:
       magic_allow_string: "oh-no-no"  # use "allow-cluster-shutdown-test" to allow this integration test
+    syslog_server:
+      host: 1.2.3.4
   <sc_host>:
     <<: *base_cfg
     cluster:
