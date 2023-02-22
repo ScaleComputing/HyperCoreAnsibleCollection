@@ -29,7 +29,6 @@ from ..module_utils.utils import (
 )
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
-from ..module_utils.errors import ScaleComputingError
 from ..module_utils.snapshot_schedule import SnapshotSchedule
 
 # FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE and FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE are mappings for how
@@ -359,13 +358,15 @@ class VM(PayloadMapper):
         return vm_from_hypercore
 
     @classmethod
-    def get_by_old_or_new_name(cls, ansible_dict, rest_client):
+    def get_by_old_or_new_name(cls, ansible_dict, rest_client, must_exist=False):
         vm_old_name = VM.get_by_name(ansible_dict, rest_client)
         vm_new_name = VM.get_by_name(ansible_dict, rest_client, name_field="vm_name_new") if ansible_dict.get("vm_name_new") is not None else None
         if vm_old_name and vm_new_name:
             # Having two candidate VMs is error, we cannot decide which VM to modify.
-            raise ScaleComputingError(f"More than one VM matches requirement vm_name=={ansible_dict['vm_name']} or vm_name_new=={ansible_dict['vm_name_new']}")
+            raise errors.ScaleComputingError(f"More than one VM matches requirement vm_name=={ansible_dict['vm_name']} or vm_name_new=={ansible_dict['vm_name_new']}")
         vm = vm_old_name or vm_new_name
+        if must_exist and vm is None:
+            raise errors.VMNotFound(f"vm_name={ansible_dict['vm_name']} or vm_name_new={ansible_dict['vm_name_new']}")
         return vm
 
     @classmethod
