@@ -115,6 +115,7 @@ jobs:
       - run: pip install ansible-core==2.13.1
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
+      - run: ansible-galaxy collection install community.crypto
         # TODO - make integration_config.yml a reusable artifact/output of integration-prepare-env
       - run: |
           cd $WORKDIR
