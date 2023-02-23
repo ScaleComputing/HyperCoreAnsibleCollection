@@ -117,8 +117,11 @@ jobs:
       - run: pip install ansible-core~=${{ matrix.ansible }}
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      - run: ansible-galaxy collection install community.crypto
-      - run: ansible-galaxy collection list
+      # We have ansible.cfg "for testing" in git repo
+      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+      # But it does affect ansible-galaxy and ansible-test commands.
+      - run: cd $WORKDIR && ansible-galaxy collection install community.crypto
+      - run: cd $WORKDIR && ansible-galaxy collection list
         # TODO - make integration_config.yml a reusable artifact/output of integration-prepare-env
       - run: |
           cd $WORKDIR
