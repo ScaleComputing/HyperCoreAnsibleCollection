@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from ansible_collections.scale_computing.hypercore.plugins.modules import cluster_name
+from ansible_collections.scale_computing.hypercore.plugins.modules import version_update
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
 )
@@ -25,16 +25,10 @@ class TestMain:
                 username=None,
                 password=None,
             ),
-            name_new="updated_name",
-        )
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.cluster_name.HyperCoreVersion"
-        )
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.cluster_name.HyperCoreVersion.verify"
+            icos_version="9.2.11.210763",
         )
 
-        success, result = run_main(cluster_name, params)
+        success, result = run_main(version_update, params)
 
         assert success is True
 
@@ -47,7 +41,7 @@ class TestMain:
             ),
         )
 
-        success, result = run_main(cluster_name, params)
+        success, result = run_main(version_update, params)
 
         assert success is False
-        assert "missing required arguments: name_new" in result["msg"]
+        assert "missing required arguments: icos_version" in result["msg"]
