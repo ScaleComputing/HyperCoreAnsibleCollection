@@ -1,0 +1,18 @@
+---
+# Remove AlertSyslogTarget config.
+
+- name: Get current AlertSyslogTarget
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/AlertSyslogTarget
+  register: syslog_server_config_result
+- name: Show current AlertSyslogTarget
+  ansible.builtin.debug:
+    var: syslog_server_config_result
+
+- name: Remove all existing AlertSyslogTarget configs
+  scale_computing.hypercore.api:
+    action: delete
+    endpoint: /rest/v1/AlertSyslogTarget/{{ item.uuid }}
+  with_items: "{{ syslog_server_config_result.record }}"
+# TODO wait on TaskTag
