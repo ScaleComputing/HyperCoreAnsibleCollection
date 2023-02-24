@@ -46,4 +46,4 @@
             'protocol', 'resend_delay', 'silent_period', 'uuid']
           - syslog_servers.records[0].host == "1.2.3.5"
           - syslog_servers.records[0].port == 514
-          - syslog_servers.records[0].protocol == "tcp"  # fix in module syslog_server_info needed here
+          - syslog_servers.records[0].protocol == "tcp"
