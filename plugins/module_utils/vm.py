@@ -1250,16 +1250,14 @@ class ManageVMNics(Nic):
         changed = False
         called_from_vm_nic = not VM.called_from_vm_module(module_path)
         nic_key = "items" if called_from_vm_nic else "nics"
-        virtual_machine_obj_list = VM.get_or_fail(
-            query={"name": module.params["vm_name"]}, rest_client=rest_client
+        vm_before = VM.get_by_old_or_new_name(
+            module.params, rest_client=rest_client, must_exist=True
         )
         if module.params[nic_key]:
             for nic in module.params[nic_key]:
-                nic["vm_uuid"] = virtual_machine_obj_list[0].uuid
+                nic["vm_uuid"] = vm_before.uuid
                 nic = Nic.from_ansible(ansible_data=nic)
-                existing_hc3_nic, existing_hc3_nic_with_new = virtual_machine_obj_list[
-                    0
-                ].find_nic(
+                existing_hc3_nic, existing_hc3_nic_with_new = vm_before.find_nic(
                     vlan=nic.vlan,
                     mac=nic.mac,
                     vlan_new=nic.vlan_new,
@@ -1275,7 +1273,7 @@ class ManageVMNics(Nic):
                         reboot,
                     ) = ManageVMNics.send_update_nic_request_to_hypercore(
                         module,
-                        virtual_machine_obj_list[0],
+                        vm_before,
                         rest_client,
                         nic,
                         existing_hc3_nic_with_new,
@@ -1294,7 +1292,7 @@ class ManageVMNics(Nic):
                         reboot,
                     ) = ManageVMNics.send_update_nic_request_to_hypercore(
                         module,
-                        virtual_machine_obj_list[0],
+                        vm_before,
                         rest_client,
                         nic,
                         existing_hc3_nic,
@@ -1310,14 +1308,14 @@ class ManageVMNics(Nic):
                         reboot,
                     ) = ManageVMNics.send_create_nic_request_to_hypercore(
                         module,
-                        virtual_machine_obj_list[0],
+                        vm_before,
                         rest_client=rest_client,
                         new_nic=nic,
                         before=before,
                         after=after,
                     )
         elif module.params[nic_key] == []:  # empty set in ansible, delete all
-            for nic in virtual_machine_obj_list[0].nic_list:
+            for nic in vm_before.nic_list:
                 before.append(nic.to_ansible())
         else:
             raise errors.MissingValueAnsible(
@@ -1332,12 +1330,12 @@ class ManageVMNics(Nic):
                 module, rest_client, nic_key
             )[0]:
                 changed = True
-                virtual_machine_obj_list[0].reboot = True
+                vm_before.reboot = True
         if called_from_vm_nic:
             return (
                 changed,
                 after,
                 dict(before=before, after=after),
-                virtual_machine_obj_list[0].reboot,
+                vm_before.reboot,
             )
-        return changed, virtual_machine_obj_list[0].reboot
+        return changed, vm_before.reboot
