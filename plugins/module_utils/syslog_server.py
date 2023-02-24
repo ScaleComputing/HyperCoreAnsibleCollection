@@ -147,7 +147,7 @@ class SyslogServer(PayloadMapper):
         ]
 
         for s in state:
-            s["protocol"] = protocols[s["protocol"]]
+            s["protocol"] = protocols[s["protocol"]]  # type: ignore
 
         return state
 
