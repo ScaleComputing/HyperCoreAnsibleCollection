@@ -1,0 +1,23 @@
+---
+# Create AlertSyslogTarget config.
+# Assumes all AlertSyslogTarget were deleted before.
+
+# Create/POST, not update/PATCH!
+- name: Create a desired AlertSyslogTarget config
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/AlertSyslogTarget
+    data:
+      host: "{{ syslog_server_config.host }}"
+      # port: "{{ (syslog_server_config.port | default(514)) | int }}"  # problem with value having str type, not int.
+      protocol: "{{ (syslog_server_config.protocol | default('udp') == 'udp') | ternary('SYSLOG_PROTOCOL_UDP', 'SYSLOG_PROTOCOL_TCP') }}"
+# TODO wait on TaskTag
+
+- name: Get current AlertSyslogTarget
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/AlertSyslogTarget
+  register: syslog_server_config_result
+- name: Show current AlertSyslogTarget
+  ansible.builtin.debug:
+    var: syslog_server_config_result

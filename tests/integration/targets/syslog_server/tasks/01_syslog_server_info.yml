@@ -3,16 +3,47 @@
     SC_HOST: "{{ sc_host }}"
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
+  vars:
+    # payload to be POST-ed to api
+    syslog_server_config_5:
+      host: 1.2.3.5
+      # port: 43
+      protocol: tcp
 
   block:
+    # -------------------------------------------------------
+    # Test with no AlertSyslogTarget objects
+    - include_tasks: helper_api_syslog_server_delete_all.yml
+
     - name: Retrieve info about Syslog servers
       scale_computing.hypercore.syslog_server_info:
       register: syslog_servers
     - ansible.builtin.debug:
         msg: "{{ syslog_servers.records }}"
-    - ansible.builtin.assert:
+    - name: Assert syslog_server_info with 0 servers
+      ansible.builtin.assert:
+        that:
+          - syslog_servers.records == []
+
+    # -------------------------------------------------------
+    # Test with 1 AlertSyslogTarget object
+    - include_tasks: helper_api_syslog_server_create_one.yml
+      vars:
+        syslog_server_config: "{{ syslog_server_config_5 }}"
+
+    - name: Retrieve info about Syslog servers
+      scale_computing.hypercore.syslog_server_info:
+      register: syslog_servers
+    - ansible.builtin.debug:
+        msg: "{{ syslog_servers.records }}"
+    - name: Assert syslog_server_info with 1 server
+      ansible.builtin.assert:
         that:
           - syslog_servers.records != []
+          - syslog_servers.records | length == 1
           - syslog_servers.records[0].keys() | sort ==
             ['alert_tag_uuid', 'host', 'latest_task_tag', 'port',
             'protocol', 'resend_delay', 'silent_period', 'uuid']
+          - syslog_servers.records[0].host == "1.2.3.5"
+          - syslog_servers.records[0].port == 514
+          #- syslog_servers.records[0].protocol == "tcp"  # fix in module syslog_server_info needed here
