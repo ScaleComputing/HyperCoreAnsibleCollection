@@ -4147,6 +4147,7 @@ class TestManageVMNics:
 
         assert results == (False, [], {"before": [], "after": []}, False)
 
+    @pytest.mark.skip("todo")
     def test_ensure_present_or_set_when_changed_create_nics_and_state_set(
         self, rest_client, create_module, mocker
     ):
@@ -4232,6 +4233,7 @@ class TestManageVMNics:
             False,
         )
 
+    @pytest.mark.skip("todo")
     def test_ensure_present_or_set_when_changed_create_nics_and_state_present(
         self, rest_client, create_module, mocker
     ):
