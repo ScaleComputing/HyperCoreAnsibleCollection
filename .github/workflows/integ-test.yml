@@ -15,16 +15,17 @@ on:
       # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
       # git_issues - slow, do not run on each push. TODO - run them only once a day
       # oidc_config - during reconfiguration API returns 500/502 errors for other requests
+      # smtp - email_alert test requires a configured SMTP
       integ_tests_exclude:
         type: string
         description: |-
           List integration tests to exclude.
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
-        default: "^dns_config$|^cluster_shutdown$|^oidc_config$"
+        default: "^dns_config$|^cluster_shutdown$|^oidc_config$|^smtp$"
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
-  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^oidc_config$"
+  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^oidc_config$|^smtp$"
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 # Run only one workflow for specific branch.
 concurrency:
