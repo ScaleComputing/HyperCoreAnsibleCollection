@@ -409,7 +409,9 @@ class VM(PayloadMapper):
             vm_dict["operatingSystem"] = self.operating_system
         # state attribute is used by HC3 only during VM create.
         if self.power_state:
-            vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE[self.power_state]
+            vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE.get(
+                self.power_state, "unknown-power-state-sorry"
+            )
         if self.machine_type:
             vm_dict["machineType"] = FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE[
                 self.machine_type
