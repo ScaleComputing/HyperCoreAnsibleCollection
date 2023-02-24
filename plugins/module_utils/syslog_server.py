@@ -64,7 +64,7 @@ class SyslogServer(PayloadMapper):
             alert_tag_uuid=hypercore_data["alertTagUUID"],
             host=hypercore_data["host"],
             port=hypercore_data["port"],
-            protocol=hypercore_data["protocol"],
+            protocol=protocols[hypercore_data["protocol"]],
             resend_delay=hypercore_data["resendDelay"],
             silent_period=hypercore_data["silentPeriod"],
             latest_task_tag=hypercore_data["latestTaskTag"],
@@ -145,9 +145,6 @@ class SyslogServer(PayloadMapper):
                 "/rest/v1/AlertSyslogTarget/"
             )
         ]
-
-        for s in state:
-            s["protocol"] = protocols[s["protocol"]]  # type: ignore
 
         return state
 
