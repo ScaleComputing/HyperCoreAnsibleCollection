@@ -90,6 +90,28 @@ class TypedCertificateToAnsible(TypedDict):
     certificate: str
 
 
+# Update to ansible return dict.
+class TypedUpdateToAnsible(TypedDict):
+    uuid: str
+    description: str
+    change_log: str
+    build_id: int
+    major_version: int
+    minor_version: int
+    revision: int
+    timestamp: int
+
+
+# UpdateStatus to ansible return dict.
+class TypedUpdateStatusToAnsible(TypedDict):
+    status: str
+    from_build: str
+    to_build: str
+    to_version: str
+    percent: str
+    status_details: str
+
+
 # Ansible module return Diff dict {before:{} after:{}}
 class TypedDiff(TypedDict):
     before: Union[
@@ -100,6 +122,7 @@ class TypedDiff(TypedDict):
         TypedClusterToAnsible,
         TypedCertificateToAnsible,
         TypedSyslogServerToAnsible,
+        TypedUpdateToAnsible,
         None,
         dict[None, None],
     ]
