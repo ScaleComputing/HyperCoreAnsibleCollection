@@ -20,6 +20,8 @@ from ..module_utils.typed_classes import (
 )
 from typing import List, Union, Any, Dict
 
+protocols = {"SYSLOG_PROTOCOL_TCP": "tcp", "SYSLOG_PROTOCOL_UDP": "udp"}
+
 
 class SyslogServer(PayloadMapper):
     def __init__(
@@ -143,6 +145,9 @@ class SyslogServer(PayloadMapper):
                 "/rest/v1/AlertSyslogTarget/"
             )
         ]
+
+        for s in state:
+            s["protocol"] = protocols[s["protocol"]]
 
         return state
 

@@ -23,6 +23,9 @@ pytestmark = pytest.mark.skipif(
     reason=f"requires python{MIN_PYTHON_VERSION[0]}.{MIN_PYTHON_VERSION[1]} or higher",
 )
 
+PROTOCOL_TCP = "SYSLOG_PROTOCOL_TCP"
+ANSIBLE_TCP = "tcp"
+
 
 class TestSyslogServer:
     def setup_method(self):
@@ -31,7 +34,7 @@ class TestSyslogServer:
             alert_tag_uuid="0",
             host="0.0.0.0",
             port=42,
-            protocol="protocol",
+            protocol=PROTOCOL_TCP,
             resend_delay=123,
             silent_period=123,
             latest_task_tag={},
@@ -41,7 +44,7 @@ class TestSyslogServer:
             alertTagUUID="0",
             host="0.0.0.0",
             port=42,
-            protocol="protocol",
+            protocol=PROTOCOL_TCP,
             resendDelay=123,
             silentPeriod=123,
             latestTaskTag={},
@@ -49,14 +52,14 @@ class TestSyslogServer:
         self.to_hypercore_dict = dict(
             host="0.0.0.0",
             port=42,
-            protocol="protocol",
+            protocol=PROTOCOL_TCP,
         )
         self.ansible_dict = dict(
             uuid="test",
             alert_tag_uuid="0",
             host="0.0.0.0",
             port=42,
-            protocol="protocol",
+            protocol=PROTOCOL_TCP,
             resend_delay=123,
             silent_period=123,
             latest_task_tag={},
@@ -107,7 +110,7 @@ class TestSyslogServer:
             "alert_tag_uuid": "0",
             "host": "0.0.0.0",
             "port": 42,
-            "protocol": "protocol",
+            "protocol": ANSIBLE_TCP,
             "resend_delay": 123,
             "silent_period": 123,
             "latest_task_tag": {},
