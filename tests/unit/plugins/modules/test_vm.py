@@ -521,58 +521,78 @@ class TestEnsurePresent:
             ),
         )
 
-        rest_client.get_record.side_effect = [  # in VM.get_by_name
-            dict(  # vm_before
-                uuid="id",
-                nodeUUID="",
-                name="VM-name-unique",
-                tags="",
-                description="desc",
-                mem=42,
-                state="SHUTDOWN",
-                numVCPU=2,
-                netDevs=[],
-                blockDevs=[],
-                bootDevices=[],
-                attachGuestToolsISO=False,
-                operatingSystem=None,
-                affinityStrategy={
-                    "strictAffinity": False,
-                    "preferredNodeUUID": "",
-                    "backupNodeUUID": "",
-                },
-                snapshotScheduleUUID="snapshot-id",
-                machineType="scale-7.2",
-            ),
-            dict(  # vm_after
-                uuid="id",
-                nodeUUID="",
-                name="VM-name-updated",
-                tags="group",
-                description="desc-updated",
-                mem=42000,
-                state="SHUTDOWN",
-                numVCPU=2,
-                netDevs=[],
-                blockDevs=[],
-                bootDevices=[],
-                attachGuestToolsISO=False,
-                operatingSystem=None,
-                affinityStrategy={
-                    "strictAffinity": False,
-                    "preferredNodeUUID": "",
-                    "backupNodeUUID": "",
-                },
-                snapshotScheduleUUID="snapshot-id",
-                machineType="scale-7.2",
-            ),
-        ]
+        vm_a = vm.VM(
+            uuid="id",
+            node_uuid="",
+            name="VM-name-unique",
+            tags=[""],
+            description="desc",
+            memory=42,
+            power_state="shutdown",
+            vcpu=2,
+            nics=[],
+            disks=[],
+            boot_devices=[],
+            attach_guest_tools_iso=False,
+            operating_system="os_windows_server_2012",
+            node_affinity={
+                "strict_affinity": False,
+                "preferred_node": dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                ),
+                "backup_node": dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                ),
+            },
+            snapshot_schedule="snapshot-schedule-name",
+            machine_type="BIOS",
+        )
+        vm_b = vm.VM(
+            uuid="id",
+            node_uuid="",
+            name="VM-name-updated",
+            tags=["group"],
+            description="desc-updated",
+            memory=42000,
+            power_state="shutdown",
+            vcpu=2,
+            nics=[],
+            disks=[],
+            boot_devices=[],
+            attach_guest_tools_iso=False,
+            operating_system="os_windows_server_2012",
+            node_affinity={
+                "strict_affinity": False,
+                "preferred_node": dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                ),
+                "backup_node": dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                ),
+            },
+            snapshot_schedule="snapshot-schedule-name",
+            machine_type="BIOS",
+        )
+
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
-        ).return_value = None  # in VM.get_by_name
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.get_by_old_or_new_name"
+        ).side_effect = [vm_a, vm_b]
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
-        ).return_value = None  # in VM.get_by_name
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.get_by_name"
+        ).side_effect = [vm_b]
+
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
         ).return_value = (True, True)
@@ -587,7 +607,8 @@ class TestEnsurePresent:
         ).return_value = (False, False)
 
         result = vm.ensure_present(module, rest_client)
-        assert result == (
+
+        expected_result = (
             True,
             [
                 {
@@ -613,9 +634,9 @@ class TestEnsurePresent:
                         },
                         "strict_affinity": False,
                     },
-                    "operating_system": None,
+                    "operating_system": "os_windows_server_2012",
                     "power_state": "shutdown",
-                    "snapshot_schedule": "",
+                    "snapshot_schedule": "snapshot-schedule-name",
                     "tags": ["group"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -646,9 +667,9 @@ class TestEnsurePresent:
                         },
                         "strict_affinity": False,
                     },
-                    "operating_system": None,
+                    "operating_system": "os_windows_server_2012",
                     "power_state": "shutdown",
-                    "snapshot_schedule": "",
+                    "snapshot_schedule": "snapshot-schedule-name",
                     "tags": ["group"],
                     "uuid": "id",
                     "vcpu": 2,
@@ -677,9 +698,9 @@ class TestEnsurePresent:
                         },
                         "strict_affinity": False,
                     },
-                    "operating_system": None,
+                    "operating_system": "os_windows_server_2012",
                     "power_state": "shutdown",
-                    "snapshot_schedule": "",
+                    "snapshot_schedule": "snapshot-schedule-name",
                     "tags": [""],
                     "uuid": "id",
                     "vcpu": 2,
@@ -688,6 +709,7 @@ class TestEnsurePresent:
             },
             False,
         )
+        assert expected_result == result
 
     def test_ensure_present_update_record_no_changes(
         self, create_module, rest_client, task_wait, mocker
@@ -719,52 +741,45 @@ class TestEnsurePresent:
             ),
         )
 
-        rest_client.get_record.side_effect = [
-            dict(
-                uuid="id",
-                nodeUUID="",
-                name="VM-name-updated",
-                tags="group",
-                description="desc-updated",
-                mem=42000,
-                state="SHUTDOWN",
-                numVCPU=2,
-                netDevs=[],
-                blockDevs=[],
-                bootDevices=[],
-                attachGuestToolsISO=False,
-                operatingSystem=None,
-                affinityStrategy={
-                    "strictAffinity": False,
-                    "preferredNodeUUID": "",
-                    "backupNodeUUID": "",
-                },
-                snapshotScheduleUUID="snapshot-id",
-                machineType="scale-7.2",
-            ),
-            dict(
-                uuid="id",
-                nodeUUID="",
-                name="VM-name-updated",
-                tags="group",
-                description="desc-updated",
-                mem=42000,
-                state="SHUTDOWN",
-                numVCPU=2,
-                netDevs=[],
-                blockDevs=[],
-                bootDevices=[],
-                attachGuestToolsISO=False,
-                operatingSystem=None,
-                affinityStrategy={
-                    "strictAffinity": False,
-                    "preferredNodeUUID": "",
-                    "backupNodeUUID": "",
-                },
-                snapshotScheduleUUID="snapshot-id",
-                machineType="scale-7.2",
-            ),
-        ]
+        vm_a = vm.VM(
+            uuid="id",
+            node_uuid="",
+            name="VM-name-updated",
+            tags="group",
+            description="desc-updated",
+            memory=42000,
+            power_state="shutdown",
+            vcpu=2,
+            nics=[],
+            disks=[],
+            boot_devices=[],
+            attach_guest_tools_iso="",
+            operating_system=None,
+            node_affinity={
+                "strict_affinity": False,
+                "preferred_node": dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                ),
+                "backup_node": dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                ),
+            },
+            snapshot_schedule="snapshot-id",
+            machine_type="BIOS",
+        )
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.get_by_old_or_new_name"
+        ).side_effect = [vm_a, vm_a]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.get_by_name"
+        ).side_effect = [vm_a]
+
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
         ).return_value = None
