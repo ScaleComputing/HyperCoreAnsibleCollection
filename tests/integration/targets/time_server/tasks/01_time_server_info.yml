@@ -5,18 +5,22 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   vars:
-    actual_uuid: ""
-    actual_host: ""
+    actual_uuid: "timesource_guid"
+    actual_host: "3.pool.ntp.org"
 
   block:
-    - name: Get expected configs
+    # -------------------------------------------------------
+    # Test with no TimeSource objects
+    - include_tasks: helper_api_time_server_delete_all.yml
+
+    - name: Check expected configs
       scale_computing.hypercore.api:
         action: get
-        endpoint: /rest/v1/TimeSource/timesource_guid
+        endpoint: /rest/v1/TimeSource
       register: time_server
-    - ansible.builtin.set_fact:
-        actual_host: "{{ time_server.record.0.host }}"
-        actual_uuid: "{{ time_server.record.0.uuid }}"
+    - ansible.builtin.assert:
+        that:
+          - time_server.record | length == 0
 
     - name: Retrieve info about Time Server
       scale_computing.hypercore.time_server_info:
@@ -25,7 +29,34 @@
         msg: "{{ result.record }}"
     - ansible.builtin.assert:
         that:
-          - result.record != []
+          - result.record == {}
+
+    # -------------------------------------------------------
+    # Test with 1 TimeSource objects
+    - include_tasks: helper_api_time_server_create_one.yml
+      vars:
+        time_server_config:
+          source: "{{ actual_host }}"
+
+    - name: Check expected configs
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/TimeSource
+      register: time_server
+    - ansible.builtin.assert:
+        that:
+          - time_server.record | length == 1
+          - actual_host == time_server.record.0.host
+          - actual_uuid == time_server.record.0.uuid
+
+    - name: Retrieve info about Time Server
+      scale_computing.hypercore.time_server_info:
+      register: result
+    - ansible.builtin.debug:
+        msg: "{{ result.record }}"
+    - ansible.builtin.assert:
+        that:
+          - result.record != {}
           - "{{ result.record.keys() | sort == ['host', 'latest_task_tag', 'uuid'] }}"
           - result.record.uuid == actual_uuid
           - result.record.host == actual_host
