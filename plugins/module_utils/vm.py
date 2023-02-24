@@ -976,7 +976,7 @@ class ManageVMDisks:
         Returns vm object and list of ansible disks (this combo is commonly used in this module).
         """
         # If there's no VM with such name, error is raised automatically
-        vm = VM.get_by_name(module.params, rest_client, must_exist=True)
+        vm = VM.get_by_old_or_new_name(module.params, rest_client, must_exist=True)
         return vm, [disk.to_ansible() for disk in vm.disks]
 
     @staticmethod
