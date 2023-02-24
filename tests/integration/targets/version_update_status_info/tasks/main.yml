@@ -1,0 +1,15 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  block:
+    - name: Get status of the latest update applied
+      scale_computing.hypercore.version_update_status_info:
+      register: update_status
+    - ansible.builtin.assert:
+        that:
+          - update_status.record != []
+          - update_status.record.keys() | sort == ['from_build', 'percent', 'status', 'status_details', 'to_build', 'to_version']
