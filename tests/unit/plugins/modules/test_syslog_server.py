@@ -27,8 +27,8 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-UDP = "SYSLOG_PROTOCOL_UDP"
-TCP = "SYSLOG_PROTOCOL_TCP"
+HYPERCORE_PROTOCOL_UDP = "SYSLOG_PROTOCOL_UDP"
+HYPERCORE_PROTOCOL_TCP = "SYSLOG_PROTOCOL_TCP"
 
 
 class TestModifySyslogServer:
@@ -40,7 +40,10 @@ class TestModifySyslogServer:
         )
         self.magic = mock.MagicMock()
 
-    @pytest.mark.parametrize(("protocol", "expected"), [("udp", UDP), ("tcp", TCP)])
+    @pytest.mark.parametrize(
+        ("protocol", "expected"),
+        [("udp", HYPERCORE_PROTOCOL_UDP), ("tcp", HYPERCORE_PROTOCOL_TCP)],
+    )
     def test_get_protocol(self, protocol, expected):
         result = syslog_server.get_protocol(protocol)
         assert result == expected
@@ -69,7 +72,7 @@ class TestModifySyslogServer:
                 alert_tag_uuid="0",
                 host="0.0.0.0",
                 port=42,
-                protocol=UDP,
+                protocol=HYPERCORE_PROTOCOL_UDP,
                 resend_delay=123,
                 silent_period=123,
                 latest_task_tag={},
@@ -90,7 +93,7 @@ class TestModifySyslogServer:
 
         called_with_dict = dict(
             rest_client=rest_client,
-            payload=dict(host="0.0.0.0", port=514, protocol=UDP),
+            payload=dict(host="0.0.0.0", port=514, protocol=HYPERCORE_PROTOCOL_UDP),
             check_mode=False,
         )
 
@@ -106,11 +109,11 @@ class TestModifySyslogServer:
     @pytest.mark.parametrize(
         ("host", "host_new", "port", "protocol", "expected"),
         [
-            ("0.0.0.0", "1.2.3.4", None, None, ("1.2.3.4", 514, UDP)),
-            ("0.0.0.0", "1.2.3.4", 42, "tcp", ("1.2.3.4", 42, TCP)),
-            ("0.0.0.0", "0.0.0.0", 42, None, ("0.0.0.0", 42, UDP)),
-            ("0.0.0.0", "0.0.0.0", None, "tcp", ("0.0.0.0", 514, TCP)),
-            ("0.0.0.0", "0.0.0.0", 42, "tcp", ("0.0.0.0", 42, TCP)),
+            ("0.0.0.0", "1.2.3.4", None, None, ("1.2.3.4", 514, "udp")),
+            ("0.0.0.0", "1.2.3.4", 42, "tcp", ("1.2.3.4", 42, "tcp")),
+            ("0.0.0.0", "0.0.0.0", 42, None, ("0.0.0.0", 42, "udp")),
+            ("0.0.0.0", "0.0.0.0", None, "tcp", ("0.0.0.0", 514, "tcp")),
+            ("0.0.0.0", "0.0.0.0", 42, "tcp", ("0.0.0.0", 42, "tcp")),
         ],
     )
     def test_build_update_payload(
@@ -134,7 +137,7 @@ class TestModifySyslogServer:
         _syslog_server = SyslogServer(
             host=host,
             port=514,
-            protocol=UDP,
+            protocol="udp",
         )
 
         result = syslog_server.build_update_payload(module, _syslog_server)
@@ -164,7 +167,7 @@ class TestModifySyslogServer:
                 # RC
                 "0.0.0.0",
                 42,
-                UDP,
+                "udp",
                 # PARAMS
                 "0.0.0.0",
                 "1.2.3.4",
@@ -173,14 +176,14 @@ class TestModifySyslogServer:
                 # EXPECTED
                 "1.2.3.4",
                 42,
-                UDP,
+                HYPERCORE_PROTOCOL_UDP,
                 True,
             ),
             (
                 # RC
                 "0.0.0.0",
                 42,
-                UDP,
+                "udp",
                 # PARAMS
                 "0.0.0.0",
                 "0.0.0.0",
@@ -189,7 +192,7 @@ class TestModifySyslogServer:
                 # EXPECTED
                 "0.0.0.0",
                 42,
-                UDP,
+                HYPERCORE_PROTOCOL_UDP,
                 False,
             ),
             (
@@ -212,7 +215,7 @@ class TestModifySyslogServer:
                 # RC
                 "1.2.3.4",
                 42,
-                UDP,
+                "udp",
                 # PARAMS
                 "0.0.0.0",
                 "1.2.3.4",
@@ -221,14 +224,14 @@ class TestModifySyslogServer:
                 # EXPECTED
                 "1.2.3.4",
                 42,
-                UDP,
+                HYPERCORE_PROTOCOL_UDP,
                 False,
             ),
             (
                 # RC
                 "0.0.0.0",
                 42,
-                UDP,
+                HYPERCORE_PROTOCOL_UDP,
                 # PARAMS
                 "0.0.0.0",
                 "0.0.0.0",
@@ -237,7 +240,7 @@ class TestModifySyslogServer:
                 # EXPECTED
                 "0.0.0.0",
                 32,
-                TCP,
+                HYPERCORE_PROTOCOL_TCP,
                 True,
             ),
         ],
@@ -311,9 +314,14 @@ class TestModifySyslogServer:
                 "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_by_host"
             ).return_value = rc_syslog_server
         else:
+            rc_expected_syslog_dict = expected_syslog_dict
+            if expected_protocol == HYPERCORE_PROTOCOL_UDP:
+                rc_expected_syslog_dict["protocol"] = "udp"
+            else:
+                rc_expected_syslog_dict["protocol"] = "tcp"
             mocker.patch(
                 "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_by_host"
-            ).return_value = SyslogServer(**expected_syslog_dict)
+            ).return_value = SyslogServer(**rc_expected_syslog_dict)
         rest_client.update_record.return_value = task_tag
 
         called_with_dict = dict(
@@ -332,6 +340,10 @@ class TestModifySyslogServer:
             old_payload = None
         else:
             old_payload = rc_syslog_server.to_hypercore()
+            if old_payload["protocol"] == "udp":
+                old_payload["protocol"] = HYPERCORE_PROTOCOL_UDP
+            else:
+                old_payload["protocol"] = HYPERCORE_PROTOCOL_TCP
 
         if (not old_payload) or called_with_dict.get("payload") == old_payload:
             SyslogServer.update.assert_not_called()
