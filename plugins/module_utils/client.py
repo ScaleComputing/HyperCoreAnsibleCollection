@@ -119,13 +119,13 @@ class Client:
             # TODO: Add other errors here; we need to handle them in modules.
             if (
                 isinstance(e.args, tuple)
-                and e.args is not None
+                and e.args
                 and type(e.args[0]) == ConnectionRefusedError
             ):
                 raise ConnectionRefusedError(e)
             elif (
                 isinstance(e.args, tuple)
-                and e.args is not None
+                and e.args
                 and type(e.args[0]) == ConnectionResetError
             ):
                 raise ConnectionResetError(e)
