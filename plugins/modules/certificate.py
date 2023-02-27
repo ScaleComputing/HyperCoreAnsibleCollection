@@ -105,7 +105,7 @@ def ensure_present(
         try:
             TaskTag.wait_task(rest_client, task)
             break
-        except (ConnectionRefusedError):
+        except ConnectionRefusedError:
             sleep(2)
             continue
         except ConnectionResetError:
