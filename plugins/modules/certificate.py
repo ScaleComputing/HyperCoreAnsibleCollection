@@ -112,7 +112,7 @@ def ensure_present(
             sleep(2)
             continue
     after: TypedCertificateToAnsible = dict(certificate=get_certificate(module))
-    return is_changed(before, after), after, dict(before=before, after=after)
+    return True, after, dict(before=before, after=after)
 
 
 def run(
