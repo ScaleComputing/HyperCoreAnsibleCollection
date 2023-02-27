@@ -1,0 +1,48 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+- name: Connect to cluster host
+  ansible.builtin.uri:
+    url: "{{ sc_host }}"
+    timeout: 5
+    validate_certs: false
+
+- name: Get all available VMs
+  scale_computing.hypercore.vm_info:
+  register: vms
+- ansible.builtin.debug:
+    var: vms
+
+- name: Shutdown VMs
+  scale_computing.hypercore.vm:
+    vm_name: "{{ item.vm_name }}"
+    power_state: shutdown
+  loop: "{{ vms }}"
+  register: vm_shutdown_result
+
+- name: Get available updates
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/Update
+  register: available_updates
+
+- name: Update HC3
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: "/rest/v1/Update/{{ item.uuid }}/apply"
+  when: available_updates
+  loop: "{{ available_updates }}"
+
+- name: Start VMs
+  scale_computing.hypercore.vm:
+    vm_name: "{{ item.vm_name }}"
+    power_state: start
+  loop: "{{ vms }}"
+  register: vm_start_result
+
+
+  # TODO: (integration) test for this role
