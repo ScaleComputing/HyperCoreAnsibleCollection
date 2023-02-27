@@ -1,0 +1,16 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+# Quick debugging, then tests
+  block:
+    - name: Get available updates
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/Update
+      register: available_updates
+    - ansible.builtin.debug:
+        var: available_updates
