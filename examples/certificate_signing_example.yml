@@ -1,5 +1,5 @@
 ---
-- name: Example - how to generate private keys and sign certificates with openSSL
+- name: Example - how to generate private keys and sign certificates with openSSL and upload to HyperCore server
   hosts: localhost
   connection: local
   gather_facts: false

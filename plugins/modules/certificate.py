@@ -49,7 +49,11 @@ record:
   returned: success
   type: dict
   sample:
-    certificate: this_is_the_certificate
+    certificate:|
+      -----BEGIN CERTIFICATE-----
+      MIIGKzCCBBOgAwIBAgIUWaGzXfgSUuwwPJu3F2Q/Ru/O8JQwDQYJKoZIhvcNAQEL
+      ...
+      -----END CERTIFICATE-----
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -90,33 +94,24 @@ def upload_cert(module: AnsibleModule, rest_client: RestClient) -> TypedTaskTag:
 
 
 def ensure_present(
-    module: AnsibleModule,
-    rest_client: RestClient,
+    module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Union[TypedCertificateToAnsible, None], TypedDiff]:
     before: TypedCertificateToAnsible = dict(certificate=get_certificate(module))
-    # Don't upload if not necessary
-    if before["certificate"].replace("\n", "") == module.params["certificate"].replace(
-        "\n", ""
-    ):
-        return False, None, dict(before=None, after=None)
-    else:
-        task = upload_cert(module, rest_client)
-        # After certificate is uploaded the cluster loses connection
-        # Try 10 times to get task status
-        max_retries = 10
-        for ii in range(max_retries):
-            try:
-                TaskTag.wait_task(rest_client, task)
-                break
-            except (
-                errors.ScaleComputingError
-            ) as ex:  # ConnectionRefusedError not working
-                if str(ex) == "[Errno 111] Connection refused":
-                    sleep(2)
-                    continue
-                else:
-                    raise errors.ScaleComputingError(ex)
-        after: TypedCertificateToAnsible = dict(certificate=get_certificate(module))
+    task = upload_cert(module, rest_client)
+    # After certificate is uploaded the cluster loses connection
+    # Try 10 times to get task status
+    max_retries = 10
+    for ii in range(max_retries):
+        try:
+            TaskTag.wait_task(rest_client, task)
+            break
+        except (ConnectionRefusedError):
+            sleep(2)
+            continue
+        except ConnectionResetError:
+            sleep(2)
+            continue
+    after: TypedCertificateToAnsible = dict(certificate=get_certificate(module))
     return is_changed(before, after), after, dict(before=before, after=after)
 
 

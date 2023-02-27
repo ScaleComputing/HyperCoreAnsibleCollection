@@ -66,27 +66,7 @@ class TestRun:
 
 
 class TestPresent:
-    def test_present_certificate_already_exist(
-        self, create_module, rest_client, mocker
-    ):
-        module = create_module(
-            params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0",
-                    username="admin",
-                    password="admin",
-                ),
-                private_key="this_key",
-                certificate="this_certificate",
-            )
-        )
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.certificate.get_certificate"
-        ).side_effect = ["this_certificate", "this_certificate"]
-        results = certificate.ensure_present(module, rest_client)
-        assert results == (False, None, dict(before=None, after=None))
-
-    def test_present_certificate_not_exist(self, create_module, rest_client, mocker):
+    def test_present_certificate(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
