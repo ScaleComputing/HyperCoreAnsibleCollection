@@ -1,0 +1,3 @@
+---
+major_changes:
+  - Added a role for cluster configuration (registration data, DNS resolver, SMPT server, email alert recipients, etc).

@@ -1,0 +1,15 @@
+---
+# input: cluster_config_expected, cluster_config_partial_update
+# cluster_config_partial_update is applied to cluster
+# cluster_config_expected is updated with cluster_config_partial_update, and this
+# is expected state on the server
+
+- ansible.builtin.set_fact:
+    cluster_config_expected: "{{ cluster_config_expected | combine(cluster_config_partial_update) }}"
+
+- name: Apply and test cluster_config_partial_update
+  include_tasks: apply_and_test.yml
+  vars:
+    dbg_suffix: "cluster_config_partial_update={{ cluster_config_partial_update }}"
+    cluster_config_applied: "{{ cluster_config_partial_update }}"
+    # cluster_config_expected: "{{ cluster_config_expected }}"  # is a global var/fact
