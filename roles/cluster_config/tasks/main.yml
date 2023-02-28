@@ -27,3 +27,12 @@
   when:
     - '"dns" in scale_computing_hypercore_cluster_config and scale_computing_hypercore_cluster_config.dns'
     - '"servers_ips" in scale_computing_hypercore_cluster_config.dns or "search_domains" in scale_computing_hypercore_cluster_config.dns'
+
+- name: Set OIDC configuration
+  scale_computing.hypercore.oidc_config:
+    client_id: "{{ scale_computing_hypercore_cluster_config.oidc.client_id }}"
+    shared_secret: "{{ scale_computing_hypercore_cluster_config.oidc.shared_secret | default(omit) }}"
+    certificate: "{{ scale_computing_hypercore_cluster_config.oidc.certificate | default(omit) }}"
+    config_url: "{{ scale_computing_hypercore_cluster_config.oidc.config_url }}"
+    scopes: "{{ scale_computing_hypercore_cluster_config.oidc.scopes }}"
+  when: scale_computing_hypercore_cluster_config.oidc | default(False)

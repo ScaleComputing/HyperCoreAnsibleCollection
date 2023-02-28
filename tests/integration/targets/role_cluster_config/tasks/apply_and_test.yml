@@ -20,6 +20,10 @@
   scale_computing.hypercore.dns_config_info:
   register: dns_config_info_result
 
+- name: Retrieve OIDC config - {{ dbg_suffix }}
+  scale_computing.hypercore.oidc_config_info:
+  register: oidc_config_info_result
+
 - name: Check state - {{ dbg_suffix }}
   ansible.builtin.assert:
     that:
@@ -30,3 +34,6 @@
       - registration_info_result.record.phone == cluster_config_expected.registration.phone
       - dns_config_info_result.record.server_ips == cluster_config_expected.dns.server_ips
       - dns_config_info_result.record.search_domains == cluster_config_expected.dns.search_domains
+      - oidc_config_info_result.record.client_id == cluster_config_expected.oidc.client_id
+      - oidc_config_info_result.record.config_url == cluster_config_expected.oidc.config_url
+      - oidc_config_info_result.record.scopes == cluster_config_expected.oidc.scopes
