@@ -8,6 +8,10 @@
     scale_computing_hypercore_cluster_config: "{{ cluster_config_applied }}"
 
 # check config is applied, for each setting
+- name: Retrieve cluster_info - {{ dbg_suffix }}
+  scale_computing.hypercore.cluster_info:
+  register: cluster_info_result
+
 - name: Retrieve DNS config - {{ dbg_suffix }}
   scale_computing.hypercore.dns_config_info:
   register: dns_config_info_result
@@ -15,5 +19,6 @@
 - name: Check state - {{ dbg_suffix }}
   ansible.builtin.assert:
     that:
+      - cluster_info_result.record.name == cluster_config_expected.name
       - dns_config_info_result.record.server_ips == cluster_config_expected.dns.server_ips
       - dns_config_info_result.record.search_domains == cluster_config_expected.dns.search_domains
