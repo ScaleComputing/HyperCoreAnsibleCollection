@@ -1,0 +1,49 @@
+---
+- name: Get state before update
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/Update
+  register: available_updates_before
+- ansible.builtin.debug:
+    var: available_updates_before
+
+- name: Get cluster HC3 API version before update
+  scale_computing.hypercore.cluster_info:
+  register: api_version_before
+- ansible.builtin.debug:
+    var: api_version_before
+
+# --------------------------------------------------------------
+
+- name: Run single-system update role
+  ansible.builtin.include_role:
+    name: version_update_single_node
+
+# --------------------------------------------------------------
+
+- name: Get state after update
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/Update
+  register: available_updates_after
+- ansible.builtin.debug:
+    var: available_updates_after
+
+- name: Get cluster HC3 API version after update
+  scale_computing.hypercore.cluster_info:
+  register: api_version_after
+- ansible.builtin.debug:
+    var: api_version_after
+
+# --------------------------------------------------------------
+
+- name: Assert that updates are not available anymore
+  ansible.builtin.assert:
+    that:
+      - available_updates_after != available_updates_before
+      - available_updates_after == []
+
+- name: Assert that api_version_after != api_version_before
+  ansible.builtin.assert:
+    that:
+      - api_version_after != api_version_before

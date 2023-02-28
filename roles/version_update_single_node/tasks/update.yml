@@ -1,0 +1,44 @@
+---
+- name: Get all available running VMs
+  scale_computing.hypercore.vm_info:
+  register: vms
+
+# -------------SHUTDOWN-ALL-RUNNING------------------
+
+- name: Show all running VMs
+  ansible.builtin.debug:
+    msg: "{{ item.vm_name }}"
+  when: item.power_state == 'started'
+  loop: "{{ vms.records }}"
+  register: running_vms
+
+- name: Shutdown running VMs
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ item.vm_name }}"
+    power_state: stop
+  when: item.power_state == 'started' or item.power_state == 'started'
+  loop: "{{ vms.records }}"
+  register: vm_shutdown_result
+- ansible.builtin.debug:
+    var: vm_shutdown_result
+
+# ---------------------UPDATE-----------------------
+
+#- name: Update HC3
+#  scale_computing.hypercore.api:
+#    action: post
+#    endpoint: "/rest/v1/Update/{{ item.uuid }}/apply"
+#  when: available_updates
+#  loop: "{{ available_updates.records }}"
+
+# -------------------RESTART-VMS--------------------
+
+- name: Start all VMs that were initially started
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ item.vm_name }}"
+    power_state: start
+  when: item.power_state == 'started'
+  loop: "{{ vms.records }}"
+  register: vm_start_result
+- ansible.builtin.debug:
+    var: vm_start_result
