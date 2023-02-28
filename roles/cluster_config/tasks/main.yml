@@ -10,6 +10,15 @@
     name_new: "{{ scale_computing_hypercore_cluster_config.name }}"
   when: scale_computing_hypercore_cluster_config.name | default(False)
 
+- name: Set registration data
+  scale_computing.hypercore.registration:
+    company_name: "{{ scale_computing_hypercore_cluster_config.registration.company_name }}"
+    contact: "{{ scale_computing_hypercore_cluster_config.registration.contact }}"
+    phone: "{{ scale_computing_hypercore_cluster_config.registration.phone }}"
+    email: "{{ scale_computing_hypercore_cluster_config.registration.email }}"
+    state: present
+  when: scale_computing_hypercore_cluster_config.registration | default(False)
+
 - name: Set DNS configuration
   scale_computing.hypercore.dns_config:
     dns_servers: "{{ scale_computing_hypercore_cluster_config.dns.server_ips | default(omit) }}"
