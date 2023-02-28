@@ -41,3 +41,8 @@
   scale_computing.hypercore.time_server:
     source: "{{ scale_computing_hypercore_cluster_config.time_server }}"
   when: scale_computing_hypercore_cluster_config.time_server | default(False)
+
+- name: Set time zone
+  scale_computing.hypercore.time_zone:
+    zone: "{{ scale_computing_hypercore_cluster_config.time_zone }}"
+  when: scale_computing_hypercore_cluster_config.time_zone | default(False)
