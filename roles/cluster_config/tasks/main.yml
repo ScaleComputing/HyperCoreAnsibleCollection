@@ -36,3 +36,8 @@
     config_url: "{{ scale_computing_hypercore_cluster_config.oidc.config_url }}"
     scopes: "{{ scale_computing_hypercore_cluster_config.oidc.scopes }}"
   when: scale_computing_hypercore_cluster_config.oidc | default(False)
+
+- name: Set time server
+  scale_computing.hypercore.time_server:
+    source: "{{ scale_computing_hypercore_cluster_config.time_server }}"
+  when: scale_computing_hypercore_cluster_config.time_server | default(False)
