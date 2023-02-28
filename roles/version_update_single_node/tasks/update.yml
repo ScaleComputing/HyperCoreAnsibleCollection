@@ -16,7 +16,7 @@
   scale_computing.hypercore.vm_params:
     vm_name: "{{ item.vm_name }}"
     power_state: stop
-  when: item.power_state == 'started' or item.power_state == 'started'
+  when: item.power_state == 'started'
   loop: "{{ vms.records }}"
   register: vm_shutdown_result
 
