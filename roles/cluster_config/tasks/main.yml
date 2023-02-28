@@ -1,0 +1,15 @@
+---
+# Role configures HyperCore to state specified in scale_computing_hypercore_cluster_config.
+# Partial (re)configuration is possible - missing configuration values are not reconfigured.
+# If you need to remove some configuration, you can:
+# - provide explicit empty value ("" or [] or {}) for given configuration entry
+# - or call corresponding plugin with state=absent
+
+- name: Set DNS configuration
+  scale_computing.hypercore.dns_config:
+    dns_servers: "{{ scale_computing_hypercore_cluster_config.dns.server_ips | default(omit) }}"
+    search_domains: "{{ scale_computing_hypercore_cluster_config.dns.search_domains | default(omit) }}"
+    state: set
+  when:
+    - '"dns" in scale_computing_hypercore_cluster_config and scale_computing_hypercore_cluster_config.dns'
+    - '"servers_ips" in scale_computing_hypercore_cluster_config.dns or "search_domains" in scale_computing_hypercore_cluster_config.dns'

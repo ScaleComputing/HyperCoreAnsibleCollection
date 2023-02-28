@@ -1,0 +1,109 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  vars:
+    cluster_config_a:
+      dns:
+        server_ips:
+          - 1.1.1.1
+          - 1.0.0.1
+        search_domains:
+          - subdomain_1.example.com
+          - subdomain_2.example.com
+    cluster_config_b:
+      dns:
+        server_ips:
+          - 8.8.8.8
+          - 8.8.4.4
+        search_domains:
+          - subdomain_3.example.com
+          - subdomain_4.example.com
+    # special values, they will set cluster to 'unconfigured' state.
+    cluster_config_empty:
+      dns:
+        server_ips: []
+        search_domains: []
+    # special values, they will not modify cluster - no known key in the dict
+    cluster_config_nochange_1:
+      # all 1st level keys intentionally missing
+    cluster_config_nochange_2:
+      # all 2nd level keys intentionally missing
+      dns:
+
+  block:
+    # ====================================================================================
+    # -----------------------------------------------------------------
+    # Apply cluster config A and test
+    - name: Apply and test cluster_config_a
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_a"
+        cluster_config_applied: "{{ cluster_config_a }}"
+        cluster_config_expected: "{{ cluster_config_a }}"
+
+    # -----------------------------------------------------------------
+    # Apply cluster_config_nochange and test
+    - name: Apply and test cluster_config_nochange_1 a
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_nochange_1 - a"
+        cluster_config_applied: "{{ cluster_config_nochange_1 }}"
+        cluster_config_expected: "{{ cluster_config_a }}"
+
+    - name: Apply and test cluster_config_nochange_2 a
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_nochange_2 - a"
+        cluster_config_applied: "{{ cluster_config_nochange_2 }}"
+        cluster_config_expected: "{{ cluster_config_a }}"
+
+    # -----------------------------------------------------------------
+    # Apply cluster_config_empty and test
+    - name: Apply and test cluster_config_empty
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_empty - a"
+        cluster_config_applied: "{{ cluster_config_empty }}"
+        cluster_config_expected: "{{ cluster_config_empty }}"
+
+    # ====================================================================================
+    # -----------------------------------------------------------------
+    # Apply cluster config B and test
+    - name: Apply and test cluster_config_b
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_b"
+        cluster_config_applied: "{{ cluster_config_b }}"
+        cluster_config_expected: "{{ cluster_config_b }}"
+
+    # -----------------------------------------------------------------
+    # Apply cluster_config_nochange and test
+    - name: Apply and test cluster_config_nochange_1 b
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_nochange_1 - b"
+        cluster_config_applied: "{{ cluster_config_nochange_1 }}"
+        cluster_config_expected: "{{ cluster_config_b }}"
+
+    - name: Apply and test cluster_config_nochange_2 b
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_nochange_2 - b"
+        cluster_config_applied: "{{ cluster_config_nochange_2 }}"
+        cluster_config_expected: "{{ cluster_config_b }}"
+
+    # ====================================================================================
+    # -----------------------------------------------------------------
+    # Partially apply cluster config A and test
+    # Start with empty cluster_config_partial, then gradually change it to cluster_config_a, one attribute at a time.
+    - ansible.builtin.set_fact:
+        cluster_config_expected: "{{ cluster_config_b }}"
+
+    - ansible.builtin.include_tasks: partial_update.yml
+      vars:
+        cluster_config_partial_update: "{{ {item.key: item.value} }}"
+      loop: "{{ cluster_config_a | dict2items }}"
