@@ -7,6 +7,12 @@
 
   vars:
     cluster_config_a:
+      name: cluster-a
+      registration:
+        company_name: New company a
+        contact: John Smith a
+        phone: 056789000
+        email: john_smith_a@gmail.com
       dns:
         server_ips:
           - 1.1.1.1
@@ -14,7 +20,36 @@
         search_domains:
           - subdomain_1.example.com
           - subdomain_2.example.com
+      oidc:
+        client_id: 12345a
+        shared_secret: secret_stuff_a
+        # certificate: plain_text_from_x509
+        config_url: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
+        scopes: openid+profile
+      time_server: 2.pool.ntp.org
+      time_zone: Europe/Ljubljana
+      smtp_config:
+        host: mail_a.example.com
+        port: 25
+        use_ssl: False
+        auth_user: ""
+        auth_password: ""
+        from_address: "ci-test-a@example.com"
+      email_alerts:
+        - user_a@test.com
+      syslog_servers:
+        - host: 10.10.10.10
+          port: 42
+          protocol: tcp
+      # maybe: setup also users, and SSL-cert.
+
     cluster_config_b:
+      name: cluster-b
+      registration:
+        company_name: New company b
+        contact: John Smith b
+        phone: 056789111
+        email: john_smith_b@gmail.com
       dns:
         server_ips:
           - 8.8.8.8
@@ -22,11 +57,42 @@
         search_domains:
           - subdomain_3.example.com
           - subdomain_4.example.com
+      oidc:
+        client_id: 12345b
+        shared_secret: secret_stuff_b
+        # certificate: plain_text_from_x509
+        config_url: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
+        scopes: openid+profile
+      time_server: 3.pool.ntp.org
+      time_zone: Europe/Zagreb
+      smtp_config:
+        host: mail_b.example.com
+        port: 25
+        use_ssl: True
+        auth_user: "smtp_user_b"
+        auth_password: "smtp_password_b"
+        from_address: "ci-test-b@example.com"
+      email_alerts:
+        - user_b@test.com
+      syslog_servers:
+        - host: 10.10.10.11
+          port: 43
+          protocol: udp
+
     # special values, they will set cluster to 'unconfigured' state.
     cluster_config_empty:
+      # name: - cannot be deleted
+      # registration: - call module with state=absent
       dns:
         server_ips: []
         search_domains: []
+      # oidc_config: - cannot be deleted
+      # time_server: - call module with state=absent
+      # time_zone: - call module with state=absent
+      # smtp_config: - cannot be deleted
+      email_alerts: []
+      syslog_servers: []
+
     # special values, they will not modify cluster - no known key in the dict
     cluster_config_nochange_1:
       # all 1st level keys intentionally missing
