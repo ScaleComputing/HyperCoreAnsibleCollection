@@ -4,8 +4,6 @@
     action: get
     endpoint: /rest/v1/Update
   register: available_updates
-- ansible.builtin.debug:
-    var: available_updates
 
 - name: Show available updates
   ansible.builtin.debug:

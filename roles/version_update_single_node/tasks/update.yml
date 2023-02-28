@@ -19,17 +19,19 @@
   when: item.power_state == 'started' or item.power_state == 'started'
   loop: "{{ vms.records }}"
   register: vm_shutdown_result
-- ansible.builtin.debug:
+
+- name: Show shutdown results
+  ansible.builtin.debug:
     var: vm_shutdown_result
 
 # ---------------------UPDATE-----------------------
 
-#- name: Update HC3
-#  scale_computing.hypercore.api:
-#    action: post
-#    endpoint: "/rest/v1/Update/{{ item.uuid }}/apply"
-#  when: available_updates
-#  loop: "{{ available_updates.records }}"
+# - name: Update HC3
+#   scale_computing.hypercore.api:
+#     action: post
+#     endpoint: "/rest/v1/Update/{{ item.uuid }}/apply"
+#   when: available_updates
+#   loop: "{{ available_updates.records }}"
 
 # -------------------RESTART-VMS--------------------
 
@@ -40,5 +42,7 @@
   when: item.power_state == 'started'
   loop: "{{ vms.records }}"
   register: vm_start_result
-- ansible.builtin.debug:
+
+- name: Show restart results
+  ansible.builtin.debug:
     var: vm_start_result
