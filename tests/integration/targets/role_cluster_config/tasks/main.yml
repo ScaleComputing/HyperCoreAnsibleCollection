@@ -36,7 +36,9 @@
         auth_password: ""
         from_address: "ci-test-a@example.com"
       email_alerts:
-        - user_a@test.com
+        - user_a1@test.com
+        - user_a2@test.com
+        - user_c@test.com
       syslog_servers:
         - host: 10.10.10.10
           port: 42
@@ -73,7 +75,9 @@
         auth_password: "smtp_password_b"
         from_address: "ci-test-b@example.com"
       email_alerts:
-        - user_b@test.com
+        - user_b2@test.com
+        - user_b1@test.com
+        - user_c@test.com
       syslog_servers:
         - host: 10.10.10.11
           port: 43

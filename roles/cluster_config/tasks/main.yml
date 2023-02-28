@@ -56,3 +56,27 @@
     auth_password: "{{ scale_computing_hypercore_cluster_config.smtp.auth_password | default(omit) }}"
     from_address: "{{ scale_computing_hypercore_cluster_config.smtp.from_address | default(omit) }}"
   when: scale_computing_hypercore_cluster_config.smtp | default(False)
+
+- name: Reconfigure email alert recipients
+  when: '"email_alerts" in scale_computing_hypercore_cluster_config'
+  block:
+    - name: Get old email alert recipients
+      scale_computing.hypercore.email_alert_info:
+      register: email_alert_info_result
+
+    - name: Remove old email alerts
+      scale_computing.hypercore.email_alert:
+        email: "{{ email_alert_recipient.email_address }}"
+        state: absent
+      loop: "{{ email_alert_info_result.records }}"
+      loop_control:
+        loop_var: email_alert_recipient
+      when: email_alert_recipient.email_address not in scale_computing_hypercore_cluster_config.email_alerts
+
+    - name: Set new email alerts
+      scale_computing.hypercore.email_alert:
+        email: "{{ email_address }}"
+        state: present
+      loop: "{{ scale_computing_hypercore_cluster_config.email_alerts }}"
+      loop_control:
+        loop_var: email_address

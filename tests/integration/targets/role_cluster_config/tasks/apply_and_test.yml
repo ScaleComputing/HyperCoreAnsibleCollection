@@ -36,6 +36,10 @@
   scale_computing.hypercore.smtp_info:
   register: smtp_info_result
 
+- name: Retrieve email alert configuration - {{ dbg_suffix }}
+  scale_computing.hypercore.email_alert_info:
+  register: email_alert_info_result
+
 - name: Check state - {{ dbg_suffix }}
   ansible.builtin.assert:
     that:
@@ -57,3 +61,4 @@
       - smtp_info_result.record.auth_user == cluster_config_expected.smtp.auth_user | default("")
       - smtp_info_result.record.auth_password == ""  # auth_password is always returned as "" by HC3 API
       - smtp_info_result.record.from_address == cluster_config_expected.smtp.from_address
+      - email_alert_info_result.records | map(attribute='email_address') | list | sort == cluster_config_expected.email_alerts | sort
