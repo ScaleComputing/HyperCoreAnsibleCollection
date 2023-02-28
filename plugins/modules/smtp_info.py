@@ -36,7 +36,7 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-results:
+record:
   description:
     - SMTP configuration record.
   returned: success

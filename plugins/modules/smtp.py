@@ -83,7 +83,7 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-results:
+record:
   description:
     - Output from modifying entries of the SMTP configuration on HyperCore API.
   returned: success
