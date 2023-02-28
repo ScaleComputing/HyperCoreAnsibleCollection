@@ -28,6 +28,10 @@
   scale_computing.hypercore.time_server_info:
   register: time_server_info_result
 
+- name: Retrieve time_zone - {{ dbg_suffix }}
+  scale_computing.hypercore.time_zone_info:
+  register: time_zone_info_result
+
 - name: Check state - {{ dbg_suffix }}
   ansible.builtin.assert:
     that:
@@ -42,3 +46,4 @@
       - oidc_config_info_result.record.config_url == cluster_config_expected.oidc.config_url
       - oidc_config_info_result.record.scopes == cluster_config_expected.oidc.scopes
       - time_server_info_result.record.host == cluster_config_expected.time_server
+      - time_zone_info_result.record.zone == cluster_config_expected.time_zone
