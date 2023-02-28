@@ -12,6 +12,10 @@
   scale_computing.hypercore.cluster_info:
   register: cluster_info_result
 
+- name: Retrieve registration_info - {{ dbg_suffix }}
+  scale_computing.hypercore.registration_info:
+  register: registration_info_result
+
 - name: Retrieve DNS config - {{ dbg_suffix }}
   scale_computing.hypercore.dns_config_info:
   register: dns_config_info_result
@@ -20,5 +24,9 @@
   ansible.builtin.assert:
     that:
       - cluster_info_result.record.name == cluster_config_expected.name
+      - registration_info_result.record.company_name == cluster_config_expected.registration.company_name
+      - registration_info_result.record.contact == cluster_config_expected.registration.contact
+      - registration_info_result.record.email == cluster_config_expected.registration.email
+      - registration_info_result.record.phone == cluster_config_expected.registration.phone
       - dns_config_info_result.record.server_ips == cluster_config_expected.dns.server_ips
       - dns_config_info_result.record.search_domains == cluster_config_expected.dns.search_domains
