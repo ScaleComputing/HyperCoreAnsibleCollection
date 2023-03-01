@@ -44,7 +44,7 @@ records:
       major_version: 9
       minor_version: 2
       revision: 11
-      timestamp: 0  # Why is there 0 in the list of updates?
+      timestamp: 0
 """
 
 from ansible.module_utils.basic import AnsibleModule

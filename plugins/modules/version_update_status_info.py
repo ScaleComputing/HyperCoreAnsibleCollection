@@ -15,7 +15,7 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Returns status of the latest update applied.
 description:
-  - Returns status of the latest update applied. Possible values are COMPLETE, IN PROGRESS, TERMINATING, TERMINATED # TODO: check for aditional ones
+  - Returns status of the latest update applied.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -52,7 +52,6 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
 from ..module_utils.hypercore_version import UpdateStatus
 from ..module_utils.typed_classes import TypedUpdateStatusToAnsible
-from typing import List, Union
 
 
 def run(rest_client: RestClient) -> TypedUpdateStatusToAnsible:
