@@ -118,14 +118,14 @@ class Client:
         except URLError as e:
             # TODO: Add other errors here; we need to handle them in modules.
             if (
-                isinstance(e.args, tuple)
-                and e.args
+                e.args
+                and isinstance(e.args, tuple)
                 and type(e.args[0]) == ConnectionRefusedError
             ):
                 raise ConnectionRefusedError(e)
             elif (
-                isinstance(e.args, tuple)
-                and e.args
+                e.args
+                and isinstance(e.args, tuple)
                 and type(e.args[0]) == ConnectionResetError
             ):
                 raise ConnectionResetError(e)
