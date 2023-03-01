@@ -43,13 +43,18 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Cluster info.
+    - Version applied.
   returned: success
   type: dict
   sample:
-    - icos_version: 9.2.11.210763
-      name: cluster_name
-      uuid: a5d9148c-37f7-4b43-843c-196751d3c050
+    - uuid: 9.2.11.210763
+      description: 9.1.11 General Availability
+      change_log: ...Please allow between 20-40 minutes per node for the update to complete...
+      build_id: 210763
+      major_version: 9
+      minor_version: 2
+      revision: 11
+      timestamp: 0
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -58,37 +63,33 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.cluster import Cluster
-from ..module_utils.hypercore_version import Update, UpdateStatus
-from ..module_utils.typed_classes import TypedClusterToAnsible, TypedDiff
-from typing import Tuple
-from time import sleep
+from ..module_utils.hypercore_version import Update
+from ..module_utils.typed_classes import TypedUpdateToAnsible, TypedDiff
+from typing import Tuple, Union, Dict, Any
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, TypedClusterToAnsible, TypedDiff]:
+) -> Tuple[bool, Union[TypedUpdateToAnsible, None], Dict[Any, Any]]:
     cluster = Cluster.get(rest_client)
     if cluster.icos_version == module.params["icos_version"]:
         return (
             False,
-            cluster.to_ansible(),
-            dict(before=cluster.to_ansible(), after=cluster.to_ansible()),
+            None,
+            dict(
+                before=dict(icos_version=cluster.icos_version),
+                after=dict(icos_version=cluster.icos_version),
+            ),
         )
-    Update.apply(rest_client, module.params["icos_version"])
-    while True:
-        sleep(30)
-        update_status = UpdateStatus.get(rest_client).status
-        if update_status == "IN PROGRESS":
-            pass
-        elif update_status == "COMPLETE":
-            break
-        else:
-            raise errors.UpdateNotSuccessfull
-    cluster_updated = Cluster.get(rest_client)
+    update = Update.get(rest_client, module.params["icos_version"], must_exist=True)
+    update.apply(rest_client)  # type: ignore
     return (
         True,
-        cluster_updated.to_ansible(),
-        dict(before=cluster.to_ansible(), after=cluster_updated.to_ansible()),
+        update.to_ansible(),  # type: ignore
+        dict(
+            before=dict(icos_version=cluster.icos_version),
+            after=dict(icos_version=update.uuid),  # type: ignore
+        ),
     )
 
 

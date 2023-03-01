@@ -14,6 +14,9 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.modules import (
     version_update_status_info,
 )
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import (
+    UpdateStatus,
+)
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
 )
@@ -28,7 +31,7 @@ class TestRun:
     def test_run(self, rest_client, mocker):
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.version_update_status_info.UpdateStatus.get"
-        ).return_value = dict(
+        ).return_value = UpdateStatus(
             from_build="207183",
             percent="100",
             status="COMPLETE",

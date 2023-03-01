@@ -174,7 +174,9 @@ class Update(PayloadMapper):
         pass
 
     @classmethod
-    def from_hypercore(cls, hypercore_data: dict[Any, Any]) -> Union[Update, None]:
+    def from_hypercore(
+        cls, hypercore_data: Union[dict[Any, Any], None]
+    ) -> Union[None, Update]:
         if not hypercore_data:
             return None
         return cls(
@@ -223,12 +225,22 @@ class Update(PayloadMapper):
             )
         )
 
-    @staticmethod
-    def apply(
-        rest_client: RestClient, icos_version: str, check_mode: bool = False
-    ) -> TypedTaskTag:
+    @classmethod
+    def get(
+        cls,
+        rest_client: RestClient,
+        uuid: str,
+        must_exist: bool = True,
+        check_mode: bool = False,
+    ) -> Union[None, Update]:
+        update = rest_client.get_record(
+            f"/rest/v1/Update/{uuid}", query=dict(uuid=uuid), must_exist=must_exist
+        )
+        return cls.from_hypercore(update)
+
+    def apply(self, rest_client: RestClient, check_mode: bool = False) -> TypedTaskTag:
         return rest_client.create_record(
-            f"/rest/v1/Update/{icos_version}/apply", dict(), check_mode
+            f"/rest/v1/Update/{self.uuid}/apply", payload=None, check_mode=check_mode
         )
 
 

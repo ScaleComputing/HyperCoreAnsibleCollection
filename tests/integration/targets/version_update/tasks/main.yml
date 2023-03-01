@@ -5,9 +5,14 @@
     SC_PASSWORD: "{{ sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
-    cluster_config: "{{ sc_config[sc_host].cluster }}"
+    cluster_update_config: "{{ sc_config[sc_host].cluster_update }}"
 
   block:
+    - name: Fail test early if update is not allowed
+      ansible.builtin.assert:
+        that:
+          - cluster_update_config.magic_allow_string == "allow-cluster-update-test"
+    
     - name: Get list of hc version updates
       scale_computing.hypercore.version_update_info:
       register: updates
@@ -15,23 +20,33 @@
     - name: Get initial version
       scale_computing.hypercore.cluster_info:
       register: cluster_initial
+    
+    - name: Update hc version
+      scale_computing.hypercore.version_update:
+        icos_version: "{{ cluster_initial.record.icos_version}}"
+      register: update
+    - ansible.builtin.assert:
+        that:
+          - update is not changed
+          - not update.record
+          - update.diff.before.icos_version == cluster_initial.record.icos_version
+          - update.diff.after.icos_version == cluster_initial.record.icos_version
 
     - name: Update hc version
       scale_computing.hypercore.version_update:
         icos_version: "{{ updates.records[0].uuid}}"
-      register: cluster
+      register: update
     - ansible.builtin.assert:
         that:
-          - cluster is changed
-          - cluster.record.keys() | sort == ['icos_version', 'name', 'uuid']
-          - cluster.record.icos_version == updates.records[0].uuid
-          - cluster.diff.before.icos_version == cluster_initial.record.name
-          - cluster.diff.after.icos_version == updates.records[0].uuid
+          - update is changed
+          - update.record.uuid == updates.records[0].uuid
+          - update.diff.before.icos_version == cluster_initial.record.icos_version
+          - update.diff.after.icos_version == updates.records[0].uuid
     
-    - name: Get status of the latest update applied
-      scale_computing.hypercore.version_update_status_info:
-      register: update_status
-    - ansible.builtin.assert:
-        that:
-          - update_status.record.status == "COMPLETE"
-          - update_status.record.to_version = updates.records[0].uuid
+    # - name: Get status of the latest update applied
+    #   scale_computing.hypercore.version_update_status_info:
+    #   register: update_status
+    # - ansible.builtin.assert:
+    #     that:
+    #       - update_status.record.status == "COMPLETE"
+    #       - update_status.record.to_version = updates.records[0].uuid
