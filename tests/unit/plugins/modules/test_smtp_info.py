@@ -44,7 +44,7 @@ class TestRun:
         result = smtp_info.run(rest_client)
         assert result == {
             "uuid": "test",
-            "smtp_server": "smtp-relay.gmail.com",
+            "server": "smtp-relay.gmail.com",
             "port": 25,
             "use_ssl": True,
             "use_auth": True,

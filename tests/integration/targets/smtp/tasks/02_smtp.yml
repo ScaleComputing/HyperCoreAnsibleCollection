@@ -38,8 +38,8 @@
     that:
       - result.changed == True
       - result.diff.before != result.diff.after
-      - result.record.keys() | sort == ['auth_password', 'auth_user', 'from_address', 'latest_task_tag', 'port', 'smtp_server', 'use_auth', 'use_ssl', 'uuid']
-      - info.record.smtp_server == "smtp.office365.com"
+      - result.record.keys() | sort == ['auth_password', 'auth_user', 'from_address', 'latest_task_tag', 'port', 'server', 'use_auth', 'use_ssl', 'uuid']
+      - info.record.server == "smtp.office365.com"
       - info.record.port == 21
       - info.record.use_ssl == False
       - info.record.use_auth == False
@@ -61,8 +61,8 @@
     that:
       - result.changed == False
       - result.diff.before == result.diff.after
-      - result.record.keys() | sort == ['auth_password', 'auth_user', 'from_address', 'latest_task_tag', 'port', 'smtp_server', 'use_auth', 'use_ssl', 'uuid']
-      - info.record.smtp_server == "smtp.office365.com"
+      - result.record.keys() | sort == ['auth_password', 'auth_user', 'from_address', 'latest_task_tag', 'port', 'server', 'use_auth', 'use_ssl', 'uuid']
+      - info.record.server == "smtp.office365.com"
       - info.record.port == 21
       - info.record.use_ssl == False
       - info.record.use_auth == False
@@ -90,7 +90,7 @@
     that:
       - result.changed == True
       - result.diff.before != result.diff.after
-      - info.record.smtp_server == "smtp.office365.com"
+      - info.record.server == "smtp.office365.com"
       - info.record.port == 26
       - info.record.use_ssl == False
       - info.record.use_auth == False
@@ -112,7 +112,7 @@
     that:
       - result.changed == False
       - result.diff.before == result.diff.after
-      - info.record.smtp_server == "smtp.office365.com"
+      - info.record.server == "smtp.office365.com"
       - info.record.port == 26
       - info.record.use_ssl == False
       - info.record.use_auth == False
@@ -141,7 +141,7 @@
     that:
       - result.changed == True
       - result.diff.before != result.diff.after
-      - info.record.smtp_server == "smtp-relay.gmail.com"
+      - info.record.server == "smtp-relay.gmail.com"
       - info.record.port == 25
       - info.record.use_ssl == False
       - info.record.use_auth == True
@@ -168,7 +168,7 @@
       # Complication "before == after" fails too
       # latest_task_tag has different sessionID, modifiedTime etc.
       # - result.diff.before == result.diff.after
-      - info.record.smtp_server == "smtp-relay.gmail.com"
+      - info.record.server == "smtp-relay.gmail.com"
       - info.record.port == 25
       - info.record.use_ssl == False
       - info.record.use_auth == True
@@ -192,7 +192,7 @@
       # Complication "before == after" fails too
       # latest_task_tag has different sessionID, modifiedTime etc.
       # - result.diff.before == result.diff.after
-      - info.record.smtp_server == "smtp-relay.gmail.com"
+      - info.record.server == "smtp-relay.gmail.com"
       - info.record.port == 26
       - info.record.use_ssl == False
       - info.record.use_auth == True

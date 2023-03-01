@@ -113,7 +113,7 @@ class TypedDiff(TypedDict):
 # smtp module
 class TypedSmtpToAnsible(TypedDict):
     uuid: Union[str, None]
-    smtp_server: Union[str, None]
+    server: Union[str, None]
     port: Union[int, None]
     use_ssl: Union[bool, None]
     use_auth: Union[bool, None]
@@ -125,7 +125,7 @@ class TypedSmtpToAnsible(TypedDict):
 
 class TypedSmtpFromAnsible(TypedDict):
     uuid: Union[str, None]
-    smtp_server: Union[str, None]
+    server: Union[str, None]
     port: Union[int, None]
     use_ssl: Union[bool, None]
     use_auth: Union[bool, None]
