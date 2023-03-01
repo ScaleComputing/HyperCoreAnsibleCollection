@@ -61,4 +61,4 @@
       - smtp_info_result.record.auth_user == cluster_config_expected.smtp.auth_user | default("")
       - smtp_info_result.record.auth_password == ""  # auth_password is always returned as "" by HC3 API
       - smtp_info_result.record.from_address == cluster_config_expected.smtp.from_address
-      - email_alert_info_result.records | map(attribute='email_address') | list | sort == cluster_config_expected.email_alerts | sort
+      - email_alert_info_result.records | map(attribute='email') | list | sort == cluster_config_expected.email_alerts | sort

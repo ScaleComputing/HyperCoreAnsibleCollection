@@ -66,12 +66,12 @@
 
     - name: Remove old email alerts
       scale_computing.hypercore.email_alert:
-        email: "{{ email_alert_recipient.email_address }}"
+        email: "{{ email_alert_recipient.email }}"
         state: absent
       loop: "{{ email_alert_info_result.records }}"
       loop_control:
         loop_var: email_alert_recipient
-      when: email_alert_recipient.email_address not in scale_computing_hypercore_cluster_config.email_alerts
+      when: email_alert_recipient.email not in scale_computing_hypercore_cluster_config.email_alerts
 
     - name: Set new email alerts
       scale_computing.hypercore.email_alert:
