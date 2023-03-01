@@ -6,6 +6,9 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   vars:
+    # values from integration_config.yml, after test we revert cunfiguration to them
+    sc_host_config: "{{ sc_config[sc_host] }}"
+
     cluster_config_a:
       name: cluster-a
       registration:
@@ -187,3 +190,29 @@
       vars:
         cluster_config_partial_update: "{{ {item.key: item.value} }}"
       loop: "{{ cluster_config_a | dict2items }}"
+
+    # ====================================================================================
+    # Revert to configuration from integration_config.yml
+    - ansible.builtin.include_tasks: revert_cluster_configuration.yml
+      vars:
+        scale_computing_hypercore_cluster_config:
+          name: "{{ sc_host_config.cluster.name }}"
+          registration: "{{ sc_host_config.registration }}"
+          dns:
+            server_ips: "{{ sc_host_config.dns_config.dns_servers }}"
+            search_domains: "{{ sc_host_config.dns_config.search_domains }}"
+          oidc:
+            client_id: "{{ sc_host_config.oidc.client_id_default }}"
+            shared_secret: "{{ sc_host_config.oidc.shared_secret_default }}"
+            # certificate: "{{ sc_host_config.oidc.certificate | default(omit) }}"
+            config_url: "{{ sc_host_config.oidc.config_url_default }}"
+            scopes: "{{ sc_host_config.oidc.scopes }}"
+          time_server: "{{ sc_host_config.time_server.source }}"
+          time_zone: "{{ sc_host_config.time_zone.zone }}"
+          smtp: "{{ sc_host_config.smtp }}"
+          email_alerts: "{{ sc_host_config.email_alert }}"
+          # integration_config.yml contains a single syslog server
+          syslog_servers:
+            - host: "{{ sc_host_config.syslog_server.host }}"
+              port: 514
+              protocol: udp

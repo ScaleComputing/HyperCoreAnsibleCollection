@@ -1,0 +1,105 @@
+# Revert to configuration from integration_config.yml
+# This is basically copy of role main.yml.
+# Stupid. But if we break tested role, the revert logic should still work.
+# So we copy-paste.
+# This also allows to have different variable structure in integration_config.yml
+
+- name: REVERT Set cluster name
+  scale_computing.hypercore.cluster_name:
+    name_new: "{{ scale_computing_hypercore_cluster_config.name }}"
+  when: scale_computing_hypercore_cluster_config.name | default(False)
+
+- name: REVERT Set registration data
+  scale_computing.hypercore.registration:
+    company_name: "{{ scale_computing_hypercore_cluster_config.registration.company_name }}"
+    contact: "{{ scale_computing_hypercore_cluster_config.registration.contact }}"
+    phone: "{{ scale_computing_hypercore_cluster_config.registration.phone }}"
+    email: "{{ scale_computing_hypercore_cluster_config.registration.email }}"
+    state: present
+
+- name: REVERT Set DNS configuration
+  scale_computing.hypercore.dns_config:
+    dns_servers: "{{ scale_computing_hypercore_cluster_config.dns.server_ips | default(omit) }}"
+    search_domains: "{{ scale_computing_hypercore_cluster_config.dns.search_domains | default(omit) }}"
+    state: set
+
+- name: REVERT Set OIDC configuration
+  scale_computing.hypercore.oidc_config:
+    client_id: "{{ scale_computing_hypercore_cluster_config.oidc.client_id }}"
+    shared_secret: "{{ scale_computing_hypercore_cluster_config.oidc.shared_secret | default(omit) }}"
+    certificate: "{{ scale_computing_hypercore_cluster_config.oidc.certificate | default(omit) }}"
+    config_url: "{{ scale_computing_hypercore_cluster_config.oidc.config_url }}"
+    scopes: "{{ scale_computing_hypercore_cluster_config.oidc.scopes }}"
+
+- name: REVERT Set time server
+  scale_computing.hypercore.time_server:
+    source: "{{ scale_computing_hypercore_cluster_config.time_server }}"
+
+# Oh no. "US/Estern" iz not accepted by time_zone modules. We need to fix it.
+# Revert with api modele
+#- name: REVERT Set time zone
+#  scale_computing.hypercore.time_zone:
+#    zone: "{{ scale_computing_hypercore_cluster_config.time_zone }}"
+- name: REVERT Set time zone using api module
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/TimeZone/timezone_guid
+    data:
+      timeZone: "{{ scale_computing_hypercore_cluster_config.time_zone }}"
+
+- name: REVERT Set SMTP configuration
+  scale_computing.hypercore.smtp:
+    server: "{{ scale_computing_hypercore_cluster_config.smtp.host }}"
+    port: "{{ scale_computing_hypercore_cluster_config.smtp.port }}"
+    use_ssl: "{{ scale_computing_hypercore_cluster_config.smtp.use_ssl | default(omit) }}"
+    auth_user: "{{ scale_computing_hypercore_cluster_config.smtp.auth_user | default(omit) }}"
+    auth_password: "{{ scale_computing_hypercore_cluster_config.smtp.auth_password | default(omit) }}"
+    from_address: "{{ scale_computing_hypercore_cluster_config.smtp.from_address | default(omit) }}"
+
+- name: REVERT Reconfigure email alert recipients
+  block:
+    - name: REVERT Get old email alert recipients
+      scale_computing.hypercore.email_alert_info:
+      register: email_alert_info_result
+
+    - name: REVERT Remove old email alerts
+      scale_computing.hypercore.email_alert:
+        email: "{{ email_alert_recipient.email }}"
+        state: absent
+      loop: "{{ email_alert_info_result.records }}"
+      loop_control:
+        loop_var: email_alert_recipient
+      when: email_alert_recipient.email not in scale_computing_hypercore_cluster_config.email_alerts
+
+    - name: REVERT Set new email alerts
+      scale_computing.hypercore.email_alert:
+        email: "{{ email_address }}"
+        state: present
+      loop: "{{ scale_computing_hypercore_cluster_config.email_alerts }}"
+      loop_control:
+        loop_var: email_address
+
+- name: REVERT Reconfigure syslog servers
+  block:
+    - name: REVERT Get old syslog servers
+      scale_computing.hypercore.syslog_server_info:
+      register: syslog_server_info_result
+
+    - name: REVERT Remove old syslog servers
+      scale_computing.hypercore.syslog_server:
+        host: "{{ syslog_server.host }}"
+        state: absent
+      loop: "{{ syslog_server_info_result.records }}"
+      loop_control:
+        loop_var: syslog_server
+      when: syslog_server.host not in (scale_computing_hypercore_cluster_config.syslog_servers | map(attribute='host') | list)
+
+    - name: REVERT Set new syslog servers
+      scale_computing.hypercore.syslog_server:
+        host: "{{ syslog_server.host }}"
+        port: "{{ syslog_server.port | default(omit) }}"
+        protocol: "{{ syslog_server.protocol | default(omit) }}"
+        state: present
+      loop: "{{ scale_computing_hypercore_cluster_config.syslog_servers }}"
+      loop_control:
+        loop_var: syslog_server
