@@ -40,6 +40,10 @@
   scale_computing.hypercore.email_alert_info:
   register: email_alert_info_result
 
+- name: Retrieve syslog servers configuration - {{ dbg_suffix }}
+  scale_computing.hypercore.syslog_server_info:
+  register: syslog_server_info_result
+
 - name: Check state - {{ dbg_suffix }}
   ansible.builtin.assert:
     that:
@@ -62,3 +66,6 @@
       - smtp_info_result.record.auth_password == ""  # auth_password is always returned as "" by HC3 API
       - smtp_info_result.record.from_address == cluster_config_expected.smtp.from_address
       - email_alert_info_result.records | map(attribute='email') | list | sort == cluster_config_expected.email_alerts | sort
+      - syslog_server_info_result.records | map(attribute='host') | list | sort == cluster_config_expected.syslog_servers | map(attribute='host') | list | sort
+      - syslog_server_info_result.records | map(attribute='port') | list | sort == cluster_config_expected.syslog_servers | map(attribute='port') | list | sort
+      - syslog_server_info_result.records | map(attribute='protocol') | list | sort == cluster_config_expected.syslog_servers | map(attribute='protocol') | list | sort
