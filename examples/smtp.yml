@@ -1,22 +1,38 @@
 ---
-- name: Modify SMTP configuration without authentication
-  scale_computing.hypercore.smtp:
-    server: smtp-relay.gmail.com
-    port: 25
-    use_ssl: false
-    requires_auth: false
-    from_address: example@example.com
+- name: Create and modify SMTP configuration
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    smtp_server: smtp-relay.gmail.com
+    smtp_port: 25
+    smtp_from_address: example@example.com
 
-- name: Modify SMTP configuration with authentication
-  scale_computing.hypercore.smtp:
-    server: smtp-relay.gmail.com
-    port: 25
-    use_ssl: false
-    auth_user: example
-    auth_password: example123
-    from_address: example@example.com
+  tasks:
+    - name: Modify SMTP configuration with authentication
+      scale_computing.hypercore.smtp:
+        server: "{{ smtp_server }}"
+        port: "{{ smtp_port }}"
+        use_ssl: false
+        auth_user: example
+        auth_password: example123
+        from_address: "{{ smtp_from_address }}"
 
-- name: Modify SMTP configuration with required params only
-  scale_computing.hypercore.smtp:
-    server: smtp-relay.gmail.com
-    port: 25
+    - name: Modify SMTP configuration with required params only, authentication is preserved
+      scale_computing.hypercore.smtp:
+        server: "{{ smtp_server }}"
+        port: "{{ smtp_port }}"
+
+    - name: Modify SMTP configuration, remove authentication
+      scale_computing.hypercore.smtp:
+        server: "{{ smtp_server }}"
+        port: "{{ smtp_port }}"
+        auth_user: ""
+        auth_password: ""
+
+    - name: List SMTP Configuration
+      scale_computing.hypercore.smtp_info:
+      register: smtp_info
+
+    - ansible.builtin.debug:
+        msg: Final SMTP configuration is "{{ smtp_info }}"
