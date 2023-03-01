@@ -23,18 +23,18 @@ class TimeZone(PayloadMapper):
     def __init__(
         self,
         uuid: str = None,
-        time_zone: str = None,
+        zone: str = None,
         latest_task_tag: {} = None,
     ):
         self.uuid = uuid
-        self.time_zone = time_zone
+        self.zone = zone
         self.latest_task_tag = latest_task_tag
 
     @classmethod
     def from_ansible(cls, ansible_data):
         return TimeZone(
             uuid=ansible_data["uuid"],
-            time_zone=ansible_data["timeZone"],
+            zone=ansible_data["timeZone"],
             latest_task_tag=ansible_data["latestTaskTag"],
         )
 
@@ -45,20 +45,20 @@ class TimeZone(PayloadMapper):
 
         return cls(
             uuid=hypercore_data["uuid"],
-            time_zone=hypercore_data["timeZone"],
+            zone=hypercore_data["timeZone"],
             latest_task_tag=hypercore_data["latestTaskTag"],
         )
 
     def to_hypercore(self) -> dict:
         return dict(
             uuid=self.uuid,
-            timeZone=self.time_zone,
+            timeZone=self.zone,
         )
 
     def to_ansible(self):
         return dict(
             uuid=self.uuid,
-            time_zone=self.time_zone,
+            zone=self.zone,
             latest_task_tag=self.latest_task_tag,
         )
 
@@ -67,7 +67,7 @@ class TimeZone(PayloadMapper):
         return all(
             (
                 self.uuid == other.uuid,
-                self.time_zone == other.time_zone,
+                self.zone == other.zone,
                 self.latest_task_tag == other.latest_task_tag,
             )
         )

@@ -53,11 +53,11 @@
       scale_computing.hypercore.time_zone_info:
       register: result
     - ansible.builtin.debug:
-        msg: "{{ result }}"
+        msg: "{{ result.record }}"
     - ansible.builtin.assert:
         that:
           - result.record != {}
-          - "{{ result.record.keys() | sort == ['latest_task_tag', 'time_zone', 'uuid'] }}"
+          - "{{ result.record.keys() | sort == ['latest_task_tag', 'uuid', 'zone'] }}"
           - result.record.uuid == actual_uuid
-          - result.record.time_zone == actual_zone
+          - result.record.zone == actual_zone
           - result.record.latest_task_tag
