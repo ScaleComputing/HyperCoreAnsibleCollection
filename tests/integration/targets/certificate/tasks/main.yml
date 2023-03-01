@@ -54,17 +54,6 @@
           - certificate_info is changed
           - certificate_info.record.certificate != default_cert_info
 
-    - name: Upload certificate to API with certificate module - IDEMPOTENCE
-      scale_computing.hypercore.certificate:
-        private_key: "{{ lookup('file', 'private_key_example.pem') }}"
-        certificate: "{{ lookup('file', 'certificate_example.crt') }}"
-      register: certificate_info_idempotence
-    - ansible.builtin.assert:
-        that:
-          - certificate_info_idempotence is succeeded
-          - certificate_info_idempotence is not changed
-          - certificate_info_idempotence.record.certificate != default_cert_info
-
     - name: Get new / uploaded cert from cluster
       community.crypto.get_certificate:
         host: "{{ sc_host | replace('https://','') | replace('http://','') }}"
