@@ -50,7 +50,7 @@ class TestModifyEmailAlert:
                     dict(
                         uuid="test",
                         alert_tag_uuid="0",
-                        email_address="test@test.com",
+                        email="test@test.com",
                         resend_delay=123,
                         silent_period=123,
                         latest_task_tag={},
@@ -61,7 +61,7 @@ class TestModifyEmailAlert:
                 EmailAlert(
                     uuid="test",
                     alert_tag_uuid="0",
-                    email_address="test@test.com",
+                    email="test@test.com",
                     resend_delay=123,
                     silent_period=123,
                     latest_task_tag={},
@@ -71,7 +71,7 @@ class TestModifyEmailAlert:
                     dict(
                         uuid="test",
                         alert_tag_uuid="0",
-                        email_address="test@test.com",
+                        email="test@test.com",
                         resend_delay=123,
                         silent_period=123,
                         latest_task_tag={},
@@ -137,7 +137,7 @@ class TestModifyEmailAlert:
                     dict(
                         uuid="test",
                         alert_tag_uuid="0",
-                        email_address="new@test.com",
+                        email="new@test.com",
                         resend_delay=123,
                         silent_period=123,
                         latest_task_tag={},
@@ -154,7 +154,7 @@ class TestModifyEmailAlert:
                     dict(
                         uuid="test",
                         alert_tag_uuid="0",
-                        email_address="test@test.com",
+                        email="test@test.com",
                         resend_delay=123,
                         silent_period=123,
                         latest_task_tag={},
@@ -188,7 +188,7 @@ class TestModifyEmailAlert:
             rc_email_alert = EmailAlert(
                 uuid="test",
                 alert_tag_uuid="0",
-                email_address=email_on_client,
+                email=email_on_client,
                 resend_delay=123,
                 silent_period=123,
                 latest_task_tag={},
@@ -252,7 +252,7 @@ class TestModifyEmailAlert:
                 EmailAlert(
                     uuid="test",
                     alert_tag_uuid="0",
-                    email_address="test@test.com",
+                    email="test@test.com",
                     resend_delay=123,
                     silent_period=123,
                     latest_task_tag={},
@@ -314,7 +314,7 @@ class TestModifyEmailAlert:
                 EmailAlert(
                     uuid="test",
                     alert_tag_uuid="0",
-                    email_address="test@test.com",
+                    email="test@test.com",
                     resend_delay=123,
                     silent_period=123,
                     latest_task_tag={},

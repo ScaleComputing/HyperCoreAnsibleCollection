@@ -26,14 +26,14 @@ class EmailAlert(PayloadMapper):
         self,
         uuid: Union[str, None] = None,
         alert_tag_uuid: Union[str, None] = None,
-        email_address: Union[str, None] = None,
+        email: Union[str, None] = None,
         resend_delay: Union[int, None] = None,
         silent_period: Union[int, None] = None,
         latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None] = None,
     ):
         self.uuid = uuid
         self.alert_tag_uuid = alert_tag_uuid
-        self.email_address = email_address
+        self.email = email
         self.resend_delay = resend_delay
         self.silent_period = silent_period
         self.latest_task_tag = latest_task_tag if latest_task_tag is not None else {}
@@ -43,7 +43,7 @@ class EmailAlert(PayloadMapper):
         return EmailAlert(
             uuid=ansible_data["uuid"],
             alert_tag_uuid=ansible_data["alert_tag_uuid"],
-            email_address=ansible_data["email_address"],
+            email=ansible_data["email"],
         )
 
     @classmethod
@@ -53,7 +53,7 @@ class EmailAlert(PayloadMapper):
         return cls(
             uuid=hypercore_data["uuid"],
             alert_tag_uuid=hypercore_data["alertTagUUID"],
-            email_address=hypercore_data["emailAddress"],
+            email=hypercore_data["emailAddress"],
             resend_delay=hypercore_data["resendDelay"],
             silent_period=hypercore_data["silentPeriod"],
             latest_task_tag=hypercore_data["latestTaskTag"],
@@ -62,7 +62,7 @@ class EmailAlert(PayloadMapper):
     def to_hypercore(self) -> dict[Any, Any]:
         return dict(
             alertTagUUID=self.alert_tag_uuid,
-            emailAddress=self.email_address,
+            emailAddress=self.email,
             resendDelay=self.resend_delay,
             silentPeriod=self.silent_period,
         )
@@ -71,7 +71,7 @@ class EmailAlert(PayloadMapper):
         return dict(
             uuid=self.uuid,
             alert_tag_uuid=self.alert_tag_uuid,
-            email_address=self.email_address,
+            email=self.email,
             resend_delay=self.resend_delay,
             silent_period=self.silent_period,
             latest_task_tag=self.latest_task_tag,
@@ -85,7 +85,7 @@ class EmailAlert(PayloadMapper):
             (
                 self.uuid == other.uuid,
                 self.alert_tag_uuid == other.alert_tag_uuid,
-                self.email_address == other.email_address,
+                self.email == other.email,
                 self.resend_delay == other.resend_delay,
                 self.silent_period == other.silent_period,
                 self.latest_task_tag == other.latest_task_tag,
@@ -115,8 +115,8 @@ class EmailAlert(PayloadMapper):
     ):
         query = get_query(
             ansible_dict,
-            "email_address",
-            ansible_hypercore_map=dict(email_address="emailAddress"),
+            "email",
+            ansible_hypercore_map=dict(email="emailAddress"),
         )
         hypercore_dict = rest_client.get_record(
             "/rest/v1/AlertEmailTarget", query, must_exist=must_exist
