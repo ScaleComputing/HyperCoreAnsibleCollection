@@ -42,7 +42,7 @@ class TestRun:
             {
                 "uuid": "8664ed18-c354-4bab-be96-78dae5f6377f",
                 "alert_tag_uuid": "0",
-                "email_address": "test@test.com",
+                "email": "test@test.com",
                 "resend_delay": 123,
                 "silent_period": 123,
                 "latest_task_tag": {},

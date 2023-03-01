@@ -39,7 +39,7 @@ records:
   type: list
   sample:
     - alert_tag_uuid: 0
-      email_address: sample@sample.com
+      email: sample@sample.com
       latest_task_tag:
         completed: 1675680830
         created: 1675680830
