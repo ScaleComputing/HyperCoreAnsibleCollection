@@ -80,3 +80,29 @@
       loop: "{{ scale_computing_hypercore_cluster_config.email_alerts }}"
       loop_control:
         loop_var: email_address
+
+- name: Reconfigure syslog servers
+  when: '"syslog_servers" in scale_computing_hypercore_cluster_config'
+  block:
+    - name: Get old syslog servers
+      scale_computing.hypercore.syslog_server_info:
+      register: syslog_server_info_result
+
+    - name: Remove old syslog servers
+      scale_computing.hypercore.syslog_server:
+        host: "{{ syslog_server.host }}"
+        state: absent
+      loop: "{{ syslog_server_info_result.records }}"
+      loop_control:
+        loop_var: syslog_server
+      when: syslog_server.host not in (scale_computing_hypercore_cluster_config.syslog_servers | map(attribute='host') | list)
+
+    - name: Set new syslog servers
+      scale_computing.hypercore.syslog_server:
+        host: "{{ syslog_server.host }}"
+        port: "{{ syslog_server.port | default(omit) }}"
+        protocol: "{{ syslog_server.protocol | default(omit) }}"
+        state: present
+      loop: "{{ scale_computing_hypercore_cluster_config.syslog_servers }}"
+      loop_control:
+        loop_var: syslog_server

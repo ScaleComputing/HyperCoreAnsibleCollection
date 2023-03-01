@@ -43,6 +43,9 @@
         - host: 10.10.10.10
           port: 42
           protocol: tcp
+        - host: 10.10.10.100
+          port: 100
+          protocol: tcp
       # maybe: setup also users, and SSL-cert.
 
     cluster_config_b:
@@ -81,6 +84,9 @@
       syslog_servers:
         - host: 10.10.10.11
           port: 43
+          protocol: udp
+        - host: 10.10.10.100
+          port: 101
           protocol: udp
 
     # TODO test with invalid inputs:
