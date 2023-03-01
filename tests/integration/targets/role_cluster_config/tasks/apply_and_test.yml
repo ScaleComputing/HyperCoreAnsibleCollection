@@ -32,6 +32,10 @@
   scale_computing.hypercore.time_zone_info:
   register: time_zone_info_result
 
+- name: Retrieve SMTP configuration - {{ dbg_suffix }}
+  scale_computing.hypercore.smtp_info:
+  register: smtp_info_result
+
 - name: Check state - {{ dbg_suffix }}
   ansible.builtin.assert:
     that:
@@ -47,3 +51,9 @@
       - oidc_config_info_result.record.scopes == cluster_config_expected.oidc.scopes
       - time_server_info_result.record.host == cluster_config_expected.time_server
       - time_zone_info_result.record.zone == cluster_config_expected.time_zone
+      - smtp_info_result.record.server == cluster_config_expected.smtp.server
+      - smtp_info_result.record.port == cluster_config_expected.smtp.port
+      - smtp_info_result.record.use_ssl == cluster_config_expected.smtp.use_ssl | default(False)
+      - smtp_info_result.record.auth_user == cluster_config_expected.smtp.auth_user | default("")
+      - smtp_info_result.record.auth_password == ""  # auth_password is always returned as "" by HC3 API
+      - smtp_info_result.record.from_address == cluster_config_expected.smtp.from_address

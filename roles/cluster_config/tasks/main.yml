@@ -46,3 +46,13 @@
   scale_computing.hypercore.time_zone:
     zone: "{{ scale_computing_hypercore_cluster_config.time_zone }}"
   when: scale_computing_hypercore_cluster_config.time_zone | default(False)
+
+- name: Set SMTP configuration
+  scale_computing.hypercore.smtp:
+    server: "{{ scale_computing_hypercore_cluster_config.smtp.server }}"
+    port: "{{ scale_computing_hypercore_cluster_config.smtp.port }}"
+    use_ssl: "{{ scale_computing_hypercore_cluster_config.smtp.use_ssl | default(omit) }}"
+    auth_user: "{{ scale_computing_hypercore_cluster_config.smtp.auth_user | default(omit) }}"
+    auth_password: "{{ scale_computing_hypercore_cluster_config.smtp.auth_password | default(omit) }}"
+    from_address: "{{ scale_computing_hypercore_cluster_config.smtp.from_address | default(omit) }}"
+  when: scale_computing_hypercore_cluster_config.smtp | default(False)

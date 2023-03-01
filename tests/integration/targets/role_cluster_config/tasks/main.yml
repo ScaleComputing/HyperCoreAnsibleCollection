@@ -28,8 +28,8 @@
         scopes: openid+profile
       time_server: 2.pool.ntp.org
       time_zone: Europe/Ljubljana
-      smtp_config:
-        host: mail_a.example.com
+      smtp:
+        server: mail_a.example.com
         port: 25
         use_ssl: False
         auth_user: ""
@@ -65,8 +65,8 @@
         scopes: openid+profile
       time_server: 3.pool.ntp.org
       time_zone: Europe/Zagreb
-      smtp_config:
-        host: mail_b.example.com
+      smtp:
+        server: mail_b.example.com
         port: 25
         use_ssl: True
         auth_user: "smtp_user_b"
@@ -78,6 +78,9 @@
         - host: 10.10.10.11
           port: 43
           protocol: udp
+
+    # TODO test with invalid inputs:
+    # email_alerts - a single string, not list with length=1
 
     # special values, they will set cluster to 'unconfigured' state.
     cluster_config_empty:
