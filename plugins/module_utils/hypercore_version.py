@@ -12,7 +12,6 @@ import operator
 import re
 from functools import total_ordering
 from typing import List
-from .rest_client import RestClient
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import (

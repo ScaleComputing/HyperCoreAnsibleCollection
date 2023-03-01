@@ -64,7 +64,7 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.cluster import Cluster
 from ..module_utils.hypercore_version import Update
-from ..module_utils.typed_classes import TypedUpdateToAnsible, TypedDiff
+from ..module_utils.typed_classes import TypedUpdateToAnsible
 from typing import Tuple, Union, Dict, Any
 
 
