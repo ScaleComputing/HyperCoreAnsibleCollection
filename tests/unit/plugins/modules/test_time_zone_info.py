@@ -37,7 +37,7 @@ class TestRun:
         result = time_zone_info.run(rest_client)
         assert result == {
             "uuid": "test",
-            "time_zone": "US/Eastern",
+            "zone": "US/Eastern",
             "latest_task_tag": {},
         }
 

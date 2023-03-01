@@ -52,7 +52,7 @@ class TestModifyTimeZone:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.time_zone.TimeZone.get_by_uuid"
         ).return_value = TimeZone(
             uuid="test",
-            time_zone=rc_time_zone,
+            zone=rc_time_zone,
             latest_task_tag={},
         )
         mocker.patch(

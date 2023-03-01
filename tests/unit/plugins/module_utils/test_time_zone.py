@@ -29,7 +29,7 @@ class TestTimeServer:
     def setup_method(self):
         self.time_zone = TimeZone(
             uuid="test",
-            time_zone="US/Eastern",
+            zone="US/Eastern",
             latest_task_tag={},
         )
         self.from_hypercore_dict = dict(
@@ -43,7 +43,7 @@ class TestTimeServer:
         )
         self.ansible_dict = dict(
             uuid="test",
-            time_zone="US/Eastern",
+            zone="US/Eastern",
             latest_task_tag={},
         )
 
@@ -82,7 +82,7 @@ class TestTimeServer:
         result = TimeZone.get_state(rest_client)
         assert result == {
             "uuid": "test",
-            "time_zone": "US/Eastern",
+            "zone": "US/Eastern",
             "latest_task_tag": {},
         }
 
