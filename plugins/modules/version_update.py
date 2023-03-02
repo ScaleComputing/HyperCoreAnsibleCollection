@@ -48,7 +48,7 @@ record:
   type: dict
   sample:
     - uuid: 9.2.11.210763
-      description: 9.1.11 General Availability
+      description: 9.2.11 General Availability
       change_log: ...Please allow between 20-40 minutes per node for the update to complete...
       build_id: 210763
       major_version: 9
