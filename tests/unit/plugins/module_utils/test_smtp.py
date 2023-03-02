@@ -30,7 +30,7 @@ class TestSMTP:
     def setup_method(self):
         self.smtp = SMTP(
             uuid="test",
-            smtp_server="smtp-relay.gmail.com",
+            server="smtp-relay.gmail.com",
             port=25,
             use_ssl=True,
             use_auth=True,
@@ -61,7 +61,7 @@ class TestSMTP:
         )
         self.ansible_dict = dict(
             uuid="test",
-            smtp_server="smtp-relay.gmail.com",
+            server="smtp-relay.gmail.com",
             port=25,
             use_ssl=True,
             use_auth=True,
@@ -124,7 +124,7 @@ class TestSMTP:
         print(f"result={result}")
         assert result == {
             "uuid": "test",
-            "smtp_server": "smtp-relay.gmail.com",
+            "server": "smtp-relay.gmail.com",
             "port": 25,
             "use_ssl": True,
             "use_auth": True,

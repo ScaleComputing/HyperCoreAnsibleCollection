@@ -83,7 +83,7 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-results:
+record:
   description:
     - Output from modifying entries of the SMTP configuration on HyperCore API.
   returned: success
@@ -107,7 +107,7 @@ results:
       state: COMPLETE
       taskTag: 761
     port: 25
-    smtp_server: smtp-relay.gmail.com
+    server: smtp-relay.gmail.com
     use_auth: false
     use_ssl: false
     uuid: smtpconfig_guid
@@ -187,7 +187,7 @@ def modify_smtp_config(
     )  # get the state of SMTP config before modification
 
     new_smtp_server, new_smtp_server_change_needed = build_entry(
-        before.get("smtp_server"), module.params["server"]
+        before.get("server"), module.params["server"]
     )
     new_port, new_port_change_needed = build_entry(
         before.get("port"), module.params["port"]

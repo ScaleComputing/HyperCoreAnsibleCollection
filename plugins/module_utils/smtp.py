@@ -23,7 +23,7 @@ class SMTP(PayloadMapper):
     def __init__(
         self,
         uuid: Union[str, None] = None,
-        smtp_server: Union[str, None] = None,
+        server: Union[str, None] = None,
         port: Union[int, None] = None,
         use_ssl: Union[bool, None] = False,
         use_auth: Union[bool, None] = False,
@@ -33,7 +33,7 @@ class SMTP(PayloadMapper):
         latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None] = None,
     ):
         self.uuid = uuid
-        self.smtp_server = smtp_server
+        self.server = server
         self.port = port
         self.use_ssl = use_ssl
         self.use_auth = use_auth
@@ -46,7 +46,7 @@ class SMTP(PayloadMapper):
     def from_ansible(cls, ansible_data: TypedSmtpFromAnsible) -> SMTP:
         return SMTP(
             uuid=ansible_data["uuid"],
-            smtp_server=ansible_data["smtp_server"],
+            server=ansible_data["server"],
             port=ansible_data["port"],
             use_ssl=ansible_data["use_ssl"],
             use_auth=ansible_data["use_auth"],
@@ -63,7 +63,7 @@ class SMTP(PayloadMapper):
         #     raise xzy
         return cls(
             uuid=hypercore_data["uuid"],
-            smtp_server=hypercore_data["smtpServer"],
+            server=hypercore_data["smtpServer"],
             port=hypercore_data["port"],
             use_ssl=hypercore_data["useSSL"],
             use_auth=hypercore_data["useAuth"],
@@ -75,7 +75,7 @@ class SMTP(PayloadMapper):
 
     def to_hypercore(self) -> dict[Any, Any]:
         return dict(
-            smtpServer=self.smtp_server,
+            smtpServer=self.server,
             port=self.port,
             useSSL=self.use_ssl,
             useAuth=self.use_auth,
@@ -87,7 +87,7 @@ class SMTP(PayloadMapper):
     def to_ansible(self) -> TypedSmtpToAnsible:
         return dict(
             uuid=self.uuid,
-            smtp_server=self.smtp_server,
+            server=self.server,
             port=self.port,
             use_ssl=self.use_ssl,
             use_auth=self.use_auth,
@@ -104,7 +104,7 @@ class SMTP(PayloadMapper):
         return all(
             (
                 self.uuid == other.uuid,
-                self.smtp_server == other.smtp_server,
+                self.server == other.server,
                 self.port == other.port,
                 self.use_ssl == other.use_ssl,
                 self.use_auth == other.use_auth,
