@@ -52,7 +52,8 @@
         that:
           - certificate_info is succeeded
           - certificate_info is changed
-          - certificate_info.record.certificate != default_cert_info
+          - certificate_info.record.certificate != default_cert_info.cert
+          - "{{ certificate_info.record.certificate | replace('\n','') == lookup('file', 'certificate_example.crt') | replace('\n','') }}"
 
     - name: Get new / uploaded cert from cluster
       community.crypto.get_certificate:
