@@ -232,6 +232,8 @@ class Update(PayloadMapper):
         must_exist: bool = True,
         check_mode: bool = False,
     ) -> Union[None, Update]:
+        # api has a bug - the endpoint "/rest/v1/Update/{uuid}" returns a list of all available updates (and uuid can actually be anything),
+        # that is why query is used
         update = rest_client.get_record(
             f"/rest/v1/Update/{uuid}", query=dict(uuid=uuid), must_exist=must_exist
         )
