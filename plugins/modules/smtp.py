@@ -46,11 +46,13 @@ options:
   auth_user:
     type: str
     description:
-      - Username for authentication if I(use_auth=True).
+      - Username if SMTP server requires authentication.
+      - Required together with I(auth_password).
   auth_password:
     type: str
     description:
-      - Password for authentication if I(use_auth=True).
+      - Password if SMTP server requires authentication.
+      - Required together with I(auth_user).
   from_address:
     type: str
     description:
@@ -291,6 +293,9 @@ def main() -> None:
                 required=False,
             ),
         ),
+        required_together=[
+            ("auth_user", "auth_password"),
+        ],
     )
 
     try:
