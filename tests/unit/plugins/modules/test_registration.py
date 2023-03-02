@@ -21,7 +21,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestMain:
-    def test_minimal_set_of_params(self, run_main_with_reboot) -> None:
+    def test_minimal_set_of_params(self, run_main) -> None:
         params = dict(
             cluster_instance=dict(
                 host="https://my.host.name", username="user", password="pass"
@@ -29,17 +29,16 @@ class TestMain:
             state="present",
         )
 
-        success, results = run_main_with_reboot(registration, params)
+        success, results = run_main(registration, params)
 
         assert success is True
         assert results == {
             "changed": False,
             "record": {},
             "diff": {"before": {}, "after": {}},
-            "vm_rebooted": False,
         }
 
-    def test_maximum_set_of_params(self, run_main_with_reboot) -> None:
+    def test_maximum_set_of_params(self, run_main) -> None:
         params = dict(
             cluster_instance=dict(
                 host="https://my.host.name", username="user", password="pass"
@@ -51,13 +50,12 @@ class TestMain:
             phone="this_phone",
         )
 
-        success, results = run_main_with_reboot(registration, params)
+        success, results = run_main(registration, params)
         assert success is True
         assert results == {
             "changed": False,
             "record": {},
             "diff": {"before": {}, "after": {}},
-            "vm_rebooted": False,
         }
 
 
@@ -80,10 +78,10 @@ class TestRun:
         ).return_value = {}
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.registration.ensure_present"
-        ).return_value = (True, {}, {}, False)
+        ).return_value = (True, {}, {})
         results = registration.run(module, rest_client)
         assert isinstance(results, tuple)
-        assert results == (True, {}, {}, False)
+        assert results == (True, {}, {})
 
     def test_run_with_absent_registration(
         self, create_module, rest_client, mocker
@@ -103,10 +101,10 @@ class TestRun:
         ).return_value = {}
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.registration.ensure_absent"
-        ).return_value = (True, {}, {}, False)
+        ).return_value = (True, {}, {})
         results = registration.run(module, rest_client)
         assert isinstance(results, tuple)
-        assert results == (True, {}, {}, False)
+        assert results == (True, {}, {})
 
 
 class TestEnsurePresent:
@@ -135,7 +133,7 @@ class TestEnsurePresent:
         ).return_value = {}
         result = registration.ensure_present(module, rest_client, None)
         assert isinstance(result, tuple)
-        assert result == (False, None, {"before": None, "after": None}, False)
+        assert result == (False, None, {"before": None, "after": None})
 
     def test_ensure_present_when_update_registration(
         self, create_module, rest_client, mocker
@@ -175,7 +173,6 @@ class TestEnsurePresent:
                 },
                 "after": None,
             },
-            False,
         )
 
 
@@ -217,7 +214,6 @@ class TestEnsureAbsent:
                 },
                 "after": None,
             },
-            False,
         )
 
     def test_ensure_absent_when_not_exist_registration(
@@ -244,4 +240,4 @@ class TestEnsureAbsent:
         ).return_value = {}
         result = registration.ensure_absent(module, rest_client, None)
         assert isinstance(result, tuple)
-        assert result == (False, None, {"before": None, "after": None}, False)
+        assert result == (False, None, {"before": None, "after": None})
