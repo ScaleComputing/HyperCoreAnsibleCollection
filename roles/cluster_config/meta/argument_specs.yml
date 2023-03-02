@@ -1,0 +1,172 @@
+argument_specs:
+
+  main:
+    short_description: Configure HyperCore cluster
+    description:
+      - Role cluster_config can be used to
+        fully configure a new HyperCore server,
+        or partially reconfigure an existing HyperCore server.
+    options:
+      scale_computing_hypercore_cluster_config:
+        description:
+          - A dict describing a full or partial cluster configuration.
+          - Partial configuration will be used if some of the keys
+            in `scale_computing_hypercore_cluster_config` are omitted.
+        required: true
+        type: dict
+        options:
+          name:
+            description:
+              - Cluster name.
+              - If missing, cluster name will not be changed.
+              - See also M(scale_computing.hypercore.cluster_name).
+            required: false
+            type: str
+          registration:
+            description:
+              - Cluster registration data.
+              - If missing, cluster registration data will not be changed.
+              - See also M(scale_computing.hypercore.registration).
+            required: false
+            type: dict
+            options:
+              company_name:
+                description: Company name
+                required: true
+                type: str
+              contact:
+                description: Technical contact first and second name
+                required: true
+                type: str
+              phone:
+                description: Technical contact phone number
+                required: true
+                type: str
+              email:
+                description: Technical contact email address
+                required: true
+                type: str
+          dns:
+            description:
+              - DNS configuration.
+              - If missing, cluster DNS configuration will not be changed.
+              - See also M(scale_computing.hypercore.dns_config).
+            required: false
+            type: dict
+            options:
+              server_ips:
+                description: DNS resolver IP.
+                required: false
+                type: list
+                elements: str
+              search_domains:
+                description: DNS search domain.
+                required: false
+                type: list
+                elements: str
+          oidc:
+            description:
+              - OpenID connect configuration allows using Microsoft Azure as authentication backend.
+              - If missing, cluster OpenID connect configuration will not be changed.
+              - See also M(scale_computing.hypercore.oidc_config).
+            required: false
+            type: dict
+            options:
+              client_id:
+                description: OIDC client ID.
+                required: true
+                type: str
+              shared_secret:
+                description: OIDC client secret.
+                required: false
+                type: str
+              certificate:
+                description: OIDC client certificate, PEM encoded.
+                required: false
+                type: str
+              config_url:
+                description: OIDC configuration URL (for example, https://auth.example.com/.well-known/openid-configuration).
+                required: true
+                type: str
+              scopes:
+                description: OIDC client scopes.
+                required: true
+                type: str
+          time_server:
+            description:
+              - Cluster NTP time server.
+              - If missing, cluster NTP time server will not be changed.
+              - See also M(scale_computing.hypercore.time_server).
+            required: false
+            type: str
+          time_zone:
+            description:
+              - Cluster time zone.
+              - If missing, cluster time zone will not be changed.
+              - See also M(scale_computing.hypercore.time_zone).
+            required: false
+            type: str  # choices:
+          smtp:
+            description:
+              - Cluster SMTP server configuration.
+              - If missing, cluster SMTP server will not be changed.
+              - See also M(scale_computing.hypercore.smtp).
+            required: false
+            type: dict
+            options:
+              server:
+                description: SMTP server (IP or DNS name).
+                required: true
+                type: str
+              port:
+                description: SMTP server TCP port.
+                required: true
+                type: int
+              use_ssl:
+                description: Use SSL/TLS encryption between HyperCore and SMTP server.
+                required: false
+                type: bool
+              auth_user:
+                description: Username to authenticate against SMTP server.
+                required: false
+                type: str
+              auth_password:
+                description: Password to authenticate against SMTP server.
+                required: false
+                type: str
+              from_address:
+                description: The "From" email address for email alerts.
+                required: true
+                type: str
+          email_alerts:
+            description:
+              - Email addresses that will receive email alerts.
+              - If missing, Email alert recipients will not be changed.
+              - See also M(scale_computing.hypercore.email_alert).
+            required: false
+            type: list
+            elements: str
+          syslog_servers:
+            description:
+              - Cluster syslog server configuration.
+              - If missing, cluster syslog server will not be changed.
+              - See also M(scale_computing.hypercore.syslog_server).
+            required: false
+            type: list
+            elements: dict
+            options:
+              host:
+                description: Syslog server IP address or DNS name.
+                required: true
+                type: str
+              port:
+                description: The IP port syslog server is listening to.
+                required: false
+                type: int
+              protocol:
+                description: Syslog IP protocol.
+                required: false
+                type: str
+                choices:
+                  - udp
+                  - tcp
