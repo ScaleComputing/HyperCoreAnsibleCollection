@@ -1,0 +1,53 @@
+---
+- name: Reconfigure HyperCore cluster settings
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  # We do not want to reconfigure cluster with bogus example values.
+  check_mode: true
+
+  vars:
+    cluster_configuration:
+      name: cluster-a
+      registration:
+        company_name: New company
+        contact: John Smit
+        phone: 056789000
+        email: john_smith@gmail.com
+      dns:
+        server_ips:
+          - 1.1.1.1
+          - 1.0.0.1
+        search_domains: []
+      # After OIDC is configured, it cannot be removed.
+      # Do not configure OIDC in example.
+      # oidc:
+      #  client_id: your_client_id
+      #  shared_secret: your_shared_secret
+      #  # certificate: plain_text_from_x509
+      #  config_url: https://login.microsoftonline.com/your_tenant_uuid/v2.0/.well-known/openid-configuration
+      #  scopes: openid+profile
+      time_server: pool.ntp.org
+      time_zone: Europe/Ljubljana
+      smtp:
+        server: smtp-relay.gmail.com
+        port: 25
+        use_ssl: false
+        from_address: cluster-a@example.com
+      email_alerts:
+        - admin@example.com
+      syslog_servers:
+        - host: 10.10.10.10
+          port: 514
+          protocol: udp
+
+  tasks:
+    - name: Show configuration
+      ansible.builtin.debug:
+        var: cluster_configuration
+
+    - name: Configure HyperCore cluster
+      include_role:
+        name: scale_computing.hypercore.cluster_config
+      vars:
+        scale_computing_hypercore_cluster_config: "{{ cluster_configuration }}"
