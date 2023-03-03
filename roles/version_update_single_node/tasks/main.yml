@@ -18,9 +18,9 @@
     - name: Shutdown all running VMs
       include_tasks: shutdown_vms.yml
 
-    - name: Update single-node system
-      include_tasks: update.my
-      loop: "{{ available_updates }}"
+    # - name: Update single-node system
+    #   include_tasks: update.my
+    #   loop: "{{ available_updates }}"
 
     - name: Restart previously running VMs
       include_tasks: restart_vms.yml
