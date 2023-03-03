@@ -15,7 +15,7 @@ author:
   - Ana Zobec (@anazobec)
 short_description: List Time Zone configuration on HyperCore API
 description:
-  - Use this module to list information about the DNS configuration on HyperCore API.
+  - Use this module to list information about the Time Zone configuration on HyperCore API.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
