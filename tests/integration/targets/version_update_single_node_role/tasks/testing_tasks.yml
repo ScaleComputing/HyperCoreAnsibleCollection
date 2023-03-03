@@ -1,5 +1,22 @@
+---
+# This doesn't work
+- tasks: &some_tasks
+    - name: Some task 1
+      ansible.builtin.debug:
+        msg: "asdf"
+
+    - name: Some task 2
+      ansible.builtin.debug:
+        msg: "asdf"
+
+    - name: Some task 3
+      ansible.builtin.debug:
+        msg: "asdf"
+
+    - name: Some task 4
+      ansible.builtin.debug:
+        msg: "asdf"
+
 - block:
-  - name: Get available updates
-    ansible.builtin.debug:
-      msg: "{{ item }}"
-  when: item != 6
+  - name: Include some tasks
+    include_tasks: *some_tasks
