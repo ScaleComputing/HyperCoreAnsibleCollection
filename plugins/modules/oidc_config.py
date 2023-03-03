@@ -55,8 +55,8 @@ EXAMPLES = r"""
     client_id: 12345
     shared_secret: secret_stuff
     certificate: plain_text_from_x509
-    config_url: https:somwhere.com/this/endpoint
-    scopes: required_scopes
+    config_url: https://login.microsoftonline.com/your_uuid/v2.0/.well-known/openid-configuration
+    scopes: "openid+profile"
 """
 
 RETURN = r"""
@@ -66,9 +66,9 @@ record:
   returned: success
   type: dict
   sample:
-    client_id: 1234
-    config_url: https://somewhere.com/this/endpoint
-    scopes: required_scopes
+    client_id: 12345
+    config_url: https://login.microsoftonline.com/your_uuid/v2.0/.well-known/openid-configuration
+    scopes: "openid+profile"
 """
 
 from ansible.module_utils.basic import AnsibleModule

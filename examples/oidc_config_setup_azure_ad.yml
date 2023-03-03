@@ -3,6 +3,15 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  # We do not want to reconfigure cluster with bogus example values.
+  # OIDC cannot be removed once setup!
+  check_mode: true
+
+  vars:
+    oidc_client_id: your_client_id
+    oidc_shared_secret: your_client_secret
+    oidc_config_url: https://login.microsoftonline.com/your_uuid/v2.0/.well-known/openid-configuration
+    oidc_scopes: "openid+profile"
 
   tasks:
     # ------------------------------------------------------
@@ -16,10 +25,10 @@
 
     - name: Create or update OIDC config
       scale_computing.hypercore.oidc_config:
-        client_id: <your_client_id>
-        shared_secret: <your_shared_secret>
-        config_url: <your_configuration_url>
-        scopes: <your_scopes>
+        client_id: "{{ oidc_client_id }}"
+        shared_secret: "{{ oidc_shared_secret }}"
+        config_url: "{{ oidc_config_url }}"
+        scopes: "{{ oidc_scopes }}"
 
     - name: List updated oidc config
       scale_computing.hypercore.oidc_config_info:
