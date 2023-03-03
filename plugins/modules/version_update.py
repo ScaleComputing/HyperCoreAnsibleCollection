@@ -25,10 +25,10 @@ seealso:
   - module: scale_computing.hypercore.version_update_status_info
 options:
   icos_version:
-      description:
-        - Hypercore version update to be installed on the cluster.
-      type: str
-      required: true
+    description:
+      - Hypercore version update to be installed on the cluster.
+    type: str
+    required: true
 notes:
   - C(check_mode) is not supported.
 """
