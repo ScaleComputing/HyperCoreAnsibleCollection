@@ -110,11 +110,28 @@
       syslog_servers: []
 
     # special values, they will not modify cluster - no known key in the dict
-    cluster_config_nochange_1:
+    cluster_config_nochange_1: {}
       # all 1st level keys intentionally missing
     cluster_config_nochange_2:
       # all 2nd level keys intentionally missing
       dns:
+    cluster_config_nochange_3:
+      # 1st level keys present, they contain a no-change value (None)
+      name:
+      registration:
+      dns:
+      oidc:
+      time_server:
+      time_zone:
+      smtp:
+      email_alerts:
+      syslog_servers:
+
+    cluster_config_nochange_4:
+      # 2nd level keys present, they contain a no-change value (None)
+      dns:
+        server_ips:
+        search_domains:
 
   block:
     # ====================================================================================
@@ -141,6 +158,20 @@
       vars:
         dbg_suffix: "cluster_config_nochange_2 - a"
         cluster_config_applied: "{{ cluster_config_nochange_2 }}"
+        cluster_config_expected: "{{ cluster_config_a }}"
+
+    - name: Apply and test cluster_config_nochange_3 a
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_nochange_3 - a"
+        cluster_config_applied: "{{ cluster_config_nochange_3 }}"
+        cluster_config_expected: "{{ cluster_config_a }}"
+
+    - name: Apply and test cluster_config_nochange_4 a
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_nochange_4 - a"
+        cluster_config_applied: "{{ cluster_config_nochange_4 }}"
         cluster_config_expected: "{{ cluster_config_a }}"
 
     # -----------------------------------------------------------------
