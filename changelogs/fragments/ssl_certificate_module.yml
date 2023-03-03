@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Added certificate module.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/119)

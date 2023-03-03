@@ -116,6 +116,19 @@ class Client:
             # This is for the caller to decide.
             return Response(e.code, e.read(), e.headers)
         except URLError as e:
+            # TODO: Add other errors here; we need to handle them in modules.
+            if (
+                e.args
+                and isinstance(e.args, tuple)
+                and type(e.args[0]) == ConnectionRefusedError
+            ):
+                raise ConnectionRefusedError(e)
+            elif (
+                e.args
+                and isinstance(e.args, tuple)
+                and type(e.args[0]) == ConnectionResetError
+            ):
+                raise ConnectionResetError(e)
             raise ScaleComputingError(e.reason)
         return Response(raw_resp.status, raw_resp.read(), raw_resp.headers)
 
