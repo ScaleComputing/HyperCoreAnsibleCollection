@@ -46,6 +46,7 @@ options:
     type: str
     required: true
 notes:
+  - Module is not idempotent, it will always report changed=True.
   - C(check_mode) is not supported.
 """
 
