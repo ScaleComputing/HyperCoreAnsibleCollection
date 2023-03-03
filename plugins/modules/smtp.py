@@ -63,6 +63,8 @@ notes:
   - SMTP authentication can be configured using username and password.
     In this case the configured username is returned, but password is not.
     Returned password is always empty string ("").
+  - Module is not idempotent if authentication is used.
+    In this case it will always report C(changed=True).
 """
 
 
