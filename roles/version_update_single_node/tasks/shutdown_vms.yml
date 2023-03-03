@@ -1,3 +1,4 @@
+---
 - name: Show all running VMs
   ansible.builtin.debug:
     msg: "{{ item.vm_name }}"

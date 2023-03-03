@@ -1,8 +1,19 @@
 ---
+#  ------------
+# | Pseudocode
+#  ------------
+# 1. available_updates = get_available_updates()
+# 2. next_update_index = 0
+# 3. while available_updates:
+# 4.    update = available_updates[next_update_index]
+# 5.    status = get_update_status(update)
+# 6.    if status != "IN PROGRESS"
+# 7.        apply_update(update)
+# 8.    if status == "COMPLETE":
+# 9.        next_update_index += 1
+
 - name: Get available updates
-  scale_computing.hypercore.api:
-    action: get
-    endpoint: /rest/v1/Update
+  scale_computing.hypercore.update_version_info:
   register: available_updates
 
 - name: Show available updates

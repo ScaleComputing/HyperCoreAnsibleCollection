@@ -6,16 +6,12 @@
       scale_computing.hypercore.version_update_status_info:
       register: update_status
 
-    - name: Update one
+    - name: Update one # next on the list
       scale_computing.hypercore.version_update:
-      icos_version: "{{ item.uuid }}"
+        icos_version: "{{ item.uuid }}"
       when: update_status != "COMPLETE"
 
     - name: Show update status
       ansible.builtin.debub:
         var: update_status
   when: available_updates
-  always:
-  # loop: "{{ available_updates.records }}"
-  # TODO: Add progress check
-  # - wait for update to finish, then move on to next update

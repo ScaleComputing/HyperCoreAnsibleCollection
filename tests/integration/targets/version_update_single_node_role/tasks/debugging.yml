@@ -27,4 +27,3 @@
         msg: "always!"
   when: item != 6
   loop: "{{ test_list }}"
-
