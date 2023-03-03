@@ -1,0 +1,11 @@
+- name: Start all VMs that were initially started
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ item.vm_name }}"
+    power_state: start
+  when: item.power_state == 'started'
+  loop: "{{ vms.records }}"
+  register: vm_start_result
+
+- name: Show restart results
+  ansible.builtin.debug:
+    var: vm_start_result

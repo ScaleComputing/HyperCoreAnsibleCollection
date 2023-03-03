@@ -9,6 +9,26 @@
   ansible.builtin.debug:
     var: available_updates
 
-- name: Update single-node system
-  include_tasks: update.yml
+- name: Get all available running VMs
+  scale_computing.hypercore.vm_info:
+  register: vms
+
+- name: Update
+  block:
+    - name: Shutdown all running VMs
+      include_tasks: shutdown_vms.yml
+
+    - name: Update single-node system
+      include_tasks: update.my
+      loop: "{{ available_updates }}"
+
+    - name: Restart previously running VMs
+      include_tasks: restart_vms.yml
   when: available_updates
+
+# - name: Shutdown all running VMs
+#   include_tasks:
+#
+# - name: Update single-node system
+#   include_tasks: update.yml
+#   when: available_updates

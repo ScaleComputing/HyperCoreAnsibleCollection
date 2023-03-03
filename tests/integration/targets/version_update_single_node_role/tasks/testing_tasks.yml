@@ -1,0 +1,5 @@
+- block:
+  - name: Get available updates
+    ansible.builtin.debug:
+      msg: "{{ item }}"
+  when: item != 6

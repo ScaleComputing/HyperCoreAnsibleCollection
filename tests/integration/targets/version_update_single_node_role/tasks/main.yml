@@ -7,19 +7,17 @@
 
   block:
     - name: Get available updates
-      scale_computing.hypercore.api:
-        action: get
-        endpoint: /rest/v1/Update
+      scale_computing.hypercore.version_update_info:
       register: updates
 
     - name: Test role version_update_single_node - no updates available
       include_tasks: 02_update_not_available.yml
-      when: updates == []
+      when: updates.records == []
 
     - name: Test role version_update_single_node
       include_tasks: 01_update.yml
-      when: updates != []
+      when: updates.records != []
 
     - name: Test role version_update_single_node - idempotence
       include_tasks: 02_update_not_available.yml
-      when: updates != []
+      when: updates.records != []

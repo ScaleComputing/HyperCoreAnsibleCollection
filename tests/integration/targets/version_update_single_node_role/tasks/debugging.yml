@@ -2,71 +2,29 @@
 #
 # REMOVE THIS FILE WHEN FINISHED
 #
+# Quick debugging, then tests
 - environment:
     SC_HOST: "{{ sc_host }}"
     SC_USERNAME: "{{ sc_username }}"
     SC_PASSWORD: "{{ sc_password }}"
-    SC_TIMEOUT: "{{ sc_timeout }}"
 
-# Quick debugging, then tests
+  vars:
+    test_list:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+
   block:
     - name: Get available updates
-      scale_computing.hypercore.api:
-        action: get
-        endpoint: /rest/v1/Update
-      register: available_updates
-    - ansible.builtin.debug:
-        var: available_updates
-
-    - name: Get available updates UUIDs
       ansible.builtin.debug:
-        msg: "{{ item.uuid }}"
-      when: available_updates
-      loop: "{{ available_updates.record }}"
-
-    - name: Get all available running VMs
-      scale_computing.hypercore.vm_info:
-      register: vms
-
-    - name: Show all running VMs
+        msg: "{{ item }}"
+  always:
+    - name: Always print
       ansible.builtin.debug:
-        msg: "{{ item.vm_name }}"
-      when: item.power_state == 'running'
-      loop: "{{ vms.records }}"
-      register: running_vms
+        msg: "always!"
+  when: item != 6
+  loop: "{{ test_list }}"
 
-    - name: Shutdown running VMs
-      scale_computing.hypercore.vm_params:
-        vm_name: "{{ item.vm_name }}"
-        power_state: shutdown
-      when: item.power_state == 'started' or item.power_state == 'running'
-      loop: "{{ vms.records }}"
-      register: vm_shutdown_result
-    - ansible.builtin.debug:
-        var: vm_shutdown_result
-
-    - name: Show all otherwise running VMs - blocked, paused, crashed
-      ansible.builtin.debug:
-        msg: "{{ item.vm_name }}"
-      when: item.power_state != 'stopped'
-      loop: "{{ vms.records }}"
-
-    - name: Stop otherwise running VMs - blocked, paused, crashed
-      scale_computing.hypercore.vm_params:
-        vm_name: "{{ item.vm_name }}"
-        power_state: stop
-      when: item.power_state != 'stopped' and item.power_state != 'running'
-      loop: "{{ vms.records }}"
-      register: vm_stop_result
-    - ansible.builtin.debug:
-        var: vm_stop_result
-
-    - name: Start all VMs that were initially not stopped
-      scale_computing.hypercore.vm_params:
-        vm_name: "{{ item.vm_name }}"
-        power_state: start
-      when: item.power_state != 'stopped'
-      loop: "{{ vms.records }}"
-      register: vm_start_result
-    - ansible.builtin.debug:
-        var: vm_start_result

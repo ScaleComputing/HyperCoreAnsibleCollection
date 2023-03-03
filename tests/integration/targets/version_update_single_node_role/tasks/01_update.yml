@@ -1,8 +1,6 @@
 ---
 - name: Get state before update
-  scale_computing.hypercore.api:
-    action: get
-    endpoint: /rest/v1/Update
+  scale_computing.hypercore.version_update_info:
   register: available_updates_before
 - ansible.builtin.debug:
     var: available_updates_before
@@ -22,9 +20,7 @@
 # --------------------------------------------------------------
 
 - name: Get state after update
-  scale_computing.hypercore.api:
-    action: get
-    endpoint: /rest/v1/Update
+  scale_computing.hypercore.version_update_info:
   register: available_updates_after
 - ansible.builtin.debug:
     var: available_updates_after
