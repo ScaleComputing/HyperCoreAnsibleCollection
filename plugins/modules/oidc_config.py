@@ -57,7 +57,6 @@ EXAMPLES = r"""
     certificate: plain_text_from_x509
     config_url: https:somwhere.com/this/endpoint
     scopes: required_scopes
-    state: present
 """
 
 RETURN = r"""
