@@ -104,12 +104,14 @@ class TypedUpdateToAnsible(TypedDict):
 
 # UpdateStatus to ansible return dict.
 class TypedUpdateStatusToAnsible(TypedDict):
-    status: str
+    prepare_status: str
+    update_status: str
     from_build: str
     to_build: str
     to_version: str
     percent: str
-    status_details: str
+    update_status_details: str
+    usernotes: str
 
 
 # Ansible module return Diff dict {before:{} after:{}}

@@ -34,8 +34,10 @@ class TestRun:
         ).return_value = UpdateStatus(
             from_build="207183",
             percent="100",
-            status="COMPLETE",
-            status_details="Update Complete. Press 'Reload' to reconnect",
+            prepare_status="",
+            update_status="COMPLETE",
+            update_status_details="Update Complete. Press 'Reload' to reconnect",
+            usernotes="Press 'Reload' to reconnect",
             to_build="209840",
             to_version="9.1.18.209840",
         )
@@ -45,8 +47,10 @@ class TestRun:
         assert record == dict(
             from_build="207183",
             percent="100",
-            status="COMPLETE",
-            status_details="Update Complete. Press 'Reload' to reconnect",
+            prepare_status="",
+            update_status="COMPLETE",
+            update_status_details="Update Complete. Press 'Reload' to reconnect",
+            usernotes="Press 'Reload' to reconnect",
             to_build="209840",
             to_version="9.1.18.209840",
         )

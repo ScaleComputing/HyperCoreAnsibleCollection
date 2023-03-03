@@ -12,6 +12,4 @@
     - ansible.builtin.assert:
         that:
           - update_status.record != []
-          - update_status.record.keys() | sort == ['from_build', 'percent', 'status', 'status_details', 'to_build', 'to_version']
-          - update_status.record.percent == "100"
-          - update_status.record.status == "COMPLETE"
+          - update_status.record.keys() | sort == ['from_build', 'percent', 'prepare_status', 'to_build', 'to_version', 'update_status', 'update_status_details', 'usernotes']

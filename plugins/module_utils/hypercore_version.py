@@ -248,19 +248,23 @@ class Update(PayloadMapper):
 class UpdateStatus(PayloadMapper):
     def __init__(
         self,
-        status: str,
+        prepare_status: str,
+        update_status: str,
         from_build: str,
         to_build: str,
         to_version: str,
         percent: str,
-        status_details: str,
+        update_status_details: str,
+        usernotes: str,
     ):
-        self.status = status
+        self.prepare_status = prepare_status
+        self.update_status = update_status
         self.from_build = from_build
         self.to_build = to_build
         self.to_version = to_version
         self.percent = percent
-        self.status_details = status_details
+        self.update_status_details = update_status_details
+        self.usernotes = usernotes
 
     @classmethod
     def from_ansible(cls, ansible_data: dict[Any, Any]) -> None:
@@ -268,13 +272,23 @@ class UpdateStatus(PayloadMapper):
 
     @classmethod
     def from_hypercore(cls, hypercore_data: dict[Any, Any]) -> UpdateStatus:
+        # using .get since keys are not always present in the output
+        # using type == str since "prepareStatus" is sometimes str, sometimes dict, and .get can't be used
+        if type(hypercore_data["prepareStatus"]) == str:
+            prepare_status = hypercore_data["prepareStatus"]
+        else:
+            prepare_status = hypercore_data["prepareStatus"].get("state")
         return cls(
-            status=hypercore_data["updateStatus"]["masterState"],
-            from_build=hypercore_data["updateStatus"]["fromBuild"],
-            to_build=hypercore_data["updateStatus"]["toBuild"],
-            to_version=hypercore_data["updateStatus"]["toVersion"],
-            percent=hypercore_data["updateStatus"]["percent"],
-            status_details=hypercore_data["updateStatus"]["status"]["statusdetails"],
+            prepare_status=prepare_status,
+            update_status=hypercore_data["updateStatus"].get("masterState"),
+            from_build=hypercore_data["updateStatus"].get("fromBuild"),
+            to_build=hypercore_data["updateStatus"].get("toBuild"),
+            to_version=hypercore_data["updateStatus"].get("toVersion"),
+            percent=hypercore_data["updateStatus"].get("percent"),
+            update_status_details=hypercore_data["updateStatus"]["status"].get(
+                "statusdetails"
+            ),
+            usernotes=hypercore_data["updateStatus"]["status"].get("usernotes"),
         )
 
     def to_hypercore(self) -> None:
@@ -282,12 +296,14 @@ class UpdateStatus(PayloadMapper):
 
     def to_ansible(self) -> TypedUpdateStatusToAnsible:
         return dict(
-            status=self.status,
+            prepare_status=self.prepare_status,
+            update_status=self.update_status,
             from_build=self.from_build,
             to_build=self.to_build,
             to_version=self.to_version,
             percent=self.percent,
-            status_details=self.status_details,
+            update_status_details=self.update_status_details,
+            usernotes=self.usernotes,
         )
 
     def __eq__(self, other: object) -> bool:
@@ -299,12 +315,14 @@ class UpdateStatus(PayloadMapper):
             return NotImplemented
         return all(
             (
-                self.status == other.status,
+                self.prepare_status == other.prepare_status,
+                self.update_status == other.update_status,
                 self.from_build == other.from_build,
                 self.to_build == other.to_build,
                 self.to_version == other.to_version,
                 self.percent == other.percent,
-                self.status_details == other.status_details,
+                self.update_status_details == other.update_status_details,
+                self.usernotes == other.usernotes,
             )
         )
 
