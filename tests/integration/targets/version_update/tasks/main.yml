@@ -26,7 +26,7 @@
       register: update_status
     - ansible.builtin.assert:
         that:
-          - update_status.record.status == "COMPLETE" # Fail early if update in progress
+          - update_status.record.update_status == "COMPLETE" or update_status.record.update_status == "TERMINATING" # Fail early if update in progress
     
     - name: Update to the same hc version
       scale_computing.hypercore.version_update:
@@ -49,10 +49,14 @@
           - update.record.uuid == updates.records[0].uuid
           - update.diff.before.icos_version == cluster_initial.record.icos_version
           - update.diff.after.icos_version == updates.records[0].uuid
-    
+
     - name: Get status of the latest update applied
       scale_computing.hypercore.version_update_status_info:
       register: update_status
+      until:  update_status.record.update_status == "EXECUTING" 
+      retries: 100
+      delay: 5
     - ansible.builtin.assert:
         that:
-          - update_status.record.status == "IN PROGRESS"
+          - update_status.record.update_status == "EXECUTING"
+    
