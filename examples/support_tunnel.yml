@@ -1,0 +1,25 @@
+---
+- name: Open and close remote support connection (support_tunnel)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    support_tunnel_code: 1100
+
+  tasks:
+    - name: Get remote support connection state
+      scale_computing.hypercore.support_tunnel_info:
+      register: support_tunnel_info_result
+
+    - name: Show remote support connection state
+      ansible.builtin.debug:
+        var: support_tunnel_info_result
+
+    - name: Open remote support connection
+      scale_computing.hypercore.support_tunnel:
+        code: "{{ support_tunnel_code }}"
+        state: present
+
+    - name: Close remote support connection
+      scale_computing.hypercore.support_tunnel:
+        state: absent

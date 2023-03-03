@@ -97,7 +97,7 @@ def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
     registration_obj: Union[Registration, None],
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff, bool]:
+) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff]:
     before = registration_obj.to_ansible() if registration_obj else None
     registration_obj_ansible = Registration.from_ansible(module.params)
     if registration_obj is None:
@@ -109,14 +109,14 @@ def ensure_present(
     TaskTag.wait_task(rest_client, task)
     updated_registration = Registration.get(rest_client)
     after = updated_registration.to_ansible() if updated_registration else None
-    return is_changed(before, after), after, dict(before=before, after=after), False
+    return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def ensure_absent(
     module: AnsibleModule,
     rest_client: RestClient,
     registration_obj: Union[Registration, None],
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff, bool]:
+) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff]:
     before = registration_obj.to_ansible() if registration_obj else None
     after = None
     if registration_obj:
@@ -124,12 +124,12 @@ def ensure_absent(
         TaskTag.wait_task(rest_client, task)
         updated_registration = Registration.get(rest_client)
         after = updated_registration.to_ansible() if updated_registration else None
-    return is_changed(before, after), after, dict(before=before, after=after), False
+    return is_changed(before, after), after, dict(before=before, after=after)
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff, bool]:
+) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff]:
     registration_obj = Registration.get(rest_client)
     if module.params["state"] == State.present:
         return ensure_present(module, rest_client, registration_obj)
@@ -167,8 +167,8 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client=client)
-        changed, record, diff, reboot = run(module, rest_client)
-        module.exit_json(changed=changed, record=record, diff=diff, vm_rebooted=reboot)
+        changed, record, diff = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

@@ -29,7 +29,6 @@ from ..module_utils.utils import (
 )
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
-from ..module_utils.errors import ScaleComputingError
 from ..module_utils.snapshot_schedule import SnapshotSchedule
 
 # FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE and FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE are mappings for how
@@ -359,6 +358,26 @@ class VM(PayloadMapper):
         return vm_from_hypercore
 
     @classmethod
+    def get_by_old_or_new_name(cls, ansible_dict, rest_client, must_exist=False):
+        vm_old_name = VM.get_by_name(ansible_dict, rest_client)
+        vm_new_name = (
+            VM.get_by_name(ansible_dict, rest_client, name_field="vm_name_new")
+            if ansible_dict.get("vm_name_new") is not None
+            else None
+        )
+        if vm_old_name and vm_new_name:
+            # Having two candidate VMs is error, we cannot decide which VM to modify.
+            raise errors.ScaleComputingError(
+                f"More than one VM matches requirement vm_name=={ansible_dict['vm_name']} or vm_name_new=={ansible_dict['vm_name_new']}"
+            )
+        vm = vm_old_name or vm_new_name
+        if must_exist and vm is None:
+            raise errors.VMNotFound(
+                f"vm_name={ansible_dict['vm_name']} or vm_name_new={ansible_dict['vm_name_new']}"
+            )
+        return vm
+
+    @classmethod
     def import_vm(cls, rest_client, ansible_dict):
         cloud_init = cls.create_cloud_init_payload(ansible_dict)
         data = cls.create_export_or_import_vm_payload(
@@ -390,7 +409,9 @@ class VM(PayloadMapper):
             vm_dict["operatingSystem"] = self.operating_system
         # state attribute is used by HC3 only during VM create.
         if self.power_state:
-            vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE[self.power_state]
+            vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE.get(
+                self.power_state, "unknown-power-state-sorry"
+            )
         if self.machine_type:
             vm_dict["machineType"] = FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE[
                 self.machine_type
@@ -572,7 +593,7 @@ class VM(PayloadMapper):
         # Type is type of the device, for example disk or nic
         filtered_results = filter_results(results, query)
         if len(filtered_results) > 1:
-            raise ScaleComputingError(
+            raise errors.ScaleComputingError(
                 "{0} isn't uniquely identifyed by {1} in the VM.".format(
                     object_type, query
                 )
@@ -680,7 +701,7 @@ class VM(PayloadMapper):
             "scale_computing.hypercore.vm_nic",
         ):
             return False
-        raise ScaleComputingError(
+        raise errors.ScaleComputingError(
             "Setting disks and/or is currently only supported in two of the following modules:"
             "scale_computing.hypercore.vm_disk, scale_computing.hypercore.vm, scale_computing.hypercore.vm_nic"
         )
@@ -955,7 +976,7 @@ class ManageVMDisks:
         Returns vm object and list of ansible disks (this combo is commonly used in this module).
         """
         # If there's no VM with such name, error is raised automatically
-        vm = VM.get_by_name(module.params, rest_client, must_exist=True)
+        vm = VM.get_by_old_or_new_name(module.params, rest_client, must_exist=True)
         return vm, [disk.to_ansible() for disk in vm.disks]
 
     @staticmethod
@@ -1036,7 +1057,7 @@ class ManageVMDisks:
         # It's important to check if items is equal to empty list and empty list only (no None-s)
         # This method is going to be called in vm_disk class only.
         if module.params["items"] != []:
-            raise ScaleComputingError(
+            raise errors.ScaleComputingError(
                 "If force set to true, items should be set to empty list"
             )
         # Delete all disks
@@ -1229,16 +1250,14 @@ class ManageVMNics(Nic):
         changed = False
         called_from_vm_nic = not VM.called_from_vm_module(module_path)
         nic_key = "items" if called_from_vm_nic else "nics"
-        virtual_machine_obj_list = VM.get_or_fail(
-            query={"name": module.params["vm_name"]}, rest_client=rest_client
+        vm_before = VM.get_by_old_or_new_name(
+            module.params, rest_client=rest_client, must_exist=True
         )
         if module.params[nic_key]:
             for nic in module.params[nic_key]:
-                nic["vm_uuid"] = virtual_machine_obj_list[0].uuid
+                nic["vm_uuid"] = vm_before.uuid
                 nic = Nic.from_ansible(ansible_data=nic)
-                existing_hc3_nic, existing_hc3_nic_with_new = virtual_machine_obj_list[
-                    0
-                ].find_nic(
+                existing_hc3_nic, existing_hc3_nic_with_new = vm_before.find_nic(
                     vlan=nic.vlan,
                     mac=nic.mac,
                     vlan_new=nic.vlan_new,
@@ -1254,7 +1273,7 @@ class ManageVMNics(Nic):
                         reboot,
                     ) = ManageVMNics.send_update_nic_request_to_hypercore(
                         module,
-                        virtual_machine_obj_list[0],
+                        vm_before,
                         rest_client,
                         nic,
                         existing_hc3_nic_with_new,
@@ -1273,7 +1292,7 @@ class ManageVMNics(Nic):
                         reboot,
                     ) = ManageVMNics.send_update_nic_request_to_hypercore(
                         module,
-                        virtual_machine_obj_list[0],
+                        vm_before,
                         rest_client,
                         nic,
                         existing_hc3_nic,
@@ -1289,34 +1308,34 @@ class ManageVMNics(Nic):
                         reboot,
                     ) = ManageVMNics.send_create_nic_request_to_hypercore(
                         module,
-                        virtual_machine_obj_list[0],
+                        vm_before,
                         rest_client=rest_client,
                         new_nic=nic,
                         before=before,
                         after=after,
                     )
         elif module.params[nic_key] == []:  # empty set in ansible, delete all
-            for nic in virtual_machine_obj_list[0].nic_list:
+            for nic in vm_before.nic_list:
                 before.append(nic.to_ansible())
         else:
             raise errors.MissingValueAnsible(
                 "items, cannot be null, empty must be set to []"
             )
-        updated_virtual_machine = VM.get(
-            query={"name": module.params["vm_name"]}, rest_client=rest_client
-        )[0]
+        updated_virtual_machine = VM.get_by_old_or_new_name(
+            module.params, rest_client=rest_client
+        )
         if module.params["state"] == NicState.set or not called_from_vm_nic:
             # Check if any nics need to be deleted from the vm
             if updated_virtual_machine.delete_unused_nics_to_hypercore_vm(
                 module, rest_client, nic_key
             )[0]:
                 changed = True
-                virtual_machine_obj_list[0].reboot = True
+                vm_before.reboot = True
         if called_from_vm_nic:
             return (
                 changed,
                 after,
                 dict(before=before, after=after),
-                virtual_machine_obj_list[0].reboot,
+                vm_before.reboot,
             )
-        return changed, virtual_machine_obj_list[0].reboot
+        return changed, vm_before.reboot

@@ -81,7 +81,7 @@ records:
   type: dict
   sample:
     alert_tag_uuid: 0
-    email_address: sample@sample.com
+    email: sample@sample.com
     latest_task_tag:
       completed: 1675680830
       created: 1675680830
@@ -116,7 +116,7 @@ from ..module_utils.email_alert import EmailAlert
 
 def create_email_alert(module: AnsibleModule, rest_client: RestClient):
     email_alert = EmailAlert.get_by_email(
-        dict(email_address=module.params["email"]), rest_client
+        dict(email=module.params["email"]), rest_client
     )
 
     # If that email alert recipient already exists, it will not be created again (no duplicates)
@@ -142,13 +142,11 @@ def create_email_alert(module: AnsibleModule, rest_client: RestClient):
 
 def update_email_alert(module: AnsibleModule, rest_client: RestClient):
     # Get record of old emailAlert by email
-    old_email = EmailAlert.get_by_email(
-        dict(email_address=module.params["email"]), rest_client
-    )
+    old_email = EmailAlert.get_by_email(dict(email=module.params["email"]), rest_client)
 
     if not old_email:
         old_email = EmailAlert.get_by_email(
-            dict(email_address=module.params["email_new"]), rest_client
+            dict(email=module.params["email_new"]), rest_client
         )
         if not old_email:
             raise errors.ScaleComputingError(
@@ -159,7 +157,7 @@ def update_email_alert(module: AnsibleModule, rest_client: RestClient):
 
     # Return if there are no changes
     if (
-        module.params["email_new"] == old_email.to_ansible().get("email_address")
+        module.params["email_new"] == old_email.to_ansible().get("email")
         or module.params["email_new"] == module.params["email"]
     ):
         return False, before, dict(before=before, after=before)
@@ -171,7 +169,7 @@ def update_email_alert(module: AnsibleModule, rest_client: RestClient):
         check_mode=module.check_mode,
     )
     new_email = EmailAlert.get_by_email(
-        dict(email_address=module.params["email_new"]), rest_client
+        dict(email=module.params["email_new"]), rest_client
     )
     after = new_email.to_ansible()
 
@@ -184,7 +182,7 @@ def update_email_alert(module: AnsibleModule, rest_client: RestClient):
 
 def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
     delete_email = EmailAlert.get_by_email(
-        dict(email_address=module.params["email"]), rest_client
+        dict(email=module.params["email"]), rest_client
     )
 
     if not delete_email:
@@ -202,7 +200,7 @@ def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
 
 def send_test(module: AnsibleModule, rest_client: RestClient):
     send_email = EmailAlert.get_by_email(
-        dict(email_address=module.params["email"]), rest_client
+        dict(email=module.params["email"]), rest_client
     )
 
     if (
@@ -217,7 +215,7 @@ def send_test(module: AnsibleModule, rest_client: RestClient):
     )
 
     after_send_email = EmailAlert.get_by_email(
-        dict(email_address=module.params["email"]), rest_client
+        dict(email=module.params["email"]), rest_client
     )
     after = after_send_email.to_ansible()
 

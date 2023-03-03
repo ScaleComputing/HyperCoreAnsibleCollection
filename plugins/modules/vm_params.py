@@ -117,7 +117,7 @@ from ..module_utils.vm import VM, ManageVMParams
 
 
 def run(module, rest_client):
-    vm = VM.get_by_name(module.params, rest_client, must_exist=True)
+    vm = VM.get_by_old_or_new_name(module.params, rest_client, must_exist=True)
     # Update VM's name, description, tags, memory, number of CPUs, power_state and/or assign snapshot schedule.
     # In case if reboot is needed, set_vm_params will shutdown the vm
     # In case if reboot is not needed, set_vm_params will set power_state as specified in the module.params["power_state"]

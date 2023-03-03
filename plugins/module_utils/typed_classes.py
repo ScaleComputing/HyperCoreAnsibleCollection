@@ -119,7 +119,7 @@ class TypedDiff(TypedDict):
 # smtp module
 class TypedSmtpToAnsible(TypedDict):
     uuid: Union[str, None]
-    smtp_server: Union[str, None]
+    server: Union[str, None]
     port: Union[int, None]
     use_ssl: Union[bool, None]
     use_auth: Union[bool, None]
@@ -131,7 +131,7 @@ class TypedSmtpToAnsible(TypedDict):
 
 class TypedSmtpFromAnsible(TypedDict):
     uuid: Union[str, None]
-    smtp_server: Union[str, None]
+    server: Union[str, None]
     port: Union[int, None]
     use_ssl: Union[bool, None]
     use_auth: Union[bool, None]
@@ -144,7 +144,7 @@ class TypedSmtpFromAnsible(TypedDict):
 class TypedEmailAlertToAnsible(TypedDict):
     uuid: Union[str, None]
     alert_tag_uuid: Union[str, None]
-    email_address: Union[str, None]
+    email: Union[str, None]
     resend_delay: Union[int, None]
     silent_period: Union[int, None]
     latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
@@ -153,7 +153,7 @@ class TypedEmailAlertToAnsible(TypedDict):
 class TypedEmailAlertFromAnsible(TypedDict):
     uuid: Union[str, None]
     alert_tag_uuid: Union[str, None]
-    email_address: Union[str, None]
+    email: Union[str, None]
     resend_delay: Union[int, None]
     silent_period: Union[int, None]
     latest_task_tag: Union[TypedTaskTag, None]

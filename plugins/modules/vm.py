@@ -373,7 +373,7 @@ def _set_vm_params(module, rest_client, vm):
 
 
 def ensure_present(module, rest_client):
-    vm_before = VM.get_by_name(module.params, rest_client)
+    vm_before = VM.get_by_old_or_new_name(module.params, rest_client)
     reboot = False
     if vm_before:
         before = vm_before.to_ansible()  # for output

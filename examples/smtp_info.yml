@@ -1,6 +1,13 @@
 ---
-- name: List SMTP Configuration
-  scale_computing.hypercore.smtp_info:
-  register: smtp_info
-- ansible.builtin.debug:
-    msg: "{{ smtp_info }}"
+- name: List SMTP configuration
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: List SMTP Configuration
+      scale_computing.hypercore.smtp_info:
+      register: smtp_info
+
+    - ansible.builtin.debug:
+        msg: "{{ smtp_info }}"

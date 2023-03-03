@@ -42,6 +42,8 @@
         that:
           - registration_create is succeeded
           - registration_create is changed
+          - registration_create.keys() | sort == ['changed', 'diff', 'failed', 'record']
+          - registration_create.record.keys() | sort == ['company_name', 'contact', 'email', 'phone']
           - registration_create.record.company_name == "My company"
           - registration_create.record.contact == "John Doe"
           - registration_create.record.email == "jonh.doe@gmail.com"
@@ -69,7 +71,8 @@
         that:
           - result is succeeded
           - result is not changed
-          - result.record
+          - result.keys() | sort == ['changed', 'failed', 'record']
+          - result.record.keys() | sort == ['company_name', 'contact', 'email', 'phone']
           - result.record.company_name == "My company"
           - result.record.contact == "John Doe"
           - result.record.email == "jonh.doe@gmail.com"

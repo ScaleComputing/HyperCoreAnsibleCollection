@@ -20,6 +20,8 @@ from ..module_utils.typed_classes import (
 )
 from typing import List, Union, Any, Dict
 
+protocols = {"SYSLOG_PROTOCOL_TCP": "tcp", "SYSLOG_PROTOCOL_UDP": "udp"}
+
 
 class SyslogServer(PayloadMapper):
     def __init__(
@@ -62,7 +64,7 @@ class SyslogServer(PayloadMapper):
             alert_tag_uuid=hypercore_data["alertTagUUID"],
             host=hypercore_data["host"],
             port=hypercore_data["port"],
-            protocol=hypercore_data["protocol"],
+            protocol=protocols[hypercore_data["protocol"]],
             resend_delay=hypercore_data["resendDelay"],
             silent_period=hypercore_data["silentPeriod"],
             latest_task_tag=hypercore_data["latestTaskTag"],

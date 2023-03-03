@@ -76,13 +76,22 @@ def open_tunnel(
 ) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
     tunnel_status = SupportTunnel.check_tunnel_status(client)
     if tunnel_status.open:  # if tunnel already opened
-        return (
-            False,
-            tunnel_status.to_ansible(),
-            dict(before=tunnel_status.to_ansible(), after=tunnel_status.to_ansible()),
-        )
+        if tunnel_status.code == module.params["code"]:
+            return (
+                False,
+                tunnel_status.to_ansible(),
+                dict(
+                    before=tunnel_status.to_ansible(), after=tunnel_status.to_ansible()
+                ),
+            )
+        else:
+            SupportTunnel.close_tunnel(client)
     SupportTunnel.open_tunnel(module, client)
     new_tunnel_status = SupportTunnel.check_tunnel_status(client)
+    if new_tunnel_status.open is False:
+        raise errors.SupportTunnelError(  # type: ignore
+            "Support tunnel can't be opened, probably the code is already in use."
+        )
     return (
         True,
         new_tunnel_status.to_ansible(),

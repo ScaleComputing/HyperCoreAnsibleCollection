@@ -21,7 +21,7 @@
 
     - name: Prepare for test - cleanup (also test Remove with loop)
       scale_computing.hypercore.email_alert:
-        email: "{{ item.email_address }}"
+        email: "{{ item.email }}"
         state: absent
       loop: "{{ starting_emails }}"
     - scale_computing.hypercore.email_alert_info:
@@ -48,10 +48,10 @@
         that:
           - result.record != {}
           - result.record.keys() | sort ==
-            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            ['alert_tag_uuid', 'email', 'latest_task_tag',
             'resend_delay', 'silent_period', 'uuid']
           - info.records|length == 1|int
-          - info.records[0].email_address == "{{ create_email }}"
+          - info.records[0].email == "{{ create_email }}"
 
     - name: Create new Email Alert Recipient - idempotence
       scale_computing.hypercore.email_alert:
@@ -82,7 +82,7 @@
         that:
           - result.record != {}
           - result.record.keys() | sort ==
-            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            ['alert_tag_uuid', 'email', 'latest_task_tag',
             'resend_delay', 'silent_period', 'uuid']
           - info.records|length == 1|int
 
@@ -116,7 +116,7 @@
           - info.records|length == 1|int
           - result.record != {}
           - result.record.keys() | sort ==
-            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            ['alert_tag_uuid', 'email', 'latest_task_tag',
             'resend_delay', 'silent_period', 'uuid']
 
 
@@ -136,7 +136,7 @@
           - info.records|length == 1|int
           - result.record != {}
           - result.record.keys() | sort ==
-            ['alert_tag_uuid', 'email_address', 'latest_task_tag',
+            ['alert_tag_uuid', 'email', 'latest_task_tag',
             'resend_delay', 'silent_period', 'uuid']
 
 

@@ -30,7 +30,7 @@
         that:
           - result.changed == True
           - result.diff.before != result.diff.after
-          - info.record.time_zone == time_zone_b
+          - info.record.zone == time_zone_b
           - info.record.uuid == actual_uuid
 
     - name: Create TimeZone object - idempotence
@@ -43,7 +43,7 @@
         that:
           - result.changed == False
           - result.diff.before == result.diff.after
-          - info.record.time_zone == time_zone_b
+          - info.record.zone == time_zone_b
           - info.record.uuid == actual_uuid
 
     - name: Change time zone
@@ -56,7 +56,7 @@
         that:
           - result.changed == True
           - result.diff.before != result.diff.after
-          - info.record.time_zone == time_zone_a
+          - info.record.zone == time_zone_a
           - info.record.uuid == actual_uuid
 
     - name: Change time zone - idempotence
@@ -69,5 +69,5 @@
         that:
           - result.changed == False
           - result.diff.before == result.diff.after
-          - info.record.time_zone == time_zone_a
+          - info.record.zone == time_zone_a
           - info.record.uuid == actual_uuid

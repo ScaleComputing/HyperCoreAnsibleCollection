@@ -6,8 +6,8 @@
 
   vars:
     default_port: 514
-    tcp_protocol: SYSLOG_PROTOCOL_TCP
-    udp_protocol: SYSLOG_PROTOCOL_UDP
+    tcp_protocol: "tcp"
+    udp_protocol: "udp"
     create_syslog_server:
       host: 0.0.0.0
       port: 42

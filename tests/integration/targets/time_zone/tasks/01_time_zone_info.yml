@@ -5,28 +5,59 @@
     SC_PASSWORD: "{{ sc_password }}"
 
   vars:
-    actual_uuid: ""
-    actual_zone: ""
+    actual_uuid: "timezone_guid"
+    actual_zone: "Europe/Belgrade"
 
   block:
+    # -------------------------------------------------------
+    # Test with no TimeZone objects
+    - include_tasks: helper_api_time_zone_delete_all.yml
+
     - name: Get expected configs
       scale_computing.hypercore.api:
         action: get
-        endpoint: /rest/v1/TimeZone/timezone_guid
+        endpoint: /rest/v1/TimeZone
       register: actual
-    - ansible.builtin.set_fact:
-        actual_zone: "{{ actual.record.0.timeZone }}"
-        actual_uuid: "{{ actual.record.0.uuid }}"
+    - ansible.builtin.assert:
+        that:
+          - actual.record | length == 0
 
-    - name: Retrieve info about Time Zone
+    - name: Retrieve info about Time Zone - 0 objects
       scale_computing.hypercore.time_zone_info:
       register: result
     - ansible.builtin.debug:
         msg: "{{ result }}"
     - ansible.builtin.assert:
         that:
-          - result.record != []
-          - "{{ result.record.keys() | sort == ['latest_task_tag', 'time_zone', 'uuid'] }}"
+          - result.record == {}
+
+    # -------------------------------------------------------
+    # Test with one TimeZone object
+    - include_tasks: helper_api_time_zone_create_one.yml
+      vars:
+        time_zone_config:
+          zone: "{{ actual_zone }}"
+
+    - name: Get expected configs
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/TimeZone
+      register: actual
+    - ansible.builtin.assert:
+        that:
+          - actual.record | length == 1
+          - actual_zone == actual.record.0.timeZone
+          - actual_uuid == actual.record.0.uuid
+
+    - name: Retrieve info about Time Zone - 1 object
+      scale_computing.hypercore.time_zone_info:
+      register: result
+    - ansible.builtin.debug:
+        msg: "{{ result.record }}"
+    - ansible.builtin.assert:
+        that:
+          - result.record != {}
+          - "{{ result.record.keys() | sort == ['latest_task_tag', 'uuid', 'zone'] }}"
           - result.record.uuid == actual_uuid
-          - result.record.time_zone == actual_zone
+          - result.record.zone == actual_zone
           - result.record.latest_task_tag

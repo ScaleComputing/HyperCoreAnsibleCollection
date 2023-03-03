@@ -36,7 +36,7 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-results:
+record:
   description:
     - SMTP configuration record.
   returned: success
@@ -60,7 +60,7 @@ results:
       state: COMPLETE
       taskTag: 761
     port: 25
-    smtp_server: smtp-relay.gmail.com
+    server: smtp-relay.gmail.com
     use_auth: false
     use_ssl: false
     uuid: smtpconfig_guid

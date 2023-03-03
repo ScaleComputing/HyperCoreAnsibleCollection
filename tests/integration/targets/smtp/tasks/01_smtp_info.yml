@@ -36,9 +36,9 @@
 - ansible.builtin.assert:
     that:
       - result.changed == False
-      - result.record.keys() | sort == ['auth_password', 'auth_user', 'from_address', 'latest_task_tag', 'port', 'smtp_server', 'use_auth', 'use_ssl', 'uuid']
+      - result.record.keys() | sort == ['auth_password', 'auth_user', 'from_address', 'latest_task_tag', 'port', 'server', 'use_auth', 'use_ssl', 'uuid']
       - result.record.uuid == "smtpconfig_guid"
-      - result.record.smtp_server == "mail.example.com"
+      - result.record.server == "mail.example.com"
       - result.record.port == 25
       - result.record.use_ssl == False
       - result.record.use_auth == False

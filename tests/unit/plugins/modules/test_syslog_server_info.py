@@ -25,14 +25,22 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestRun:
-    def test_run_record_present(self, rest_client):
+    # This also tests the get_state() method from module_utils/test_syslog_server again
+    @pytest.mark.parametrize(
+        ("protocol", "expected_protocol"),
+        [
+            ("SYSLOG_PROTOCOL_UDP", "udp"),
+            ("SYSLOG_PROTOCOL_TCP", "tcp"),
+        ],
+    )
+    def test_run_record_present(self, rest_client, protocol, expected_protocol):
         rest_client.list_records.return_value = [
             dict(
                 uuid="test",
                 alertTagUUID="0",
                 host="0.0.0.0",
                 port=42,
-                protocol="protocol",
+                protocol=protocol,
                 resendDelay=123,
                 silentPeriod=123,
                 latestTaskTag={},
@@ -46,7 +54,7 @@ class TestRun:
                 "alert_tag_uuid": "0",
                 "host": "0.0.0.0",
                 "port": 42,
-                "protocol": "protocol",
+                "protocol": expected_protocol,
                 "resend_delay": 123,
                 "silent_period": 123,
                 "latest_task_tag": {},

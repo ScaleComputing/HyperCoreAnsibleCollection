@@ -177,7 +177,7 @@ def build_update_payload(
     if module.params["protocol"]:
         protocol = get_protocol(module.params["protocol"])
         if protocol != UDP and protocol != syslog_server.protocol:
-            payload["protocol"] = protocol
+            payload["protocol"] = module.params["protocol"]
     return payload
 
 
@@ -202,6 +202,8 @@ def update_syslog_server(
         return False, before, dict(before=before, after=before)
 
     # Otherwise, update with new parameters
+    payload["protocol"] = get_protocol(payload["protocol"])
+
     old_syserver.update(
         rest_client=rest_client,
         payload=payload,
