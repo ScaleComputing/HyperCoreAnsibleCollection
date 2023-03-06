@@ -59,4 +59,3 @@
     - ansible.builtin.assert:
         that:
           - update_status.record.update_status == "EXECUTING"
-
