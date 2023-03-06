@@ -18,11 +18,13 @@
       ignore_unreachable: true
 
   rescue:
-    - fail:
+    - name: Fail if retries reached 20
+      ansible.builtin.fail:
         msg: "Maximum retries of grouped tasks reached"
       when: retries | int == 20
 
-    - debug:
+    - name: Log
+      ansible.builtin.debug:
         msg: "Update status check failed due to server down / restart - retrying"
 
     - include_tasks: update_status_check.yml
