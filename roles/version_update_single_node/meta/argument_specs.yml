@@ -1,0 +1,18 @@
+argument_specs:
+
+  main:
+    short_description: Update single-node systems
+    description:
+      - Role version_update_single_node can be use to
+        to update a single-node HyperCore system to a
+        desired HyperCore version.
+    options:
+      scale_computing_hypercore_desired_version:
+        description:
+          - The desired HyperCore version we wish to update to.
+          - If already on desired version, the updates will not be applied.
+          - If there is no desired version present in the list of available
+            updates, no updates will be applied.
+          - If multi-node system was detected, no update will be applied.
+        required: true
+        type: str
