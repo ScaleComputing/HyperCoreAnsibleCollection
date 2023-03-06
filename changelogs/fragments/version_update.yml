@@ -1,0 +1,3 @@
+---
+major_changes:
+  - Added version_update, version_update_info and version_update_status_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/135)
