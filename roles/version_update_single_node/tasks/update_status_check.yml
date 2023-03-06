@@ -28,4 +28,3 @@
         msg: "Update status check failed due to server down / restart - retrying"
 
     - include_tasks: update_status_check.yml
-
