@@ -2,3 +2,6 @@
 major_changes:
   - Added support_tunnel_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/92)
   - Added support_tunnel module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/92)
+
+bugfixes:
+  - In support_tunnel module added handling case when code is already in use by another tunnel. Also if tunnel is already opened, it is now possible to re-open it with different code. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/141)
