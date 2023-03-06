@@ -35,17 +35,9 @@
   scale_computing.hypercore.time_server:
     source: "{{ scale_computing_hypercore_cluster_config.time_server }}"
 
-# Oh no. "US/Estern" iz not accepted by time_zone modules. We need to fix it.
-# Revert with api modele
-#- name: REVERT Set time zone
-#  scale_computing.hypercore.time_zone:
-#    zone: "{{ scale_computing_hypercore_cluster_config.time_zone }}"
-- name: REVERT Set time zone using api module
-  scale_computing.hypercore.api:
-    action: post
-    endpoint: /rest/v1/TimeZone/timezone_guid
-    data:
-      timeZone: "{{ scale_computing_hypercore_cluster_config.time_zone }}"
+- name: REVERT Set time zone
+  scale_computing.hypercore.time_zone:
+    zone: "{{ scale_computing_hypercore_cluster_config.time_zone }}"
 
 - name: REVERT Set SMTP configuration
   scale_computing.hypercore.smtp:
