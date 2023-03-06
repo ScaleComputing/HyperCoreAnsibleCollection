@@ -1,8 +1,9 @@
+---
 - name: Check update status on HC3
   block:
-    - name: Increment retry count for outer loop
+    - name: Increment retry_count
       ansible.builtin.set_fact:
-        retries: "{{ 0 if retries is undefined else retries | int + 1 }}"
+        retry_count: "{{ 0 if retry_count is undefined else retries | int + 1 }}"
 
     - name: Pause before checking update status - checks will report FAILED-RETRYING until update COMPLETE/TERMINATED
       ansible.builtin.wait_for:
@@ -20,11 +21,11 @@
   rescue:
     - name: Fail if retries reached 20
       ansible.builtin.fail:
-        msg: "Maximum retries of grouped tasks reached"
-      when: retries | int == 20
+        msg: Maximum retries of grouped tasks reached
+      when: retry_count | int == 20
 
     - name: Log
       ansible.builtin.debug:
-        msg: "Update status check failed due to server down / restart - retrying"
+        msg: Update status check failed due to server down / restart - retrying
 
-    - include_tasks: update_status_check.yml
+    - include_tasks: update_status_check.yml # Recursion
