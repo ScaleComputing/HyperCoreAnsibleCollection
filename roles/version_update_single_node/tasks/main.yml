@@ -43,6 +43,10 @@
   ansible.builtin.meta: end_host
   when: available_updates.records == []
 
+- name: Check if desired update is available - end host if Not available
+  ansible.builtin.meta: end_host
+  when: not scale_computing_hypercore_desired_version in (available_updates.records | map(attribute='uuid') | list)
+
 # ===================================================================
 
 - name: Update

@@ -5,6 +5,7 @@
       ansible.builtin.set_fact:
         retry_count: "{{ 0 if retry_count is undefined else retries | int + 1 }}"
 
+    # We might be able to remove this task
     - name: Pause before checking update status - checks will report FAILED-RETRYING until update COMPLETE/TERMINATED
       ansible.builtin.wait_for:
         timeout: 60
