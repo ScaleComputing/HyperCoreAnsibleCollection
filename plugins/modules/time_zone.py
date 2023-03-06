@@ -33,7 +33,7 @@ options:
       - Africa/Accra
       - Africa/Addis_Ababa
       - Africa/Algiers
-      - Africa/Asmara
+      - Africa/Asmera
       - Africa/Bamako
       - Africa/Bangui
       - Africa/Banjul
@@ -54,7 +54,6 @@ options:
       - Africa/Gaborone
       - Africa/Harare
       - Africa/Johannesburg
-      - Africa/Juba
       - Africa/Kampala
       - Africa/Khartoum
       - Africa/Kigali
@@ -78,6 +77,7 @@ options:
       - Africa/Ouagadougou
       - Africa/Porto-Novo
       - Africa/Sao_Tome
+      - Africa/Timbuktu
       - Africa/Tripoli
       - Africa/Tunis
       - Africa/Windhoek
@@ -86,40 +86,25 @@ options:
       - America/Anguilla
       - America/Antigua
       - America/Araguaina
-      - America/Argentina/Buenos_Aires
-      - America/Argentina/Catamarca
-      - America/Argentina/Cordoba
-      - America/Argentina/Jujuy
-      - America/Argentina/La_Rioja
-      - America/Argentina/Mendoza
-      - America/Argentina/Rio_Gallegos
-      - America/Argentina/Salta
-      - America/Argentina/San_Juan
-      - America/Argentina/San_Luis
-      - America/Argentina/Tucuman
-      - America/Argentina/Ushuaia
       - America/Aruba
       - America/Asuncion
-      - America/Atikokan
-      - America/Bahia
-      - America/Bahia_Banderas
       - America/Barbados
       - America/Belem
       - America/Belize
-      - America/Blanc-Sablon
       - America/Boa_Vista
       - America/Bogota
       - America/Boise
+      - America/Buenos_Aires
       - America/Cambridge_Bay
-      - America/Campo_Grande
       - America/Cancun
       - America/Caracas
+      - America/Catamarca
       - America/Cayenne
       - America/Cayman
       - America/Chicago
       - America/Chihuahua
+      - America/Cordoba
       - America/Costa_Rica
-      - America/Creston
       - America/Cuiaba
       - America/Curacao
       - America/Danmarkshavn
@@ -131,9 +116,9 @@ options:
       - America/Edmonton
       - America/Eirunepe
       - America/El_Salvador
-      - America/Fort_Nelson
       - America/Fortaleza
       - America/Glace_Bay
+      - America/Godthab
       - America/Goose_Bay
       - America/Grand_Turk
       - America/Grenada
@@ -147,48 +132,39 @@ options:
       - America/Indiana/Indianapolis
       - America/Indiana/Knox
       - America/Indiana/Marengo
-      - America/Indiana/Petersburg
-      - America/Indiana/Tell_City
       - America/Indiana/Vevay
-      - America/Indiana/Vincennes
-      - America/Indiana/Winamac
+      - America/Indianapolis
       - America/Inuvik
       - America/Iqaluit
       - America/Jamaica
+      - America/Jujuy
       - America/Juneau
       - America/Kentucky/Louisville
       - America/Kentucky/Monticello
-      - America/Kralendijk
       - America/La_Paz
       - America/Lima
       - America/Los_Angeles
-      - America/Lower_Princes
+      - America/Louisville
       - America/Maceio
       - America/Managua
       - America/Manaus
-      - America/Marigot
       - America/Martinique
-      - America/Matamoros
       - America/Mazatlan
+      - America/Mendoza
       - America/Menominee
       - America/Merida
-      - America/Metlakatla
       - America/Mexico_City
       - America/Miquelon
-      - America/Moncton
       - America/Monterrey
       - America/Montevideo
+      - America/Montreal
       - America/Montserrat
       - America/Nassau
       - America/New_York
       - America/Nipigon
       - America/Nome
       - America/Noronha
-      - America/North_Dakota/Beulah
       - America/North_Dakota/Center
-      - America/North_Dakota/New_Salem
-      - America/Nuuk
-      - America/Ojinaga
       - America/Panama
       - America/Pangnirtung
       - America/Paramaribo
@@ -197,20 +173,17 @@ options:
       - America/Port_of_Spain
       - America/Porto_Velho
       - America/Puerto_Rico
-      - America/Punta_Arenas
       - America/Rainy_River
       - America/Rankin_Inlet
       - America/Recife
       - America/Regina
-      - America/Resolute
       - America/Rio_Branco
-      - America/Santarem
+      - America/Rosario
       - America/Santiago
       - America/Santo_Domingo
       - America/Sao_Paulo
       - America/Scoresbysund
-      - America/Sitka
-      - America/St_Barthelemy
+      - America/Shiprock
       - America/St_Johns
       - America/St_Kitts
       - America/St_Lucia
@@ -221,7 +194,6 @@ options:
       - America/Thule
       - America/Thunder_Bay
       - America/Tijuana
-      - America/Toronto
       - America/Tortola
       - America/Vancouver
       - America/Whitehorse
@@ -231,13 +203,11 @@ options:
       - Antarctica/Casey
       - Antarctica/Davis
       - Antarctica/DumontDUrville
-      - Antarctica/Macquarie
       - Antarctica/Mawson
       - Antarctica/McMurdo
       - Antarctica/Palmer
-      - Antarctica/Rothera
+      - Antarctica/South_Pole
       - Antarctica/Syowa
-      - Antarctica/Troll
       - Antarctica/Vostok
       - Arctic/Longyearbyen
       - Asia/Aden
@@ -247,87 +217,83 @@ options:
       - Asia/Aqtau
       - Asia/Aqtobe
       - Asia/Ashgabat
-      - Asia/Atyrau
       - Asia/Baghdad
       - Asia/Bahrain
       - Asia/Baku
       - Asia/Bangkok
-      - Asia/Barnaul
       - Asia/Beirut
       - Asia/Bishkek
       - Asia/Brunei
-      - Asia/Chita
+      - Asia/Calcutta
       - Asia/Choibalsan
+      - Asia/Chongqing
       - Asia/Colombo
       - Asia/Damascus
       - Asia/Dhaka
       - Asia/Dili
       - Asia/Dubai
       - Asia/Dushanbe
-      - Asia/Famagusta
       - Asia/Gaza
-      - Asia/Hebron
-      - Asia/Ho_Chi_Minh
+      - Asia/Harbin
       - Asia/Hong_Kong
       - Asia/Hovd
       - Asia/Irkutsk
+      - Asia/Istanbul
       - Asia/Jakarta
       - Asia/Jayapura
       - Asia/Jerusalem
       - Asia/Kabul
       - Asia/Kamchatka
       - Asia/Karachi
-      - Asia/Kathmandu
-      - Asia/Khandyga
-      - Asia/Kolkata
+      - Asia/Kashgar
+      - Asia/Katmandu
       - Asia/Krasnoyarsk
       - Asia/Kuala_Lumpur
       - Asia/Kuching
       - Asia/Kuwait
+      - Asia/Macao
       - Asia/Macau
       - Asia/Magadan
       - Asia/Makassar
       - Asia/Manila
       - Asia/Muscat
       - Asia/Nicosia
-      - Asia/Novokuznetsk
       - Asia/Novosibirsk
       - Asia/Omsk
       - Asia/Oral
       - Asia/Phnom_Penh
       - Asia/Pontianak
       - Asia/Pyongyang
-      - Asia/Qatar
-      - Asia/Qostanay
       - Asia/Qyzylorda
+      - Asia/Qatar
+      - Asia/Rangoon
       - Asia/Riyadh
+      - Asia/Saigon
       - Asia/Sakhalin
       - Asia/Samarkand
       - Asia/Seoul
       - Asia/Shanghai
       - Asia/Singapore
-      - Asia/Srednekolymsk
       - Asia/Taipei
       - Asia/Tashkent
       - Asia/Tbilisi
       - Asia/Tehran
       - Asia/Thimphu
       - Asia/Tokyo
-      - Asia/Tomsk
+      - Asia/Ujung_Pandang
       - Asia/Ulaanbaatar
       - Asia/Urumqi
-      - Asia/Ust-Nera
       - Asia/Vientiane
       - Asia/Vladivostok
       - Asia/Yakutsk
-      - Asia/Yangon
       - Asia/Yekaterinburg
       - Asia/Yerevan
       - Atlantic/Azores
       - Atlantic/Bermuda
       - Atlantic/Canary
       - Atlantic/Cape_Verde
-      - Atlantic/Faroe
+      - Atlantic/Faeroe
+      - Atlantic/Jan_Mayen
       - Atlantic/Madeira
       - Atlantic/Reykjavik
       - Atlantic/South_Georgia
@@ -337,7 +303,6 @@ options:
       - Australia/Brisbane
       - Australia/Broken_Hill
       - Australia/Darwin
-      - Australia/Eucla
       - Australia/Hobart
       - Australia/Lindeman
       - Australia/Lord_Howe
@@ -346,60 +311,51 @@ options:
       - Australia/Sydney
       - Europe/Amsterdam
       - Europe/Andorra
-      - Europe/Astrakhan
       - Europe/Athens
+      - Europe/Belfast
       - Europe/Belgrade
       - Europe/Berlin
       - Europe/Bratislava
       - Europe/Brussels
       - Europe/Bucharest
       - Europe/Budapest
-      - Europe/Busingen
       - Europe/Chisinau
       - Europe/Copenhagen
       - Europe/Dublin
       - Europe/Gibraltar
-      - Europe/Guernsey
       - Europe/Helsinki
-      - Europe/Isle_of_Man
       - Europe/Istanbul
-      - Europe/Jersey
       - Europe/Kaliningrad
       - Europe/Kiev
-      - Europe/Kirov
       - Europe/Lisbon
       - Europe/Ljubljana
       - Europe/London
       - Europe/Luxembourg
       - Europe/Madrid
       - Europe/Malta
-      - Europe/Mariehamn
       - Europe/Minsk
       - Europe/Monaco
       - Europe/Moscow
+      - Europe/Nicosia
       - Europe/Oslo
       - Europe/Paris
-      - Europe/Podgorica
       - Europe/Prague
       - Europe/Riga
       - Europe/Rome
       - Europe/Samara
       - Europe/San_Marino
       - Europe/Sarajevo
-      - Europe/Saratov
       - Europe/Simferopol
       - Europe/Skopje
       - Europe/Sofia
       - Europe/Stockholm
       - Europe/Tallinn
       - Europe/Tirane
-      - Europe/Ulyanovsk
       - Europe/Uzhgorod
       - Europe/Vaduz
       - Europe/Vatican
       - Europe/Vienna
       - Europe/Vilnius
-      - Europe/Volgograd
       - Europe/Warsaw
       - Europe/Zagreb
       - Europe/Zaporozhye
@@ -417,9 +373,7 @@ options:
       - Indian/Reunion
       - Pacific/Apia
       - Pacific/Auckland
-      - Pacific/Bougainville
       - Pacific/Chatham
-      - Pacific/Chuuk
       - Pacific/Easter
       - Pacific/Efate
       - Pacific/Enderbury
@@ -431,6 +385,7 @@ options:
       - Pacific/Guadalcanal
       - Pacific/Guam
       - Pacific/Honolulu
+      - Pacific/Johnston
       - Pacific/Kiritimati
       - Pacific/Kosrae
       - Pacific/Kwajalein
@@ -444,16 +399,30 @@ options:
       - Pacific/Pago_Pago
       - Pacific/Palau
       - Pacific/Pitcairn
-      - Pacific/Pohnpei
+      - Pacific/Ponape
       - Pacific/Port_Moresby
       - Pacific/Rarotonga
       - Pacific/Saipan
       - Pacific/Tahiti
       - Pacific/Tarawa
       - Pacific/Tongatapu
+      - Pacific/Truk
       - Pacific/Wake
       - Pacific/Wallis
+      - Pacific/Yap
+      - US/Alaska
+      - US/Aleutian
+      - US/Arizona
+      - US/Central
       - US/Eastern
+      - US/East-Indiana
+      - US/Hawaii
+      - US/Indiana-Starke
+      - US/Michigan
+      - US/Mountain
+      - US/Pacific
+      - US/Pacific-New
+      - US/Samoa
       - UTC
     description:
       - A time zone string used to replace the existing one.
@@ -505,12 +474,13 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.time_zone import TimeZone
 
+# List is based on date_time_zonespec.csv.
 SUPPORTED_ZONES = [
     "Africa/Abidjan",
     "Africa/Accra",
     "Africa/Addis_Ababa",
     "Africa/Algiers",
-    "Africa/Asmara",
+    "Africa/Asmera",
     "Africa/Bamako",
     "Africa/Bangui",
     "Africa/Banjul",
@@ -531,7 +501,6 @@ SUPPORTED_ZONES = [
     "Africa/Gaborone",
     "Africa/Harare",
     "Africa/Johannesburg",
-    "Africa/Juba",
     "Africa/Kampala",
     "Africa/Khartoum",
     "Africa/Kigali",
@@ -555,6 +524,7 @@ SUPPORTED_ZONES = [
     "Africa/Ouagadougou",
     "Africa/Porto-Novo",
     "Africa/Sao_Tome",
+    "Africa/Timbuktu",
     "Africa/Tripoli",
     "Africa/Tunis",
     "Africa/Windhoek",
@@ -563,40 +533,25 @@ SUPPORTED_ZONES = [
     "America/Anguilla",
     "America/Antigua",
     "America/Araguaina",
-    "America/Argentina/Buenos_Aires",
-    "America/Argentina/Catamarca",
-    "America/Argentina/Cordoba",
-    "America/Argentina/Jujuy",
-    "America/Argentina/La_Rioja",
-    "America/Argentina/Mendoza",
-    "America/Argentina/Rio_Gallegos",
-    "America/Argentina/Salta",
-    "America/Argentina/San_Juan",
-    "America/Argentina/San_Luis",
-    "America/Argentina/Tucuman",
-    "America/Argentina/Ushuaia",
     "America/Aruba",
     "America/Asuncion",
-    "America/Atikokan",
-    "America/Bahia",
-    "America/Bahia_Banderas",
     "America/Barbados",
     "America/Belem",
     "America/Belize",
-    "America/Blanc-Sablon",
     "America/Boa_Vista",
     "America/Bogota",
     "America/Boise",
+    "America/Buenos_Aires",
     "America/Cambridge_Bay",
-    "America/Campo_Grande",
     "America/Cancun",
     "America/Caracas",
+    "America/Catamarca",
     "America/Cayenne",
     "America/Cayman",
     "America/Chicago",
     "America/Chihuahua",
+    "America/Cordoba",
     "America/Costa_Rica",
-    "America/Creston",
     "America/Cuiaba",
     "America/Curacao",
     "America/Danmarkshavn",
@@ -608,9 +563,9 @@ SUPPORTED_ZONES = [
     "America/Edmonton",
     "America/Eirunepe",
     "America/El_Salvador",
-    "America/Fort_Nelson",
     "America/Fortaleza",
     "America/Glace_Bay",
+    "America/Godthab",
     "America/Goose_Bay",
     "America/Grand_Turk",
     "America/Grenada",
@@ -624,48 +579,39 @@ SUPPORTED_ZONES = [
     "America/Indiana/Indianapolis",
     "America/Indiana/Knox",
     "America/Indiana/Marengo",
-    "America/Indiana/Petersburg",
-    "America/Indiana/Tell_City",
     "America/Indiana/Vevay",
-    "America/Indiana/Vincennes",
-    "America/Indiana/Winamac",
+    "America/Indianapolis",
     "America/Inuvik",
     "America/Iqaluit",
     "America/Jamaica",
+    "America/Jujuy",
     "America/Juneau",
     "America/Kentucky/Louisville",
     "America/Kentucky/Monticello",
-    "America/Kralendijk",
     "America/La_Paz",
     "America/Lima",
     "America/Los_Angeles",
-    "America/Lower_Princes",
+    "America/Louisville",
     "America/Maceio",
     "America/Managua",
     "America/Manaus",
-    "America/Marigot",
     "America/Martinique",
-    "America/Matamoros",
     "America/Mazatlan",
+    "America/Mendoza",
     "America/Menominee",
     "America/Merida",
-    "America/Metlakatla",
     "America/Mexico_City",
     "America/Miquelon",
-    "America/Moncton",
     "America/Monterrey",
     "America/Montevideo",
+    "America/Montreal",
     "America/Montserrat",
     "America/Nassau",
     "America/New_York",
     "America/Nipigon",
     "America/Nome",
     "America/Noronha",
-    "America/North_Dakota/Beulah",
     "America/North_Dakota/Center",
-    "America/North_Dakota/New_Salem",
-    "America/Nuuk",
-    "America/Ojinaga",
     "America/Panama",
     "America/Pangnirtung",
     "America/Paramaribo",
@@ -674,20 +620,17 @@ SUPPORTED_ZONES = [
     "America/Port_of_Spain",
     "America/Porto_Velho",
     "America/Puerto_Rico",
-    "America/Punta_Arenas",
     "America/Rainy_River",
     "America/Rankin_Inlet",
     "America/Recife",
     "America/Regina",
-    "America/Resolute",
     "America/Rio_Branco",
-    "America/Santarem",
+    "America/Rosario",
     "America/Santiago",
     "America/Santo_Domingo",
     "America/Sao_Paulo",
     "America/Scoresbysund",
-    "America/Sitka",
-    "America/St_Barthelemy",
+    "America/Shiprock",
     "America/St_Johns",
     "America/St_Kitts",
     "America/St_Lucia",
@@ -698,7 +641,6 @@ SUPPORTED_ZONES = [
     "America/Thule",
     "America/Thunder_Bay",
     "America/Tijuana",
-    "America/Toronto",
     "America/Tortola",
     "America/Vancouver",
     "America/Whitehorse",
@@ -708,13 +650,11 @@ SUPPORTED_ZONES = [
     "Antarctica/Casey",
     "Antarctica/Davis",
     "Antarctica/DumontDUrville",
-    "Antarctica/Macquarie",
     "Antarctica/Mawson",
     "Antarctica/McMurdo",
     "Antarctica/Palmer",
-    "Antarctica/Rothera",
+    "Antarctica/South_Pole",
     "Antarctica/Syowa",
-    "Antarctica/Troll",
     "Antarctica/Vostok",
     "Arctic/Longyearbyen",
     "Asia/Aden",
@@ -724,87 +664,83 @@ SUPPORTED_ZONES = [
     "Asia/Aqtau",
     "Asia/Aqtobe",
     "Asia/Ashgabat",
-    "Asia/Atyrau",
     "Asia/Baghdad",
     "Asia/Bahrain",
     "Asia/Baku",
     "Asia/Bangkok",
-    "Asia/Barnaul",
     "Asia/Beirut",
     "Asia/Bishkek",
     "Asia/Brunei",
-    "Asia/Chita",
+    "Asia/Calcutta",
     "Asia/Choibalsan",
+    "Asia/Chongqing",
     "Asia/Colombo",
     "Asia/Damascus",
     "Asia/Dhaka",
     "Asia/Dili",
     "Asia/Dubai",
     "Asia/Dushanbe",
-    "Asia/Famagusta",
     "Asia/Gaza",
-    "Asia/Hebron",
-    "Asia/Ho_Chi_Minh",
+    "Asia/Harbin",
     "Asia/Hong_Kong",
     "Asia/Hovd",
     "Asia/Irkutsk",
+    "Asia/Istanbul",
     "Asia/Jakarta",
     "Asia/Jayapura",
     "Asia/Jerusalem",
     "Asia/Kabul",
     "Asia/Kamchatka",
     "Asia/Karachi",
-    "Asia/Kathmandu",
-    "Asia/Khandyga",
-    "Asia/Kolkata",
+    "Asia/Kashgar",
+    "Asia/Katmandu",
     "Asia/Krasnoyarsk",
     "Asia/Kuala_Lumpur",
     "Asia/Kuching",
     "Asia/Kuwait",
+    "Asia/Macao",
     "Asia/Macau",
     "Asia/Magadan",
     "Asia/Makassar",
     "Asia/Manila",
     "Asia/Muscat",
     "Asia/Nicosia",
-    "Asia/Novokuznetsk",
     "Asia/Novosibirsk",
     "Asia/Omsk",
     "Asia/Oral",
     "Asia/Phnom_Penh",
     "Asia/Pontianak",
     "Asia/Pyongyang",
-    "Asia/Qatar",
-    "Asia/Qostanay",
     "Asia/Qyzylorda",
+    "Asia/Qatar",
+    "Asia/Rangoon",
     "Asia/Riyadh",
+    "Asia/Saigon",
     "Asia/Sakhalin",
     "Asia/Samarkand",
     "Asia/Seoul",
     "Asia/Shanghai",
     "Asia/Singapore",
-    "Asia/Srednekolymsk",
     "Asia/Taipei",
     "Asia/Tashkent",
     "Asia/Tbilisi",
     "Asia/Tehran",
     "Asia/Thimphu",
     "Asia/Tokyo",
-    "Asia/Tomsk",
+    "Asia/Ujung_Pandang",
     "Asia/Ulaanbaatar",
     "Asia/Urumqi",
-    "Asia/Ust-Nera",
     "Asia/Vientiane",
     "Asia/Vladivostok",
     "Asia/Yakutsk",
-    "Asia/Yangon",
     "Asia/Yekaterinburg",
     "Asia/Yerevan",
     "Atlantic/Azores",
     "Atlantic/Bermuda",
     "Atlantic/Canary",
     "Atlantic/Cape_Verde",
-    "Atlantic/Faroe",
+    "Atlantic/Faeroe",
+    "Atlantic/Jan_Mayen",
     "Atlantic/Madeira",
     "Atlantic/Reykjavik",
     "Atlantic/South_Georgia",
@@ -814,7 +750,6 @@ SUPPORTED_ZONES = [
     "Australia/Brisbane",
     "Australia/Broken_Hill",
     "Australia/Darwin",
-    "Australia/Eucla",
     "Australia/Hobart",
     "Australia/Lindeman",
     "Australia/Lord_Howe",
@@ -823,60 +758,51 @@ SUPPORTED_ZONES = [
     "Australia/Sydney",
     "Europe/Amsterdam",
     "Europe/Andorra",
-    "Europe/Astrakhan",
     "Europe/Athens",
+    "Europe/Belfast",
     "Europe/Belgrade",
     "Europe/Berlin",
     "Europe/Bratislava",
     "Europe/Brussels",
     "Europe/Bucharest",
     "Europe/Budapest",
-    "Europe/Busingen",
     "Europe/Chisinau",
     "Europe/Copenhagen",
     "Europe/Dublin",
     "Europe/Gibraltar",
-    "Europe/Guernsey",
     "Europe/Helsinki",
-    "Europe/Isle_of_Man",
     "Europe/Istanbul",
-    "Europe/Jersey",
     "Europe/Kaliningrad",
     "Europe/Kiev",
-    "Europe/Kirov",
     "Europe/Lisbon",
     "Europe/Ljubljana",
     "Europe/London",
     "Europe/Luxembourg",
     "Europe/Madrid",
     "Europe/Malta",
-    "Europe/Mariehamn",
     "Europe/Minsk",
     "Europe/Monaco",
     "Europe/Moscow",
+    "Europe/Nicosia",
     "Europe/Oslo",
     "Europe/Paris",
-    "Europe/Podgorica",
     "Europe/Prague",
     "Europe/Riga",
     "Europe/Rome",
     "Europe/Samara",
     "Europe/San_Marino",
     "Europe/Sarajevo",
-    "Europe/Saratov",
     "Europe/Simferopol",
     "Europe/Skopje",
     "Europe/Sofia",
     "Europe/Stockholm",
     "Europe/Tallinn",
     "Europe/Tirane",
-    "Europe/Ulyanovsk",
     "Europe/Uzhgorod",
     "Europe/Vaduz",
     "Europe/Vatican",
     "Europe/Vienna",
     "Europe/Vilnius",
-    "Europe/Volgograd",
     "Europe/Warsaw",
     "Europe/Zagreb",
     "Europe/Zaporozhye",
@@ -894,9 +820,7 @@ SUPPORTED_ZONES = [
     "Indian/Reunion",
     "Pacific/Apia",
     "Pacific/Auckland",
-    "Pacific/Bougainville",
     "Pacific/Chatham",
-    "Pacific/Chuuk",
     "Pacific/Easter",
     "Pacific/Efate",
     "Pacific/Enderbury",
@@ -908,6 +832,7 @@ SUPPORTED_ZONES = [
     "Pacific/Guadalcanal",
     "Pacific/Guam",
     "Pacific/Honolulu",
+    "Pacific/Johnston",
     "Pacific/Kiritimati",
     "Pacific/Kosrae",
     "Pacific/Kwajalein",
@@ -921,16 +846,30 @@ SUPPORTED_ZONES = [
     "Pacific/Pago_Pago",
     "Pacific/Palau",
     "Pacific/Pitcairn",
-    "Pacific/Pohnpei",
+    "Pacific/Ponape",
     "Pacific/Port_Moresby",
     "Pacific/Rarotonga",
     "Pacific/Saipan",
     "Pacific/Tahiti",
     "Pacific/Tarawa",
     "Pacific/Tongatapu",
+    "Pacific/Truk",
     "Pacific/Wake",
     "Pacific/Wallis",
-    "US/Eastern",  # was missing from list, keep it?
+    "Pacific/Yap",
+    "US/Alaska",
+    "US/Aleutian",
+    "US/Arizona",
+    "US/Central",
+    "US/Eastern",
+    "US/East-Indiana",
+    "US/Hawaii",
+    "US/Indiana-Starke",
+    "US/Michigan",
+    "US/Mountain",
+    "US/Pacific",
+    "US/Pacific-New",
+    "US/Samoa",
     "UTC",
 ]
 
