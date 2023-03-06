@@ -1,0 +1,15 @@
+---
+- name: Update a HyperCore single-node system
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    desired_version: 9.1.23.210897
+
+  tasks:
+    - name: Update HyperCore single-node system to a desired version
+      include_role:
+        name: scale_computing.hypercore.version_update_single_node
+      vars:
+        scale_computing_hypercore_desired_version: "{{ desired_version }}"
