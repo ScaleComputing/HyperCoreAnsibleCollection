@@ -103,7 +103,9 @@ def read_disk_file(module: AnsibleModule) -> Tuple[bytes, int]:
 
 
 def ensure_present(
-    module: AnsibleModule, rest_client: RestClient, virtual_disk_obj: Optional[VirtualDisk]
+    module: AnsibleModule,
+    rest_client: RestClient,
+    virtual_disk_obj: Optional[VirtualDisk],
 ) -> Tuple[bool, Union[TypedVirtualDiskToAnsible, None], TypedDiff]:
     before = None
     after = None
@@ -123,7 +125,9 @@ def ensure_present(
 
 
 def ensure_absent(
-    module: AnsibleModule, rest_client: RestClient, virtual_disk_obj: Optional[VirtualDisk]
+    module: AnsibleModule,
+    rest_client: RestClient,
+    virtual_disk_obj: Optional[VirtualDisk],
 ) -> Tuple[bool, Union[TypedVirtualDiskToAnsible, None], TypedDiff]:
     before = None
     after = None
@@ -133,7 +137,9 @@ def ensure_absent(
         before = virtual_disk_obj.to_ansible()
         virtual_disk_obj.send_delete_request(rest_client)
         # No wait_task needed; Upload not returning task ID.
-        updated_disk = VirtualDisk.get_by_name(rest_client, name=module.params["file_name"])
+        updated_disk = VirtualDisk.get_by_name(
+            rest_client, name=module.params["file_name"]
+        )
         after = updated_disk.to_ansible() if updated_disk else None
         return is_changed(before, after), after, dict(before=before, after=after)
 

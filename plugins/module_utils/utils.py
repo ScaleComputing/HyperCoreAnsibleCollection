@@ -133,10 +133,18 @@ def filter_results(results, filter_data) -> list[Any]:
 
 def is_changed(
     before: Union[
-        TypedCertificateToAnsible, TypedOidcToAnsible, TypedRegistrationToAnsible, TypedVirtualDiskToAnsible, None
+        TypedCertificateToAnsible,
+        TypedOidcToAnsible,
+        TypedRegistrationToAnsible,
+        TypedVirtualDiskToAnsible,
+        None,
     ],
     after: Union[
-        TypedCertificateToAnsible, TypedOidcToAnsible, TypedRegistrationToAnsible, TypedVirtualDiskToAnsible, None
+        TypedCertificateToAnsible,
+        TypedOidcToAnsible,
+        TypedRegistrationToAnsible,
+        TypedVirtualDiskToAnsible,
+        None,
     ],
 ) -> bool:
     return not before == after

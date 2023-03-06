@@ -13,7 +13,7 @@ from ..module_utils.typed_classes import (
     TypedVirtualDiskToAnsible,
     TypedTaskTag,
 )
-from typing import Union, Dict, List, Any, Tuple
+from typing import Union, Dict, List, Any
 
 from .rest_client import RestClient
 from ..module_utils.utils import PayloadMapper

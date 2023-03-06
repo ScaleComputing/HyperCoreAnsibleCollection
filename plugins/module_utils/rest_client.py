@@ -101,8 +101,8 @@ class RestClient:
         endpoint: str,
         payload: Union[dict[Any, Any], None],
         check_mode: bool,
-        query: Union[dict[Any, Any], None]=None,
-        timeout: int=None,
+        query: Union[dict[Any, Any], None] = None,
+        timeout: int = None,
         binary_data: bytes = None,
         headers=None,
     ) -> TypedTaskTag:
