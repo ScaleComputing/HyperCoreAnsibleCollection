@@ -1,45 +1,80 @@
 ---
-#  ------------
-# | Pseudocode
-#  ------------
-# 1. available_updates = get_available_updates()
-# 2. next_update_index = 0
-# 3. while available_updates:
-# 4.    update = available_updates[next_update_index]
-# 5.    status = get_update_status(update)
-# 6.    if status != "IN PROGRESS"
-# 7.        apply_update(update)
-# 8.    if status == "COMPLETE":
-# 9.        next_update_index += 1
+- name: Check if there is already an update in progress
+  scale_computing.hypercore.version_update_status_info:
+  register: update_status_before_update
 
-- name: Get available updates
-  scale_computing.hypercore.update_version_info:
+- name: Current update status
+  ansible.builtin.debug:
+    var: update_status_before_update
+
+- name: Get cluster info
+  scale_computing.hypercore.cluster_info:
+  register: cluster_info
+
+- name: Show cluster info
+  ansible.builtin.debug:
+    var: cluster_info
+
+- name: Get node info
+  scale_computing.hypercore.node_info:
+  register: node_info
+
+- name: Show node info
+  ansible.builtin.debug:
+    var: node_info
+
+- name: Check if single-node system - end host if True
+  ansible.builtin.meta: end_host
+  when: node_info.records | length > 1
+
+- name: Check if already on desired version - end host if True
+  ansible.builtin.meta: end_host
+  when: cluster_info.record.icos_version == desired_version
+
+- name: Check if desired version available
+  scale_computing.hypercore.version_update_info:
   register: available_updates
 
 - name: Show available updates
   ansible.builtin.debug:
     var: available_updates
 
-- name: Get all available running VMs
-  scale_computing.hypercore.vm_info:
-  register: vms
+- name: End host if no update available
+  ansible.builtin.meta: end_host
+  when: available_updates.records == []
 
 - name: Update
   block:
+    - name: Get all available running VMs
+      scale_computing.hypercore.vm_info:
+      register: vms
+
     - name: Shutdown all running VMs
       include_tasks: shutdown_vms.yml
+      when: vms.records != []
 
-    # - name: Update single-node system
-    #   include_tasks: update.my
-    #   loop: "{{ available_updates }}"
+    # ----------------- UPDATE --------------------
+
+    - name: Update single-node system
+      scale_computing.hypercore.version_update:
+        icos_version: "{{ desired_version }}"
+      register: update_result
+
+    - name: Check update status
+      include_tasks: update_status_check.yml
+
+    - name: Show update result
+      ansible.builtin.debug:
+        var: update_result
+
+    # ---------------------------------------------
 
     - name: Restart previously running VMs
       include_tasks: restart_vms.yml
-  when: available_updates
+      when: vms.records != []
 
-# - name: Shutdown all running VMs
-#   include_tasks:
-#
-# - name: Update single-node system
-#   include_tasks: update.yml
-#   when: available_updates
+    - name: Check if updating to desired version failed
+      ansible.builtin.fail:
+        msg: Update to version "{{ desired_version }}" failed.
+      when: update_result.record.uuid != desired_version
+  when: update_status_before_update.record.update_status == "COMPLETED" or update_status_before_update_record.update_status != "IN PROGRESS"
