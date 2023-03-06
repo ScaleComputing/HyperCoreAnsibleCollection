@@ -12,22 +12,22 @@
       ansible.builtin.assert:
         that:
           - cluster_update_config.magic_allow_string == "allow-version-update-test"
-    
+
     - name: Get list of hc version updates
       scale_computing.hypercore.version_update_info:
       register: updates
-    
+
     - name: Get initial version
       scale_computing.hypercore.cluster_info:
       register: cluster_initial
-    
+
     - name: Get status of the latest update applied
       scale_computing.hypercore.version_update_status_info:
       register: update_status
     - ansible.builtin.assert:
         that:
           - update_status.record.update_status == "COMPLETE" or update_status.record.update_status == "TERMINATING" # Fail early if update in progress
-    
+
     - name: Update to the same hc version
       scale_computing.hypercore.version_update:
         icos_version: "{{ cluster_initial.record.icos_version}}"
@@ -53,10 +53,10 @@
     - name: Get status of the latest update applied
       scale_computing.hypercore.version_update_status_info:
       register: update_status
-      until:  update_status.record.update_status == "EXECUTING" 
+      until:  update_status.record.update_status == "EXECUTING"
       retries: 100
       delay: 5
     - ansible.builtin.assert:
         that:
           - update_status.record.update_status == "EXECUTING"
-    
+
