@@ -17,12 +17,12 @@
       delay: 30
       ignore_unreachable: true
 
-    rescue:
-      - fail:
-          msg: "Maximum retries of grouped tasks reached"
-        when: retries | int == 20
+  rescue:
+    - fail:
+        msg: "Maximum retries of grouped tasks reached"
+      when: retries | int == 20
 
-      - debug:
-          msg: "Update status check failed due to server down / restart - retrying"
+    - debug:
+        msg: "Update status check failed due to server down / restart - retrying"
 
-      - include_tasks: update_status_check.yml
+    - include_tasks: update_status_check.yml
