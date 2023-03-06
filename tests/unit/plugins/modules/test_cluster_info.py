@@ -12,10 +12,13 @@ import sys
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.modules import cluster_info
-
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
+    MIN_PYTHON_VERSION,
+)
 
 pytestmark = pytest.mark.skipif(
-    sys.version_info < (3, 8), reason="requires python3.8 or higher"
+    sys.version_info < MIN_PYTHON_VERSION,
+    reason=f"requires python{MIN_PYTHON_VERSION[0]}.{MIN_PYTHON_VERSION[1]} or higher",
 )
 
 

@@ -1,0 +1,61 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    cluster_update_config: "{{ sc_config[sc_host].version_update }}"
+
+  block:
+    - name: Fail test early if update is not allowed
+      ansible.builtin.assert:
+        that:
+          - cluster_update_config.magic_allow_string == "allow-version-update-test"
+
+    - name: Get list of hc version updates
+      scale_computing.hypercore.version_update_info:
+      register: updates
+
+    - name: Get initial version
+      scale_computing.hypercore.cluster_info:
+      register: cluster_initial
+
+    - name: Get status of the latest update applied
+      scale_computing.hypercore.version_update_status_info:
+      register: update_status
+    - ansible.builtin.assert:
+        that:
+          - update_status.record.update_status == "COMPLETE" or update_status.record.update_status == "TERMINATING" # Fail early if update in progress
+
+    - name: Update to the same hc version
+      scale_computing.hypercore.version_update:
+        icos_version: "{{ cluster_initial.record.icos_version}}"
+      register: update
+    - ansible.builtin.assert:
+        that:
+          - update is not changed
+          - not update.record
+          - update.diff.before.icos_version == cluster_initial.record.icos_version
+          - update.diff.after.icos_version == cluster_initial.record.icos_version
+
+    - name: Update hc version
+      scale_computing.hypercore.version_update:
+        icos_version: "{{ updates.records[0].uuid}}"
+      register: update
+    - ansible.builtin.assert:
+        that:
+          - update is changed
+          - update.record.uuid == updates.records[0].uuid
+          - update.diff.before.icos_version == cluster_initial.record.icos_version
+          - update.diff.after.icos_version == updates.records[0].uuid
+
+    - name: Get status of the latest update applied
+      scale_computing.hypercore.version_update_status_info:
+      register: update_status
+      until:  update_status.record.update_status == "EXECUTING"
+      retries: 100
+      delay: 5
+    - ansible.builtin.assert:
+        that:
+          - update_status.record.update_status == "EXECUTING"

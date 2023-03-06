@@ -16,6 +16,8 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercor
     Version,
     VersionSpecSimple,
     VersionSpec,
+    Update,
+    UpdateStatus,
 )
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
@@ -168,3 +170,184 @@ class TestVersionSpec:
         spec = VersionSpec(spec_str)
         version = Version(version_str)
         assert spec.match(version) is expected_result
+
+
+class TestUpdate:
+    def test_update_from_hypercore_dict_not_empty(self):
+        update = Update(
+            uuid="9.2.11.210763",
+            description="description",
+            change_log="change log",
+            build_id=210763,
+            major_version=9,
+            minor_version=2,
+            revision=11,
+            timestamp=1676920067,
+        )
+        hypercore_dict = dict(
+            uuid="9.2.11.210763",
+            description="description",
+            changeLog="change log",
+            buildID=210763,
+            majorVersion=9,
+            minorVersion=2,
+            revision=11,
+            timestamp=1676920067,
+        )
+
+        update_from_hypercore = Update.from_hypercore(hypercore_dict)
+        assert update == update_from_hypercore
+
+    def test_update_from_hypercore_dict_empty(self):
+        assert Update.from_hypercore([]) is None
+
+    def test_update_to_ansible(self):
+        update = Update(
+            uuid="9.2.11.210763",
+            description="description",
+            change_log="change log",
+            build_id=210763,
+            major_version=9,
+            minor_version=2,
+            revision=11,
+            timestamp=1676920067,
+        )
+
+        ansible_dict = dict(
+            uuid="9.2.11.210763",
+            description="description",
+            change_log="change log",
+            build_id=210763,
+            major_version=9,
+            minor_version=2,
+            revision=11,
+            timestamp=1676920067,
+        )
+
+        assert update.to_ansible() == ansible_dict
+
+    def test_update_equal_true(self):
+        update1 = Update(
+            uuid="9.2.11.210763",
+            description="description",
+            change_log="change log",
+            build_id=210763,
+            major_version=9,
+            minor_version=2,
+            revision=11,
+            timestamp=1676920067,
+        )
+        update2 = Update(
+            uuid="9.2.11.210763",
+            description="description",
+            change_log="change log",
+            build_id=210763,
+            major_version=9,
+            minor_version=2,
+            revision=11,
+            timestamp=1676920067,
+        )
+
+        assert update1 == update2
+
+    def test_update_equal_false(self):
+        update1 = Update(
+            uuid="10.2.11.210763",
+            description="description",
+            change_log="change log",
+            build_id=210763,
+            major_version=10,
+            minor_version=2,
+            revision=11,
+            timestamp=1676920067,
+        )
+        update2 = Update(
+            uuid="9.2.11.210763",
+            description="description",
+            change_log="change log",
+            build_id=210763,
+            major_version=9,
+            minor_version=2,
+            revision=11,
+            timestamp=1676920067,
+        )
+
+        assert update1 != update2
+
+    def test_apply_update(self, rest_client):
+        update = Update(
+            uuid="9.2.11.210763",
+            description="9.1.11 General Availability",
+            change_log="...Please allow between 20-40 minutes per node for the update to complete...",
+            build_id=210763,
+            major_version=9,
+            minor_version=2,
+            revision=11,
+            timestamp=0,
+        )
+
+        update.apply(rest_client)
+
+        rest_client.create_record.assert_called_with(
+            "/rest/v1/Update/9.2.11.210763/apply", payload=None, check_mode=False
+        )
+
+
+class TestUpdateStatus:
+    def test_update_status_from_hypercore(self):
+        update_status = UpdateStatus(
+            from_build="207183",
+            percent="100",
+            prepare_status="",
+            update_status="COMPLETE",
+            update_status_details="Update Complete. Press 'Reload' to reconnect",
+            usernotes="Press 'Reload' to reconnect",
+            to_build="209840",
+            to_version="9.1.18.209840",
+        )
+        hypercore_dict = dict(
+            prepareStatus="",
+            updateStatus=dict(
+                masterStateID="4",
+                masterState="COMPLETE",
+                fromBuild="207183",
+                toBuild="209840",
+                toVersion="9.1.18.209840",
+                currentComponent="2075",
+                totalComponents="2075",
+                percent="100",
+                status=dict(
+                    component="7540/9999",
+                    node="173.16.93.134",
+                    statusdetails="Update Complete. Press 'Reload' to reconnect",
+                    usernotes="Press 'Reload' to reconnect",
+                ),
+            ),
+        )
+
+        update_status_from_hypercore = UpdateStatus.from_hypercore(hypercore_dict)
+        assert update_status == update_status_from_hypercore
+
+    def test_update_status_to_ansible(self):
+        update_status = UpdateStatus(
+            from_build="207183",
+            percent="100",
+            prepare_status="",
+            update_status="COMPLETE",
+            update_status_details="Update Complete. Press 'Reload' to reconnect",
+            usernotes="Press 'Reload' to reconnect",
+            to_build="209840",
+            to_version="9.1.18.209840",
+        )
+        ansible_dict = dict(
+            from_build="207183",
+            percent="100",
+            prepare_status="",
+            update_status="COMPLETE",
+            update_status_details="Update Complete. Press 'Reload' to reconnect",
+            usernotes="Press 'Reload' to reconnect",
+            to_build="209840",
+            to_version="9.1.18.209840",
+        )
+
+        assert update_status.to_ansible() == ansible_dict
