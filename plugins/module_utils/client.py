@@ -159,6 +159,7 @@ class Client:
             headers["Content-type"] = "application/json"
         elif binary_data is not None:
             data = binary_data
+            headers["Content-type"] = "application/octet-stream"
         return self._request(method, url, data=data, headers=headers, timeout=timeout)
 
     def get(self, path, query=None, timeout=None):

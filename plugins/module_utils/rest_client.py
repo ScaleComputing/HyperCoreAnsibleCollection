@@ -98,33 +98,29 @@ class RestClient:
 
     def put_record(
         self,
-        endpoint,
-        payload,
-        check_mode,
-        query=None,
-        timeout=None,
-        binary_data=None,
+        endpoint: str,
+        payload: Union[dict[Any, Any], None],
+        check_mode: bool,
+        query: Union[dict[Any, Any], None]=None,
+        timeout: int=None,
+        binary_data: bytes = None,
         headers=None,
-    ):
+    ) -> TypedTaskTag:
         # Method put doesn't support check mode # IT ACTUALLY DOES
         if check_mode:
-            return None
+            return utils.MOCKED_TASK_TAG
         try:
-            response = self.client.put(
+            response: TypedTaskTag = self.client.put(
                 endpoint,
                 data=payload,
                 query=query,
                 timeout=timeout,
                 binary_data=binary_data,
                 headers=headers,
-            )
+            ).json
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
-
-        try:
-            return response.json
-        except errors.ScaleComputingError:
-            return response
+        return response
 
 
 class CachedRestClient(RestClient):

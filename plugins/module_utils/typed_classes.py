@@ -125,6 +125,7 @@ class TypedDiff(TypedDict):
         TypedCertificateToAnsible,
         TypedSyslogServerToAnsible,
         TypedUpdateToAnsible,
+        TypedVirtualDiskToAnsible,
         None,
         dict[None, None],
     ]
@@ -136,6 +137,7 @@ class TypedDiff(TypedDict):
         TypedClusterToAnsible,
         TypedCertificateToAnsible,
         TypedSyslogServerToAnsible,
+        TypedVirtualDiskToAnsible,
         None,
         dict[None, None],
     ]

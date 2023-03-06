@@ -18,6 +18,7 @@ from ..module_utils.typed_classes import (
     TypedRegistrationToAnsible,
     TypedOidcToAnsible,
     TypedCertificateToAnsible,
+    TypedVirtualDiskToAnsible,
 )
 
 
@@ -132,10 +133,10 @@ def filter_results(results, filter_data) -> list[Any]:
 
 def is_changed(
     before: Union[
-        TypedCertificateToAnsible, TypedOidcToAnsible, TypedRegistrationToAnsible, None
+        TypedCertificateToAnsible, TypedOidcToAnsible, TypedRegistrationToAnsible, TypedVirtualDiskToAnsible, None
     ],
     after: Union[
-        TypedCertificateToAnsible, TypedOidcToAnsible, TypedRegistrationToAnsible, None
+        TypedCertificateToAnsible, TypedOidcToAnsible, TypedRegistrationToAnsible, TypedVirtualDiskToAnsible, None
     ],
 ) -> bool:
     return not before == after
