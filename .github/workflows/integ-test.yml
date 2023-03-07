@@ -43,6 +43,8 @@ jobs:
     env:
       DEBIAN_FRONTEND: noninteractive
       ANSIBLE_COLLECTIONS_PATH: /work-dir
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -65,6 +67,13 @@ jobs:
           ls -al tests/integration/integration_config.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
+
+      - id: set-matrix
+        shell: bash
+        run: |-
+          echo "matrix=$(
+            ls -r $WORKDIR/examples | jq -R -s -c 'split("\n")[:-1]'
+          )" >> $GITHUB_OUTPUT
     if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
 
   integ-matrix:
@@ -101,6 +110,7 @@ jobs:
   integ:
     needs:
       - integ-matrix
+      - integration-prepare-env
       # - units-test
     runs-on: [self-hosted2]
     container: python:3.10-slim-buster
@@ -113,6 +123,7 @@ jobs:
         # python: [3.11]
         # test_name: [user_info]
         test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
+        example_name: ${{ fromJson(needs.integration-prepare-env.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -138,6 +149,8 @@ jobs:
           echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
           ls -al tests/integration/integration_config.yml
       - run: cd $WORKDIR && ansible-test integration --local ${{ matrix.test_name }}
+      - run: cd $WORKDIR && ansible-playbook --check ${{ matrix.example_name }}
+
 
   replica_cleanup:
     needs:
