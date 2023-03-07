@@ -3,6 +3,8 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  # Comment out check_mode=true if you really want to start update.
+  check_mode: true
 
   vars:
     desired_version: 9.1.23.210897
