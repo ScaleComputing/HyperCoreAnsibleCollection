@@ -23,8 +23,11 @@
   ansible.builtin.debug:
     var: node_info
 
-- name: Check if single-node system - end host if False
-  ansible.builtin.meta: end_host
+- name: Check if single-node system - fail if not
+  ansible.builtin.fail:
+    msg: >-
+      The role should be used only with single node systems.
+      This system does have {{ node_info.records | length }} nodes.
   when: node_info.records | length > 1
 
 - name: Check if already on desired version - end host if True
@@ -39,8 +42,11 @@
   ansible.builtin.debug:
     var: available_updates
 
-- name: Check if desired update is available - end host if Not available
-  ansible.builtin.meta: end_host
+- name: Check if desired update is available - fail if not available
+  ansible.builtin.fail:
+    msg: >-
+      Requested update {{ scale_computing_hypercore_desired_version }} is not
+      in available_updates {{ available_updates.records | map(attribute='uuid') | list }}
   when: not scale_computing_hypercore_desired_version in (available_updates.records | map(attribute='uuid') | list)
 
 # ===================================================================
