@@ -1,6 +1,12 @@
 ---
-- name: List current Time Zone entries
-- scale_computing.hypercore.time_zone_info:
-  register: time_zone_info
-- ansible.builtin.debug:
-    msg: "{{ time_zone_info }}"
+- name: Example time_zone_info module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: List current Time Zone entries
+    - scale_computing.hypercore.time_zone_info:
+      register: time_zone_info
+    - ansible.builtin.debug:
+        msg: "{{ time_zone_info }}"
