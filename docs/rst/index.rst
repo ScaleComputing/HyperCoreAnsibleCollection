@@ -18,6 +18,13 @@ that are related to the HyperCore backend that the module is connecting to.
 All other parameters hold the information related to the resource that we are operating on.
 
 .. toctree::
+   :maxdepth: 1
+   :caption: Guides:
+
+   extra/quickstart.rst
+
+
+.. toctree::
    :maxdepth: 2
    :caption: Collections:
 
