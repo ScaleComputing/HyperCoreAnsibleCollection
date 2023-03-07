@@ -1,0 +1,35 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  vars:
+    desired_version_new: 9.1.23.210897
+    desired_version_current: 9.1.18.209840
+
+  block:
+    - name: Get available updates
+      scale_computing.hypercore.version_update_info:
+      register: updates
+    - ansible.builtin.debug:
+        var: updates
+
+    - name: Test role version_update_single_node - no updates available
+      include_tasks: 02_update_not_available.yml
+      vars:
+        desired_version_apply: "{{ desired_version_current }}"
+      when: updates.records == []
+
+    - name: Test role version_update_single_node
+      include_tasks: 01_update.yml
+      vars:
+        desired_version_apply: "{{ desired_version_new }}"
+      when: updates.records != []
+
+    - name: Test role version_update_single_node - idempotence
+      include_tasks: 02_update_not_available.yml
+      vars:
+        desired_version_apply: "{{ desired_version_new }}"
+      when: updates.records != []

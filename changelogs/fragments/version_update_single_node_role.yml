@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Added a role for updating single-node systems.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/136)
