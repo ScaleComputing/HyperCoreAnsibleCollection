@@ -30,29 +30,25 @@
       This system does have {{ node_info.records | length }} nodes.
   when: node_info.records | length > 1
 
-- name: Check if already on desired version - end host if True
-  ansible.builtin.meta: end_host
-  when: cluster_info.record.icos_version == scale_computing_hypercore_desired_version
-
-- name: Check if desired version available
-  scale_computing.hypercore.version_update_info:
-  register: available_updates
-
-- name: Show available updates
-  ansible.builtin.debug:
-    var: available_updates
-
-- name: Check if desired update is available - fail if not available
-  ansible.builtin.fail:
-    msg: >-
-      Requested update {{ scale_computing_hypercore_desired_version }} is not
-      in available_updates {{ available_updates.records | map(attribute='uuid') | list }}
-  when: not scale_computing_hypercore_desired_version in (available_updates.records | map(attribute='uuid') | list)
-
 # ===================================================================
 
 - name: Update
   block:
+    - name: Get available updates
+      scale_computing.hypercore.version_update_info:
+      register: available_updates
+
+    - name: Show available updates
+      ansible.builtin.debug:
+        var: available_updates
+
+    - name: Check if desired update is available - fail if not available
+      ansible.builtin.fail:
+        msg: >-
+          Requested update {{ scale_computing_hypercore_desired_version }} is not
+          in available_updates {{ available_updates.records | map(attribute='uuid') | list }}
+      when: not scale_computing_hypercore_desired_version in (available_updates.records | map(attribute='uuid') | list)
+
     - name: Get all available running VMs
       scale_computing.hypercore.vm_info:
       register: vm_info
@@ -89,4 +85,6 @@
       ansible.builtin.fail:
         msg: Update to version "{{ scale_computing_hypercore_desired_version }}" failed.
       when: update_result.record.uuid != scale_computing_hypercore_desired_version
-  when: update_status_before_update.record.update_status == "COMPLETED" or update_status_before_update.record.update_status != "IN PROGRESS"
+  when:
+    - cluster_info.record.icos_version != scale_computing_hypercore_desired_version
+    - update_status_before_update.record.update_status == "COMPLETED" or update_status_before_update.record.update_status != "IN PROGRESS"
