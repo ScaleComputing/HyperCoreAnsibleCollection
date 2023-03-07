@@ -6,19 +6,25 @@
 # documentation:
 # http://www.sphinx-doc.org/en/master/config
 
-project = 'Ansible collections'
-copyright = 'Ansible contributors'
+project = "HyperCore Ansible Collection"
+copyright = "2022, XLAB Steampunk"
+author = "XLAB Steampunk"
 
-title = 'Ansible Collections Documentation'
-html_short_title = 'Ansible Collections Documentation'
+title = 'Scale Computing HyperCore Ansible Collection'
+html_short_title = 'Scale Computing HyperCore Ansible Collection'
 
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx_antsibull_ext']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+    'sphinx_antsibull_ext',
+    "sphinx_rtd_theme",
+]
 
 pygments_style = 'ansible'
 
 highlight_language = 'YAML+Jinja'
 
-html_theme = 'sphinx_ansible_theme'
+html_theme = 'sphinx_rtd_theme'
 html_show_sphinx = False
 
 display_version = False
@@ -41,4 +47,3 @@ intersphinx_mapping = {
 default_role = 'any'
 
 nitpicky = True
-

@@ -4,3 +4,6 @@
 
 /temp-rst
 /build
+
+# We do not plan to commit generated html files.
+/rst/collections
