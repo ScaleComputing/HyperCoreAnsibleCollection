@@ -7,23 +7,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-# DOCUMENTATION = r"""
-# module: time_server_info
-#
-# author:
-#   - Ana Zobec (@anazobec)
-# short_description: List Time Server source configuration on HyperCore API.
-# description:
-#   - Use this module to list information about the Time Server configuration on HyperCore API.
-# version_added: 1.2.0
-# extends_documentation_fragment:
-#   - scale_computing.hypercore.cluster_instance
-# seealso:
-#   - module: scale_computing.hypercore.time_server
-#   - module: scale_computing.hypercore.time_zone
-#   - module: scale_computing.hypercore.time_zone_info
-# """
-
 DOCUMENTATION = r"""
 module: time_server_info
 
