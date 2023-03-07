@@ -27,8 +27,6 @@ on:
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
   INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_"
-  EXAMPLES_INCLUDE: "*"
-  EXAMPLES_EXCLUDE: "^version_update_single_node$|^cluster_config$"
   WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
 # Run only one workflow for specific branch.
 concurrency:
@@ -115,10 +113,6 @@ jobs:
       - run: apt install -y jq
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      # We want to run all integ tests periodically - "integ_tests_include || '*'", the '*' is used.
-      # When running with workflow-dispatch, user is required to put some non-empty string into integ_tests_include.
-      - run: echo 'EXAMPLES_INCLUDE=${{ github.event.inputs.integ_tests_include || env.EXAMPLES_INCLUDE }}' >> $GITHUB_ENV
-      - run: echo 'EXAMPLES_EXCLUDE=${{ github.event.inputs.integ_tests_exclude || env.EXAMPLES_EXCLUDE }}' >> $GITHUB_ENV
 
       - id: set-matrix
         shell: bash
@@ -126,21 +120,20 @@ jobs:
           echo "matrix=$(
             ls -r $WORKDIR/examples | jq -R -s -c 'split("\n")[:-1]'
           )" >> $GITHUB_OUTPUT
-    if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
+    if: "${{ github.event.schedule }}"
 
-  integ:
+  examples-run:
     needs:
-      - integ-matrix
       - examples-matrix
       # - units-test
-    runs-on: [self-hosted2]
+    runs-on: [ self-hosted2 ]
     container: python:3.10-slim-buster
     env:
       DEBIAN_FRONTEND: noninteractive
     strategy:
       fail-fast: false
       matrix:
-        ansible: [2.13.0]
+        ansible: [ 2.13.0 ]
         # python: [3.11]
         # test_name: [user_info]
         test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
@@ -169,8 +162,48 @@ jobs:
           echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
           echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
           ls -al tests/integration/integration_config.yml
-      - run: cd $WORKDIR && ansible-test integration --local ${{ matrix.test_name }}
       - run: cd $WORKDIR && ansible-playbook --check ${{ matrix.example_name }}
+
+  integ:
+    needs:
+      - integ-matrix
+      # - units-test
+    runs-on: [self-hosted2]
+    container: python:3.10-slim-buster
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible: [2.13.0]
+        # python: [3.11]
+        # test_name: [user_info]
+        test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
+      - run: apt update
+      - run: apt install -y git make
+      - run: apt install -y genisoimage qemu-utils
+      - run: pip install ansible-core~=${{ matrix.ansible }}
+      - run: mkdir -p $WORKDIR
+      - run: cp -a ./  $WORKDIR
+      # We have ansible.cfg "for testing" in git repo
+      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+      # But it does affect ansible-galaxy and ansible-test commands.
+      - run: cd $WORKDIR && ansible-galaxy collection install community.crypto
+      - run: cd $WORKDIR && ansible-galaxy collection list
+        # TODO - make integration_config.yml a reusable artifact/output of integration-prepare-env
+      - run: |
+          cd $WORKDIR
+          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
+          cat tests/integration/integration_config.yml
+          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
+          ls -al tests/integration/integration_config.yml
+      - run: cd $WORKDIR && ansible-test integration --local ${{ matrix.test_name }}
 
 
   replica_cleanup:
