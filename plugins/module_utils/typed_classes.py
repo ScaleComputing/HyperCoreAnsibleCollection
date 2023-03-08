@@ -14,6 +14,13 @@ from typing import TypedDict, Union, Any
 # Typed Classes use for Python hints.
 
 
+class TypedClusterInstance(TypedDict):
+    host: str
+    username: str
+    password: str
+    timeout: float
+
+
 # Registration to ansible return dict.
 class TypedRegistrationToAnsible(TypedDict):
     company_name: Union[str, None]

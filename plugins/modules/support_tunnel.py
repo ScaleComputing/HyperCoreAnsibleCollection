@@ -89,7 +89,7 @@ def open_tunnel(
     SupportTunnel.open_tunnel(module, client)
     new_tunnel_status = SupportTunnel.check_tunnel_status(client)
     if new_tunnel_status.open is False:
-        raise errors.SupportTunnelError(  # type: ignore
+        raise errors.SupportTunnelError(
             "Support tunnel can't be opened, probably the code is already in use."
         )
     return (

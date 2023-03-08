@@ -328,5 +328,5 @@ class UpdateStatus(PayloadMapper):
 
     @classmethod
     def get(cls, rest_client: RestClient, check_mode: bool = False) -> UpdateStatus:
-        update_status = rest_client.client.get("update/update_status.json").json  # type: ignore
+        update_status = rest_client.client.get("update/update_status.json").json
         return cls.from_hypercore(update_status)
