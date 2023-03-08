@@ -65,6 +65,7 @@ jobs:
           ls -al tests/integration/integration_config.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
+      - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_examples.yml
     if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
 
   integ-matrix:

@@ -1,0 +1,44 @@
+---
+- name: Create resources for testing examples
+  hosts: localhost
+  connection: local
+  vars:
+    cluster_instance:
+      host: "{{ sc_host }}"
+      username: "{{ sc_username }}"
+      password: "{{ sc_password }}"
+      timeout: "{{ sc_timeout }}"
+  vars_files:
+    - ../integration_config.yml
+
+  tasks:
+  - name: Debug show SC_HOST
+    ansible.builtin.debug:
+      msg: SC_HOST={{ lookup('ansible.builtin.env', 'SC_HOST') }} sc_host={{ sc_host }}
+
+  # For examples/vm_replication_info.yml
+  - name: Create VM demo-vm for examples/vm_replication_info.yml
+    scale_computing.hypercore.vm:
+      cluster_instance: "{{ cluster_instance }}"
+      vm_name: demo-vm
+      description: demo-vm
+      state: present
+      tags:
+        - Xlab
+      memory: "{{ '512 MB' | human_to_bytes }}"
+      vcpu: 1
+      attach_guest_tools_iso: false
+      power_state: stop
+      disks:
+        - type: virtio_disk
+          disk_slot: 0
+          size: "{{ '1.1 GB' | human_to_bytes }}"
+      nics:
+        - vlan: 1
+          type: RTL8139
+      boot_devices:
+        - type: virtio_disk
+          disk_slot: 0
+        - type: nic
+          nic_vlan: 1
+      machine_type: BIOS
