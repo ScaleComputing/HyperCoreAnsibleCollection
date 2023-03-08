@@ -12,7 +12,7 @@ from ..module_utils.typed_classes import (
     TypedVirtualDiskFromAnsible,
     TypedVirtualDiskToAnsible,
 )
-from typing import Union, Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from .rest_client import RestClient
 from ..module_utils.utils import PayloadMapper
@@ -21,12 +21,12 @@ from ..module_utils.utils import PayloadMapper
 class VirtualDisk(PayloadMapper):
     def __init__(
         self,
-        name: Union[str, None] = None,
-        uuid: Union[str, None] = None,
-        block_size: Union[int, None] = None,
-        size: Union[int, None] = None,
+        name: Optional[str] = None,
+        uuid: Optional[str] = None,
+        block_size: Optional[int] = None,
+        size: Optional[int] = None,
         # allocated_size: int = None,
-        replication_factor: Union[int, None] = None,
+        replication_factor: Optional[int] = None,
     ):
         self.name = name
         self.uuid = uuid

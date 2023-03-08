@@ -16,20 +16,20 @@ from ..module_utils.typed_classes import (
     TypedSmtpToAnsible,
     TypedSmtpFromAnsible,
 )
-from typing import Union, Any, Dict
+from typing import Union, Any, Dict, Optional
 
 
 class SMTP(PayloadMapper):
     def __init__(
         self,
-        uuid: Union[str, None] = None,
-        server: Union[str, None] = None,
-        port: Union[int, None] = None,
-        use_ssl: Union[bool, None] = False,
-        use_auth: Union[bool, None] = False,
-        auth_user: Union[str, None] = None,
-        auth_password: Union[str, None] = None,
-        from_address: Union[str, None] = None,
+        uuid: Optional[str] = None,
+        server: Optional[str] = None,
+        port: Optional[int] = None,
+        use_ssl: Optional[bool] = False,
+        use_auth: Optional[bool] = False,
+        auth_user: Optional[str] = None,
+        auth_password: Optional[str] = None,
+        from_address: Optional[str] = None,
         latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None] = None,
     ):
         self.uuid = uuid
@@ -121,7 +121,7 @@ class SMTP(PayloadMapper):
         ansible_dict: Dict[Any, Any],
         rest_client: RestClient,
         must_exist: bool = False,
-    ) -> Union[SMTP, None]:
+    ) -> Optional[SMTP]:
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
         hypercore_dict = rest_client.get_record(
             "/rest/v1/AlertSMTPConfig", query, must_exist=must_exist

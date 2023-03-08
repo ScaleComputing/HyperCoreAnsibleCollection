@@ -17,18 +17,18 @@ from ..module_utils.typed_classes import (
     TypedOidcToAnsible,
     TypedOidcFromAnsible,
 )
-from typing import Union, Any
+from typing import Any, Optional
 
 
 class Oidc(PayloadMapper):
     def __init__(
         self,
-        uuid: Union[str, None] = None,
-        client_id: Union[str, None] = None,
-        config_url: Union[str, None] = None,
-        certificate: Union[str, None] = None,
-        shared_secret: Union[str, None] = None,  # Write-only
-        scopes: Union[str, None] = None,
+        uuid: Optional[str] = None,
+        client_id: Optional[str] = None,
+        config_url: Optional[str] = None,
+        certificate: Optional[str] = None,
+        shared_secret: Optional[str] = None,  # Write-only
+        scopes: Optional[str] = None,
     ):
         self.uuid = uuid
         self.client_id = client_id
@@ -38,7 +38,7 @@ class Oidc(PayloadMapper):
         self.scopes = scopes
 
     @classmethod
-    def get(cls, rest_client: RestClient) -> Union[Oidc, None]:
+    def get(cls, rest_client: RestClient) -> Optional[Oidc]:
         result = rest_client.list_records("/rest/v1/OIDCConfig")
         if result:
             # One OIDC per cluster.

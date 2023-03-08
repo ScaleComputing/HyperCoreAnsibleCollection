@@ -67,10 +67,10 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.email_alert import EmailAlert
 from ..module_utils.typed_classes import TypedEmailAlertToAnsible
-from typing import List, Union
+from typing import List, Optional
 
 
-def run(rest_client: RestClient) -> List[Union[TypedEmailAlertToAnsible, None]]:
+def run(rest_client: RestClient) -> List[Optional[TypedEmailAlertToAnsible]]:
     return EmailAlert.get_state(rest_client)
 
 

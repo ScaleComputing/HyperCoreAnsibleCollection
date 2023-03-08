@@ -19,7 +19,7 @@ from ..module_utils.typed_classes import (
     TypedUpdateStatusToAnsible,
     TypedTaskTag,
 )
-from typing import Any, Union
+from typing import Any, Optional
 
 
 class HyperCoreVersion:
@@ -174,8 +174,8 @@ class Update(PayloadMapper):
 
     @classmethod
     def from_hypercore(
-        cls, hypercore_data: Union[dict[Any, Any], None]
-    ) -> Union[None, Update]:
+        cls, hypercore_data: Optional[dict[Any, Any]]
+    ) -> Optional[Update]:
         if not hypercore_data:
             return None
         return cls(
@@ -231,7 +231,7 @@ class Update(PayloadMapper):
         uuid: str,
         must_exist: bool = True,
         check_mode: bool = False,
-    ) -> Union[None, Update]:
+    ) -> Optional[Update]:
         # api has a bug - the endpoint "/rest/v1/Update/{uuid}" returns a list of all available updates (and uuid can actually be anything),
         # that is why query is used
         update = rest_client.get_record(

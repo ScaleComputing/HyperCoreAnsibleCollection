@@ -54,10 +54,10 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
 from ..module_utils.hypercore_version import Update
 from ..module_utils.typed_classes import TypedUpdateToAnsible
-from typing import List, Union
+from typing import List, Optional
 
 
-def run(rest_client: RestClient) -> List[Union[TypedUpdateToAnsible, None]]:
+def run(rest_client: RestClient) -> List[Optional[TypedUpdateToAnsible]]:
     return [
         Update.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
         for hypercore_dict in rest_client.list_records("/rest/v1/Update")

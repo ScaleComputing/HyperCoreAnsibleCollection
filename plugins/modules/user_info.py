@@ -67,12 +67,12 @@ from ..module_utils.client import Client
 from ..module_utils.user import User
 from ..module_utils.utils import get_query
 from ..module_utils.typed_classes import TypedUserToAnsible
-from typing import List, Union
+from typing import List, Optional
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> List[Union[TypedUserToAnsible, None]]:
+) -> List[Optional[TypedUserToAnsible]]:
     query = get_query(
         module.params, "username", ansible_hypercore_map=dict(username="username")
     )

@@ -68,7 +68,7 @@ from ..module_utils.typed_classes import (
 )
 from ..module_utils.task_tag import TaskTag
 
-from typing import Union, Tuple
+from typing import Tuple, Optional
 import ssl
 from time import sleep
 
@@ -94,7 +94,7 @@ def upload_cert(module: AnsibleModule, rest_client: RestClient) -> TypedTaskTag:
 
 def ensure_present(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedCertificateToAnsible, None], TypedDiff]:
+) -> Tuple[bool, Optional[TypedCertificateToAnsible], TypedDiff]:
     before: TypedCertificateToAnsible = dict(certificate=get_certificate(module))
     task = upload_cert(module, rest_client)
     # After certificate is uploaded the cluster loses connection
@@ -116,7 +116,7 @@ def ensure_present(
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedCertificateToAnsible, None], TypedDiff]:
+) -> Tuple[bool, Optional[TypedCertificateToAnsible], TypedDiff]:
     return ensure_present(module, rest_client)
 
 
