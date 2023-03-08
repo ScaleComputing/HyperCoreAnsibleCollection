@@ -113,12 +113,16 @@ jobs:
       - run: apt install -y jq
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-
+      # A few files are not an example playbook:
+      #   hypercore_inventory.yml - inventory example
+      #   cloud-init-user-data-example.yml - cloud-init user-data example
       - id: set-matrix
         shell: bash
         run: |-
           echo "matrix=$(
-            ls -r $WORKDIR/examples | jq -R -s -c 'split("\n")[:-1]'
+            ls -r $WORKDIR/examples |
+            grep -v -E "^README.md$|^hypercore_inventory.yml$|^cloud-init-user-data-example.yml$" |
+            jq -R -s -c 'split("\n")[:-1]'
           )" >> $GITHUB_OUTPUT
     if: "${{ github.event.inputs || github.event.schedule }}"
 
@@ -140,11 +144,12 @@ jobs:
       - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
       - run: apt update
       - run: apt install -y git make
-      - run: apt install -y genisoimage qemu-utils
+      - run: apt install -y genisoimage qemu-utils jq
+      - run: pip install yq
       - run: pip install ansible-core~=${{ matrix.ansible }}
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      - run: cd $WORKDIR && ansible-galaxy collection install community.crypto
+      - run: cd $WORKDIR && ansible-galaxy collection install community.crypto community.general
       - run: cd $WORKDIR && ansible-galaxy collection list
       - run: |
           cd $WORKDIR
@@ -154,7 +159,13 @@ jobs:
           echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
           echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
           ls -al tests/integration/integration_config.yml
-      - run: cd $WORKDIR && ansible-playbook --check ${{ matrix.example_name }}
+      - run: |
+          cd $WORKDIR
+          eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
+          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_username')
+          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_password')
+          eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
+          ansible-playbook --check examples/${{ matrix.example_name }}
 
   integ:
     needs:
