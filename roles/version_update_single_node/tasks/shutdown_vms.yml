@@ -1,0 +1,19 @@
+---
+- name: Show all running VMs
+  ansible.builtin.debug:
+    msg: "{{ item.vm_name }}"
+  when: item.power_state == 'started'
+  loop: "{{ vms.records }}"
+  register: running_vms
+
+- name: Shutdown running VMs
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ item.vm_name }}"
+    power_state: stop
+  when: item.power_state == 'started'
+  loop: "{{ vms.records }}"
+  register: vm_shutdown_result
+
+- name: Show shutdown results
+  ansible.builtin.debug:
+    var: vm_shutdown_result

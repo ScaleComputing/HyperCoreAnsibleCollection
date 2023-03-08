@@ -1,0 +1,32 @@
+---
+- name: Check update status on HC3
+  block:
+    - name: Increment retry_count
+      ansible.builtin.set_fact:
+        retry_count: "{{ 0 if retry_count is undefined else retries | int + 1 }}"
+
+    # We might be able to remove this task
+    - name: Pause before checking update status - checks will report FAILED-RETRYING until update COMPLETE/TERMINATED
+      ansible.builtin.wait_for:
+        timeout: 60
+      delegate_to: localhost
+
+    - name: Check update status - will report FAILED-RETRYING until update COMPLETE/TERMINATED
+      scale_computing.hypercore.version_update_status_info:
+      register: update_status
+      until: update_status.record.update_status == "COMPLETE" | default(omit) or update_status.record.update_status == "TERMINATING" | default(omit)
+      retries: 100
+      delay: 30
+      ignore_unreachable: true
+
+  rescue:
+    - name: Fail if retries reached 20
+      ansible.builtin.fail:
+        msg: Maximum retries of grouped tasks reached
+      when: retry_count | int == 20
+
+    - name: Log
+      ansible.builtin.debug:
+        msg: Update status check failed due to server down / restart - retrying
+
+    - include_tasks: update_status_check.yml # Recursion
