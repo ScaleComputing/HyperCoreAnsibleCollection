@@ -3,6 +3,8 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  # NTP is always a bit problemtic for reconfiguration
+  check_mode: true
   vars:
     source: pool.ntp.org
 
