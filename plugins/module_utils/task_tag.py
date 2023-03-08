@@ -5,6 +5,7 @@
 
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 __metaclass__ = type
 
@@ -13,14 +14,20 @@ from time import sleep
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedTaskTag
+from typing import Optional, Dict, Any
 
 
 class TaskTag:
     @classmethod
     def wait_task(
-        cls, rest_client: RestClient, task: TypedTaskTag, check_mode: bool = False
-    ):
+        cls,
+        rest_client: RestClient,
+        task: Optional[TypedTaskTag],
+        check_mode: bool = False,
+    ) -> None:
         if check_mode:
+            return
+        if task is None:
             return
         if type(task) != dict:
             raise errors.ScaleComputingError("task should be dictionary.")
@@ -50,14 +57,18 @@ class TaskTag:
             sleep(1)
 
     @staticmethod
-    def get_task_status(rest_client, task):
+    def get_task_status(
+        rest_client: RestClient, task: Optional[TypedTaskTag]
+    ) -> Optional[Dict[Any, Any]]:
+        if not task:
+            return None
         if type(task) != dict:
             raise errors.ScaleComputingError("task should be dictionary.")
         if "taskTag" not in task.keys():
             raise errors.ScaleComputingError("taskTag is not in task dictionary.")
         if not task["taskTag"]:
-            return
-        task_status = rest_client.get_record(
+            return None
+        task_status: Optional[Dict[Any, Any]] = rest_client.get_record(
             "{0}/{1}".format("/rest/v1/TaskTag", task["taskTag"]), query={}
         )
-        return task_status if task_status else {}
+        return task_status if task_status else None

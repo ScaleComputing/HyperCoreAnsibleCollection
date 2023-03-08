@@ -11,6 +11,7 @@ __metaclass__ = type
 import operator
 import re
 from functools import total_ordering
+from ansible.module_utils.basic import AnsibleModule
 from typing import List
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
@@ -55,6 +56,11 @@ class HyperCoreVersion:
         version = self.version
         version = ".".join(version.split(".")[:3])
         return VersionSpec(spec).match(Version(version))
+
+    def check_version(self, module: AnsibleModule, required_version: str) -> None:
+        if not self.verify(required_version):
+            msg = f"HyperCore server version={self.version} does not match required version {required_version}"
+            module.fail_json(msg=msg)
 
 
 @total_ordering

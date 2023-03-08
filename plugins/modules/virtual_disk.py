@@ -73,7 +73,7 @@ record:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from typing import Union, Tuple, Optional
+from typing import Tuple, Optional
 import os
 
 from ..module_utils.typed_classes import (
@@ -86,6 +86,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.utils import is_changed
 from ..module_utils.virtual_disk import VirtualDisk
 from ..module_utils.state import State
+from ..module_utils.task_tag import TaskTag
 
 from ..module_utils.hypercore_version import (
     HyperCoreVersion,
@@ -95,10 +96,15 @@ HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"
 
 
 def read_disk_file(module: AnsibleModule) -> Tuple[bytes, int]:
-    file_size = os.path.getsize(module.params["file_location"])
-    f = open(module.params["file_location"], "rb")
-    content = f.read()
-    f.close()
+    try:
+        file_size = os.path.getsize(module.params["file_location"])
+        f = open(module.params["file_location"], "rb")
+        content = f.read()
+        f.close()
+    except FileNotFoundError:
+        raise errors.ScaleComputingError(
+            f"Disk file {module.params['file_location']} not found."
+        )
     return content, file_size
 
 
@@ -106,17 +112,21 @@ def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
     virtual_disk_obj: Optional[VirtualDisk],
-) -> Tuple[bool, Union[TypedVirtualDiskToAnsible, None], TypedDiff]:
+) -> Tuple[bool, Optional[TypedVirtualDiskToAnsible], TypedDiff]:
     before = None
     after = None
     if virtual_disk_obj:
         return False, after, dict(before=before, after=after)
     else:
         file_content, file_size = read_disk_file(module)
-        VirtualDisk.send_upload_request(
+        if not file_content or not file_size:
+            raise errors.ScaleComputingError(
+                f"Invalid content or size for file: {module.params['file_name']}"
+            )
+        task = VirtualDisk.send_upload_request(
             rest_client, file_content, file_size, module.params["file_name"]
         )
-        # No wait_task needed; Upload not returning task ID.
+        TaskTag.wait_task(rest_client, task)
         updated_disk = VirtualDisk.get_by_name(
             rest_client, name=module.params["file_name"], must_exist=True
         )
@@ -128,15 +138,15 @@ def ensure_absent(
     module: AnsibleModule,
     rest_client: RestClient,
     virtual_disk_obj: Optional[VirtualDisk],
-) -> Tuple[bool, Union[TypedVirtualDiskToAnsible, None], TypedDiff]:
+) -> Tuple[bool, Optional[TypedVirtualDiskToAnsible], TypedDiff]:
     before = None
     after = None
     if not virtual_disk_obj:
         return False, after, dict(before=before, after=after)
     else:
         before = virtual_disk_obj.to_ansible()
-        virtual_disk_obj.send_delete_request(rest_client)
-        # No wait_task needed; Upload not returning task ID.
+        task = virtual_disk_obj.send_delete_request(rest_client)
+        TaskTag.wait_task(rest_client, task)
         updated_disk = VirtualDisk.get_by_name(
             rest_client, name=module.params["file_name"]
         )
@@ -147,7 +157,7 @@ def ensure_absent(
 # Virtual disk can only be created or deleted; No update actions available.
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedVirtualDiskToAnsible, None], TypedDiff]:
+) -> Tuple[bool, Optional[TypedVirtualDiskToAnsible], TypedDiff]:
     virtual_disk_obj = VirtualDisk.get_by_name(
         rest_client, name=module.params["file_name"]
     )
@@ -184,9 +194,7 @@ def main() -> None:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
         hcversion = HyperCoreVersion(rest_client)
-        if not hcversion.verify(HYPERCORE_VERSION_REQUIREMENTS):
-            msg = f"HyperCore server version={hcversion.version} does not match required version {HYPERCORE_VERSION_REQUIREMENTS}"
-            module.fail_json(msg=msg)
+        hcversion.check_version(module, HYPERCORE_VERSION_REQUIREMENTS)
         changed, record, diff = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:

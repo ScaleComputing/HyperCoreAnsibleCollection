@@ -157,7 +157,7 @@ def run(module, rest_client):
     task = VM.import_vm(rest_client, module.params)
     TaskTag.wait_task(rest_client, task)
     task_status = TaskTag.get_task_status(rest_client, task)
-    if task_status.get("state", "") == "COMPLETE":
+    if task_status and task_status.get("state", "") == "COMPLETE":
         return True, f"Virtual machine - {module.params['vm_name']} - import complete."
     raise errors.ScaleComputingError(
         f"There was a problem during import of {module.params['vm_name']}, import failed."

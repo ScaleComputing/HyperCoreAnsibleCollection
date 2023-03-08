@@ -34,7 +34,6 @@ module = [
     "plugins.module_utils.replication",
     "plugins.module_utils.snapshot_schedule",
     "plugins.module_utils.state",
-    "plugins.module_utils.task_tag",
     "plugins.module_utils.type",
     "plugins.module_utils.utils",
     "plugins.module_utils.vm",

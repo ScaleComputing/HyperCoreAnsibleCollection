@@ -106,7 +106,6 @@ class RestClient:
         binary_data: bytes = None,
         headers=None,
     ) -> TypedTaskTag:
-        # Method put doesn't support check mode # IT ACTUALLY DOES
         if check_mode:
             return utils.MOCKED_TASK_TAG
         try:
