@@ -72,10 +72,10 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.syslog_server import SyslogServer
 from ..module_utils.typed_classes import TypedSyslogServerToAnsible
-from typing import List, Union
+from typing import List, Optional
 
 
-def run(rest_client: RestClient) -> List[Union[TypedSyslogServerToAnsible, None]]:
+def run(rest_client: RestClient) -> List[Optional[TypedSyslogServerToAnsible]]:
     return SyslogServer.get_state(rest_client)
 
 

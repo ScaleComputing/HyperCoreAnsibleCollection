@@ -9,25 +9,25 @@ from __future__ import annotations
 
 __metaclass__ = type
 
-from typing import TypedDict, Union, Any
+from typing import TypedDict, Union, Any, Optional
 
 # Typed Classes use for Python hints.
 
 
 # Registration to ansible return dict.
 class TypedRegistrationToAnsible(TypedDict):
-    company_name: Union[str, None]
-    contact: Union[str, None]
-    phone: Union[str, None]
-    email: Union[str, None]
+    company_name: Optional[str]
+    contact: Optional[str]
+    phone: Optional[str]
+    email: Optional[str]
 
 
 # Registration from ansible input dict.
 class TypedRegistrationFromAnsible(TypedDict):
-    company_name: Union[str, None]
-    contact: Union[str, None]
-    phone: Union[str, None]
-    email: Union[str, None]
+    company_name: Optional[str]
+    contact: Optional[str]
+    phone: Optional[str]
+    email: Optional[str]
 
 
 # Task tag return dict.
@@ -45,7 +45,7 @@ class TypedDNSConfigToAnsible(TypedDict):
 # Support_tunnel to ansible return dict.
 class TypedSupportTunnelToAnsible(TypedDict):
     open: bool
-    code: Union[int, None]
+    code: Optional[int]
 
 
 # User to ansible return dict.
@@ -65,9 +65,9 @@ class TypedRoleToAnsible(TypedDict):
 
 # OIDC to ansible return dict.
 class TypedOidcToAnsible(TypedDict):
-    client_id: Union[str, None]
-    config_url: Union[str, None]
-    scopes: Union[str, None]
+    client_id: Optional[str]
+    config_url: Optional[str]
+    scopes: Optional[str]
 
 
 # OIDC from ansible dict.
@@ -143,74 +143,74 @@ class TypedDiff(TypedDict):
 
 # smtp module
 class TypedSmtpToAnsible(TypedDict):
-    uuid: Union[str, None]
-    server: Union[str, None]
-    port: Union[int, None]
-    use_ssl: Union[bool, None]
-    use_auth: Union[bool, None]
-    auth_user: Union[str, None]
-    auth_password: Union[str, None]
-    from_address: Union[str, None]
+    uuid: Optional[str]
+    server: Optional[str]
+    port: Optional[int]
+    use_ssl: Optional[bool]
+    use_auth: Optional[bool]
+    auth_user: Optional[str]
+    auth_password: Optional[str]
+    from_address: Optional[str]
     latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
 
 
 class TypedSmtpFromAnsible(TypedDict):
-    uuid: Union[str, None]
-    server: Union[str, None]
-    port: Union[int, None]
-    use_ssl: Union[bool, None]
-    use_auth: Union[bool, None]
-    auth_user: Union[str, None]
-    auth_password: Union[str, None]
-    from_address: Union[str, None]
-    latest_task_tag: Union[TypedTaskTag, None]
+    uuid: Optional[str]
+    server: Optional[str]
+    port: Optional[int]
+    use_ssl: Optional[bool]
+    use_auth: Optional[bool]
+    auth_user: Optional[str]
+    auth_password: Optional[str]
+    from_address: Optional[str]
+    latest_task_tag: Optional[TypedTaskTag]
 
 
 class TypedEmailAlertToAnsible(TypedDict):
-    uuid: Union[str, None]
-    alert_tag_uuid: Union[str, None]
-    email: Union[str, None]
-    resend_delay: Union[int, None]
-    silent_period: Union[int, None]
+    uuid: Optional[str]
+    alert_tag_uuid: Optional[str]
+    email: Optional[str]
+    resend_delay: Optional[int]
+    silent_period: Optional[int]
     latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
 
 
 class TypedEmailAlertFromAnsible(TypedDict):
-    uuid: Union[str, None]
-    alert_tag_uuid: Union[str, None]
-    email: Union[str, None]
-    resend_delay: Union[int, None]
-    silent_period: Union[int, None]
+    uuid: Optional[str]
+    alert_tag_uuid: Optional[str]
+    email: Optional[str]
+    resend_delay: Optional[int]
+    silent_period: Optional[int]
     latest_task_tag: Union[TypedTaskTag, None]
 
 
 class TypedVirtualDiskToAnsible(TypedDict):
-    name: Union[str, None]
-    uuid: Union[str, None]
-    block_size: Union[int, None]
-    size: Union[int, None]
+    name: Optional[str]
+    uuid: Optional[str]
+    block_size: Optional[int]
+    size: Optional[int]
     # allocated_size: int
-    replication_factor: Union[int, None]
+    replication_factor: Optional[int]
 
 
 class TypedVirtualDiskFromAnsible(TypedDict):
-    name: Union[str, None]
+    name: Optional[str]
     # uuid: str
 
 
 class TypedSyslogServerToAnsible(TypedDict):
-    uuid: Union[str, None]
-    alert_tag_uuid: Union[str, None]
-    host: Union[str, None]
-    port: Union[int, None]
-    protocol: Union[str, None]
-    resend_delay: Union[int, None]
-    silent_period: Union[int, None]
+    uuid: Optional[str]
+    alert_tag_uuid: Optional[str]
+    host: Optional[str]
+    port: Optional[int]
+    protocol: Optional[str]
+    resend_delay: Optional[int]
+    silent_period: Optional[int]
     latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None]
 
 
 class TypedSyslogServerFromAnsible(TypedDict):
-    uuid: Union[str, None]
-    host: Union[str, None]
-    port: Union[int, None]
-    protocol: Union[str, None]
+    uuid: Optional[str]
+    host: Optional[str]
+    port: Optional[int]
+    protocol: Optional[str]

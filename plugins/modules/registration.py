@@ -90,14 +90,14 @@ from ..module_utils.state import State
 from ..module_utils.registration import Registration
 from ..module_utils.typed_classes import TypedRegistrationToAnsible, TypedDiff
 from ..module_utils.task_tag import TaskTag
-from typing import Union, Tuple
+from typing import Tuple, Optional
 
 
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
-    registration_obj: Union[Registration, None],
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff]:
+    registration_obj: Optional[Registration],
+) -> Tuple[bool, Optional[TypedRegistrationToAnsible], TypedDiff]:
     before = registration_obj.to_ansible() if registration_obj else None
     registration_obj_ansible = Registration.from_ansible(module.params)
     if registration_obj is None:
@@ -115,8 +115,8 @@ def ensure_present(
 def ensure_absent(
     module: AnsibleModule,
     rest_client: RestClient,
-    registration_obj: Union[Registration, None],
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff]:
+    registration_obj: Optional[Registration],
+) -> Tuple[bool, Optional[TypedRegistrationToAnsible], TypedDiff]:
     before = registration_obj.to_ansible() if registration_obj else None
     after = None
     if registration_obj:
@@ -129,7 +129,7 @@ def ensure_absent(
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedRegistrationToAnsible, None], TypedDiff]:
+) -> Tuple[bool, Optional[TypedRegistrationToAnsible], TypedDiff]:
     registration_obj = Registration.get(rest_client)
     if module.params["state"] == State.present:
         return ensure_present(module, rest_client, registration_obj)

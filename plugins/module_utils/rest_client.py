@@ -13,7 +13,7 @@ from ..module_utils.typed_classes import TypedTaskTag
 
 __metaclass__ = type
 
-from typing import Any, Union
+from typing import Any, Optional
 
 
 def _query(original=None):
@@ -43,7 +43,7 @@ class RestClient:
         query: dict[Any, Any] = None,
         must_exist: bool = False,
         timeout: float = None,
-    ) -> Union[dict[Any, Any], None]:
+    ) -> Optional[dict[Any, Any]]:
         records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)
         if len(records) > 1:
             raise errors.ScaleComputingError(

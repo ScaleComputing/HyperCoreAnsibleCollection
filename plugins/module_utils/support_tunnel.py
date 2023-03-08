@@ -12,11 +12,11 @@ from ..module_utils.utils import PayloadMapper
 from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.client import Client
 from ..module_utils.typed_classes import TypedSupportTunnelToAnsible
-from typing import Any, Union
+from typing import Any, Union, Optional
 
 
 class SupportTunnel(PayloadMapper):
-    def __init__(self, open: bool, code: Union[int, None]):
+    def __init__(self, open: bool, code: Optional[int]):
         self.open = open
         self.code = code
 
