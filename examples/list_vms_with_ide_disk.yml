@@ -55,3 +55,5 @@
       ansible.builtin.fail:
         msg: Found {{ ide_vm_names | length }} VMs using IDE disk
       when: ide_vm_names | length > 0
+      # VMs with IDE disks are created while testing. Ignore them if testing.
+      ignore_errors: "{{ hypercore_example_check_mode | default(false) }}"
