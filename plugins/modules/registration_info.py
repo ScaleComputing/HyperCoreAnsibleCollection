@@ -53,12 +53,12 @@ from ..module_utils.registration import Registration
 from ..module_utils.typed_classes import TypedRegistrationToAnsible
 from ..module_utils.rest_client import CachedRestClient
 
-from typing import Union
+from typing import Optional
 
 
 def run(
     module: AnsibleModule, rest_client: CachedRestClient
-) -> Union[TypedRegistrationToAnsible, None]:
+) -> Optional[TypedRegistrationToAnsible]:
     registration_list = rest_client.list_records("/rest/v1/Registration")
     if registration_list:
         return Registration.from_hypercore(registration_list[0]).to_ansible()

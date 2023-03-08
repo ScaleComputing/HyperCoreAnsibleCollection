@@ -12,7 +12,7 @@ from ..module_utils.utils import PayloadMapper
 from ..module_utils.role import Role
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedUserToAnsible
-from typing import Union
+from typing import Optional
 
 
 class User(PayloadMapper):
@@ -35,7 +35,7 @@ class User(PayloadMapper):
         pass
 
     @classmethod
-    def from_hypercore(cls, hypercore_data: dict) -> Union[User, None]:
+    def from_hypercore(cls, hypercore_data: dict) -> Optional[User]:
         # In case for get_record, return None if no result is found
         if not hypercore_data:
             return None
@@ -84,7 +84,7 @@ class User(PayloadMapper):
     @classmethod
     def get_user_from_uuid(
         cls, user_uuid, rest_client: RestClient, must_exist: bool = False
-    ) -> Union[User, None]:
+    ) -> Optional[User]:
         hypercore_dict = rest_client.get_record(
             "/rest/v1/User/{0}".format(user_uuid), must_exist=must_exist
         )
@@ -94,7 +94,7 @@ class User(PayloadMapper):
     @classmethod
     def get_user_from_username(
         cls, username, rest_client: RestClient, must_exist: bool = False
-    ) -> Union[User, None]:
+    ) -> Optional[User]:
         hypercore_dict = rest_client.get_record(
             "/rest/v1/User", {"username": username}, must_exist=must_exist
         )

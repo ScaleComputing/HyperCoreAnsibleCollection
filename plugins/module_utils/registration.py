@@ -17,21 +17,21 @@ from ..module_utils.typed_classes import (
     TypedRegistrationFromAnsible,
     TypedRegistrationToAnsible,
 )
-from typing import Union, Any
+from typing import Any, Optional
 
 
 class Registration(PayloadMapper):
     def __init__(
         self,
-        uuid: Union[str, None] = None,
-        company_name: Union[str, None] = None,
-        contact: Union[str, None] = None,
-        phone: Union[str, None] = None,
-        email: Union[str, None] = None,
-        cluster_id: Union[str, None] = None,
-        cluster_data: Union[str, None] = None,
-        cluster_data_hash: Union[str, None] = None,
-        cluster_data_hash_accepted: Union[str, None] = None,
+        uuid: Optional[str] = None,
+        company_name: Optional[str] = None,
+        contact: Optional[str] = None,
+        phone: Optional[str] = None,
+        email: Optional[str] = None,
+        cluster_id: Optional[str] = None,
+        cluster_data: Optional[str] = None,
+        cluster_data_hash: Optional[str] = None,
+        cluster_data_hash_accepted: Optional[str] = None,
     ):
         self.uuid = uuid
         self.company_name = company_name
@@ -44,7 +44,7 @@ class Registration(PayloadMapper):
         self.cluster_data_hash_accepted = cluster_data_hash_accepted
 
     @classmethod
-    def get(cls, rest_client: RestClient) -> Union[Registration, None]:
+    def get(cls, rest_client: RestClient) -> Optional[Registration]:
         result = rest_client.list_records("/rest/v1/Registration")
         if result:
             # One registration per cluster.

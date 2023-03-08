@@ -13,13 +13,14 @@ import re
 from functools import total_ordering
 from typing import List
 from ..module_utils.utils import PayloadMapper
+from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import (
     TypedUpdateToAnsible,
     TypedUpdateStatusToAnsible,
     TypedTaskTag,
 )
-from typing import Any, Union
+from typing import Any, Optional
 
 
 class HyperCoreVersion:
@@ -55,6 +56,11 @@ class HyperCoreVersion:
         version = self.version
         version = ".".join(version.split(".")[:3])
         return VersionSpec(spec).match(Version(version))
+
+    def check_version(self, module: AnsibleModule, required_version: str) -> None:
+        if not self.verify(required_version):
+            msg = f"HyperCore server version={self.version} does not match required version {required_version}"
+            module.fail_json(msg=msg)
 
 
 @total_ordering
@@ -174,8 +180,8 @@ class Update(PayloadMapper):
 
     @classmethod
     def from_hypercore(
-        cls, hypercore_data: Union[dict[Any, Any], None]
-    ) -> Union[None, Update]:
+        cls, hypercore_data: Optional[dict[Any, Any]]
+    ) -> Optional[Update]:
         if not hypercore_data:
             return None
         return cls(
@@ -231,7 +237,7 @@ class Update(PayloadMapper):
         uuid: str,
         must_exist: bool = True,
         check_mode: bool = False,
-    ) -> Union[None, Update]:
+    ) -> Optional[Update]:
         # api has a bug - the endpoint "/rest/v1/Update/{uuid}" returns a list of all available updates (and uuid can actually be anything),
         # that is why query is used
         update = rest_client.get_record(

@@ -65,12 +65,12 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.cluster import Cluster
 from ..module_utils.hypercore_version import Update
 from ..module_utils.typed_classes import TypedUpdateToAnsible
-from typing import Tuple, Union, Dict, Any
+from typing import Tuple, Dict, Any, Optional
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedUpdateToAnsible, None], Dict[Any, Any]]:
+) -> Tuple[bool, Optional[TypedUpdateToAnsible], Dict[Any, Any]]:
     cluster = Cluster.get(rest_client)
     if cluster.icos_version == module.params["icos_version"]:
         return (
