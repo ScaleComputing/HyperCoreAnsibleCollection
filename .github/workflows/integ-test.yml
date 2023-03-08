@@ -165,7 +165,7 @@ jobs:
           eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_username')
           eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_password')
           eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
-          ansible-playbook --check examples/${{ matrix.example_name }}
+          ansible-playbook -i localhost, --check examples/${{ matrix.example_name }}
 
   integ:
     needs:
