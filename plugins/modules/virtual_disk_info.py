@@ -97,9 +97,7 @@ def main() -> None:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = CachedRestClient(client)
         hcversion = HyperCoreVersion(rest_client)
-        if not hcversion.verify(HYPERCORE_VERSION_REQUIREMENTS):
-            msg = f"HyperCore server version={hcversion.version} does not match required version {HYPERCORE_VERSION_REQUIREMENTS}"
-            module.fail_json(msg=msg)
+        hcversion.check_version(module, HYPERCORE_VERSION_REQUIREMENTS)
         records = run(module, rest_client)
         module.exit_json(changed=False, records=records)
     except errors.ScaleComputingError as e:

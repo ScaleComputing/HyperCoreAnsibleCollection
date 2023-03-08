@@ -13,6 +13,7 @@ import re
 from functools import total_ordering
 from typing import List
 from ..module_utils.utils import PayloadMapper
+from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import (
     TypedUpdateToAnsible,
@@ -55,6 +56,11 @@ class HyperCoreVersion:
         version = self.version
         version = ".".join(version.split(".")[:3])
         return VersionSpec(spec).match(Version(version))
+
+    def check_version(self, module: AnsibleModule, required_version: str) -> None:
+        if not self.verify(required_version):
+            msg = f"HyperCore server version={self.version} does not match required version {required_version}"
+            module.fail_json(msg=msg)
 
 
 @total_ordering
