@@ -36,7 +36,9 @@
                     break
         print(json.dumps(ide_vm_names))
       args:
-        executable: /usr/bin/python3
+        # /usr/bin/python3 - fedora
+        # /usr/local/bin/python - python:3.10-slim-buster docker image
+        executable: python3
         stdin: "{{ all_vms.records | to_json }}"
       changed_when: false
       register: ide_vm_names_result
