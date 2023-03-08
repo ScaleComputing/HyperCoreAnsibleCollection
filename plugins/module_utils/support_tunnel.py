@@ -12,11 +12,11 @@ from ..module_utils.utils import PayloadMapper
 from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.client import Client
 from ..module_utils.typed_classes import TypedSupportTunnelToAnsible
-from typing import Any, Union
+from typing import Any, Union, Optional
 
 
 class SupportTunnel(PayloadMapper):
-    def __init__(self, open: bool, code: Union[int, None]):
+    def __init__(self, open: bool, code: Optional[int]):
         self.open = open
         self.code = code
 
@@ -64,15 +64,13 @@ class SupportTunnel(PayloadMapper):
 
     @classmethod
     def check_tunnel_status(cls, client: Client) -> SupportTunnel:
-        response = client.get("/support-api/check")  # type: ignore
+        response = client.get("/support-api/check")
         return cls.from_hypercore(response.json)
 
     @staticmethod
     def open_tunnel(module: AnsibleModule, client: Client) -> None:
-        client.get(
-            "/support-api/open", query={"code": module.params["code"]}
-        )  # type: ignore
+        client.get("/support-api/open", query={"code": module.params["code"]})
 
     @staticmethod
     def close_tunnel(client: Client) -> None:
-        client.get("/support-api/close")  # type: ignore
+        client.get("/support-api/close")

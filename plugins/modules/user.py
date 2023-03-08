@@ -118,7 +118,7 @@ from ..module_utils.rest_client import CachedRestClient
 from ..module_utils.user import User
 from ..module_utils.role import Role
 from ..module_utils.typed_classes import TypedUserToAnsible, TypedDiff
-from typing import List, Tuple, Union, Dict, Any
+from typing import List, Tuple, Union, Dict, Any, Optional
 
 
 def get_role_uuids(module: AnsibleModule, rest_client: RestClient) -> List[str]:
@@ -207,7 +207,7 @@ def update_user(
 
 
 def delete_user(
-    rest_client: RestClient, user: Union[User, None]
+    rest_client: RestClient, user: Optional[User]
 ) -> Tuple[bool, Union[TypedUserToAnsible, Dict[None, None]], TypedDiff]:
     if not user:
         return (False, dict(), dict(before=None, after=None))

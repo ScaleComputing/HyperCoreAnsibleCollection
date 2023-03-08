@@ -18,17 +18,17 @@ from ..module_utils.typed_classes import (
     TypedEmailAlertToAnsible,
     TypedEmailAlertFromAnsible,
 )
-from typing import Union, Any, Dict
+from typing import Union, Any, Dict, Optional
 
 
 class EmailAlert(PayloadMapper):
     def __init__(
         self,
-        uuid: Union[str, None] = None,
-        alert_tag_uuid: Union[str, None] = None,
-        email: Union[str, None] = None,
-        resend_delay: Union[int, None] = None,
-        silent_period: Union[int, None] = None,
+        uuid: Optional[str] = None,
+        alert_tag_uuid: Optional[str] = None,
+        email: Optional[str] = None,
+        resend_delay: Optional[int] = None,
+        silent_period: Optional[int] = None,
         latest_task_tag: Union[TypedTaskTag, dict[Any, Any], None] = None,
     ):
         self.uuid = uuid

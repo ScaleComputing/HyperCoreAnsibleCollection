@@ -4,14 +4,17 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 __metaclass__ = type
 
 import json
+from typing import Any, Optional, Union
 
 from ansible.module_utils.urls import Request, basic_auth_header
 
 from .errors import AuthError, ScaleComputingError, UnexpectedAPIResponse
+from ..module_utils.typed_classes import TypedClusterInstance
 
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.six.moves.urllib.parse import urlencode, quote
@@ -25,7 +28,9 @@ class Response:
     # Response(raw_resp) would be simpler.
     # How is this used in other projects? Jure?
     # Maybe we need/want both.
-    def __init__(self, status, data, headers=None):
+    def __init__(
+        self, status: int, data: Any, headers: Optional[dict[Any, Any]] = None
+    ):
         self.status = status
         self.data = data
         # [('h1', 'v1'), ('H2', 'V2')] -> {'h1': 'v1', 'h2': 'V2'}
@@ -36,7 +41,7 @@ class Response:
         self._json = None
 
     @property
-    def json(self):
+    def json(self) -> Any:
         if self._json is None:
             try:
                 self._json = json.loads(self.data)
@@ -66,11 +71,11 @@ class Client:
         self.password = password
         self.timeout = timeout
 
-        self._auth_header = None
+        self._auth_header: Optional[dict[str, bytes]] = None
         self._client = Request()
 
     @classmethod
-    def get_client(cls, cluster_instance: dict):
+    def get_client(cls, cluster_instance: TypedClusterInstance) -> Client:
         return cls(
             cluster_instance["host"],
             cluster_instance["username"],
@@ -79,18 +84,25 @@ class Client:
         )
 
     @property
-    def auth_header(self):
+    def auth_header(self) -> dict[str, bytes]:
         if not self._auth_header:
             self._auth_header = self._login()
         return self._auth_header
 
-    def _login(self):
+    def _login(self) -> dict[str, bytes]:
         return self._login_username_password()
 
-    def _login_username_password(self):
+    def _login_username_password(self) -> dict[str, bytes]:
         return dict(Authorization=basic_auth_header(self.username, self.password))
 
-    def _request(self, method, path, data=None, headers=None, timeout=None):
+    def _request(
+        self,
+        method: str,
+        path: str,
+        data: Optional[Union[dict[Any, Any], bytes, str]] = None,
+        headers: Optional[dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+    ) -> Response:
         if (
             timeout is None
         ):  # If timeout from request is not specifically provided, take it from the Client.
@@ -134,14 +146,14 @@ class Client:
 
     def request(
         self,
-        method,
-        path,
-        query=None,
-        data=None,
-        headers=None,
-        binary_data=None,
-        timeout=None,
-    ):
+        method: str,
+        path: str,
+        query: Optional[dict[Any, Any]] = None,
+        data: Optional[dict[Any, Any]] = None,
+        headers: Optional[dict[Any, Any]] = None,
+        binary_data: Optional[bytes] = None,
+        timeout: Optional[float] = None,
+    ) -> Response:
         # Make sure we only have one kind of payload
         if data is not None and binary_data is not None:
             raise AssertionError(
@@ -155,32 +167,65 @@ class Client:
             url = "{0}?{1}".format(url, urlencode(query))
         headers = dict(headers or DEFAULT_HEADERS, **self.auth_header)
         if data is not None:
-            data = json.dumps(data, separators=(",", ":"))
             headers["Content-type"] = "application/json"
+            return self._request(
+                method,
+                url,
+                data=json.dumps(data, separators=(",", ":")),
+                headers=headers,
+                timeout=timeout,
+            )
         elif binary_data is not None:
-            data = binary_data
             headers["Content-type"] = "application/octet-stream"
+            return self._request(
+                method, url, data=binary_data, headers=headers, timeout=timeout
+            )
         return self._request(method, url, data=data, headers=headers, timeout=timeout)
 
-    def get(self, path, query=None, timeout=None):
+    def get(
+        self,
+        path: str,
+        query: Optional[dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+    ) -> Request:
         resp = self.request("GET", path, query=query, timeout=timeout)
         if resp.status in (200, 404):
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
-    def post(self, path, data, query=None, timeout=None):
+    def post(
+        self,
+        path: str,
+        data: Optional[dict[Any, Any]],
+        query: Optional[dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+    ) -> Request:
         resp = self.request("POST", path, data=data, query=query, timeout=timeout)
         if resp.status == 201 or resp.status == 200:
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
-    def patch(self, path, data, query=None, timeout=None):
+    def patch(
+        self,
+        path: str,
+        data: dict[Any, Any],
+        query: Optional[dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+    ) -> Request:
         resp = self.request("PATCH", path, data=data, query=query, timeout=timeout)
         if resp.status == 200:
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
-    def put(self, path, data, query=None, timeout=None, binary_data=None, headers=None):
+    def put(
+        self,
+        path: str,
+        data: dict[Any, Any],
+        query: Optional[dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+        binary_data: Optional[bytes] = None,
+        headers: Optional[dict[Any, Any]] = None,
+    ) -> Request:
         resp = self.request(
             "PUT",
             path,
@@ -194,7 +239,12 @@ class Client:
             return resp
         raise UnexpectedAPIResponse(response=resp)
 
-    def delete(self, path, query=None, timeout=None):
+    def delete(
+        self,
+        path: str,
+        query: Optional[dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+    ) -> Request:
         resp = self.request("DELETE", path, query=query, timeout=timeout)
         if resp.status == 204 or resp.status == 200:
             return resp
