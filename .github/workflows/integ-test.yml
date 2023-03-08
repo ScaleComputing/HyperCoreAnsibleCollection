@@ -120,12 +120,11 @@ jobs:
           echo "matrix=$(
             ls -r $WORKDIR/examples | jq -R -s -c 'split("\n")[:-1]'
           )" >> $GITHUB_OUTPUT
-    if: "${{ github.event.schedule }}"
+    if: "${{ github.event.inputs || github.event.schedule }}"
 
   examples-run:
     needs:
       - examples-matrix
-      # - units-test
     runs-on: [ self-hosted2 ]
     container: python:3.10-slim-buster
     env:
@@ -134,9 +133,6 @@ jobs:
       fail-fast: false
       matrix:
         ansible: [ 2.13.0 ]
-        # python: [3.11]
-        # test_name: [user_info]
-        test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
         example_name: ${{ fromJson(needs.examples-matrix.outputs.matrix) }}
     steps:
       - name: Checkout
@@ -148,12 +144,8 @@ jobs:
       - run: pip install ansible-core~=${{ matrix.ansible }}
       - run: mkdir -p $WORKDIR
       - run: cp -a ./  $WORKDIR
-      # We have ansible.cfg "for testing" in git repo
-      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
-      # But it does affect ansible-galaxy and ansible-test commands.
       - run: cd $WORKDIR && ansible-galaxy collection install community.crypto
       - run: cd $WORKDIR && ansible-galaxy collection list
-        # TODO - make integration_config.yml a reusable artifact/output of integration-prepare-env
       - run: |
           cd $WORKDIR
           echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
