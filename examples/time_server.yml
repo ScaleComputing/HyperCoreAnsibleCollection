@@ -1,4 +1,12 @@
 ---
-- name: Modify current NTP Time Server entries (in HyperCore API settings)
-  scale_computing.hypercore.time_server:
-    source: pool.ntp.org # must be set if not already present in existing entries
+- name: Example time_server module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    source: pool.ntp.org
+
+  tasks:
+    - name: Modify current NTP Time Server entries (in HyperCore API settings)
+      scale_computing.hypercore.time_server:
+        source: "{{ source }}" # must be set if not already present in existing entries
