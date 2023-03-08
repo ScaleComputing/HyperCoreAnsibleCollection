@@ -14,7 +14,6 @@ from functools import total_ordering
 from ansible.module_utils.basic import AnsibleModule
 from typing import List
 from ..module_utils.utils import PayloadMapper
-from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import (
     TypedUpdateToAnsible,
