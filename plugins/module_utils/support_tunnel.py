@@ -64,15 +64,13 @@ class SupportTunnel(PayloadMapper):
 
     @classmethod
     def check_tunnel_status(cls, client: Client) -> SupportTunnel:
-        response = client.get("/support-api/check")  # type: ignore
+        response = client.get("/support-api/check")
         return cls.from_hypercore(response.json)
 
     @staticmethod
     def open_tunnel(module: AnsibleModule, client: Client) -> None:
-        client.get(
-            "/support-api/open", query={"code": module.params["code"]}
-        )  # type: ignore
+        client.get("/support-api/open", query={"code": module.params["code"]})
 
     @staticmethod
     def close_tunnel(client: Client) -> None:
-        client.get("/support-api/close")  # type: ignore
+        client.get("/support-api/close")
