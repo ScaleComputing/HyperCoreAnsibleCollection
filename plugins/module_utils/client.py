@@ -220,7 +220,7 @@ class Client:
     def put(
         self,
         path: str,
-        data: dict[Any, Any],
+        data: Optional[dict[Any, Any]],
         query: Optional[dict[Any, Any]] = None,
         timeout: Optional[float] = None,
         binary_data: Optional[bytes] = None,
