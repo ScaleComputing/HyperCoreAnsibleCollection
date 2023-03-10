@@ -36,7 +36,9 @@
                     break
         print(json.dumps(ide_vm_names))
       args:
-        executable: /usr/bin/python3
+        # /usr/bin/python3 - fedora
+        # /usr/local/bin/python - python:3.10-slim-buster docker image
+        executable: python3
         stdin: "{{ all_vms.records | to_json }}"
       changed_when: false
       register: ide_vm_names_result
@@ -53,3 +55,5 @@
       ansible.builtin.fail:
         msg: Found {{ ide_vm_names | length }} VMs using IDE disk
       when: ide_vm_names | length > 0
+      # VMs with IDE disks are created while testing. Ignore them if testing.
+      ignore_errors: "{{ hypercore_example_check_mode | default(false) }}"
