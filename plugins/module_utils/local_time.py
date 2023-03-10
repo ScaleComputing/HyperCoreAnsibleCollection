@@ -61,9 +61,9 @@ def is_local_time_in_time_interval(utc_ts: int, time_zone: str, time_interval: s
     local_time = _struct_time_to_seconds_in_day(local_time_tm)
 
     if start_time < end_time:
-        return start_time <= local_time <= end_time
+        return start_time <= local_time < end_time
     else:  # Over midnight
         return (
             local_time >= start_time
-            or local_time <= end_time
+            or local_time < end_time
         )

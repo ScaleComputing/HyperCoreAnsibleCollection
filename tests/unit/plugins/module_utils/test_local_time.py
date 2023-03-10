@@ -109,7 +109,7 @@ class Test_is_local_time_in_time_interval:
             (1667718000, "America/New York", "Sun Nov 06 2022 02:00:00 GMT-0500", "22:00-01:00", False),
             (1667718000, "America/New York", "Sun Nov 06 2022 02:00:00 GMT-0500", "22:00-01:00", False),
             (1667718000, "America/New York", "Sun Nov 06 2022 02:00:00 GMT-0500", "22:00-01:59", False),
-            (1667718000, "America/New York", "Sun Nov 06 2022 02:00:00 GMT-0500", "22:00-02:00", True),
+            (1667718000, "America/New York", "Sun Nov 06 2022 02:00:00 GMT-0500", "22:00-02:00", False),
             (1667718000, "America/New York", "Sun Nov 06 2022 02:00:00 GMT-0500", "22:00-02:01", True),
             #
             (1667718000, "America/New York", "Sun Nov 06 2022 02:00:00 GMT-0500", "01:00-05:00", True),
@@ -119,7 +119,7 @@ class Test_is_local_time_in_time_interval:
             #
             (1667718000, "Europe/Ljubljana", "Sun Nov 06 2022 08:00:00 GMT+0100", "22:00-07:00", False),
             (1667718000, "Europe/Ljubljana", "Sun Nov 06 2022 08:00:00 GMT+0100", "22:00-07:59", False),
-            (1667718000, "Europe/Ljubljana", "Sun Nov 06 2022 08:00:00 GMT+0100", "22:00-08:00", True),
+            (1667718000, "Europe/Ljubljana", "Sun Nov 06 2022 08:00:00 GMT+0100", "22:00-08:00", False),
             (1667718000, "Europe/Ljubljana", "Sun Nov 06 2022 08:00:00 GMT+0100", "22:00-08:01", True),
             #
             (1667718000, "Europe/Ljubljana", "Sun Nov 06 2022 08:00:00 GMT+0100", "07:00-10:00", True),
@@ -135,3 +135,6 @@ class Test_is_local_time_in_time_interval:
 
         in_interval = local_time.is_local_time_in_time_interval(utc_ts, time_zone, time_interval)
         assert in_interval == expected_in_interval
+        inverted_time_interval = time_interval.split('-')[1] + '-' + time_interval.split('-')[0]
+        in_interval = local_time.is_local_time_in_time_interval(utc_ts, time_zone, inverted_time_interval)
+        assert in_interval == (not expected_in_interval)
