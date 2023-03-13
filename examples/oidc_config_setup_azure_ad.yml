@@ -11,7 +11,7 @@
     oidc_client_id: your_client_id
     oidc_shared_secret: your_client_secret
     oidc_config_url: https://login.microsoftonline.com/your_uuid/v2.0/.well-known/openid-configuration
-    oidc_scopes: "openid+profile"
+    oidc_scopes: openid+profile
 
   tasks:
     # ------------------------------------------------------
