@@ -66,6 +66,7 @@ class VMSnapshot(PayloadMapper):
             automated_trigger_timestamp=hypercore_data["automatedTriggerTimestamp"],
             local_retain_until_timestamp=hypercore_data["localRetainUntilTimestamp"],
             remote_retain_until_timestamp=hypercore_data["remoteRetainUntilTimestamp"],
+            block_count_diff_from_serial_number=hypercore_data["blockCountDiffFromSerialNumber"],
             replication=hypercore_data["replication"],
         )
 
@@ -140,3 +141,48 @@ class VMSnapshot(PayloadMapper):
         ]
 
         return snapshots
+
+    @classmethod
+    def get_by_snapshots_serial(
+            cls,
+            serial: str,
+            rest_client: RestClient,
+    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
+        snapshots = [
+            cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
+            for hypercore_dict in rest_client.list_records(
+                "/rest/v1/VirDomainSnapshot", {"block_count_diff_from_serial_number": serial}
+            )
+        ]
+
+        return snapshots
+
+    @classmethod
+    def get_all_snapshots(
+            cls,
+            rest_client: RestClient,
+    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
+        state = [
+            cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
+            for hypercore_dict in rest_client.list_records(
+                "/rest/v1/VirDomainSnapshot"
+            )
+        ]
+
+        return state
+
+    @classmethod
+    def get_snapshots_by_query(
+        cls,
+        query: dict,
+        rest_client: RestClient,
+    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
+        snapshots = [
+            cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
+            for hypercore_dict in rest_client.list_records(
+                "/rest/v1/VirDomainSnapshot", query
+            )
+        ]
+
+        return snapshots
+

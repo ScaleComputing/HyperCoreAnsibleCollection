@@ -68,10 +68,26 @@ from ..module_utils.typed_classes import TypedVMSnapshotToAnsible
 from typing import List, Optional
 
 
+def build_query(params):
+    query = {}
+    if params["label"]:
+        query["label"] = params["label"]
+    if params["serial"]:
+        query["block_count_diff_from_serial_number"] = params["serial"]
+    if params["vm_name"]:
+        query["domain"]["name"] = params["vm_name"]
+
+    return query
+
 def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> List[Optional[TypedVMSnapshotToAnsible]]:
-    return VMSnapshot.get_by_snapshots_label(module.params["label"], rest_client)
+    query = build_query(module.params)
+    if not query:  # if query is empty
+        return VMSnapshot.get_all_snapshots(rest_client)
+
+    # else return by query
+    return VMSnapshot.get_snapshots_by_query(query, rest_client)
 
 
 def main() -> None:
@@ -79,13 +95,18 @@ def main() -> None:
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
+            vm_name=dict(
+                type="str",
+                required=False,
+            ),
             label=dict(
                 type="str",
-                required=True,  # should this be optional?
-                # if optional:
-                # --> if label param present: print all snapshots with desired label
-                # --> if label param not present: print all snapshots
+                required=False
             ),
+            serial=dict(
+                type="int",
+                required=False
+            )
         ),
     )
 

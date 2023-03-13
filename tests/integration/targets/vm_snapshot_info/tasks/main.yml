@@ -5,6 +5,8 @@
     SC_PASSWORD: "{{ sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
 
+
+  # TODO: update tests to work with other params - vm_name, serial
   block:
     # --------------------------------------------------------
 
