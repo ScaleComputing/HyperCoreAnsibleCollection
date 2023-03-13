@@ -11,12 +11,9 @@
       register: time_zone
 
     - name: Check if local time is in time interval (run local_time.py)
-      environment:
-        MY_TIME_ZONE: "{{ time_zone }}"
-        MY_TIME_INTERVAL: "{{ time_interval }}"
       ansible.builtin.script:
         executable: python
-        cmd: local_time.py
+        cmd: local_time.py "{{ time_zone }}" "{{ time_interval }}"
       register: local_time_output
     
     - name: Assert that local time is in time interval

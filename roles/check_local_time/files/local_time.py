@@ -11,10 +11,7 @@ __metaclass__ = type
 import os
 import time
 import datetime
-
-
-MY_TIME_ZONE = os.environ["MY_TIME_ZONE"]
-MY_TIME_INTERVAL = os.environ["MY_TIME_INTERVAL"]
+import sys
 
 
 def get_local_time(time_zone: str) -> datetime.datetime:
@@ -67,4 +64,4 @@ def is_local_time_in_time_interval(time_zone: str, time_interval: str) -> bool:
 
 
 if __name__ == "__main__":
-    is_local_time_in_time_interval(MY_TIME_ZONE, MY_TIME_INTERVAL)
+    is_local_time_in_time_interval(sys.argv[1], sys.argv[2])
