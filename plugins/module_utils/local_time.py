@@ -53,7 +53,8 @@ def is_local_time_in_time_interval(
     local_time_tm, local_time_str = convert_utc_ts_to_local(utc_ts, time_zone)
 
     time_list = time_interval.split("-")
-    assert len(time_list) == 2
+    if len(time_list) != 2:
+        raise AssertionError("Required time interval not correctly formated")
     start_time_str = time_list[0].strip()
     end_time_str = time_list[1].strip()
 

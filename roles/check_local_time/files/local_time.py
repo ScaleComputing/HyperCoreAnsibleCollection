@@ -46,7 +46,8 @@ def is_local_time_in_time_interval(time_zone: str, time_interval: str) -> bool:
     local_time = get_local_time(time_zone)
 
     time_list = time_interval.split("-")
-    assert len(time_list) == 2
+    if len(time_list) != 2:
+        raise AssertionError("Required time interval not correctly formated")
     start_time_str = time_list[0].strip()
     end_time_str = time_list[1].strip()
 

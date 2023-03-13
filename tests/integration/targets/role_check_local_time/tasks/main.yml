@@ -16,4 +16,3 @@
       vars:
         time_zone: time_zone.record.zone
         time_interval: 11:00-1:30 # Sometimes will pass, sometimes will not
-  
