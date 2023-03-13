@@ -1,0 +1,19 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  block:
+    - name: Retrieve info about Time Zone
+      scale_computing.hypercore.time_zone_info:
+      register: time_zone
+
+    - name: Check if local time meets required time interval
+      ansible.builtin.include_role:
+        name: scale_computing.hypercore.check_local_time
+      vars:
+        time_zone: time_zone.record.zone
+        time_interval: 11:00-1:30 # Sometimes will pass, sometimes will not
+  

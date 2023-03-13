@@ -1,0 +1,25 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  block:
+    - name: Get Time Zone
+      scale_computing.hypercore.time_zone_info:
+      register: time_zone
+
+    - name: Check if local time is in time interval (run local_time.py)
+      environment:
+        MY_TIME_ZONE: "{{ time_zone }}"
+        MY_TIME_INTERVAL: "{{ time_interval }}"
+      ansible.builtin.script:
+        executable: python
+        cmd: local_time.py
+      register: local_time_output
+    
+    - name: Assert that local time is in time interval
+      ansible.builtin.assert:
+        that:
+         - local_time_output.stdout_lines[0] == "True"
