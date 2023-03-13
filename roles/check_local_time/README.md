@@ -1,8 +1,7 @@
 # cluster_config
 
-Role cluster_config can be used to:
-- fully configure a new HyperCore server
-- partially reconfigure an existing HyperCore server
+Role check_local_time can be used to:
+- check if local time in provided time zone is located within required time interval
 
 ## Requirements
 
@@ -10,7 +9,7 @@ Role cluster_config can be used to:
 
 ## Role Variables
 
-See [argument_specs.yml](../../roles/cluster_config/meta/argument_specs.yml).
+See [argument_specs.yml](../../roles/check_local_time/meta/argument_specs.yml).
 
 ## Limitations
 
@@ -22,7 +21,7 @@ See [argument_specs.yml](../../roles/cluster_config/meta/argument_specs.yml).
 
 ## Example Playbook
 
-See [cluster_config.yml](../../examples/cluster_config.yml).
+- NA
 
 ## License
 
