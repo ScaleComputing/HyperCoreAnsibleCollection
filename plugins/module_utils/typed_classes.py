@@ -221,3 +221,23 @@ class TypedSyslogServerFromAnsible(TypedDict):
     host: Optional[str]
     port: Optional[int]
     protocol: Optional[str]
+
+
+class TypedVMSnapshotToAnsible(TypedDict):
+    uuid: Optional[str]
+    domain_uuid: Optional[str]
+    label: Optional[str]
+    type: Optional[int]
+    timestamp: Optional[int]
+    automated_trigger_timestamp: Optional[int]
+    local_retain_until_timestamp: Optional[int]
+    remote_retain_until_timestamp: Optional[int]
+    block_count_diff_from_serial_number: Optional[int]
+    replication: Optional[bool]
+
+
+class TypedVMSnapshotFromAnsible(TypedDict):
+    uuid: Optional[str]
+    domain_uuid: Optional[str]
+    label: Optional[str]
+    type: Optional[str]

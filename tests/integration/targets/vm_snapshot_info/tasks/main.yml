@@ -1,0 +1,46 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  block:
+    # --------------------------------------------------------
+
+    - name: List all VM snapshots - API
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/VirDomainSnapshot
+      register: vm_snapshots_api
+    - ansible.builtin.set_fact:
+        existing_snapshot_label: "{{ vm_snapshots_api.record[0].label }}"
+    - ansible.builtin.debug:
+        var: existing_snapshot_label
+
+    # --------------------------------------------------------
+
+    - name: List all VM snapshots with snapshot label "{{ existing_snapshot_label }}"
+      scale_computing.hypercore.vm_snapshot_info:
+        label: "{{ existing_snapshot_label }}"
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records
+    - ansible.builtin.assert:
+        that:
+          - vm_snapshots.records != []
+          - vm_snapshots.records[0].keys() | sort ==
+            ['automated_trigger_timestamp', 'block_count_diff_from_serial_number',
+            'domain_uuid', 'label', 'local_retain_until_timestamp',
+            'remote_retain_until_timestamp', 'replication', 'timestamp', 'type', 'uuid']
+          - vm_snapshots.records[0].label == existing_snapshot_label
+
+    - name: List all VM snapshots with a nonexistent label
+      scale_computing.hypercore.vm_snapshot_info:
+        label: does-not-exist
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records
+    - ansible.builtin.assert:
+        that:
+          - vm_snapshots.records == []
