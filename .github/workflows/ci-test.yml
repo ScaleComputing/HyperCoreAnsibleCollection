@@ -2,83 +2,73 @@ name: CI tests
 on:
   push:
 env:
-  WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
+  # ansible-test needs special directory structure.
+  # WORKDIR is a subdir of GITHUB_WORKSPACE
+  WORKDIR: work-dir/ansible_collections/scale_computing/hypercore
 jobs:
   mypy:
     name: Type checks (mypy)
     runs-on: [ubuntu-latest]
-    container: python:3.10-slim-buster
+    container: quay.io/justinc1_github/scale_ci_integ:1
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-
-      - name: Install requirements
-        shell: bash
-        run: |
-          apt update
-          pip install --upgrade pip wheel
-          pip install mypy==0.991
-
-      - name: Link repo into the correct structure and run mypy
-        shell: bash
-        run: |
-          set -eux
-          mkdir -p $WORKDIR
-          cp -a ./  $WORKDIR
-          cd $WORKDIR
-          mypy -p plugins
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
+      - run: echo WORKDIR=$WORKDIR
+      - run: echo PWD=$PWD
+      - name: Run mypy
+        run: mypy -p plugins
 
   docs:
     runs-on: [ubuntu-latest]
-    container: python:3.10-slim-buster
+    container: quay.io/justinc1_github/scale_ci_integ:1
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-        # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
-        #
-      - run: cd $WORKDIR && make docs
-      - run: cd $WORKDIR && ls -al docs/build/html
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: make docs
+      - run: ls -al docs/build/html
 
   sanity-test:
     runs-on: [ubuntu-latest]
-    container: python:3.10-slim-buster
+    container: quay.io/justinc1_github/scale_ci_integ:1
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-      - run: pip install ansible-core==2.13.1
-        # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
+        with:
+          path: ${{ env.WORKDIR }}
         # Same as "make sanity"
         # TODO reuse Makefile
-      - run: cd $WORKDIR && black -t py38 --check --diff --color plugins tests/unit
-      - run: cd $WORKDIR && ansible-lint
-      - run: cd $WORKDIR && flake8 --exclude tests/output/
-      - run: cd $WORKDIR && ansible-test sanity
+      - run: black -t py38 --check --diff --color plugins tests/unit
+      - run: ansible-lint
+      - run: flake8 --exclude tests/output/
+      - run: ansible-test sanity --local --python 3.10
 
   units-test:
     runs-on: [ubuntu-latest]
-    container: python:3.10-slim-buster
+    container: quay.io/justinc1_github/scale_ci_integ:1
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-      - run: pip install ansible-core==2.13.1
-        # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
+        with:
+          path: ${{ env.WORKDIR }}
         # Same as "make units"
         # TODO reuse Makefile
-      - run: cd $WORKDIR && ansible-test units --coverage
-      - run: cd $WORKDIR && ansible-test coverage html --requirements
-      - run: cd $WORKDIR && ansible-test coverage report --omit 'tests/*' --show-missing
+      - run: ansible-test units --local --python 3.10 --coverage
+      - run: ansible-test coverage html --requirements
+      - run: ansible-test coverage report --omit 'tests/*' --show-missing
