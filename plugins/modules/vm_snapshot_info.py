@@ -23,11 +23,21 @@ extends_documentation_fragment:
 seealso:
   - module: scale_computing.hypercore.vm_snapshot
 options:
+  vm_name:
+    type: str
+    description:
+      - List snapshots by this desired VM name
+    required: False
   label:
     type: str
     description:
       - List snapshots by this desired snapshot label
-    required: True
+    required: False
+  serial:
+    type: str
+    description:
+      - List snapshots by this desired serial
+    required: False
 """
 
 
