@@ -10,7 +10,7 @@ __metaclass__ = type
 
 from .rest_client import RestClient
 
-from ..module_utils.utils import PayloadMapper, get_query
+from ..module_utils.utils import PayloadMapper, get_query, filter_results
 
 from ..module_utils.typed_classes import (
     TypedVMSnapshotToAnsible,
@@ -22,8 +22,9 @@ from typing import List, Any, Dict, Optional
 class VMSnapshot(PayloadMapper):
     def __init__(
         self,
-        uuid: Optional[str] = None,
+        vm_uuid: Optional[str] = None,
         domain_uuid: Optional[str] = None,
+        domain: Optional[dict[Any, Any]] = None,
         timestamp: Optional[int] = None,
         label: Optional[str] = None,
         type: Optional[int] = None,
@@ -31,10 +32,11 @@ class VMSnapshot(PayloadMapper):
         local_retain_until_timestamp: Optional[int] = None,
         remote_retain_until_timestamp: Optional[int] = None,
         block_count_diff_from_serial_number: Optional[int] = None,
-        replication: Optional[bool] = None,
+        replication: Optional[bool] = True,
     ):
-        self.uuid = uuid
+        self.vm_uuid = vm_uuid
         self.domain_uuid = domain_uuid
+        self.domain = {} if domain is None else domain
         self.timestamp = timestamp
         self.label = label
         self.type = type
@@ -47,8 +49,9 @@ class VMSnapshot(PayloadMapper):
     @classmethod
     def from_ansible(cls, ansible_data: TypedVMSnapshotFromAnsible) -> VMSnapshot:
         return VMSnapshot(
-            uuid=ansible_data["uuid"],
+            vm_uuid=ansible_data["vm_uuid"],
             domain_uuid=ansible_data["domain_uuid"],
+            domain=ansible_data["domain"],
             label=ansible_data["label"],
             type=ansible_data["type"],
         )
@@ -58,30 +61,35 @@ class VMSnapshot(PayloadMapper):
         if not hypercore_data:
             return None
         return cls(
-            uuid=hypercore_data["uuid"],
+            vm_uuid=hypercore_data["uuid"],
             domain_uuid=hypercore_data["domainUUID"],
+            domain=hypercore_data["domain"],
             timestamp=hypercore_data["timestamp"],
             label=hypercore_data["label"],
             type=hypercore_data["type"],
             automated_trigger_timestamp=hypercore_data["automatedTriggerTimestamp"],
             local_retain_until_timestamp=hypercore_data["localRetainUntilTimestamp"],
             remote_retain_until_timestamp=hypercore_data["remoteRetainUntilTimestamp"],
-            block_count_diff_from_serial_number=hypercore_data["blockCountDiffFromSerialNumber"],
+            block_count_diff_from_serial_number=hypercore_data[
+                "blockCountDiffFromSerialNumber"
+            ],
             replication=hypercore_data["replication"],
         )
 
     def to_hypercore(self) -> Dict[Any, Any]:
         return dict(
-            uuid=self.domain_uuid,
+            vm_uuid=self.vm_uuid,
             domain_uuid=self.domain_uuid,
+            domain=self.domain,
             label=self.label,
             type=self.type,
         )
 
     def to_ansible(self) -> TypedVMSnapshotToAnsible:
         return dict(
-            uuid=self.uuid,
+            vm_uuid=self.vm_uuid,
             domain_uuid=self.domain_uuid,
+            domain=self.domain,
             timestamp=self.timestamp,
             label=self.label,
             type=self.type,
@@ -98,8 +106,9 @@ class VMSnapshot(PayloadMapper):
             return NotImplemented
         return all(
             (
-                self.uuid == other.uuid,
+                self.vm_uuid == other.vm_uuid,
                 self.domain_uuid == other.domain_uuid,
+                self.domain == other.domain,
                 self.timestamp == other.timestamp,
                 self.label == other.label,
                 self.type == other.type,
@@ -114,65 +123,7 @@ class VMSnapshot(PayloadMapper):
         )
 
     @classmethod
-    def get_by_uuid(
-        cls,
-        ansible_dict: Dict[Any, Any],
-        rest_client: RestClient,
-        must_exist: bool = False,
-    ) -> Optional[VMSnapshot]:
-        query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/VirDomainSnapshot", query, must_exist=must_exist
-        )
-        vm_snapshot_from_hypercore = cls.from_hypercore(hypercore_dict)  # type: ignore
-        return vm_snapshot_from_hypercore
-
-    @classmethod
-    def get_by_snapshots_label(
-        cls,
-        label: str,
-        rest_client: RestClient,
-    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
-        snapshots = [
-            cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
-            for hypercore_dict in rest_client.list_records(
-                "/rest/v1/VirDomainSnapshot", {"label": label}
-            )
-        ]
-
-        return snapshots
-
-    @classmethod
-    def get_by_snapshots_serial(
-            cls,
-            serial: str,
-            rest_client: RestClient,
-    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
-        snapshots = [
-            cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
-            for hypercore_dict in rest_client.list_records(
-                "/rest/v1/VirDomainSnapshot", {"block_count_diff_from_serial_number": serial}
-            )
-        ]
-
-        return snapshots
-
-    @classmethod
-    def get_all_snapshots(
-            cls,
-            rest_client: RestClient,
-    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
-        state = [
-            cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
-            for hypercore_dict in rest_client.list_records(
-                "/rest/v1/VirDomainSnapshot"
-            )
-        ]
-
-        return state
-
-    @classmethod
-    def get_snapshots_by_query(
+    def get_snapshots_by_query(  # will leave as is for now
         cls,
         query: dict,
         rest_client: RestClient,
@@ -186,3 +137,23 @@ class VMSnapshot(PayloadMapper):
 
         return snapshots
 
+    # ===== Helper methods ======
+    # will leave this method for now
+    @classmethod
+    def flatten_json_dict(cls, json_dict: dict[Any, Any]) -> Dict[Any, Any]:
+        res = {}
+
+        def flatten(json_obj: Any, name: str = ""):
+            if type(json_obj) is dict:
+                for el in json_obj:
+                    flatten(json_obj[el], name + el + ".")
+            elif type(json_obj) is list:
+                i = 0
+                for el in json_obj:
+                    flatten(el, name + str(i) + ".")
+                    i += 1
+            else:
+                res[name[:-1]] = json_obj
+
+        flatten(json_dict)
+        return res

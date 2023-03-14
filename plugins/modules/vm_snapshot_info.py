@@ -14,7 +14,7 @@ module: vm_snapshot_info
 
 author:
   - Ana Zobec (@anazobec)
-short_description: List Syslog servers on HyperCore API
+short_description: List VM snapshots on HyperCore API
 description:
   - Use this module to list information about the VM Snapshots on HyperCore API.
 version_added: 1.2.0
@@ -42,7 +42,7 @@ options:
 
 
 EXAMPLES = r"""
-- name: List all Syslog servers on HyperCore API
+- name: List all VM snapshots on HyperCore API
   scale_computing.hypercore.vm_snapshot_info:
     label: some-label
   register: vm_snapshot
@@ -75,29 +75,52 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm_snapshot import VMSnapshot
 from ..module_utils.typed_classes import TypedVMSnapshotToAnsible
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 
-def build_query(params):
+def build_query(params: Optional[Dict[Any, Any]]):
     query = {}
     if params["label"]:
         query["label"] = params["label"]
     if params["serial"]:
-        query["block_count_diff_from_serial_number"] = params["serial"]
+        query["domain.snapshotSerialNumber"] = params["serial"]
     if params["vm_name"]:
-        query["domain"]["name"] = params["vm_name"]
+        query["domain.name"] = params["vm_name"]
 
     return query
+
 
 def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> List[Optional[TypedVMSnapshotToAnsible]]:
-    query = build_query(module.params)
-    if not query:  # if query is empty
-        return VMSnapshot.get_all_snapshots(rest_client)
+    all_vm_snapshots = VMSnapshot.get_snapshots_by_query({}, rest_client)
 
-    # else return by query
-    return VMSnapshot.get_snapshots_by_query(query, rest_client)
+    query = build_query(module.params)
+    if query == {}:
+        return all_vm_snapshots
+
+    # else filter results by label, domain.name, domain.snapshotSerialNumber
+    # ++++++++++++++++++ NOTE
+    # --> This "ugly" filtering had to be done, because method list_records doesn't support nested queries
+    #     it's the best solution I could come up with (there were others but a bit uglier)
+    # -----> if there is a better way to solve this problem, I'd be very happy to try it out.
+    # ++++++++++++++++++
+    filtered = [
+        vm_snapshot
+        for vm_snapshot in all_vm_snapshots
+        if (
+            module.params["vm_name"]
+            and vm_snapshot["domain"]["name"] == query["domain.name"]
+        )
+        or (
+            module.params["serial"]
+            and vm_snapshot["domain"]["snapshotSerialNumber"]
+            == query["domain.snapshotSerialNumber"]
+        )
+        or (module.params["label"] and vm_snapshot["label"] == query["label"])
+    ]
+
+    return filtered
 
 
 def main() -> None:
@@ -109,14 +132,8 @@ def main() -> None:
                 type="str",
                 required=False,
             ),
-            label=dict(
-                type="str",
-                required=False
-            ),
-            serial=dict(
-                type="int",
-                required=False
-            )
+            label=dict(type="str", required=False),
+            serial=dict(type="int", required=False),
         ),
     )
 
