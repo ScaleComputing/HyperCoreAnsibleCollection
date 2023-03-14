@@ -12,6 +12,7 @@ import os
 import time
 import datetime
 import sys
+from typing import Tuple
 
 
 def get_local_time(time_zone: str) -> datetime.datetime:
@@ -42,9 +43,9 @@ def get_local_time(time_zone: str) -> datetime.datetime:
     return local_time
 
 
-def is_local_time_in_time_interval(time_zone: str, time_interval: str) -> bool:
-    local_time = get_local_time(time_zone)
-
+def get_time_interval(
+    time_interval: str,
+) -> Tuple[datetime.datetime, datetime.datetime]:
     time_list = time_interval.split("-")
     if len(time_list) != 2:
         raise AssertionError("Required time interval not correctly formated")
@@ -55,7 +56,16 @@ def is_local_time_in_time_interval(time_zone: str, time_interval: str) -> bool:
     start_time = datetime.datetime.strptime(start_time_str, "%H:%M")
     end_time = datetime.datetime.strptime(end_time_str, "%H:%M")
 
+    return (start_time, end_time)
+
+
+def is_local_time_in_time_interval(
+    local_time: datetime.datetime,
+    start_time: datetime.datetime,
+    end_time: datetime.datetime,
+) -> bool:
     if start_time < end_time:
+        # needs to be "print" to be able to read it from ansible.builin.script
         print(start_time.time() <= local_time.time() < end_time.time())
     else:  # Over midnight
         print(
@@ -64,5 +74,11 @@ def is_local_time_in_time_interval(time_zone: str, time_interval: str) -> bool:
         )
 
 
+def main(time_zone: str, time_interval: str) -> bool:
+    local_time = get_local_time(time_zone)
+    start_time, end_time = get_time_interval(time_interval)
+    is_local_time_in_time_interval(local_time, start_time, end_time)
+
+
 if __name__ == "__main__":
-    is_local_time_in_time_interval(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2])
