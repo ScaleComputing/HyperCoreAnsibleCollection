@@ -66,6 +66,13 @@ options:
       - Desired VM state.
       - States C(PAUSE) and C(LIVEMIGRATE) are not exposed in this module
         (this can be done with raw api module).
+      - Note that
+        - I(shutdown) will trigger a graceful ACPI shutdown.
+        - I(reboot) will trigger a graceful ACPI reboot.
+        - I(stop) will trigger an abrupt shutdown (force power off).
+          VM might loose data, and filesystem might be corrupted afterwards.
+        - I(reset) will trigger an abrupt reset (force power reset).
+          VM might loose data, and filesystem might be corrupted afterwards.
     choices: [ start, shutdown, stop, reboot, reset ]
     type: str
     default: start
