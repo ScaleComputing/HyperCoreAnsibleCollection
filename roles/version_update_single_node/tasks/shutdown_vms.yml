@@ -9,11 +9,24 @@
 - name: Shutdown running VMs
   scale_computing.hypercore.vm_params:
     vm_name: "{{ item.vm_name }}"
-    power_state: stop
+    power_state: shutdown
   when: item.power_state == 'started'
   loop: "{{ vms.records }}"
   register: vm_shutdown_result
+  ignore_errors: true  # if VMs fail to shut down without force, error will occur, so we skip and try on to shut down with force
 
 - name: Show shutdown results
   ansible.builtin.debug:
     var: vm_shutdown_result
+
+- name: Force shutdown the remaining running VMs
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ item.item.vm_name }}"
+    power_state: stop
+  when: item.item.power_state == 'started'
+  loop: "{{ vm_shutdown_result.results }}"
+  register: vm_stop_result
+
+- name: Show VM stop results
+  ansible.builtin.debug:
+    var: vm_stop_result
