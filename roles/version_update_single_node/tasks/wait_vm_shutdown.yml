@@ -1,0 +1,45 @@
+---
+- name: Wait on VMs to shutdown
+  block:
+    - name: Get all available running VMs
+      scale_computing.hypercore.vm_info:
+      register: version_update_vms
+
+    - name: Show unique VM power states
+      ansible.builtin.debug:
+        msg: Unique VM power states {{ version_update_vms.records | map(attribute='power_state') | unique }}
+
+# HyperCore states
+#   RUNNING	Currently running
+#   BLOCKED	Blocked on a resource
+#   PAUSED	Paused by the user
+#   SHUTDOWN	Shutting down
+#   SHUTOFF	Shut off
+#   CRASHED	Crashed
+# In ansible we have power_state (see FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE):
+#    RUNNING="started",
+#    SHUTOFF="stopped",
+#    BLOCKED="blocked",
+#    PAUSED="paused",
+#    SHUTDOWN="shutdown",
+#    CRASHED="crashed",
+# Do not include 'shutdown' - it means "shutting_down"
+# States paused, blocked  - might be safe to include, might not. Do not include yet.
+    - name: Set fact version_update_all_vms_stopped
+      ansible.builtin.set_fact:
+        version_update_all_vms_stopped: |
+          {{
+            (
+              version_update_vms.records | map(attribute='power_state') | unique) |
+              ansible.builtin.difference(['stopped', 'crashed']
+            ) == []
+          }}
+
+    - name: Are all VMs stopped?
+      ansible.builtin.debug:
+        var: version_update_all_vms_stopped
+
+    - name: Wait if VMs are still running
+      when: not version_update_all_vms_stopped
+      ansible.builtin.pause:
+        seconds: 10
