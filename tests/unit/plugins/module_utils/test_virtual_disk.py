@@ -71,7 +71,6 @@ class TestVirtualDisk:
     #     assert VirtualDisk.from_hypercore({}) is None
 
     def test_virtual_disk_to_ansible(self):
-        print(self.virtual_disk.to_ansible())
         assert self.virtual_disk.to_ansible() == self.to_ansible_dict
 
     def test_virtual_disk_from_ansible(self):
@@ -87,7 +86,6 @@ class TestVirtualDisk:
         rest_client.list_records.return_value = [self.from_hypercore_dict]
 
         result = VirtualDisk.get_state(rest_client, query)
-        print(result)
         assert result == [
             {
                 "name": "vdisk-0",

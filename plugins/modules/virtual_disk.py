@@ -110,7 +110,10 @@ def read_disk_file(module: AnsibleModule) -> Tuple[bytes, int]:
 
 
 def wait_task_and_get_updated(
-    rest_client: RestClient, module: AnsibleModule, task: Optional[TypedTaskTag], must_exist: bool=False
+    rest_client: RestClient,
+    module: AnsibleModule,
+    task: Optional[TypedTaskTag],
+    must_exist: bool = False,
 ) -> Optional[TypedVirtualDiskToAnsible]:
     TaskTag.wait_task(rest_client, task)
     updated_disk = VirtualDisk.get_by_name(
