@@ -99,11 +99,15 @@ class VirtualDisk(PayloadMapper):
         cls, rest_client: RestClient, name: str, must_exist: bool = False
     ) -> Optional[VirtualDisk]:
         result = rest_client.list_records("/rest/v1/VirtualDisk", query=dict(name=name))
-        if must_exist and not result:
+        if not isinstance(result, list):
+            raise errors.ScaleComputingError(
+                "Virtual disk API return value is not a list."
+            )
+        elif must_exist and (not result or not result[0]):
             raise errors.ScaleComputingError(
                 f"Virtual disk with name {name} does not exist."
             )
-        elif not result:
+        elif not result or not result[0]:
             return None
         elif len(result) > 1:
             raise errors.ScaleComputingError(
@@ -129,6 +133,10 @@ class VirtualDisk(PayloadMapper):
     def send_upload_request(
         rest_client: RestClient, file_content: bytes, file_size: int, file_name: str
     ) -> TypedTaskTag:
+        if file_content is None or file_size is None or not file_name:
+            raise errors.ScaleComputingError(
+                "Missing some virtual disk file values inside upload request."
+            )
         return rest_client.put_record(
             "/rest/v1/VirtualDisk/upload",
             payload=None,
@@ -137,9 +145,11 @@ class VirtualDisk(PayloadMapper):
             query=dict(filename=file_name, filesize=file_size),
         )
 
-    def send_delete_request(self, rest_client: RestClient) -> Optional[TypedTaskTag]:
-        if self.uuid:
-            return rest_client.delete_record(
-                f"/rest/v1/VirtualDisk/{self.uuid}", check_mode=False
+    def send_delete_request(self, rest_client: RestClient) -> TypedTaskTag:
+        if not self.uuid:
+            raise errors.ScaleComputingError(
+                "Missing virtual disk UUID inside delete request."
             )
-        return None
+        return rest_client.delete_record(
+            f"/rest/v1/VirtualDisk/{self.uuid}", check_mode=False
+        )
