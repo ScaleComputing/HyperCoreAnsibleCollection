@@ -6,15 +6,33 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   block:
-    - name: Check if local time meets required time interval
+    - name: Check that local time meets required time interval
       ansible.builtin.include_role:
         name: scale_computing.hypercore.check_local_time
       vars:
-        time_zone: "{{ ansible_date_time.tz }}" # Europe/Ljubljana # time_zone.record.zone
-        time_interval: 13:00-1:30 # Sometimes will pass, sometimes will not
-      ignore_errors: true
-      register: result
+        time_zone: "{{ ansible_date_time.tz }}"
+        time_interval: "{{ ansible_date_time.hour }}:00-{{ ansible_date_time.hour }}:59"
+      register: result # this is not a role result
+    
+    - ansible.builtin.debug:
+        var: result
+    
+      # How to register role result??
+    # - ansible.builtin.assert:
+    #     that:
+    #       - "'Local time is in required time interval' in result.msg" 
 
-    - ansible.builtin.assert:
-        that:
-          - "'Local time is not in required time interval' in result.msg"
+    - name: Check that local time doesn't meet required time interval
+      ansible.builtin.include_role:
+        name: scale_computing.hypercore.check_local_time
+        apply:
+          ignore_errors: True
+      vars:
+        time_zone: "{{ ansible_date_time.tz }}"
+        time_interval: "{{ ansible_date_time.hour }}:00-{{ ansible_date_time.hour }}:01"
+      register: result # this is not a role result
+    
+      # How to register role result??
+    # - ansible.builtin.assert:
+    #     that:
+    #       - "'Local time is not in required time interval' in result.msg" 
