@@ -63,7 +63,7 @@ def is_local_time_in_time_interval(
     local_time: datetime.datetime,
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-) -> bool:
+) -> None:  # we have print()
     if start_time < end_time:
         # needs to be "print" to be able to read it from ansible.builin.script
         print(start_time.time() <= local_time.time() < end_time.time())
@@ -74,7 +74,7 @@ def is_local_time_in_time_interval(
         )
 
 
-def main(time_zone: str, time_interval: str) -> bool:
+def main(time_zone: str, time_interval: str) -> None:  # we have print()
     local_time = get_local_time(time_zone)
     start_time, end_time = get_time_interval(time_interval)
     is_local_time_in_time_interval(local_time, start_time, end_time)
