@@ -18,5 +18,6 @@
     
     - name: Assert that local time is in time interval
       ansible.builtin.assert:
+        msg: Local time is not in required time interval
         that:
          - local_time_output.stdout_lines[0] == "True"
