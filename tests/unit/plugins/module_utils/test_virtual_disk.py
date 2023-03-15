@@ -656,7 +656,7 @@ class TestSendUploadRequest:
         if expected_exception:
             with pytest.raises(
                 ScaleComputingError,
-                match=f"Missing some virtual disk file values inside upload request.",
+                match="Missing some virtual disk file values inside upload request.",
             ):
                 VirtualDisk.send_upload_request(
                     rest_client, file_content, file_size, file_name
@@ -759,7 +759,7 @@ class TestSendDeleteRequest:
         if expected_exception:
             with pytest.raises(
                 ScaleComputingError,
-                match=f"Missing virtual disk UUID inside delete request.",
+                match="Missing virtual disk UUID inside delete request.",
             ):
                 virtual_disk.send_delete_request(rest_client)
         else:
