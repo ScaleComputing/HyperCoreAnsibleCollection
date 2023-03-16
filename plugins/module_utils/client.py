@@ -135,14 +135,14 @@ class Client:
                 and type(e.args[0]) == ConnectionRefusedError
             ):
                 raise ConnectionRefusedError(
-                    "Connection refused inside client - _request"
+                    e.reason
                 )
             elif (
                 e.args
                 and isinstance(e.args, tuple)
                 and type(e.args[0]) == ConnectionResetError
             ):
-                raise ConnectionResetError("Connection reset inside client - _request")
+                raise ConnectionResetError(e.reason)
             raise ScaleComputingError(e.reason)
         return Response(raw_resp.status, raw_resp.read(), raw_resp.headers)
 
