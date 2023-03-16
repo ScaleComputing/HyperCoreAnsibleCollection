@@ -134,9 +134,7 @@ class Client:
                 and isinstance(e.args, tuple)
                 and type(e.args[0]) == ConnectionRefusedError
             ):
-                raise ConnectionRefusedError(
-                    e.reason
-                )
+                raise ConnectionRefusedError(e.reason)
             elif (
                 e.args
                 and isinstance(e.args, tuple)
