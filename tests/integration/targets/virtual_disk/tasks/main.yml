@@ -5,12 +5,6 @@
     SC_PASSWORD: "{{ sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
 
-  vars:
-    default_company_name: ""
-    default_contact: ""
-    default_email: ""
-    default_phone: ""
-
 # ----------------------------------Setup------------------------------------------------------------------------
   block:
     - name: Delete virtual disk files if exist
