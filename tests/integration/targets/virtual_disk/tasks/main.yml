@@ -1,0 +1,220 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  vars:
+    default_company_name: ""
+    default_contact: ""
+    default_email: ""
+    default_phone: ""
+
+# ----------------------------------Setup------------------------------------------------------------------------
+  block:
+    - name: Delete virtual disk files if exist
+      scale_computing.hypercore.virtual_disk:
+        state: absent
+        file_name: "{{ item }}"
+      loop:
+        - xlab-ci-test-VD.qcow2
+        - xlab-ci-test-VD.vmdk
+
+    - name: Generate virtual disk file qcow2
+      ansible.builtin.shell:
+        cmd: qemu-img create -f qcow2 xlab-ci-test-VD.qcow2 10M
+      register: generated_img
+
+    - name: Generate virtual disk file vmdk
+      ansible.builtin.shell:
+        cmd: qemu-img create -f vmdk xlab-ci-test-VD.vmdk 10M
+      register: generated_img
+
+# ----------------------------------Job------------------------------------------------------------------------
+    - name: Upload virtual disk file .qcow2
+      scale_computing.hypercore.virtual_disk:
+        state: present
+        file_location: xlab-ci-test-VD.qcow2
+        file_name: xlab-ci-test-VD.qcow2
+      register: uploaded_virtual_disk
+    - ansible.builtin.assert:
+        that:
+          - uploaded_virtual_disk is succeeded
+          - uploaded_virtual_disk is changed
+          - uploaded_virtual_disk.record.name == "xlab-ci-test-VD.qcow2"
+
+    - name: Assert that virtual disk .qcow2 exist on cluster
+      scale_computing.hypercore.virtual_disk_info:
+        name: xlab-ci-test-VD.qcow2
+      register: virtual_disk_file
+    - ansible.builtin.assert:
+        that:
+          - virtual_disk_file is succeeded
+          - virtual_disk_file is not changed
+          - virtual_disk_file.records | length == 1
+          - virtual_disk_file.records.0.name == "xlab-ci-test-VD.qcow2"
+
+# ----------------------------------Idempotence check----------------------------------------------------------
+    - name: Upload virtual disk file .qcow2 - IDEMPOTENCE
+      scale_computing.hypercore.virtual_disk:
+        state: present
+        file_location: xlab-ci-test-VD.qcow2
+        file_name: xlab-ci-test-VD.qcow2
+      register: uploaded_virtual_disk
+    - ansible.builtin.assert:
+        that:
+          - uploaded_virtual_disk is succeeded
+          - uploaded_virtual_disk is not changed
+          - uploaded_virtual_disk.record.name == "xlab-ci-test-VD.qcow2"
+          - uploaded_virtual_disk.diff.before == uploaded_virtual_disk.diff.after
+
+    - name: Assert that virtual disk .qcow2 exist on cluster - IDEMPOTENCE
+      scale_computing.hypercore.virtual_disk_info:
+        name: xlab-ci-test-VD.qcow2
+      register: virtual_disk_file
+    - ansible.builtin.assert:
+        that:
+          - virtual_disk_file is succeeded
+          - virtual_disk_file is not changed
+          - virtual_disk_file.records | length == 1
+          - virtual_disk_file.records.0.name == "xlab-ci-test-VD.qcow2"
+
+# ----------------------------------Job------------------------------------------------------------------------
+    - name: Upload virtual disk file .vmdk
+      scale_computing.hypercore.virtual_disk:
+        state: present
+        file_location: xlab-ci-test-VD.vmdk
+        file_name: xlab-ci-test-VD.vmdk
+      register: uploaded_virtual_disk
+    - ansible.builtin.assert:
+        that:
+          - uploaded_virtual_disk is succeeded
+          - uploaded_virtual_disk is changed
+          - uploaded_virtual_disk.record.name == "xlab-ci-test-VD.vmdk"
+
+    - name: Assert that virtual disk .vmdk exist on cluster
+      scale_computing.hypercore.virtual_disk_info:
+        name: xlab-ci-test-VD.vmdk
+      register: virtual_disk_file
+    - ansible.builtin.assert:
+        that:
+          - virtual_disk_file is succeeded
+          - virtual_disk_file is not changed
+          - virtual_disk_file.records | length == 1
+          - virtual_disk_file.records.0.name == "xlab-ci-test-VD.vmdk"
+
+# ----------------------------------Idempotence check----------------------------------------------------------
+    - name: Upload virtual disk file .vmdk - IDEMPOTENCE
+      scale_computing.hypercore.virtual_disk:
+        state: present
+        file_location: xlab-ci-test-VD.vmdk
+        file_name: xlab-ci-test-VD.vmdk
+      register: uploaded_virtual_disk
+    - ansible.builtin.assert:
+        that:
+          - uploaded_virtual_disk is succeeded
+          - uploaded_virtual_disk is not changed
+          - uploaded_virtual_disk.record.name == "xlab-ci-test-VD.vmdk"
+          - uploaded_virtual_disk.diff.before == uploaded_virtual_disk.diff.after
+
+    - name: Assert that virtual disk .vmdk exist on cluster - IDEMPOTENCE
+      scale_computing.hypercore.virtual_disk_info:
+        name: xlab-ci-test-VD.vmdk
+      register: virtual_disk_file
+    - ansible.builtin.assert:
+        that:
+          - virtual_disk_file is succeeded
+          - virtual_disk_file is not changed
+          - virtual_disk_file.records | length == 1
+          - virtual_disk_file.records.0.name == "xlab-ci-test-VD.vmdk"
+
+# ----------------------------------Job------------------------------------------------------------------------
+    - name: Delete virtual disk file .qcow2
+      scale_computing.hypercore.virtual_disk:
+        state: absent
+        file_name: xlab-ci-test-VD.qcow2
+      register: deleted_virtual_disk
+    - ansible.builtin.assert:
+        that:
+          - deleted_virtual_disk is succeeded
+          - deleted_virtual_disk is changed
+          - deleted_virtual_disk.diff.before.name == "xlab-ci-test-VD.qcow2"
+
+    - name: Assert that virtual disk .qcow2 is deleted
+      scale_computing.hypercore.virtual_disk_info:
+        name: xlab-ci-test-VD.qcow2
+      register: virtual_disk_file
+    - ansible.builtin.assert:
+        that:
+          - virtual_disk_file is succeeded
+          - virtual_disk_file is not changed
+          - virtual_disk_file.records | length == 0
+
+# ----------------------------------Idempotence check----------------------------------------------------------
+    - name: Delete virtual disk file .qcow2 - IDEMPOTENCE
+      scale_computing.hypercore.virtual_disk:
+        state: absent
+        file_name: xlab-ci-test-VD.qcow2
+      register: deleted_virtual_disk
+    - ansible.builtin.assert:
+        that:
+          - deleted_virtual_disk is succeeded
+          - deleted_virtual_disk is not changed
+          - deleted_virtual_disk.diff.before == None
+          - deleted_virtual_disk.diff.before == deleted_virtual_disk.diff.after
+
+    - name: Assert that virtual disk .qcow2 is deleted - IDEMPOTENCE
+      scale_computing.hypercore.virtual_disk_info:
+        name: xlab-ci-test-VD.qcow2
+      register: virtual_disk_file
+    - ansible.builtin.assert:
+        that:
+          - virtual_disk_file is succeeded
+          - virtual_disk_file is not changed
+          - virtual_disk_file.records | length == 0
+
+# ----------------------------------Job------------------------------------------------------------------------
+    - name: Delete virtual disk file .vmdk
+      scale_computing.hypercore.virtual_disk:
+        state: absent
+        file_name: xlab-ci-test-VD.vmdk
+      register: deleted_virtual_disk
+    - ansible.builtin.assert:
+        that:
+          - deleted_virtual_disk is succeeded
+          - deleted_virtual_disk is changed
+          - deleted_virtual_disk.diff.before.name == "xlab-ci-test-VD.vmdk"
+
+    - name: Assert that virtual disk .vmdk is deleted
+      scale_computing.hypercore.virtual_disk_info:
+        name: xlab-ci-test-VD.vmdk
+      register: virtual_disk_file
+    - ansible.builtin.assert:
+        that:
+          - virtual_disk_file is succeeded
+          - virtual_disk_file is not changed
+          - virtual_disk_file.records | length == 0
+
+# ----------------------------------Idempotence check----------------------------------------------------------
+    - name: Delete virtual disk file .vmdk - IDEMPOTENCE
+      scale_computing.hypercore.virtual_disk:
+        state: absent
+        file_name: xlab-ci-test-VD.vmdk
+      register: deleted_virtual_disk
+    - ansible.builtin.assert:
+        that:
+          - deleted_virtual_disk is succeeded
+          - deleted_virtual_disk is not changed
+          - deleted_virtual_disk.diff.before == None
+          - deleted_virtual_disk.diff.before == deleted_virtual_disk.diff.after
+
+    - name: Assert that virtual disk .vmdk is deleted - IDEMPOTENCE
+      scale_computing.hypercore.virtual_disk_info:
+        name: xlab-ci-test-VD.vmdk
+      register: virtual_disk_file
+    - ansible.builtin.assert:
+        that:
+          - virtual_disk_file is succeeded
+          - virtual_disk_file is not changed
+          - virtual_disk_file.records | length == 0

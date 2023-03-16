@@ -130,7 +130,8 @@ def ensure_present(
     before = None
     after = None
     if virtual_disk_obj:
-        return False, after, dict(before=before, after=after)
+        before = virtual_disk_obj.to_ansible()
+        return False, before, dict(before=before, after=before)
     else:
         file_content, file_size = read_disk_file(module)
         if not file_content or not file_size:
