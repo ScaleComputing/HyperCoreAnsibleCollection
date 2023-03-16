@@ -1,0 +1,84 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  connection: local
+
+  block:
+    - name: Set pyproxy_cmd
+      ansible.builtin.set_fact:
+        pyproxy_cmd: python3 /tmp/pyproxy.py --tcp -s 127.0.0.50:443 -d {{ sc_host | replace('https://', '') }}:443 -v
+
+    - name: Generate private key
+      community.crypto.openssl_privatekey:
+        path: private_key_example.pem
+
+    - name: Generate a certificate signing request
+      community.crypto.openssl_csr:
+        path: crs_example.csr
+        privatekey_path: private_key_example.pem
+        common_name: scale-10-10-10-50
+        country_name: US
+        organization_name: Scale Computing Inc.
+        organizational_unit_name: Engineering
+        email_address: support@scalecomputing.com
+        state_or_province_name: CA
+        locality_name: San Francisco
+
+    - name: Generate and sign a certificate with private key from certificate signing request
+      community.crypto.x509_certificate:
+        path: certificate_example.crt
+        csr_path: crs_example.csr
+        privatekey_path: private_key_example.pem
+        provider: selfsigned
+
+    # get and run pyproxy.py
+    - name: get pyproxy.py
+      ansible.builtin.get_url:
+        # branch ssl-eof-error, commit 7df232733f4cf6deb24d886321ceb4812a114ca4, 2023.03.16
+        url: https://raw.githubusercontent.com/justinc1/pyproxy/ssl-eof-error/code/pyproxy.py
+        dest: /tmp/pyproxy.py
+
+    - name: kill pyproxy.py before
+      ansible.builtin.shell: sudo kill $(pgrep -f '{{ pyproxy_cmd }}')
+
+    - name: run pyproxy.py
+      ansible.builtin.command: "sudo {{ pyproxy_cmd }}"
+      async: 300
+      poll: 0
+      register: pyproxy_cmd_result
+
+    - name: Upload certificate to API with certificate module
+      scale_computing.hypercore.certificate:
+        private_key: "{{ lookup('file', 'private_key_example.pem') }}"
+        certificate: "{{ lookup('file', 'certificate_example.crt') }}"
+      register: certificate_info
+      environment:
+        SC_HOST: https://127.0.0.50
+
+    - ansible.builtin.assert:
+        that:
+          - certificate_info is succeeded
+          - certificate_info is changed
+          # - certificate_info.record.certificate != default_cert_info.cert
+          - "{{ certificate_info.record.certificate | replace('\n','') == lookup('file', 'certificate_example.crt') | replace('\n','') }}"
+          - certificate_info.warnings | length >= 1
+          - certificate_info.warnings[0] == "retry 0/10, SSLEOFError - ignore and continue"
+
+    - name: Get new / uploaded cert from cluster
+      community.crypto.get_certificate:
+        host: "{{ sc_host | replace('https://','') | replace('http://','') }}"
+        port: 443
+      delegate_to: localhost
+      run_once: true
+      register: uploaded_cert_info
+    - ansible.builtin.assert:
+        that:
+          # - uploaded_cert_info.cert != default_cert_info.cert
+          - certificate_info.record.certificate == uploaded_cert_info.cert
+
+    - name: kill pyproxy.py after
+      ansible.builtin.shell: sudo kill $(pgrep -f '{{ pyproxy_cmd }}')

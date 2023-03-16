@@ -1,0 +1,68 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_username }}"
+    SC_PASSWORD: "{{ sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  connection: local
+
+  block:
+    - name: Get default cert from cluster
+      community.crypto.get_certificate:
+        host: "{{ sc_host | replace('https://','') | replace('http://','') }}"
+        port: 443
+      delegate_to: localhost
+      run_once: true
+      register: default_cert_info
+
+    - name: Show default certificate info
+      debug:
+        var: default_cert_info
+
+    - name: Generate private key
+      community.crypto.openssl_privatekey:
+        path: private_key_example.pem
+
+    - name: Generate a certificate signing request
+      community.crypto.openssl_csr:
+        path: crs_example.csr
+        privatekey_path: private_key_example.pem
+        common_name: scale-10-10-10-50
+        country_name: US
+        organization_name: Scale Computing Inc.
+        organizational_unit_name: Engineering
+        email_address: support@scalecomputing.com
+        state_or_province_name: CA
+        locality_name: San Francisco
+
+    - name: Generate and sign a certificate with private key from certificate signing request
+      community.crypto.x509_certificate:
+        path: certificate_example.crt
+        csr_path: crs_example.csr
+        privatekey_path: private_key_example.pem
+        provider: selfsigned
+
+    - name: Upload certificate to API with certificate module
+      scale_computing.hypercore.certificate:
+        private_key: "{{ lookup('file', 'private_key_example.pem') }}"
+        certificate: "{{ lookup('file', 'certificate_example.crt') }}"
+      register: certificate_info
+    - ansible.builtin.assert:
+        that:
+          - certificate_info is succeeded
+          - certificate_info is changed
+          - certificate_info.record.certificate != default_cert_info.cert
+          - "{{ certificate_info.record.certificate | replace('\n','') == lookup('file', 'certificate_example.crt') | replace('\n','') }}"
+
+    - name: Get new / uploaded cert from cluster
+      community.crypto.get_certificate:
+        host: "{{ sc_host | replace('https://','') | replace('http://','') }}"
+        port: 443
+      delegate_to: localhost
+      run_once: true
+      register: uploaded_cert_info
+    - ansible.builtin.assert:
+        that:
+          - uploaded_cert_info.cert != default_cert_info.cert
+          - certificate_info.record.certificate == uploaded_cert_info.cert
