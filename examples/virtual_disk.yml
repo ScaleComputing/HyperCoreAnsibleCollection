@@ -8,9 +8,6 @@
     # image_url: https://github.com/ddemlow/RestAPIExamples/blob/master/ubuntu18_04-cloud-init/ubuntu18cloudimage.qcow2
     image_filename: "{{ image_url | split('/') | last }}"
     image_remove_old: false
-    sc_host: https://10.100.20.38 # TODO
-    sc_username: admin
-    sc_password: admin
 
   tasks:
     # # ------------------------------------------------------
@@ -39,10 +36,6 @@
     - name: Upload Virtual Disk {{ image_filename }} to HyperCore
       scale_computing.hypercore.api:
         action: put
-        cluster_instance:
-          host: "{{ sc_host }}"
-          username: "{{ sc_username }}"
-          password: "{{ sc_password }}"
         endpoint: /rest/v1/VirtualDisk/upload
         data:
           filename: "{{ image_filename }}"
@@ -54,10 +47,6 @@
     - name: Get Information About the uploaded Virtual Disk in HyperCore
       scale_computing.hypercore.api:
         action: get
-        cluster_instance:
-          host: "{{ sc_host }}"
-          username: "{{ sc_username }}"
-          password: "{{ sc_password }}"
         endpoint: /rest/v1/VirtualDisk/{{ uploadResult.record.createdUUID }}
       register: result
 

@@ -3,6 +3,8 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  # Example is safe to run - if we do not modify from_address
+  check_mode: true
   vars:
     smtp_server: smtp-relay.gmail.com
     smtp_port: 25

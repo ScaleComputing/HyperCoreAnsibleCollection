@@ -1,4 +1,12 @@
 ---
-- name: Modify current Time Zone entries (in HyperCore API settings)
-  scale_computing.hypercore.time_zone:
-    zone: US/Eastern # must be set if not already present in existing entries
+- name: Example time_zone module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    zone: US/Eastern
+
+  tasks:
+    - name: Modify current Time Zone entries (in HyperCore API settings)
+      scale_computing.hypercore.time_zone:
+        zone: "{{ zone }}" # must be set if not already present in existing entries

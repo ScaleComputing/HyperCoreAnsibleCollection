@@ -1,6 +1,12 @@
 ---
-- name: List current Time Server entries
-  scale_computing.hypercore.time_server_info:
-  register: time_server_info
-- ansible.builtin.debug:
-    msg: "{{ time_server_info }}"
+- name: Example time_server_info module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: List current Time Server entries
+      scale_computing.hypercore.time_server_info:
+      register: time_server_info
+    - ansible.builtin.debug:
+        msg: "{{ time_server_info }}"

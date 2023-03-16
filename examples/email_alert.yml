@@ -6,6 +6,7 @@
   vars:
     email: example@example.com
     email_new: new@example.com
+    hypercore_example_check_mode: "{{ ansible_check_mode }}"
 
   tasks:
     - name: Create Email alert recipient
@@ -17,6 +18,8 @@
       scale_computing.hypercore.email_alert:
         email: "{{ email }}"
         state: test
+      # Sending test can fail (invalid email, or invalid SMTP server).
+      check_mode: "{{ hypercore_example_check_mode }}"
 
     - name: Modify previously created Email alert recipient
       scale_computing.hypercore.email_alert:

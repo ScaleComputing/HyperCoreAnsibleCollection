@@ -27,7 +27,9 @@ on:
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
   INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_"
-  WORKDIR: /work-dir/ansible_collections/scale_computing/hypercore
+  # ansible-test needs special directory structure.
+  # WORKDIR is a subdir of GITHUB_WORKSPACE
+  WORKDIR: work-dir/ansible_collections/scale_computing/hypercore
 # Run only one workflow for specific branch.
 concurrency:
   group: ${{ github.ref_name }}
@@ -39,49 +41,44 @@ jobs:
   # to delay integ-test until integration-prepare-env finishes.
   integration-prepare-env:
     runs-on: [self-hosted2]
-    container: python:3.10-slim-buster
+    container: quay.io/justinc1_github/scale_ci_integ:1
     env:
-      DEBIAN_FRONTEND: noninteractive
-      ANSIBLE_COLLECTIONS_PATH: /work-dir
+      ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-      - run: pip install ansible-core==2.13.1
-      - run: apt install -y genisoimage qemu-utils
-      - run: apt install -y jq
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
-      - run: ansible-galaxy collection install community.general
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: ansible-galaxy collection install community.crypto community.general
+      - run: ansible-galaxy collection list
       - run: |
-          cd $WORKDIR
           echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
           cat tests/integration/integration_config.yml
           echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
           echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
           echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
           ls -al tests/integration/integration_config.yml
-      - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_iso.yml
-      - run: cd $WORKDIR && ansible-playbook tests/integration/prepare/prepare_vm.yml
+      - run: ansible-playbook tests/integration/prepare/prepare_iso.yml
+      - run: ansible-playbook tests/integration/prepare/prepare_vm.yml
+      - run: ansible-playbook tests/integration/prepare/prepare_examples.yml
     if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
 
   integ-matrix:
     runs-on: [ubuntu-latest]
-    container: python:3.10-slim-buster
-    env:
-      DEBIAN_FRONTEND: noninteractive
-      ANSIBLE_COLLECTIONS_PATH: /work-dir
+    container: quay.io/justinc1_github/scale_ci_integ:1
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: apt update
-      - run: apt install -y jq
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
+        with:
+          path: ${{ env.WORKDIR }}
       # We want to run all integ tests periodically - "integ_tests_include || '*'", the '*' is used.
       # When running with workflow-dispatch, user is required to put some non-empty string into integ_tests_include.
       - run: echo 'INTEG_TESTS_INCLUDE=${{ github.event.inputs.integ_tests_include || env.INTEG_TESTS_INCLUDE_SCHEDULE }}' >> $GITHUB_ENV
@@ -91,21 +88,88 @@ jobs:
         shell: bash
         run: |-
           echo "matrix=$(
-            ls -r $WORKDIR/tests/integration/targets |
+            ls -r tests/integration/targets |
             grep -v -E "${{ env.INTEG_TESTS_EXCLUDE }}" |
             grep -E "${{ env.INTEG_TESTS_INCLUDE }}" |
             jq -R -s -c 'split("\n")[:-1]'
           )" >> $GITHUB_OUTPUT
     if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
 
+  examples-matrix:
+    runs-on: [ ubuntu-latest ]
+    container: quay.io/justinc1_github/scale_ci_integ:1
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.WORKDIR }}
+      # A few files are not an example playbook:
+      #   hypercore_inventory.yml - inventory example
+      #   cloud-init-user-data-example.yml - cloud-init user-data example
+      - id: set-matrix
+        shell: bash
+        run: |-
+          echo "matrix=$(
+            ls -r examples |
+            grep -v -E "^README.md$|^hypercore_inventory.yml$|^cloud-init-user-data-example.yml$" |
+            jq -R -s -c 'split("\n")[:-1]'
+          )" >> $GITHUB_OUTPUT
+    if: "${{ github.event.inputs || github.event.schedule }}"
+
+  examples-run:
+    needs:
+      - examples-matrix
+    runs-on: [ self-hosted2 ]
+    container: quay.io/justinc1_github/scale_ci_integ:1
+    env:
+      ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
+      DEBIAN_FRONTEND: noninteractive
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible: [ 2.13.0 ]
+        example_name: ${{ fromJson(needs.examples-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: pip install ansible-core~=${{ matrix.ansible }}
+      - run: ansible-galaxy collection install community.crypto community.general
+      - run: ansible-galaxy collection list
+      - run: |
+          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
+          cat tests/integration/integration_config.yml
+          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
+          ls -al tests/integration/integration_config.yml
+      - run: |
+          eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
+          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_username')
+          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_password')
+          eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
+          ansible-playbook -i localhost, -e hypercore_example_check_mode=true examples/${{ matrix.example_name }}
+
   integ:
     needs:
       - integ-matrix
       # - units-test
     runs-on: [self-hosted2]
-    container: python:3.10-slim-buster
+    container: quay.io/justinc1_github/scale_ci_integ:1
     env:
       DEBIAN_FRONTEND: noninteractive
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
     strategy:
       fail-fast: false
       matrix:
@@ -116,48 +180,43 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-      - run: apt install -y genisoimage qemu-utils
+        with:
+          path: ${{ env.WORKDIR }}
       - run: pip install ansible-core~=${{ matrix.ansible }}
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
       # We have ansible.cfg "for testing" in git repo
       # (it is excluded in galaxy.yml, so it is not part of collection artifact)
       # But it does affect ansible-galaxy and ansible-test commands.
-      - run: cd $WORKDIR && ansible-galaxy collection install community.crypto
-      - run: cd $WORKDIR && ansible-galaxy collection list
+      - run: ansible-galaxy collection install community.crypto
+      - run: ansible-galaxy collection list
         # TODO - make integration_config.yml a reusable artifact/output of integration-prepare-env
       - run: |
-          cd $WORKDIR
           echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
           cat tests/integration/integration_config.yml
           echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
           echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
           echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
           ls -al tests/integration/integration_config.yml
-      - run: cd $WORKDIR && ansible-test integration --local ${{ matrix.test_name }}
+      - run: ansible-test integration --local ${{ matrix.test_name }}
+
 
   replica_cleanup:
     needs:
       - integ
     runs-on: [self-hosted2]
-    container: python:3.10-slim-buster
+    container: quay.io/justinc1_github/scale_ci_integ:1
     env:
-      ANSIBLE_COLLECTIONS_PATH: /work-dir
+      ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: pip3 install -r sanity.requirements -r test.requirements -r docs.requirements
-      - run: apt update
-      - run: apt install -y git make
-      - run: pip install ansible-core==2.13.1
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: pip install ansible-core~=2.13.0
         # ansible-test needs special directory structure.
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
       - run: |
-          cd $WORKDIR
           echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
           cat tests/integration/integration_config.yml
           echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
@@ -165,19 +224,19 @@ jobs:
           echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
           ls -al tests/integration/integration_config.yml
       - run: ansible-galaxy collection install community.general
-      - run: cd $WORKDIR && ansible-playbook tests/integration/cleanup/ci_replica_cleanup.yml
+      - run: ansible-playbook tests/integration/cleanup/ci_replica_cleanup.yml
 
   smb_cleanup:
     needs:
       - integ
     runs-on: [self-hosted2]
-    container: python:3.10-slim-buster
+    container: quay.io/justinc1_github/scale_ci_integ:1
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - run: apt update
-      - run: apt install -y git make
-      - run: apt install -y smbclient
-      - run: mkdir -p $WORKDIR
-      - run: cp -a ./  $WORKDIR
-      - run: cd $WORKDIR/tests/integration/cleanup && ./smb_cleanup.sh ${{ secrets.SMB_SERVER }} ${{ secrets.SMB_SHARE }} "${{ secrets.SMB_USERNAME }}" ${{ secrets.SMB_PASSWORD }}
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: cd tests/integration/cleanup && ./smb_cleanup.sh ${{ secrets.SMB_SERVER }} ${{ secrets.SMB_SHARE }} "${{ secrets.SMB_USERNAME }}" ${{ secrets.SMB_PASSWORD }}

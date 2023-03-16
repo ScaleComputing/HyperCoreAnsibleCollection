@@ -3,6 +3,8 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  vars:
+    hypercore_example_check_mode: "{{ ansible_check_mode }}"
 
   tasks:
     # More info about openssl_privatekey module
@@ -40,6 +42,8 @@
         private_key: "{{ lookup('file', 'private_key_example.pem') }}"
         certificate: "{{ lookup('file', 'certificate_example.crt') }}"
       register: certificate_info
+      # This is problematic, it would restart API server
+      check_mode: "{{ hypercore_example_check_mode }}"
 
     - name: Show uploaded certificate info
       debug:
