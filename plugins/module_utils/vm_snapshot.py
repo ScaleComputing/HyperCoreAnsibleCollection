@@ -10,7 +10,7 @@ __metaclass__ = type
 
 from .rest_client import RestClient
 
-from ..module_utils.utils import PayloadMapper, get_query, filter_results
+from ..module_utils.utils import PayloadMapper
 
 from ..module_utils.typed_classes import (
     TypedVMSnapshotToAnsible,
