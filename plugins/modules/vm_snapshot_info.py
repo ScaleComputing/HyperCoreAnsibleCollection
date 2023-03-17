@@ -34,7 +34,7 @@ options:
       - List snapshots by this desired snapshot label
     required: False
   serial:
-    type: str
+    type: int
     description:
       - List snapshots by this desired serial
     required: False

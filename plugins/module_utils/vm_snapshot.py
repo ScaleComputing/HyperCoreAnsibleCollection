@@ -137,6 +137,38 @@ class VMSnapshot(PayloadMapper):
 
         return snapshots
 
+    @classmethod
+    def get_by_snapshot_label(
+        cls, label: str, rest_client: RestClient
+    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
+        return cls.get_snapshots_by_query({"label": label}, rest_client)
+
+    @classmethod
+    def filter_by_vm_name_serial_label(
+        cls,
+        vm_snapshots: List[Optional[TypedVMSnapshotToAnsible]],
+        params: dict[
+            Any, Any
+        ],  # params must be a dict with keys: "vm_name", "serial", "label"
+        query: dict[
+            Any, Any
+        ],  # a dict with or without keys: "domain.name", "domain.snapshotSerialNumber", "label"
+    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
+        return [
+            vm_snapshot
+            for vm_snapshot in vm_snapshots
+            if (
+                params["vm_name"]
+                and vm_snapshot["domain"]["name"] == query["domain.name"]
+            )
+            or (
+                params["serial"]
+                and vm_snapshot["domain"]["snapshotSerialNumber"]
+                == query["domain.snapshotSerialNumber"]
+            )
+            or (params["label"] and vm_snapshot["label"] == query["label"])
+        ]
+
     # ===== Helper methods ======
     # will leave this method for now
     @classmethod
