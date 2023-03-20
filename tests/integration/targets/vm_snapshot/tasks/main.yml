@@ -11,11 +11,6 @@
     # unique snapshot labels are strings like: snap-x, where x is an iterative number
     # -- snap-0 is the oldest snapshot, anything greater than 0, is a newer snapshot
 
-  # +++++++++++++
-  # TODO: a dedicated task that will setup on server exactly number of VMs (like 2),
-  # with snapshots in exact state (like 3 manual/USER snapshots with unique label,
-  # and 3 snapshots with non-unique label)
-  # +++++++++++++
   block:
     - include_tasks: 01_vm_snapshot_info.yml
       vars:
