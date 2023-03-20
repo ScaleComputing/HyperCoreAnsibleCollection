@@ -122,14 +122,18 @@ class RestClient:
         if check_mode:
             return utils.MOCKED_TASK_TAG
         try:
-            response: TypedTaskTag = self.client.put(
+            tt = self.client.put(
                 endpoint,
                 data=payload,
                 query=query,
                 timeout=timeout,
                 binary_data=binary_data,
                 headers=headers,
-            ).json
+            )
+            try:
+                response: TypedTaskTag = tt.json
+            except Exception:
+                return {}
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
         return response
