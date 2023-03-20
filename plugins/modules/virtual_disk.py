@@ -23,10 +23,10 @@ extends_documentation_fragment:
 seealso:
   - module: scale_computing.hypercore.virtual_disk_info
 options:
-  file_location:
+  source:
     type: str
     description: Location of the disk file.
-  file_name:
+  name:
     type: str
     required: true
     description:
@@ -50,7 +50,7 @@ EXAMPLES = r"""
     file_location: "c:/files/foobar.qcow2"
   register: vd_upload_info
 
-- name: Delete vd from HyperCore cluster
+- name: Delete VD from HyperCore cluster
   scale_computing.hypercore.virtual_disk:
     state: absent
     file_name: foobar.qcow2
@@ -98,15 +98,12 @@ HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"
 
 def read_disk_file(module: AnsibleModule) -> Tuple[bytes, int]:
     try:
-        file_size = os.path.getsize(module.params["file_location"])
-        f = open(module.params["file_location"], "rb")
-        content = f.read()
-        f.close()
+        file_size = os.path.getsize(module.params["source"])
     except FileNotFoundError:
         raise errors.ScaleComputingError(
-            f"Disk file {module.params['file_location']} not found."
+            f"Disk file {module.params['source']} not found."
         )
-    return content, file_size
+    return file_size
 
 
 def wait_task_and_get_updated(
@@ -117,7 +114,7 @@ def wait_task_and_get_updated(
 ) -> Optional[TypedVirtualDiskToAnsible]:
     TaskTag.wait_task(rest_client, task)
     updated_disk = VirtualDisk.get_by_name(
-        rest_client, name=module.params["file_name"], must_exist=must_exist
+        rest_client, name=module.params["name"], must_exist=must_exist
     )
     return updated_disk.to_ansible() if updated_disk else None
 
@@ -133,14 +130,12 @@ def ensure_present(
         before = virtual_disk_obj.to_ansible()
         return False, before, dict(before=before, after=before)
     else:
-        file_content, file_size = read_disk_file(module)
-        if not file_content or not file_size:
+        file_size = read_disk_file(module)
+        if not file_size:
             raise errors.ScaleComputingError(
-                f"Invalid content or size for file: {module.params['file_name']}"
+                f"Invalid size for file: {module.params['name']}"
             )
-        task = VirtualDisk.send_upload_request(
-            rest_client, file_content, file_size, module.params["file_name"]
-        )
+        task = VirtualDisk.send_upload_request(rest_client, file_size, module)
         after = wait_task_and_get_updated(rest_client, module, task, must_exist=False)
         return is_changed(before, after), after, dict(before=before, after=after)
 
@@ -165,9 +160,7 @@ def ensure_absent(
 def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Optional[TypedVirtualDiskToAnsible], TypedDiff]:
-    virtual_disk_obj = VirtualDisk.get_by_name(
-        rest_client, name=module.params["file_name"]
-    )
+    virtual_disk_obj = VirtualDisk.get_by_name(rest_client, name=module.params["name"])
     if module.params["state"] == State.present:
         return ensure_present(module, rest_client, virtual_disk_obj)
     return ensure_absent(module, rest_client, virtual_disk_obj)
@@ -186,15 +179,15 @@ def main() -> None:
                 ],
                 required=True,
             ),
-            file_location=dict(
+            source=dict(
                 type="str",
             ),
-            file_name=dict(
+            name=dict(
                 type="str",
                 required=True,
             ),
         ),
-        required_if=[("state", "present", ("file_location",), False)],
+        required_if=[("state", "present", ("source",), False)],
     )
 
     try:
