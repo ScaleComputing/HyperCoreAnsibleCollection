@@ -14,6 +14,9 @@
       loop:
         - xlab-ci-test-VD.qcow2
         - xlab-ci-test-VD.vmdk
+        # half-uploaded VD has "uploading-" magic prefix.
+        - uploading-xlab-ci-test-VD.qcow2
+        - uploading-xlab-ci-test-VD.vmdk
 
     - name: Assert cleanup was successful
       scale_computing.hypercore.virtual_disk_info:
