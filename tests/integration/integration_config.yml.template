@@ -7,6 +7,7 @@ sc_timeout: 60
 # CI tests for vm_import/vm_export require a SMB server
 smb_server: <example 10.0.0.3>
 smb_share: <example /users>
+# Provide username as "domain;username" or only ";username".
 smb_username: <example myusername>
 smb_password: <example mypassword>
 # Replication cluster needs to be cleaned up.

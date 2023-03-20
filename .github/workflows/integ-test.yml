@@ -239,4 +239,16 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: cd tests/integration/cleanup && ./smb_cleanup.sh ${{ secrets.SMB_SERVER }} ${{ secrets.SMB_SHARE }} "${{ secrets.SMB_USERNAME }}" ${{ secrets.SMB_PASSWORD }}
+      - run: |
+          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
+          cat tests/integration/integration_config.yml
+          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
+          ls -al tests/integration/integration_config.yml
+      - run: |
+          cd tests/integration/cleanup && ./smb_cleanup.sh \
+            "$(cat ../integration_config.yml | yq '.smb_server' | sed -e 's/^"//' -e 's/"$//')" \
+            "$(cat ../integration_config.yml | yq '.smb_share' | sed -e 's/^"//' -e 's/"$//')" \
+            "$(cat ../integration_config.yml | yq '.smb_username' | sed -e 's/^"//' -e 's/"$//')" \
+            "$(cat ../integration_config.yml | yq '.smb_password' | sed -e 's/^"//' -e 's/"$//')"
