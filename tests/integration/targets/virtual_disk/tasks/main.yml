@@ -17,11 +17,13 @@
 
     - name: Assert cleanup was successful
       scale_computing.hypercore.virtual_disk_info:
-        name: xlab-ci-test-VD.qcow2
+        name: "{{ virtual_disk_name }}"
       register: virtual_disk_file
       loop:
         - xlab-ci-test-VD.qcow2
         - xlab-ci-test-VD.vmdk
+      loop_control:
+        loop_var: virtual_disk_name
     - ansible.builtin.assert:
         that:
           - virtual_disk_file is succeeded
