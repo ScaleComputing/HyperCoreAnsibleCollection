@@ -1,0 +1,39 @@
+---
+- name: Example virtual_disk_info module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # Source http link:
+    # https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+    virtual_disk_name: focal-server-cloudimg-amd64.img
+
+  tasks:
+  # ------------------------------------------------------
+    - name: List all virtual disks
+      scale_computing.hypercore.virtual_disk_info:
+      register: virtual_disk_results
+
+    - name: Show all virtual disks
+      debug:
+        var: virtual_disk_results
+
+    # ------------------------------------------------------
+    - name: Get info about specific virtual disk - {{ virtual_disk_name }}
+      scale_computing.hypercore.virtual_disk_info:
+        name: "{{ virtual_disk_name }}"
+      register: virtual_disk_results
+
+    - name: Show info about single virtual disk
+      debug:
+        var: virtual_disk_results
+
+    # ------------------------------------------------------
+    - name: Get info about not present virtual disk
+      scale_computing.hypercore.virtual_disk_info:
+        name: no-such-virtual-disk-20sb9uagwa3.iso
+      register: virtual_disk_results
+
+    - name: Show info about absent virtual disk
+      debug:
+        var: virtual_disk_results
