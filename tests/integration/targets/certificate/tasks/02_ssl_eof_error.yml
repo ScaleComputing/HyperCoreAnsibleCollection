@@ -63,6 +63,8 @@
       environment:
         SC_HOST: https://127.0.0.50
 
+    # Seems we get SSLEOFError when testing in github CI in docker image,
+    # and SSLZeroReturnError when testing locally (on Fedora 36 host).
     - ansible.builtin.assert:
         that:
           - certificate_info is succeeded
@@ -70,7 +72,10 @@
           # - certificate_info.record.certificate != default_cert_info.cert
           - "{{ certificate_info.record.certificate | replace('\n','') == lookup('file', 'certificate_example.crt') | replace('\n','') }}"
           - certificate_info.warnings | length >= 1
-          - certificate_info.warnings[0] == "retry 0/10, SSL error SSLZeroReturnError - ignore and continue"
+          - certificate_info.warnings[0] in [
+              "retry 0/10, SSL error SSLEOFError - ignore and continue",
+              "retry 0/10, SSL error SSLZeroReturnError - ignore and continue",
+            ]
 
     - name: Get new / uploaded cert from cluster
       community.crypto.get_certificate:
