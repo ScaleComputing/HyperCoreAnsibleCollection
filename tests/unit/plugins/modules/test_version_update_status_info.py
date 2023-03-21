@@ -54,3 +54,12 @@ class TestRun:
             to_build="209840",
             to_version="9.1.18.209840",
         )
+
+    def test_run_no_record(self, rest_client, mocker):
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.modules.version_update_status_info.UpdateStatus.get"
+        ).return_value = None
+
+        record = version_update_status_info.run(rest_client)
+
+        assert record is None

@@ -8,8 +8,8 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 import sys
-
 import pytest
+import json
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import (
     HyperCoreVersion,
@@ -21,6 +21,9 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercor
 )
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
+)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
+    Response,
 )
 
 pytestmark = pytest.mark.skipif(
@@ -351,3 +354,54 @@ class TestUpdateStatus:
         )
 
         assert update_status.to_ansible() == ansible_dict
+
+    def test_get_200(self, rest_client):
+        rest_client.client.get.return_value = Response(
+            status=200,
+            data=json.dumps(
+                dict(
+                    prepareStatus="",
+                    updateStatus=dict(
+                        masterStateID="4",
+                        masterState="COMPLETE",
+                        fromBuild="207183",
+                        toBuild="209840",
+                        toVersion="9.1.18.209840",
+                        currentComponent="2075",
+                        totalComponents="2075",
+                        percent="100",
+                        status=dict(
+                            component="7540/9999",
+                            node="173.16.93.134",
+                            statusdetails="Update Complete. Press 'Reload' to reconnect",
+                            usernotes="Press 'Reload' to reconnect",
+                        ),
+                    ),
+                ),
+            ),
+        )
+        update_status = UpdateStatus.get(rest_client)
+
+        rest_client.client.get.assert_called_with("update/update_status.json")
+
+        assert update_status == UpdateStatus(
+            from_build="207183",
+            percent="100",
+            prepare_status="",
+            update_status="COMPLETE",
+            update_status_details="Update Complete. Press 'Reload' to reconnect",
+            usernotes="Press 'Reload' to reconnect",
+            to_build="209840",
+            to_version="9.1.18.209840",
+        )
+
+    def test_get_404(self, rest_client):
+        rest_client.client.get.return_value = Response(
+            status=404,
+            data="",
+        )
+        update_status = UpdateStatus.get(rest_client)
+
+        rest_client.client.get.assert_called_with("update/update_status.json")
+
+        assert update_status is None
