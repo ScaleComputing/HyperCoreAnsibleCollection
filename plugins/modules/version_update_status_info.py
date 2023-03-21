@@ -34,6 +34,7 @@ RETURN = r"""
 record:
   description:
     - Status of the latest update applied
+    - None/null is returned if no update was ever applied.
   returned: success
   type: dict
   sample:
