@@ -262,16 +262,16 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             for tag in tags:
                 if (
                     tag.startswith("ansible_group__")
-                    and tag[len("ansible_group__") :] not in groups
+                    and tag[len("ansible_group__"):] not in groups
                 ):
-                    groups.append(tag[len("ansible_group__") :])
+                    groups.append(tag[len("ansible_group__"):])
                 elif tag.startswith("ansible_user__"):
-                    ansible_user = tag[len("ansible_user__") :]
+                    ansible_user = tag[len("ansible_user__"):]
                 elif tag.startswith("ansible_port__"):
-                    ansible_port = int(tag[len("ansible_port__") :])
+                    ansible_port = int(tag[len("ansible_port__"):])
                 elif tag.startswith("ansible_ssh_private_key_file"):
                     ansible_ssh_private_key_file = tag[
-                        len("ansible_ssh_private_key_file__") :
+                        len("ansible_ssh_private_key_file__"):
                     ]
             if include:
                 # Group
@@ -288,7 +288,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
                         break
                 for tag in tags:
                     if tag.startswith("ansible_host__"):
-                        ansible_host = tag[len("ansible_host__") :]
+                        ansible_host = tag[len("ansible_host__"):]
                 # User
                 inventory = self.add_user(inventory, ansible_user, vm["name"])
                 # Port
