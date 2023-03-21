@@ -22,9 +22,8 @@ from typing import List, Any, Dict, Optional
 class VMSnapshot(PayloadMapper):
     def __init__(
         self,
-        vm_uuid: Optional[str] = None,
-        domain_uuid: Optional[str] = None,
-        domain: Optional[dict[Any, Any]] = None,
+        snapshot_uuid: Optional[str] = None,
+        vm: Optional[Dict[Any, Any]] = None,
         timestamp: Optional[int] = None,
         label: Optional[str] = None,
         type: Optional[str] = None,
@@ -34,9 +33,8 @@ class VMSnapshot(PayloadMapper):
         block_count_diff_from_serial_number: Optional[int] = None,
         replication: Optional[bool] = True,
     ):
-        self.vm_uuid = vm_uuid
-        self.domain_uuid = domain_uuid
-        self.domain = {} if domain is None else domain
+        self.snapshot_uuid = snapshot_uuid
+        self.vm = vm if vm is not None else {}
         self.timestamp = timestamp
         self.label = label
         self.type = type
@@ -49,9 +47,8 @@ class VMSnapshot(PayloadMapper):
     @classmethod
     def from_ansible(cls, ansible_data: TypedVMSnapshotFromAnsible) -> VMSnapshot:
         return VMSnapshot(
-            vm_uuid=ansible_data["vm_uuid"],
-            domain_uuid=ansible_data["domain_uuid"],
-            domain=ansible_data["domain"],
+            snapshot_uuid=ansible_data["snapshot_uuid"],
+            vm=ansible_data["vm"],
             label=ansible_data["label"],
             type=ansible_data["type"],
         )
@@ -61,9 +58,12 @@ class VMSnapshot(PayloadMapper):
         if not hypercore_data:
             return None
         return cls(
-            vm_uuid=hypercore_data["uuid"],
-            domain_uuid=hypercore_data["domainUUID"],
-            domain=hypercore_data["domain"],
+            snapshot_uuid=hypercore_data["uuid"],
+            vm={
+                "name": hypercore_data["domain"]["name"],
+                "uuid": hypercore_data["domainUUID"],
+                "snapshot_serial_number": hypercore_data["domain"]["snapshotSerialNumber"],
+            },
             timestamp=hypercore_data["timestamp"],
             label=hypercore_data["label"],
             type=hypercore_data["type"],
@@ -78,18 +78,16 @@ class VMSnapshot(PayloadMapper):
 
     def to_hypercore(self) -> Dict[Any, Any]:
         return dict(
-            vm_uuid=self.vm_uuid,
-            domain_uuid=self.domain_uuid,
-            domain=self.domain,
+            snapshot_uuid=self.snapshot_uuid,
+            vm=self.vm,
             label=self.label,
             type=self.type,
         )
 
     def to_ansible(self) -> TypedVMSnapshotToAnsible:
         return dict(
-            vm_uuid=self.vm_uuid,
-            domain_uuid=self.domain_uuid,
-            domain=self.domain,
+            snapshot_uuid=self.snapshot_uuid,
+            vm=self.vm,
             timestamp=self.timestamp,
             label=self.label,
             type=self.type,
@@ -106,9 +104,8 @@ class VMSnapshot(PayloadMapper):
             return NotImplemented
         return all(
             (
-                self.vm_uuid == other.vm_uuid,
-                self.domain_uuid == other.domain_uuid,
-                self.domain == other.domain,
+                self.snapshot_uuid == other.snapshot_uuid,
+                self.vm == other.vm,
                 self.timestamp == other.timestamp,
                 self.label == other.label,
                 self.type == other.type,
@@ -138,103 +135,24 @@ class VMSnapshot(PayloadMapper):
         return snapshots
 
     @classmethod
-    def get_by_snapshot_label(
-        cls, label: str, rest_client: RestClient
-    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
-        return cls.get_snapshots_by_query({"label": label}, rest_client)
-
-    @classmethod
-    def filter_by_vm_name_serial_label(
-        cls,
-        vm_snapshots: List[Optional[TypedVMSnapshotToAnsible]],
-        params: dict[
-            Any, Any
-        ],  # params must be a dict with keys: "vm_name", "serial", "label"
-        query: dict[
-            Any, Any
-        ],  # a dict with or without keys: "domain.name", "domain.snapshotSerialNumber", "label"
-    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
-        return [
-            vm_snapshot
-            for vm_snapshot in vm_snapshots
-            if (
-                params["vm_name"]
-                and vm_snapshot["domain"]["name"] == query["domain.name"]  # type: ignore
-            )
-            or (
-                params["serial"]
-                and vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
-                == query["domain.snapshotSerialNumber"]
-            )
-            or (params["label"] and vm_snapshot["label"] == query["label"])  # type: ignore
-        ]
-
-    @classmethod
     def filter_snapshots_by_params(
         cls,
         params: dict[
             Any, Any
         ],  # params must be a dict with keys: "vm_name", "serial", "label"
-        query: dict[
-            Any, Any
-        ],  # a dict with or without keys: "domain.name", "domain.snapshotSerialNumber", "label"
         rest_client: RestClient,
     ) -> List[Optional[TypedVMSnapshotToAnsible]]:
         vm_snapshots = cls.get_snapshots_by_query({}, rest_client)
-        if query == {}:
-            return vm_snapshots  # return all snapshots if none of the params are present (query is empty)
+        if not params["vm_name"] and not params["serial"] and not params["label"]:
+            return vm_snapshots  # return all snapshots if none of the params are present
 
-        # else filter results by label, domain.name, domain.snapshotSerialNumber
-        # ++++++++++++++++++ NOTE
-        # --> This "ugly" filtering had to be done, because method list_records doesn't support nested queries
-        #     it's the best solution I could come up with (there were others but a bit uglier)
-        # -----> if there is a better way to solve this problem, I'd be very happy to try it out.
-        # ++++++++++++++++++
-        filtered = []
-        for vm_snapshot in vm_snapshots:
-            # ==== check if all params are present ====
-            if params["vm_name"] and params["serial"] and params["label"]:
-                if (
-                    vm_snapshot["domain"]["name"] == query["domain.name"]  # type: ignore
-                    and vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
-                    == query["domain.snapshotSerialNumber"]
-                    and vm_snapshot["label"] == query["label"]  # type: ignore
-                ):
-                    filtered.append(vm_snapshot)
+        # else filter results by label, vm.name, vm.snapshotSerialNumber
+        new_snaps = vm_snapshots[:]  # for some unknown reason, using just "vm_snapshots" returns empty list: []
+        if params["vm_name"]:
+            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["vm"]["name"] == params["vm_name"]]
+        if params["serial"]:
+            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["vm"]["snapshot_serial_number"] == params["serial"]]
+        if params["label"]:
+            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["label"] == params["label"]]
 
-            # ==== checks if only two params are present ====
-            elif params["vm_name"] and params["serial"] and not params["label"]:
-                if (
-                    vm_snapshot["domain"]["name"] == query["domain.name"]  # type: ignore
-                    and vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
-                    == query["domain.snapshotSerialNumber"]
-                ):
-                    filtered.append(vm_snapshot)
-            elif params["vm_name"] and params["label"] and not params["serial"]:
-                if (
-                    vm_snapshot["domain"]["name"] == query["domain.name"]  # type: ignore
-                    and vm_snapshot["label"] == query["label"]  # type: ignore
-                ):
-                    filtered.append(vm_snapshot)
-            elif params["serial"] and params["label"] and not params["vm_name"]:
-                if (
-                    vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
-                    == query["domain.snapshotSerialNumber"]
-                    and vm_snapshot["label"] == query["label"]  # type: ignore
-                ):
-                    filtered.append(vm_snapshot)
-
-            # ==== checks if only one of the params is present ====
-            elif params["vm_name"] and not params["serial"] and not params["label"]:
-                if vm_snapshot["domain"]["name"] == query["domain.name"]:  # type: ignore
-                    filtered.append(vm_snapshot)
-            elif params["serial"] and not params["vm_name"] and not params["label"]:
-                if (
-                    vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
-                    == query["domain.snapshotSerialNumber"]
-                ):
-                    filtered.append(vm_snapshot)
-            elif params["label"] and not params["vm_name"] and not params["serial"]:
-                if vm_snapshot["label"] == query["label"]:  # type: ignore
-                    filtered.append(vm_snapshot)
-        return filtered
+        return new_snaps

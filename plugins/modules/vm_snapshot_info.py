@@ -44,7 +44,30 @@ options:
 EXAMPLES = r"""
 - name: List all VM snapshots on HyperCore API
   scale_computing.hypercore.vm_snapshot_info:
-    label: some-label
+  register: vm_snapshot
+  
+- name: List all VM snapshots on HyperCore API with label="example-label"
+  scale_computing.hypercore.vm_snapshot_info:
+    label: example-label
+  register: vm_snapshot
+
+- name: List all VM snapshots on HyperCore API with vm_name="example-vm"
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: example-vm
+  register: vm_snapshot
+  
+- name: List all VM snapshots on HyperCore API with serial=0
+  scale_computing.hypercore.vm_snapshot_info:
+    serial: 0
+  register: vm_snapshot
+  
+- name: >-
+    List all VM snapshots on HyperCore API with
+    label="example-label", vm_name="example-vm", serial=0
+  scale_computing.hypercore.vm_snapshot_info:
+    label: example-label
+    vm_name: example-vm
+    serial: 0
   register: vm_snapshot
 """
 
@@ -56,15 +79,18 @@ records:
   type: list
   sample:
     - automated_trigger_timestamp: 0
-      block_count_diff_from_serial_number: null
-      domain_uuid: 4dd639c7-f153-4c9a-890c-888d85654f1
-      label: user-made-snapshot
+      block_count_diff_from_serial_number: 2
+      label: snap-2
       local_retain_until_timestamp: 0
       remote_retain_until_timestamp: 0
       replication: true
-      timestamp: 1678707134
+      snapshot_uuid: 28d6ff95-2c31-4a1a-b3d9-47535164d6de
+      timestamp: 1679397326
       type: USER
-      uuid: 0d49b516-bad6-44f4-b22b-02fa9423a7da
+      vm:
+        name: snapshot-test-vm-1
+        snapshot_serial_number: 3
+        uuid: 5e50977c-14ce-450c-8a1a-bf5c0afbcf43
 """
 
 
@@ -75,62 +101,13 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm_snapshot import VMSnapshot
 from ..module_utils.typed_classes import TypedVMSnapshotToAnsible
-from typing import List, Optional, Dict, Any
-
-
-def build_query(params: dict[Any, Any]) -> Dict[Any, Any]:
-    query = {}
-    if params["label"]:
-        query["label"] = params["label"]
-    if params["serial"]:
-        query["domain.snapshotSerialNumber"] = params["serial"]
-    if params["vm_name"]:
-        query["domain.name"] = params["vm_name"]
-
-    return query
+from typing import List, Optional
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> List[Optional[TypedVMSnapshotToAnsible]]:
-    # all_vm_snapshots = VMSnapshot.get_snapshots_by_query({}, rest_client)
-
-    query = build_query(module.params)
-    # if query == {}:
-    #     return all_vm_snapshots
-
-    # else filter results by label, domain.name, domain.snapshotSerialNumber
-    # ++++++++++++++++++ NOTE
-    # --> This "ugly" filtering had to be done, because method list_records doesn't support nested queries
-    #     it's the best solution I could come up with (there were others but a bit uglier)
-    # -----> if there is a better way to solve this problem, I'd be very happy to try it out.
-    # ++++++++++++++++++
-
-    # filtered = [
-    #     vm_snapshot
-    #     for vm_snapshot in all_vm_snapshots
-    #     if (
-    #         module.params["vm_name"]
-    #         and vm_snapshot["domain"]["name"] == query["domain.name"]
-    #     )
-    #     and (
-    #         module.params["serial"]
-    #         and vm_snapshot["domain"]["snapshotSerialNumber"]
-    #         == query["domain.snapshotSerialNumber"]
-    #     )
-    #     or (module.params["label"] and vm_snapshot["label"] == query["label"])
-    # ]
-
-    # filtered = []
-    # for vm_snapshot in all_vm_snapshots:
-    #     if module.params["vm_name"] and vm_snapshot["domain"]["name"] == query["domain.name"]:
-    #         if (
-    #                 (module.params["serial"] and vm_snapshot["domain"]["snapshotSerialNumber"] == query["domain.snapshotSerialNumber"])
-    #                 and (module.params["label"] and vm_snapshot["label"] == query["label"])
-    #         ):
-    #                 filtered.append(vm_snapshot)
-
-    filtered = VMSnapshot.filter_snapshots_by_params(module.params, query, rest_client)
+    filtered = VMSnapshot.filter_snapshots_by_params(module.params, rest_client)
     return filtered
 
 

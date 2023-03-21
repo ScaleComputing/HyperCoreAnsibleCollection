@@ -50,9 +50,37 @@
   with_sequence: start=0 end=2
   register: unique_labeled_snapshots
 
-- name: Show created snapshots with "unique" label
+- name: Show created snapshots with "unique" label on "snapshot-test-vm-1"
   ansible.builtin.debug:
     var: unique_labeled_snapshots
+
+- name: Create 3 snapshots with "unique" label for "snapshot-test-vm-2"
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vms_created.results.1.record.0.uuid }}"
+      label: "snap-{{ item }}"
+  with_sequence: start=0 end=2
+  register: unique_labeled_snapshots
+
+- name: Show created snapshots with "unique" label on "snapshot-test-vm-2"
+  ansible.builtin.debug:
+    var: unique_labeled_snapshots
+
+- name: Create 3 snapshots with "non-unique" label for "snapshot-test-vm-1"
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vms_created.results.0.record.0.uuid }}"
+      label: "not-unique"
+  with_sequence: start=0 end=2
+  register: non_unique_labeled_snapshots
+
+- name: Show created snapshots with "non-unique" label on "snapshot-test-vm-1"
+  ansible.builtin.debug:
+    var: non_unique_labeled_snapshots
 
 - name: Create 3 snapshots with "non-unique" label for "snapshot-test-vm-2"
   scale_computing.hypercore.api:
@@ -64,7 +92,7 @@
   with_sequence: start=0 end=2
   register: non_unique_labeled_snapshots
 
-- name: Show created snapshots with "non-unique" label
+- name: Show created snapshots with "non-unique" label on "snapshot-test-vm-2"
   ansible.builtin.debug:
     var: non_unique_labeled_snapshots
 
