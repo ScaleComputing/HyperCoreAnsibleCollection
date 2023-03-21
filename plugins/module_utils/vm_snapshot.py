@@ -169,6 +169,76 @@ class VMSnapshot(PayloadMapper):
             or (params["label"] and vm_snapshot["label"] == query["label"])
         ]
 
+    @classmethod
+    def filter_snapshots_by_params(
+        cls,
+        params: dict[
+            Any, Any
+        ],  # params must be a dict with keys: "vm_name", "serial", "label"
+        query: dict[
+            Any, Any
+        ],  # a dict with or without keys: "domain.name", "domain.snapshotSerialNumber", "label"
+        rest_client: RestClient,
+    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
+        vm_snapshots = cls.get_snapshots_by_query({}, rest_client)
+        if query == {}:
+            return vm_snapshots  # return all snapshots if none of the params are present (query is empty)
+
+        # else filter results by label, domain.name, domain.snapshotSerialNumber
+        # ++++++++++++++++++ NOTE
+        # --> This "ugly" filtering had to be done, because method list_records doesn't support nested queries
+        #     it's the best solution I could come up with (there were others but a bit uglier)
+        # -----> if there is a better way to solve this problem, I'd be very happy to try it out.
+        # ++++++++++++++++++
+        filtered = []
+        for vm_snapshot in vm_snapshots:
+            # ==== check if all params are present ====
+            if params["vm_name"] and params["serial"] and params["label"]:
+                if (
+                    vm_snapshot["domain"]["name"] == query["domain.name"]
+                    and vm_snapshot["domain"]["snapshotSerialNumber"]
+                    == query["domain.snapshotSerialNumber"]
+                    and vm_snapshot["label"] == query["label"]
+                ):
+                    filtered.append(vm_snapshot)
+
+            # ==== checks if only two params are present ====
+            elif params["vm_name"] and params["serial"] and not params["label"]:
+                if (
+                    vm_snapshot["domain"]["name"] == query["domain.name"]
+                    and vm_snapshot["domain"]["snapshotSerialNumber"]
+                    == query["domain.snapshotSerialNumber"]
+                ):
+                    filtered.append(vm_snapshot)
+            elif params["vm_name"] and params["label"] and not params["serial"]:
+                if (
+                    vm_snapshot["domain"]["name"] == query["domain.name"]
+                    and vm_snapshot["label"] == query["label"]
+                ):
+                    filtered.append(vm_snapshot)
+            elif params["serial"] and params["label"] and not params["vm_name"]:
+                if (
+                    vm_snapshot["domain"]["snapshotSerialNumber"]
+                    == query["domain.snapshotSerialNumber"]
+                    and vm_snapshot["label"] == query["label"]
+                ):
+                    filtered.append(vm_snapshot)
+
+            # ==== checks if only one of the params is present ====
+            elif params["vm_name"] and not params["serial"] and not params["label"]:
+                if vm_snapshot["domain"]["name"] == query["domain.name"]:
+                    filtered.append(vm_snapshot)
+            elif params["serial"] and not params["vm_name"] and not params["label"]:
+                if (
+                    vm_snapshot["domain"]["snapshotSerialNumber"]
+                    == query["domain.snapshotSerialNumber"]
+                ):
+                    filtered.append(vm_snapshot)
+            elif params["label"] and not params["vm_name"] and not params["serial"]:
+                if vm_snapshot["label"] == query["label"]:
+                    filtered.append(vm_snapshot)
+        return filtered
+
     # ===== Helper methods ======
     # will leave this method for now
     @classmethod

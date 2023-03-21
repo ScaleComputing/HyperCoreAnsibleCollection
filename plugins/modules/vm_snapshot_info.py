@@ -93,11 +93,11 @@ def build_query(params: Optional[Dict[Any, Any]]):
 def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> List[Optional[TypedVMSnapshotToAnsible]]:
-    all_vm_snapshots = VMSnapshot.get_snapshots_by_query({}, rest_client)
+    # all_vm_snapshots = VMSnapshot.get_snapshots_by_query({}, rest_client)
 
     query = build_query(module.params)
-    if query == {}:
-        return all_vm_snapshots
+    # if query == {}:
+    #     return all_vm_snapshots
 
     # else filter results by label, domain.name, domain.snapshotSerialNumber
     # ++++++++++++++++++ NOTE
@@ -105,21 +105,32 @@ def run(
     #     it's the best solution I could come up with (there were others but a bit uglier)
     # -----> if there is a better way to solve this problem, I'd be very happy to try it out.
     # ++++++++++++++++++
-    filtered = [
-        vm_snapshot
-        for vm_snapshot in all_vm_snapshots
-        if (
-            module.params["vm_name"]
-            and vm_snapshot["domain"]["name"] == query["domain.name"]
-        )
-        or (
-            module.params["serial"]
-            and vm_snapshot["domain"]["snapshotSerialNumber"]
-            == query["domain.snapshotSerialNumber"]
-        )
-        or (module.params["label"] and vm_snapshot["label"] == query["label"])
-    ]
 
+    # filtered = [
+    #     vm_snapshot
+    #     for vm_snapshot in all_vm_snapshots
+    #     if (
+    #         module.params["vm_name"]
+    #         and vm_snapshot["domain"]["name"] == query["domain.name"]
+    #     )
+    #     and (
+    #         module.params["serial"]
+    #         and vm_snapshot["domain"]["snapshotSerialNumber"]
+    #         == query["domain.snapshotSerialNumber"]
+    #     )
+    #     or (module.params["label"] and vm_snapshot["label"] == query["label"])
+    # ]
+
+    # filtered = []
+    # for vm_snapshot in all_vm_snapshots:
+    #     if module.params["vm_name"] and vm_snapshot["domain"]["name"] == query["domain.name"]:
+    #         if (
+    #                 (module.params["serial"] and vm_snapshot["domain"]["snapshotSerialNumber"] == query["domain.snapshotSerialNumber"])
+    #                 and (module.params["label"] and vm_snapshot["label"] == query["label"])
+    #         ):
+    #                 filtered.append(vm_snapshot)
+
+    filtered = VMSnapshot.filter_snapshots_by_params(module.params, query, rest_client)
     return filtered
 
 
