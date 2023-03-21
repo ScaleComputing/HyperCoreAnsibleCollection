@@ -75,7 +75,7 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm_snapshot import VMSnapshot
 from ..module_utils.typed_classes import TypedVMSnapshotToAnsible
-from typing import List, Optional, Dict, Any, cast
+from typing import List, Optional, Dict, Any
 
 
 def build_query(params: dict[Any, Any]) -> Dict[Any, Any]:
