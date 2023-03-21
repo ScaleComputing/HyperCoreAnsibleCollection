@@ -1,17 +1,14 @@
+---
 argument_specs:
-
   main:
     short_description: Configure HyperCore cluster
     description:
-      - Role cluster_config can be used to
-        fully configure a new HyperCore server,
-        or partially reconfigure an existing HyperCore server.
+      - Role cluster_config can be used to fully configure a new HyperCore server, or partially reconfigure an existing HyperCore server.
     options:
       scale_computing_hypercore_cluster_config:
         description:
           - A dict describing a full or partial cluster configuration.
-          - Partial configuration will be used if some of the keys
-            in `scale_computing_hypercore_cluster_config` are omitted.
+          - Partial configuration will be used if some of the keys in `scale_computing_hypercore_cluster_config` are omitted.
         required: true
         type: dict
         options:
@@ -105,7 +102,7 @@ argument_specs:
               - If missing, cluster time zone will not be changed.
               - See also M(scale_computing.hypercore.time_zone).
             required: false
-            type: str  # choices:
+            type: str # choices:
           smtp:
             description:
               - Cluster SMTP server configuration.
