@@ -91,3 +91,5 @@
 
     - name: kill pyproxy.py after
       ansible.builtin.shell: sudo kill $(pgrep -f '{{ pyproxy_cmd }}')
+      # not sure why this fails in github CI (different disto, or we are in docker?)
+      failed_when: false
