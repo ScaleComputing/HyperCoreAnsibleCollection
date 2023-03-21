@@ -13,7 +13,7 @@
   when: item.power_state == 'started'
   loop: "{{ vms.records }}"
   register: vm_shutdown_result
-  ignore_errors: true  # if VMs fail to shut down without force, error will occur, so we skip and try on to shut down with force
+  ignore_errors: true # if VMs fail to shut down without force, error will occur, so we skip and try on to shut down with force
 
 # Wait up to 300 sec (30*10)
 - name: Wait until VMs shutdown
