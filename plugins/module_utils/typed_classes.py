@@ -229,7 +229,7 @@ class TypedVMSnapshotToAnsible(TypedDict):
     domain_uuid: Optional[str]
     domain: Optional[dict[Any, Any]]
     label: Optional[str]
-    type: Optional[int]
+    type: Optional[str]
     timestamp: Optional[int]
     automated_trigger_timestamp: Optional[int]
     local_retain_until_timestamp: Optional[int]

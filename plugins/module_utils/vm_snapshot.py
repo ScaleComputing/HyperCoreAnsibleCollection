@@ -27,7 +27,7 @@ class VMSnapshot(PayloadMapper):
         domain: Optional[dict[Any, Any]] = None,
         timestamp: Optional[int] = None,
         label: Optional[str] = None,
-        type: Optional[int] = None,
+        type: Optional[str] = None,
         automated_trigger_timestamp: Optional[int] = None,
         local_retain_until_timestamp: Optional[int] = None,
         remote_retain_until_timestamp: Optional[int] = None,
@@ -125,7 +125,7 @@ class VMSnapshot(PayloadMapper):
     @classmethod
     def get_snapshots_by_query(  # will leave as is for now
         cls,
-        query: dict,
+        query: Dict[Any, Any],
         rest_client: RestClient,
     ) -> List[Optional[TypedVMSnapshotToAnsible]]:
         snapshots = [
@@ -159,14 +159,14 @@ class VMSnapshot(PayloadMapper):
             for vm_snapshot in vm_snapshots
             if (
                 params["vm_name"]
-                and vm_snapshot["domain"]["name"] == query["domain.name"]
+                and vm_snapshot["domain"]["name"] == query["domain.name"]  # type: ignore
             )
             or (
                 params["serial"]
-                and vm_snapshot["domain"]["snapshotSerialNumber"]
+                and vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
                 == query["domain.snapshotSerialNumber"]
             )
-            or (params["label"] and vm_snapshot["label"] == query["label"])
+            or (params["label"] and vm_snapshot["label"] == query["label"])  # type: ignore
         ]
 
     @classmethod
@@ -195,67 +195,46 @@ class VMSnapshot(PayloadMapper):
             # ==== check if all params are present ====
             if params["vm_name"] and params["serial"] and params["label"]:
                 if (
-                    vm_snapshot["domain"]["name"] == query["domain.name"]
-                    and vm_snapshot["domain"]["snapshotSerialNumber"]
+                    vm_snapshot["domain"]["name"] == query["domain.name"]  # type: ignore
+                    and vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
                     == query["domain.snapshotSerialNumber"]
-                    and vm_snapshot["label"] == query["label"]
+                    and vm_snapshot["label"] == query["label"]  # type: ignore
                 ):
                     filtered.append(vm_snapshot)
 
             # ==== checks if only two params are present ====
             elif params["vm_name"] and params["serial"] and not params["label"]:
                 if (
-                    vm_snapshot["domain"]["name"] == query["domain.name"]
-                    and vm_snapshot["domain"]["snapshotSerialNumber"]
+                    vm_snapshot["domain"]["name"] == query["domain.name"]  # type: ignore
+                    and vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
                     == query["domain.snapshotSerialNumber"]
                 ):
                     filtered.append(vm_snapshot)
             elif params["vm_name"] and params["label"] and not params["serial"]:
                 if (
-                    vm_snapshot["domain"]["name"] == query["domain.name"]
-                    and vm_snapshot["label"] == query["label"]
+                    vm_snapshot["domain"]["name"] == query["domain.name"]  # type: ignore
+                    and vm_snapshot["label"] == query["label"]  # type: ignore
                 ):
                     filtered.append(vm_snapshot)
             elif params["serial"] and params["label"] and not params["vm_name"]:
                 if (
-                    vm_snapshot["domain"]["snapshotSerialNumber"]
+                    vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
                     == query["domain.snapshotSerialNumber"]
-                    and vm_snapshot["label"] == query["label"]
+                    and vm_snapshot["label"] == query["label"]  # type: ignore
                 ):
                     filtered.append(vm_snapshot)
 
             # ==== checks if only one of the params is present ====
             elif params["vm_name"] and not params["serial"] and not params["label"]:
-                if vm_snapshot["domain"]["name"] == query["domain.name"]:
+                if vm_snapshot["domain"]["name"] == query["domain.name"]:  # type: ignore
                     filtered.append(vm_snapshot)
             elif params["serial"] and not params["vm_name"] and not params["label"]:
                 if (
-                    vm_snapshot["domain"]["snapshotSerialNumber"]
+                    vm_snapshot["domain"]["snapshotSerialNumber"]  # type: ignore
                     == query["domain.snapshotSerialNumber"]
                 ):
                     filtered.append(vm_snapshot)
             elif params["label"] and not params["vm_name"] and not params["serial"]:
-                if vm_snapshot["label"] == query["label"]:
+                if vm_snapshot["label"] == query["label"]:  # type: ignore
                     filtered.append(vm_snapshot)
         return filtered
-
-    # ===== Helper methods ======
-    # will leave this method for now
-    @classmethod
-    def flatten_json_dict(cls, json_dict: dict[Any, Any]) -> Dict[Any, Any]:
-        res = {}
-
-        def flatten(json_obj: Any, name: str = ""):
-            if type(json_obj) is dict:
-                for el in json_obj:
-                    flatten(json_obj[el], name + el + ".")
-            elif type(json_obj) is list:
-                i = 0
-                for el in json_obj:
-                    flatten(el, name + str(i) + ".")
-                    i += 1
-            else:
-                res[name[:-1]] = json_obj
-
-        flatten(json_dict)
-        return res
