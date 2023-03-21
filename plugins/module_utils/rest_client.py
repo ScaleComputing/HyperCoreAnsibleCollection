@@ -133,7 +133,7 @@ class RestClient:
             try:
                 response: TypedTaskTag = tt.json
             except Exception:
-                return {}
+                return dict(createdUUID="", taskTag="")
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
         return response
