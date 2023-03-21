@@ -34,6 +34,7 @@ RETURN = r"""
 record:
   description:
     - Status of the latest update applied
+    - None/null is returned if no update was ever applied.
   returned: success
   type: dict
   sample:
@@ -47,6 +48,7 @@ record:
       to_version: 9.1.18.209840
 """
 
+from typing import Optional
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments, errors
@@ -56,8 +58,11 @@ from ..module_utils.hypercore_version import UpdateStatus
 from ..module_utils.typed_classes import TypedUpdateStatusToAnsible
 
 
-def run(rest_client: RestClient) -> TypedUpdateStatusToAnsible:
-    return UpdateStatus.get(rest_client).to_ansible()
+def run(rest_client: RestClient) -> Optional[TypedUpdateStatusToAnsible]:
+    status = UpdateStatus.get(rest_client)
+    if status:
+        return status.to_ansible()
+    return None
 
 
 def main() -> None:

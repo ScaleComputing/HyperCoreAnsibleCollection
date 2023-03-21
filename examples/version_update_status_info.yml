@@ -1,0 +1,15 @@
+---
+- name: Show HyperCore software version update status info
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+  # ------------------------------------------------------
+    - name: Get version update status
+      scale_computing.hypercore.version_update_status_info:
+      register: version_update_status_info_result
+
+    - name: Show version update status
+      debug:
+        var: version_update_status_info_result
