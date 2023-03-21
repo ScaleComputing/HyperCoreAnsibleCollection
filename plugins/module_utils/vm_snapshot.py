@@ -62,7 +62,9 @@ class VMSnapshot(PayloadMapper):
             vm={
                 "name": hypercore_data["domain"]["name"],
                 "uuid": hypercore_data["domainUUID"],
-                "snapshot_serial_number": hypercore_data["domain"]["snapshotSerialNumber"],
+                "snapshot_serial_number": hypercore_data["domain"][
+                    "snapshotSerialNumber"
+                ],
             },
             timestamp=hypercore_data["timestamp"],
             label=hypercore_data["label"],
@@ -144,15 +146,19 @@ class VMSnapshot(PayloadMapper):
     ) -> List[Optional[TypedVMSnapshotToAnsible]]:
         vm_snapshots = cls.get_snapshots_by_query({}, rest_client)
         if not params["vm_name"] and not params["serial"] and not params["label"]:
-            return vm_snapshots  # return all snapshots if none of the params are present
+            return (
+                vm_snapshots  # return all snapshots if none of the params are present
+            )
 
         # else filter results by label, vm.name, vm.snapshotSerialNumber
-        new_snaps = vm_snapshots[:]  # for some unknown reason, using just "vm_snapshots" returns empty list: []
+        new_snaps = vm_snapshots[
+            :
+        ]  # for some unknown reason, using just "vm_snapshots" returns empty list: []
         if params["vm_name"]:
-            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["vm"]["name"] == params["vm_name"]]
+            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["vm"]["name"] == params["vm_name"]]  # type: ignore
         if params["serial"]:
-            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["vm"]["snapshot_serial_number"] == params["serial"]]
+            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["vm"]["snapshot_serial_number"] == params["serial"]]  # type: ignore
         if params["label"]:
-            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["label"] == params["label"]]
+            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["label"] == params["label"]]  # type: ignore
 
         return new_snaps

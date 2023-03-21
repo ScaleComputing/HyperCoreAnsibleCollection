@@ -45,7 +45,7 @@ EXAMPLES = r"""
 - name: List all VM snapshots on HyperCore API
   scale_computing.hypercore.vm_snapshot_info:
   register: vm_snapshot
-  
+
 - name: List all VM snapshots on HyperCore API with label="example-label"
   scale_computing.hypercore.vm_snapshot_info:
     label: example-label
@@ -55,12 +55,12 @@ EXAMPLES = r"""
   scale_computing.hypercore.vm_snapshot_info:
     vm_name: example-vm
   register: vm_snapshot
-  
+
 - name: List all VM snapshots on HyperCore API with serial=0
   scale_computing.hypercore.vm_snapshot_info:
     serial: 0
   register: vm_snapshot
-  
+
 - name: >-
     List all VM snapshots on HyperCore API with
     label="example-label", vm_name="example-vm", serial=0
