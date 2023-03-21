@@ -9,6 +9,7 @@ from __future__ import annotations
 __metaclass__ = type
 
 import json
+import ssl
 from typing import Any, Optional, Union
 
 from ansible.module_utils.urls import Request, basic_auth_header
@@ -141,6 +142,13 @@ class Client:
                 and type(e.args[0]) == ConnectionResetError
             ):
                 raise ConnectionResetError(e)
+            elif (
+                e.args
+                and isinstance(e.args, tuple)
+                and type(e.args[0])
+                in [ssl.SSLEOFError, ssl.SSLZeroReturnError, ssl.SSLSyscallError]
+            ):
+                raise type(e.args[0])(e)
             raise ScaleComputingError(e.reason)
         return Response(raw_resp.status, raw_resp.read(), raw_resp.headers)
 

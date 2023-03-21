@@ -116,28 +116,14 @@ def ensure_present(
             )
             sleep(2)
             continue
-        except errors.ScaleComputingError as ex:
+        except (ssl.SSLEOFError, ssl.SSLZeroReturnError, ssl.SSLSyscallError) as ex:
             # Ignore "EOF occurred in violation of protocol (_ssl.c:997)"
-            # Also other have same problem - https://github.com/psf/requests/issues/3006#issuecomment-183394849.
-            # We do not use requests library, but problem is the same.
-            # ex.args - this is what Exception.__init__() stores into object.
-            ex_reason = ex.args[0]
-            # ex_reason is instance of SSLEOFError or ssl.SSLEOFError
-            strerror = ex_reason.strerror
-            if (
-                "EOF occurred in violation of protocol" in strerror
-                and "ssl.c" in strerror
-            ):
-                module.warn(
-                    f"retry {ii}/{max_retries}, SSLEOFError - ignore and continue"
-                )
-                sleep(2)
-                continue
-            else:
-                module.warn(
-                    f"retry {ii}/{max_retries}, re-raise unexpected exception" + str(ex)
-                )
-                raise
+            # Alternative message "TLS/SSL connection has been closed (EOF) (_ssl.c:1129)".
+            module.warn(
+                f"retry {ii}/{max_retries}, SSL error {ex.__class__.__name__} - ignore and continue"
+            )
+            sleep(2)
+            continue
     after: TypedCertificateToAnsible = dict(certificate=get_certificate(module))
     return True, after, dict(before=before, after=after)
 

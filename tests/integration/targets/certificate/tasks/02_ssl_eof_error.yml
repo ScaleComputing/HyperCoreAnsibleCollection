@@ -68,7 +68,7 @@
           # - certificate_info.record.certificate != default_cert_info.cert
           - "{{ certificate_info.record.certificate | replace('\n','') == lookup('file', 'certificate_example.crt') | replace('\n','') }}"
           - certificate_info.warnings | length >= 1
-          - certificate_info.warnings[0] == "retry 0/10, SSLEOFError - ignore and continue"
+          - certificate_info.warnings[0] == "retry 0/10, SSL error SSLZeroReturnError - ignore and continue"
 
     - name: Get new / uploaded cert from cluster
       community.crypto.get_certificate:
