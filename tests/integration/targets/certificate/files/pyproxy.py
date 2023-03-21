@@ -44,8 +44,8 @@ def udp_proxy(src, dst):
     dst -- Destination IP address and port. I.e.: '127.0.0.1:8888'
     """
     LOGGER.debug("Starting UDP proxy...")
-    LOGGER.debug("Src: {}".format(src))
-    LOGGER.debug("Dst: {}".format(dst))
+    LOGGER.debug("Src: %s", src)
+    LOGGER.debug("Dst: %s", dst)
 
     proxy_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     proxy_socket.bind(ip_to_tuple(src))
@@ -68,7 +68,7 @@ def udp_proxy(src, dst):
             proxy_socket.sendto(data, client_address)
             client_address = None
         else:
-            LOGGER.warning("Unknown address: {}".format(str(address)))
+            LOGGER.warning("Unknown address: %s", str(address))
 
 
 # end-of-function udp_proxy
@@ -82,8 +82,8 @@ def tcp_proxy(src, dst):
     dst -- Destination IP address and port. I.e.: '127.0.0.1:8888'
     """
     LOGGER.debug("Starting TCP proxy...")
-    LOGGER.debug("Src: {}".format(src))
-    LOGGER.debug("Dst: {}".format(dst))
+    LOGGER.debug("Src: %s", src)
+    LOGGER.debug("Dst: %s", dst)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -100,8 +100,8 @@ def tcp_proxy(src, dst):
 
 
 def tcp_proxy_one_conn(s, dst, connection_count):
-    s_src, _ = s.accept()
-    LOGGER.info(f"New connection from {s_src.getpeername()}")
+    s_src, _ignored1 = s.accept()
+    LOGGER.info("New connection from %s", s_src.getpeername())
 
     s_dst = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -111,7 +111,7 @@ def tcp_proxy_one_conn(s, dst, connection_count):
         # Alternative - forward ConnectionRefusedError to our client,
         # by not listening on src if dest is not available.
         # But how to detect in realtime dest is not available?
-        LOGGER.warning(f"ConnectionRefusedError for {dst}, ignore and retry")
+        LOGGER.warning("ConnectionRefusedError for %s, ignore and retry", dst)
         time.sleep(1)
         pass
 
@@ -122,7 +122,7 @@ def tcp_proxy_one_conn(s, dst, connection_count):
 
     restart = False
     while True:
-        s_read, _, _ = select.select(sockets, [], [])
+        s_read, _ignored2, _ignored3 = select.select(sockets, [], [])
         # source = "SRC" if s_read == s_src else "DST"
         # LOGGER.debug('select from {}'.format(source))
 
@@ -130,7 +130,7 @@ def tcp_proxy_one_conn(s, dst, connection_count):
             try:
                 data = s.recv(BUFFER_SIZE)
             except ConnectionResetError:
-                LOGGER.info(f"ConnectionResetError on socket {s}, close and restart")
+                LOGGER.info("ConnectionResetError on socket %s, close and restart", s)
                 restart = True
                 break
 
@@ -143,7 +143,7 @@ def tcp_proxy_one_conn(s, dst, connection_count):
                 try:
                     s_dst.sendall(d)
                 except BrokenPipeError:
-                    LOGGER.warning(f"BrokenPipeError for {s_dst}, ignore and restart")
+                    LOGGER.warning("BrokenPipeError for %s, ignore and restart", s_dst)
                     restart = True
                     break
             elif s == s_dst:
@@ -154,7 +154,7 @@ def tcp_proxy_one_conn(s, dst, connection_count):
                     break
                 if inject_ssl_eof_error(connection_count):
                     LOGGER.info(
-                        f"Injecting SSL EOF to connection {s_src.getpeername()}"
+                        "Injecting SSL EOF to connection %s", s_src.getpeername()
                     )
                     restart = True
                     break
@@ -163,7 +163,7 @@ def tcp_proxy_one_conn(s, dst, connection_count):
         if restart:
             break
     for sock in sockets:
-        LOGGER.info(f"Closing connection {sock}")
+        LOGGER.info("Closing connection %s", sock)
         try:
             sock.shutdown(socket.SHUT_RDWR)
         except OSError:
