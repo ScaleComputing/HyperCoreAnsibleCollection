@@ -44,8 +44,10 @@
         src: files/pyproxy.py
         dest: /tmp/pyproxy.py
 
+    # this is needed only when testing locally
     - name: kill pyproxy.py before
       ansible.builtin.shell: sudo kill $(pgrep -f '{{ pyproxy_cmd }}')
+      failed_when: false
 
     - name: run pyproxy.py
       ansible.builtin.command: "sudo {{ pyproxy_cmd }}"
