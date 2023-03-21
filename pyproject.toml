@@ -76,3 +76,8 @@ module = [
     "plugins.module_utils.email_alert"
 ]
 disable_error_code = ["no-untyped-def", "no-untyped-call", "assignment", "type-arg", "var-annotated", "import", "misc", "arg-type", "dict-item", "override", "union-attr", "valid-type", "no-any-return"]
+
+[tool.black]
+target-version = ["py38"]
+# exclude - a regex like 'plugins/inventory/hypercore.py|second.py'
+exclude = 'plugins/inventory/hypercore.py'
