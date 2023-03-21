@@ -41,7 +41,7 @@ jobs:
   # to delay integ-test until integration-prepare-env finishes.
   integration-prepare-env:
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     env:
       ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
     defaults:
@@ -68,7 +68,7 @@ jobs:
 
   integ-matrix:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -97,7 +97,7 @@ jobs:
 
   examples-matrix:
     runs-on: [ ubuntu-latest ]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -125,7 +125,7 @@ jobs:
     needs:
       - examples-matrix
     runs-on: [ self-hosted2 ]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     env:
       ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
       DEBIAN_FRONTEND: noninteractive
@@ -164,7 +164,7 @@ jobs:
       - integ-matrix
       # - units-test
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     env:
       DEBIAN_FRONTEND: noninteractive
     defaults:
@@ -203,7 +203,7 @@ jobs:
     needs:
       - integ
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     env:
       ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
     defaults:
@@ -230,7 +230,7 @@ jobs:
     needs:
       - integ
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
