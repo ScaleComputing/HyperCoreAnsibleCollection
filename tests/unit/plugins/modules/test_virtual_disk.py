@@ -383,8 +383,8 @@ class TestMain:
             cluster_instance=dict(
                 host="https://my.host.name", username="user", password="pass"
             ),
-            file_name=file_location_test,
-            file_location=file_name_test,
+            name=file_location_test,
+            source=file_name_test,
             state=state_test,
         )
         mocker.patch(
@@ -486,8 +486,8 @@ class TestRun:
                 cluster_instance=dict(
                     host="https://my.host.name", username="user", password="pass"
                 ),
-                file_name="foobar.qcow2",
-                file_location="c:/somewhere/foobar.qcow2",
+                name="foobar.qcow2",
+                source="c:/somewhere/foobar.qcow2",
                 state=state_test,
             )
         )
@@ -1195,8 +1195,8 @@ class TestEnsurePresent:
                 cluster_instance=dict(
                     host="https://my.host.name", username="user", password="pass"
                 ),
-                file_name="foobar.qcow2",
-                file_location="c:/somewhere/foobar.qcow2",
+                name="foobar.qcow2",
+                source="c:/somewhere/foobar.qcow2",
                 state="present",
             )
         )
@@ -1233,7 +1233,7 @@ class TestEnsurePresent:
         if expected_exception:
             with pytest.raises(
                 ScaleComputingError,
-                match=f"Invalid content or size for file: {module.params['file_name']}",
+                match=f"Invalid content or size for file: {module.params['source']}",
             ):
                 virtual_disk.ensure_present(
                     module, rest_client, cluster_before_virtual_disk_obj
@@ -1397,8 +1397,8 @@ class TestEnsureAbsent:
                 cluster_instance=dict(
                     host="https://my.host.name", username="user", password="pass"
                 ),
-                file_name="foobar.qcow2",
-                file_location="c:/somewhere/foobar.qcow2",
+                name="foobar.qcow2",
+                source="c:/somewhere/foobar.qcow2",
                 state="absent",
             )
         )
@@ -1629,8 +1629,8 @@ class TestWaitTaskAndGetUpdated:
                 cluster_instance=dict(
                     host="https://my.host.name", username="user", password="pass"
                 ),
-                file_name="foobar.qcow2",
-                file_location="c:/somewhere/foobar.qcow2",
+                name="foobar.qcow2",
+                source="c:/somewhere/foobar.qcow2",
                 state="present",
             )
         )
@@ -1712,15 +1712,15 @@ class TestReadDiskFile:
                 cluster_instance=dict(
                     host="https://my.host.name", username="user", password="pass"
                 ),
-                file_name="foobar.qcow2",
-                file_location=file_location,
+                name="foobar.qcow2",
+                source=file_location,
                 state="present",
             )
         )
         if expected_exception:
             with pytest.raises(
                 ScaleComputingError,
-                match=f"Disk file {module.params['file_location']} not found.",
+                match=f"Disk file {module.params['source']} not found.",
             ):
                 virtual_disk.read_disk_file(module)
         else:

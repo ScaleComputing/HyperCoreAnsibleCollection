@@ -15,7 +15,6 @@ from ..module_utils.typed_classes import (
 )
 from typing import Dict, List, Any, Optional
 
-from ansible.module_utils.basic import AnsibleModule
 from .rest_client import RestClient
 from ..module_utils.utils import PayloadMapper
 from ..module_utils import errors
@@ -134,26 +133,21 @@ class VirtualDisk(PayloadMapper):
     # Filename and filesize need to be send as parameters in PUT request.
     @staticmethod
     def send_upload_request(
-        rest_client: RestClient, file_size: int, module: AnsibleModule
+        rest_client: RestClient, content: bytes, file_size: int, file_name: str
     ) -> TypedTaskTag:
-        if (
-            file_size is None
-            or not module.params["name"]
-            or not module.params["source"]
-        ):
+        if file_size is None or not file_name or content is None:
             raise errors.ScaleComputingError(
                 "Missing some virtual disk file values inside upload request."
             )
-        with open(module.params["source"], "rb") as source_file:
-            response = rest_client.put_record(
-                endpoint="/rest/v1/VirtualDisk/upload",
-                payload=None,
-                check_mode=False,
-                query=dict(filename=module.params["name"], filesize=file_size),
-                timeout=REQUEST_TIMEOUT_TIME,
-                binary_data=source_file,
-            )
-        return response
+        # TODO: Fix loading file into RAM; use "open with" instead.
+        return rest_client.put_record(
+            endpoint="/rest/v1/VirtualDisk/upload",
+            payload=None,
+            check_mode=False,
+            query=dict(filename=file_name, filesize=file_size),
+            timeout=REQUEST_TIMEOUT_TIME,
+            binary_data=content,
+        )
 
     def send_delete_request(self, rest_client: RestClient) -> TypedTaskTag:
         if not self.uuid:

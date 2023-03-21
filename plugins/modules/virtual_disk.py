@@ -46,15 +46,14 @@ EXAMPLES = r"""
 - name: upload VD to HyperCore cluster
   scale_computing.hypercore.virtual_disk:
     state: present
-    file_name: foobar.qcow2
-    file_location: "c:/files/foobar.qcow2"
+    name: foobar.qcow2
+    source: "c:/files/foobar.qcow2"
   register: vd_upload_info
 
 - name: Delete VD from HyperCore cluster
   scale_computing.hypercore.virtual_disk:
     state: absent
-    file_name: foobar.qcow2
-    file_location: "c:/files/foobar.qcow2"
+    name: foobar.qcow2
   register: vd_delete_info
 """
 
@@ -99,11 +98,14 @@ HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"
 def read_disk_file(module: AnsibleModule) -> Tuple[bytes, int]:
     try:
         file_size = os.path.getsize(module.params["source"])
+        f = open(module.params["source"], "rb")
+        content = f.read()
+        f.close()
     except FileNotFoundError:
         raise errors.ScaleComputingError(
             f"Disk file {module.params['source']} not found."
         )
-    return file_size
+    return content, file_size
 
 
 def wait_task_and_get_updated(
@@ -130,12 +132,14 @@ def ensure_present(
         before = virtual_disk_obj.to_ansible()
         return False, before, dict(before=before, after=before)
     else:
-        file_size = read_disk_file(module)
-        if not file_size:
+        file_content, file_size = read_disk_file(module)
+        if not file_size or not file_content:
             raise errors.ScaleComputingError(
-                f"Invalid size for file: {module.params['name']}"
+                f"Invalid content or size for file: {module.params['source']}"
             )
-        task = VirtualDisk.send_upload_request(rest_client, file_size, module)
+        task = VirtualDisk.send_upload_request(
+            rest_client, file_content, file_size, module.params["name"]
+        )
         after = wait_task_and_get_updated(rest_client, module, task, must_exist=False)
         return is_changed(before, after), after, dict(before=before, after=after)
 

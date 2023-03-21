@@ -59,7 +59,7 @@
           - uploaded_virtual_disk.record.name == "xlab-ci-test-VD.qcow2"
           - uploaded_virtual_disk.record.block_size == 1048576
           - uploaded_virtual_disk.record.replication_factor == 2
-          - uploaded_virtual_disk.record.size == 104857600
+          - uploaded_virtual_disk.record.size == 10485760
 
     - name: Assert that virtual disk .qcow2 exist on cluster
       scale_computing.hypercore.virtual_disk_info:
@@ -74,7 +74,7 @@
           - virtual_disk_file.records.0.name == "xlab-ci-test-VD.qcow2"
           - virtual_disk_file.records.0.block_size == 1048576
           - virtual_disk_file.records.0.replication_factor == 2
-          - virtual_disk_file.records.0.size == 104857600
+          - virtual_disk_file.records.0.size == 10485760
           - "{{ virtual_disk_file.records.0.uuid == uploaded_virtual_disk.record.uuid }}"
 
 # ----------------------------------Idempotence check----------------------------------------------------------
@@ -87,12 +87,12 @@
     - ansible.builtin.assert:
         that:
           - uploaded_virtual_disk is succeeded
-          - uploaded_virtual_disk is changed
+          - uploaded_virtual_disk is not changed
           - uploaded_virtual_disk.record.keys() | sort == ['block_size', 'name', 'replication_factor', 'size', 'uuid']
           - uploaded_virtual_disk.record.name == "xlab-ci-test-VD.qcow2"
           - uploaded_virtual_disk.record.block_size == 1048576
           - uploaded_virtual_disk.record.replication_factor == 2
-          - uploaded_virtual_disk.record.size == 104857600
+          - uploaded_virtual_disk.record.size == 10485760
           - uploaded_virtual_disk.diff.before == uploaded_virtual_disk.diff.after
 
     - name: Assert that virtual disk .qcow2 exist on cluster - IDEMPOTENCE
@@ -108,7 +108,7 @@
           - virtual_disk_file.records.0.name == "xlab-ci-test-VD.qcow2"
           - virtual_disk_file.records.0.block_size == 1048576
           - virtual_disk_file.records.0.replication_factor == 2
-          - virtual_disk_file.records.0.size == 104857600
+          - virtual_disk_file.records.0.size == 10485760
           - "{{ virtual_disk_file.records.0.uuid == uploaded_virtual_disk.record.uuid }}"
 
 # ----------------------------------Job------------------------------------------------------------------------
@@ -126,7 +126,7 @@
           - uploaded_virtual_disk.record.name == "xlab-ci-test-VD.vmdk"
           - uploaded_virtual_disk.record.block_size == 1048576
           - uploaded_virtual_disk.record.replication_factor == 2
-          - uploaded_virtual_disk.record.size == 104857600
+          - uploaded_virtual_disk.record.size == 10485760
 
     - name: Assert that virtual disk .vmdk exist on cluster
       scale_computing.hypercore.virtual_disk_info:
@@ -141,7 +141,7 @@
           - virtual_disk_file.records.0.name == "xlab-ci-test-VD.vmdk"
           - virtual_disk_file.records.0.block_size == 1048576
           - virtual_disk_file.records.0.replication_factor == 2
-          - virtual_disk_file.records.0.size == 104857600
+          - virtual_disk_file.records.0.size == 10485760
           - "{{ virtual_disk_file.records.0.uuid == uploaded_virtual_disk.record.uuid }}"
 
 # ----------------------------------Idempotence check----------------------------------------------------------
@@ -154,12 +154,12 @@
     - ansible.builtin.assert:
         that:
           - uploaded_virtual_disk is succeeded
-          - uploaded_virtual_disk is changed
+          - uploaded_virtual_disk is not changed
           - uploaded_virtual_disk.record.keys() | sort == ['block_size', 'name', 'replication_factor', 'size', 'uuid']
           - uploaded_virtual_disk.record.name == "xlab-ci-test-VD.vmdk"
           - uploaded_virtual_disk.record.block_size == 1048576
           - uploaded_virtual_disk.record.replication_factor == 2
-          - uploaded_virtual_disk.record.size == 104857600
+          - uploaded_virtual_disk.record.size == 10485760
           - uploaded_virtual_disk.diff.before == uploaded_virtual_disk.diff.after
 
     - name: Assert that virtual disk .vmdk exist on cluster - IDEMPOTENCE
@@ -175,7 +175,7 @@
           - virtual_disk_file.records.0.name == "xlab-ci-test-VD.vmdk"
           - virtual_disk_file.records.0.block_size == 1048576
           - virtual_disk_file.records.0.replication_factor == 2
-          - virtual_disk_file.records.0.size == 104857600
+          - virtual_disk_file.records.0.size == 10485760
           - "{{ virtual_disk_file.records.0.uuid == uploaded_virtual_disk.record.uuid }}"
 
 # ----------------------------------Job------------------------------------------------------------------------
