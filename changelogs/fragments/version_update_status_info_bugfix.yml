@@ -1,0 +1,3 @@
+---
+bugfixes:
+  - This fix now handles case if no update_status.json exists yet. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/174)
