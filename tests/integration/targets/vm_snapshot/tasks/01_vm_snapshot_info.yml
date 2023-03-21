@@ -143,21 +143,23 @@
     # ======= Test all parameters present =========
     - name: >-
         List all VM snapshots with label, vm_name, serial = "snap-0,
-        snapshot-test-vm-1, 3"
+        snapshot-test-vm-1, 1"
       scale_computing.hypercore.vm_snapshot_info:
         label: snap-0
-        serial: 3
+        serial: 1
         vm_name: snapshot-test-vm-1
       register: vm_snapshots
     - ansible.builtin.debug:
-        var: vm_snapshots.records
+        msg:
+          - "{{ vm_snapshots.records }}"
+          - "{{ vm_snapshots.records | length }}"
     - ansible.builtin.assert: *assert-existing
     - ansible.builtin.assert:
         that:
           - vm_snapshots.records | length == 1
           - vm_snapshots.records[0].label == "snap-0"
           - vm_snapshots.records[0].domain.name == "snapshot-test-vm-1"
-          - vm_snapshots.records[0].domain.snapshotSerialNumber == 3
+          - vm_snapshots.records[0].domain.snapshotSerialNumber == 1
 
     - name: List all VM snapshots with nonexistent label, vm_name, serial
       scale_computing.hypercore.vm_snapshot_info:
