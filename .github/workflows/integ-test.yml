@@ -1,6 +1,5 @@
 name: integ-test
 on:
-  push:
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
@@ -125,8 +124,8 @@ jobs:
     if: "${{ github.event.inputs || github.event.schedule }}"
 
   examples-run:
-    needs: []
-#      - examples-matrix
+    needs:
+      - examples-matrix
     runs-on: [ self-hosted2 ]
     container: quay.io/justinc1_github/scale_ci_integ:2
     env:
@@ -139,8 +138,7 @@ jobs:
       fail-fast: false
       matrix:
         ansible: [ 2.13.0 ]
-#        example_name: ${{ fromJson(needs.examples-matrix.outputs.matrix) }}
-        example_name: ["iso_info.yml"]
+        example_name: ${{ fromJson(needs.examples-matrix.outputs.matrix) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -173,8 +171,8 @@ jobs:
           ansible-playbook -i localhost, -e hypercore_example_check_mode=true examples/${{ matrix.example_name }}
 
   integ:
-    needs: []
-#      - integ-matrix
+    needs:
+      - integ-matrix
       # - units-test
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:2
@@ -188,8 +186,8 @@ jobs:
       matrix:
         ansible: [2.13.0]
         # python: [3.11]
-        test_name: ["virtual_disk_info", "cluster_info"]
-#        test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
+        # test_name: [user_info]
+        test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
         sc_host:
           - https://10.5.11.200
           - https://10.5.11.201
