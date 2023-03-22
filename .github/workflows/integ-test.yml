@@ -58,9 +58,9 @@ jobs:
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
-          sc_host: https://10.5.11.50
-          sc_username: xlab
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          sc_host: https://10.5.11.200
+          sc_username: admin
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
@@ -154,9 +154,9 @@ jobs:
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
-          sc_host: https://10.5.11.50
-          sc_username: xlab
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          sc_host: https://10.5.11.200
+          sc_username: admin
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
@@ -205,9 +205,9 @@ jobs:
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
-          sc_host: https://10.5.11.50
-          sc_username: xlab
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          sc_host: https://10.5.11.200
+          sc_username: admin
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
@@ -234,9 +234,9 @@ jobs:
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
-          sc_host: https://10.5.11.50
-          sc_username: xlab
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          sc_host: https://10.5.11.200
+          sc_username: admin
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
@@ -260,9 +260,9 @@ jobs:
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
-          sc_host: https://10.5.11.50
-          sc_username: xlab
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          sc_host: https://10.5.11.200
+          sc_username: admin
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
