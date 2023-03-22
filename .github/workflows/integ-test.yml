@@ -190,6 +190,9 @@ jobs:
         # python: [3.11]
         test_name: ["virtual_disk_info", "cluster_info"]
 #        test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
+        sc_host:
+          - https://10.5.11.200
+          - https://10.5.11.201
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -205,7 +208,7 @@ jobs:
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
-          sc_host: https://10.5.11.200
+          sc_host: ${{ matrix.sc_host }}
           sc_username: admin
           sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
