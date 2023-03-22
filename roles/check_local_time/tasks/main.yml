@@ -1,24 +1,31 @@
 ---
-- environment:
-    SC_HOST: "{{ sc_host }}"
-    SC_USERNAME: "{{ sc_username }}"
-    SC_PASSWORD: "{{ sc_password }}"
-    SC_TIMEOUT: "{{ sc_timeout }}"
+- name: Is executable python3
+  ansible.builtin.shell: which python3
+  register: executable
+  ignore_errors: True  # if there is no python3, the shell will fail
 
-  block:
-    - name: Get Time Zone
-      scale_computing.hypercore.time_zone_info:
-      register: time_zone
+- name: Is executable python
+  ansible.builtin.shell: which python
+  register: executable_python
+  ignore_errors: True  # if there is no python, the shell will fail
 
-    - name: Check if local time is in time interval (run check_local_time.py)
-      ansible.builtin.script:
-        executable: python
-        cmd: check_local_time.py "{{ time_zone }}" "{{ time_interval }}"
-      register: local_time_output
-    
-    - name: Assert that local time is in time interval
-      ansible.builtin.assert:
-        fail_msg: Local time is not in required time interval
-        success_msg: Local time is in required time interval
-        that:
-         - local_time_output.stdout_lines[0] == "True"
+- name: If not python3, then set executable to python
+  ansible.builtin.set_fact: executable="{{ executable_python }}"
+  when: not executable.stdout_lines
+
+- name: Check if local time is in time interval (run check_local_time.py)
+  ansible.builtin.script:
+    executable: "{{ executable.stdout_lines[0] }}"
+    cmd: check_local_time.py "{{ time_zone }}" "{{ time_interval }}"
+  register: local_time_output
+
+- name: Assert that local time is in time interval
+  ansible.builtin.assert:
+    fail_msg: "Local time for time zone {{ time_zone }} is not in required time interval {{ time_interval }}"
+    success_msg: "Local time for time zone {{ time_zone }} is in required time interval {{ time_interval }}"
+    that:
+      - local_time_output.stdout_lines[0] == "True"
+  register: result
+
+- name: Set fact to use in tests
+  ansible.builtin.set_fact: local_time_msg="{{ result.msg }}"
