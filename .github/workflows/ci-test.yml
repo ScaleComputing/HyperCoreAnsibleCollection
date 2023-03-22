@@ -38,7 +38,7 @@ jobs:
       - run: apt install -y git make rsync
       - run: make docs
         env:
-          ANSIBLE_COLLECTIONS_PATH: /work-dir
+          ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
       - run: ls -al docs/build/html
 
   sanity-test:

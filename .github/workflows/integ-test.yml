@@ -43,7 +43,7 @@ jobs:
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:1
     env:
-      ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
+      ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -127,7 +127,7 @@ jobs:
     runs-on: [ self-hosted2 ]
     container: quay.io/justinc1_github/scale_ci_integ:1
     env:
-      ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
+      ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
       DEBIAN_FRONTEND: noninteractive
     defaults:
       run:
@@ -205,7 +205,7 @@ jobs:
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:1
     env:
-      ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
+      ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
