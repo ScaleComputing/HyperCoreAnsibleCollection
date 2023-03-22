@@ -125,6 +125,7 @@ def ensure_present(module, rest_client):
     TaskTag.wait_task(rest_client, task_tag_create)
 
     # Uploading ISO image.
+    file_size = os.stat(module.params["source"]).st_size
     with open(module.params["source"], "rb") as source_file:
         rest_client.put_record(
             endpoint="/rest/v1/ISO/%s/data" % iso_uuid,
@@ -135,6 +136,7 @@ def ensure_present(module, rest_client):
             headers={
                 "Content-Type": "application/octet-stream",
                 "Accept": "application/json",
+                "Content-Length": file_size,
             },
         )
 
