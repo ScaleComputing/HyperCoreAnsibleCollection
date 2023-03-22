@@ -1,7 +1,8 @@
-# cluster_config
+# check_local_time
 
 Role check_local_time can be used to:
 - check if local time in provided time zone is located within required time interval
+- ensure certain tasks/playbooks are executed only during allowed time interval. For example, HyperCore version upgrade might be allowed only outside of business hours.
 
 ## Requirements
 
