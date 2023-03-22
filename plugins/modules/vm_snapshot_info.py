@@ -20,8 +20,8 @@ description:
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
-seealso:
-  - module: scale_computing.hypercore.vm_snapshot
+seealso: []
+  # - module: scale_computing.hypercore.vm_snapshot
 options:
   vm_name:
     type: str
