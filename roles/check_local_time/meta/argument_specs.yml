@@ -1,5 +1,5 @@
+---
 argument_specs:
-
   main:
     short_description: Check if local time meets the required time interval
     description:
