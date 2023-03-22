@@ -1,0 +1,54 @@
+---
+name: 'Create ansible-test integration_config.yml'
+description: 'Create ansible-test integration_config.yml'
+inputs:
+  ci_config_all:
+    description: 'CI config for all yperCore hosts'
+    required: true
+  sc_host:  # id of input
+    description: 'SC_HOST environ variable'
+    required: true
+    # default: 'World'
+  sc_username:
+    description: 'sc_username variable'
+    required: true
+  sc_password:
+    description: 'sc_password variable'
+    required: true
+  smb_password:
+    description: 'smb_password variable'
+    required: true
+  sc_replication_dest_password:
+    description: 'sc_replication_dest_password variable'
+    required: true
+  working_directory:
+    description: 'Path to working directory'
+    required: true
+#outputs:
+#  integ_config:
+#    description: "Random number"
+#    value: ${{ steps.random-number-generator.outputs.random-number }}
+runs:
+  using: "composite"
+  steps:
+    - run: echo Creating integration-config.yml for sc_host=${{ inputs.sc_host }}.
+      shell: bash
+#    - id: random-number-generator
+#      run: echo "random-number=$(echo $RANDOM)" >> $GITHUB_OUTPUT
+#      shell: bash
+#    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
+#      shell: bash
+    - run: |
+        cd ${{ inputs.working_directory }}
+        echo "${{ inputs.ci_config_all }}" > tests/integration/integration_config.yml
+        cat tests/integration/integration_config.yml
+        echo "sc_host: ${{ inputs.sc_host }}" >> tests/integration/integration_config.yml
+        echo "sc_username: ${{ inputs.sc_username }}" >> tests/integration/integration_config.yml
+        echo "sc_password: ${{ inputs.sc_password }}" >> tests/integration/integration_config.yml
+        echo "smb_password: ${{ inputs.smb_password }}" >> tests/integration/integration_config.yml
+        echo "sc_replication_dest_password: ${{ inputs.sc_replication_dest_password }}" >> tests/integration/integration_config.yml
+        pwd
+        ls -al tests/integration/integration_config.yml
+      shell: bash
+#    - run: goodbye.sh
+#      shell: bash

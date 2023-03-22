@@ -55,13 +55,15 @@ jobs:
           path: ${{ env.WORKDIR }}
       - run: ansible-galaxy collection install community.crypto community.general
       - run: ansible-galaxy collection list
-      - run: |
-          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
-          cat tests/integration/integration_config.yml
-          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
-          ls -al tests/integration/integration_config.yml
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
+          sc_host: https://10.5.11.50
+          sc_username: xlab
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          working_directory: ${{ env.WORKDIR }}
       - run: ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: ansible-playbook tests/integration/prepare/prepare_vm.yml
       - run: ansible-playbook tests/integration/prepare/prepare_examples.yml
@@ -147,13 +149,22 @@ jobs:
       - run: pip install ansible-core~=${{ matrix.ansible }}
       - run: ansible-galaxy collection install community.crypto community.general
       - run: ansible-galaxy collection list
+
+      # ${{ env.WORKDIR }} cannot be used
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
+          sc_host: https://10.5.11.50
+          sc_username: xlab
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          working_directory: ${{ env.WORKDIR }}
       - run: |
-          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
-          cat tests/integration/integration_config.yml
-          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
+          pwd
           ls -al tests/integration/integration_config.yml
+          head tests/integration/integration_config.yml
+
       - run: |
           eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
           eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_username')
@@ -190,14 +201,16 @@ jobs:
       # But it does affect ansible-galaxy and ansible-test commands.
       - run: ansible-galaxy collection install community.crypto
       - run: ansible-galaxy collection list
-        # TODO - make integration_config.yml a reusable artifact/output of integration-prepare-env
-      - run: |
-          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
-          cat tests/integration/integration_config.yml
-          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
-          ls -al tests/integration/integration_config.yml
+      # ${{ env.WORKDIR }} cannot be used
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
+          sc_host: https://10.5.11.50
+          sc_username: xlab
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          working_directory: ${{ env.WORKDIR }}
       - run: ansible-test integration --local ${{ matrix.test_name }}
 
 
@@ -217,14 +230,16 @@ jobs:
         with:
           path: ${{ env.WORKDIR }}
       - run: pip install ansible-core~=2.13.0
-        # ansible-test needs special directory structure.
-      - run: |
-          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
-          cat tests/integration/integration_config.yml
-          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
-          ls -al tests/integration/integration_config.yml
+      # ${{ env.WORKDIR }} cannot be used
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
+          sc_host: https://10.5.11.50
+          sc_username: xlab
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          working_directory: ${{ env.WORKDIR }}
       - run: ansible-galaxy collection install community.general
       - run: ansible-playbook tests/integration/cleanup/ci_replica_cleanup.yml
 
@@ -241,13 +256,16 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: |
-          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
-          cat tests/integration/integration_config.yml
-          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
-          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
-          ls -al tests/integration/integration_config.yml
+      # ${{ env.WORKDIR }} cannot be used
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
+          sc_host: https://10.5.11.50
+          sc_username: xlab
+          sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          working_directory: ${{ env.WORKDIR }}
       - run: |
           cd tests/integration/cleanup && ./smb_cleanup.sh \
             "$(cat ../integration_config.yml | yq '.smb_server' | sed -e 's/^"//' -e 's/"$//')" \
