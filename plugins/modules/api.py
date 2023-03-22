@@ -180,6 +180,7 @@ records:
 
 
 from ansible.module_utils.basic import AnsibleModule
+import os
 
 from ..module_utils import errors, arguments
 from ..module_utils.client import Client
@@ -260,6 +261,7 @@ PUT_TIMEOUT_TIME = 3600
 
 
 def put_record(module, rest_client):
+    file_size = os.stat(module.params["source"]).st_size
     with open(module.params["source"], "rb") as source_file:
         result = rest_client.put_record(
             endpoint=module.params["endpoint"],
@@ -271,6 +273,7 @@ def put_record(module, rest_client):
             headers={
                 "Content-Type": "application/octet-stream",
                 "Accept": "application/json",
+                "Content-Length": file_size,
             },
         )
     return True, result
