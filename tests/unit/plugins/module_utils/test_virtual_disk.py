@@ -595,78 +595,99 @@ class TestGetByName:
 
 class TestSendUploadRequest:
     @pytest.mark.parametrize(
-        # file_content                      ... virtual disk file content
+        # file_source                       ... virtual disk file location
         # file_size                         ... virtual disk file size
         # file_name                         ... virtual disk file name
         # expected_exception                ... expected missing values exception
         # expected_result                   ... expected send_upload_request() return (empty task tag)
         (
-            "file_content",
+            "file_source",
             "file_size",
             "file_name",
             "expected_exception",
             "expected_result",
         ),
         [
-            (bytes(123), 1024, "foobar.qcow2", False, dict(createdUUID="", taskTag="")),
             (
-                bytes(456),
+                "c:/files/foobar.qcow2",
+                1024,
+                "foobar.qcow2",
+                False,
+                dict(createdUUID="", taskTag=""),
+            ),
+            (
+                "c:/files/foobar.vhd",
                 3 * 1024,
                 "foobar.vhd",
                 False,
                 dict(createdUUID="", taskTag=""),
             ),
             (
-                bytes(123),
+                "c:/files/foobar.vhdx",
                 999999,
                 "foobar.xvhd",
                 False,
                 dict(createdUUID="", taskTag=""),
             ),
             (
-                bytes(123),
+                "c:/files/foobar.img",
                 10111124,
                 "foobar.img",
                 False,
                 dict(createdUUID="", taskTag=""),
             ),
             (
-                bytes(123),
+                "c:/files/foobar.vmdk",
                 10222224,
                 "foobar.vmdk",
                 False,
                 dict(createdUUID="", taskTag=""),
             ),
             # Missing values exception
-            (None, 1024, "foobar.qcow2", True, dict(createdUUID="", taskTag="")),
-            (bytes(456), None, "foobar.vhd", True, dict(createdUUID="", taskTag="")),
-            (bytes(123), 999999, None, True, dict(createdUUID="", taskTag="")),
+            (
+                "c:/files/foobar.vhd",
+                None,
+                "foobar.vhd",
+                True,
+                dict(createdUUID="", taskTag=""),
+            ),
+            (None, 999999, None, True, dict(createdUUID="", taskTag="")),
             (None, None, None, True, dict(createdUUID="", taskTag="")),
         ],
     )
     def test_send_upload_request_virtual_disk(
         self,
         rest_client,
-        file_content,
+        create_module,
+        mocker,
+        file_source,
         file_size,
         file_name,
         expected_exception,
         expected_result,
     ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://my.host.name", username="user", password="pass"
+                ),
+                name=file_name,
+                source=file_source,
+                state="present",
+            )
+        )
+
         if expected_exception:
             with pytest.raises(
                 ScaleComputingError,
                 match="Missing some virtual disk file values inside upload request.",
             ):
-                VirtualDisk.send_upload_request(
-                    rest_client, file_content, file_size, file_name
-                )
+                VirtualDisk.send_upload_request(rest_client, file_size, module)
         else:
             # Mock rest_client.put_record()
             rest_client.put_record.return_value = dict(createdUUID="", taskTag="")
-            result = VirtualDisk.send_upload_request(
-                rest_client, file_content, file_size, file_name
-            )
+            mocker.patch("builtins.open", mocker.mock_open(read_data=bytes(3)))
+            result = VirtualDisk.send_upload_request(rest_client, file_size, module)
             assert isinstance(result, dict)
             assert result == expected_result
 

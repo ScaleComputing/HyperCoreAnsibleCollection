@@ -95,17 +95,14 @@ from ..module_utils.hypercore_version import (
 HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"
 
 
-def read_disk_file(module: AnsibleModule) -> Tuple[bytes, int]:
+def read_disk_file(module: AnsibleModule) -> int:
     try:
         file_size = os.path.getsize(module.params["source"])
-        f = open(module.params["source"], "rb")
-        content = f.read()
-        f.close()
     except FileNotFoundError:
         raise errors.ScaleComputingError(
             f"Disk file {module.params['source']} not found."
         )
-    return content, file_size
+    return file_size
 
 
 def wait_task_and_get_updated(
@@ -132,14 +129,12 @@ def ensure_present(
         before = virtual_disk_obj.to_ansible()
         return False, before, dict(before=before, after=before)
     else:
-        file_content, file_size = read_disk_file(module)
-        if not file_size or not file_content:
+        file_size = read_disk_file(module)
+        if not file_size:
             raise errors.ScaleComputingError(
-                f"Invalid content or size for file: {module.params['source']}"
+                f"Invalid size for file: {module.params['source']}"
             )
-        task = VirtualDisk.send_upload_request(
-            rest_client, file_content, file_size, module.params["name"]
-        )
+        task = VirtualDisk.send_upload_request(rest_client, file_size, module)
         after = wait_task_and_get_updated(rest_client, module, task, must_exist=False)
         return is_changed(before, after), after, dict(before=before, after=after)
 

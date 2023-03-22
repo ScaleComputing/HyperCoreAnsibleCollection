@@ -8,6 +8,7 @@ from __future__ import annotations
 
 __metaclass__ = type
 
+from ansible.module_utils.basic import AnsibleModule
 from ..module_utils.typed_classes import (
     TypedVirtualDiskFromAnsible,
     TypedVirtualDiskToAnsible,
@@ -133,21 +134,36 @@ class VirtualDisk(PayloadMapper):
     # Filename and filesize need to be send as parameters in PUT request.
     @staticmethod
     def send_upload_request(
-        rest_client: RestClient, content: bytes, file_size: int, file_name: str
+        rest_client: RestClient, file_size: int, module: AnsibleModule
     ) -> TypedTaskTag:
-        if file_size is None or not file_name or content is None:
+        if (
+            file_size is None
+            or not module.params["name"]
+            or not module.params["source"]
+        ):
             raise errors.ScaleComputingError(
                 "Missing some virtual disk file values inside upload request."
             )
-        # TODO: Fix loading file into RAM; use "open with" instead.
-        return rest_client.put_record(
-            endpoint="/rest/v1/VirtualDisk/upload",
-            payload=None,
-            check_mode=False,
-            query=dict(filename=file_name, filesize=file_size),
-            timeout=REQUEST_TIMEOUT_TIME,
-            binary_data=content,
-        )
+        try:
+            with open(module.params["source"], "rb") as source_file:
+                task = rest_client.put_record(
+                    endpoint="/rest/v1/VirtualDisk/upload",
+                    payload=None,
+                    check_mode=False,
+                    query=dict(filename=module.params["name"], filesize=file_size),
+                    timeout=REQUEST_TIMEOUT_TIME,
+                    binary_data=source_file,
+                    headers={
+                        "Content-Type": "application/octet-stream",
+                        "Accept": "application/json",
+                        "Content-Length": file_size,
+                    },
+                )
+        except FileNotFoundError:
+            raise errors.ScaleComputingError(
+                f"Disk file {module.params['source']} not found."
+            )
+        return task
 
     def send_delete_request(self, rest_client: RestClient) -> TypedTaskTag:
         if not self.uuid:

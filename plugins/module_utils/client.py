@@ -10,6 +10,7 @@ __metaclass__ = type
 
 import json
 from typing import Any, Optional, Union
+from io import BufferedReader
 
 from ansible.module_utils.urls import Request, basic_auth_header
 
@@ -99,7 +100,7 @@ class Client:
         self,
         method: str,
         path: str,
-        data: Optional[Union[dict[Any, Any], bytes, str]] = None,
+        data: Optional[Union[dict[Any, Any], bytes, str, BufferedReader]] = None,
         headers: Optional[dict[Any, Any]] = None,
         timeout: Optional[float] = None,
     ) -> Response:
@@ -151,7 +152,7 @@ class Client:
         query: Optional[dict[Any, Any]] = None,
         data: Optional[dict[Any, Any]] = None,
         headers: Optional[dict[Any, Any]] = None,
-        binary_data: Optional[bytes] = None,
+        binary_data: Optional[Union[bytes, BufferedReader]] = None,
         timeout: Optional[float] = None,
     ) -> Response:
         # Make sure we only have one kind of payload
@@ -223,7 +224,7 @@ class Client:
         data: Optional[dict[Any, Any]],
         query: Optional[dict[Any, Any]] = None,
         timeout: Optional[float] = None,
-        binary_data: Optional[bytes] = None,
+        binary_data: Optional[Union[bytes, BufferedReader]] = None,
         headers: Optional[dict[Any, Any]] = None,
     ) -> Request:
         resp = self.request(

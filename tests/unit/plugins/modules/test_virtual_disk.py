@@ -542,7 +542,7 @@ class TestEnsurePresent:
                     capacityBytes="1000000",
                     replicationFactor="2",
                 ),
-                dict(file_content="", file_size=""),
+                dict(file_size=""),
                 (
                     False,
                     dict(
@@ -586,7 +586,7 @@ class TestEnsurePresent:
                     capacityBytes="1999999",
                     replicationFactor="1",
                 ),
-                dict(file_content="", file_size=""),
+                dict(file_size=""),
                 (
                     False,
                     dict(
@@ -630,7 +630,7 @@ class TestEnsurePresent:
                     capacityBytes="1999999",
                     replicationFactor="3",
                 ),
-                dict(file_content="", file_size=""),
+                dict(file_size=""),
                 (
                     False,
                     dict(
@@ -674,7 +674,7 @@ class TestEnsurePresent:
                     capacityBytes="1999999",
                     replicationFactor="3",
                 ),
-                dict(file_content="", file_size=""),
+                dict(file_size=""),
                 (
                     False,
                     dict(
@@ -718,7 +718,7 @@ class TestEnsurePresent:
                     capacityBytes="1999999",
                     replicationFactor="3",
                 ),
-                dict(file_content="", file_size=""),
+                dict(file_size=""),
                 (
                     False,
                     dict(
@@ -762,7 +762,7 @@ class TestEnsurePresent:
                     capacityBytes="1999999",
                     replicationFactor="3",
                 ),
-                dict(file_content="", file_size=""),
+                dict(file_size=""),
                 (
                     False,
                     dict(
@@ -801,7 +801,7 @@ class TestEnsurePresent:
                     capacityBytes="1000000",
                     replicationFactor="2",
                 ),
-                dict(file_content=bytes(123), file_size=1024),
+                dict(file_size=1024),
                 (
                     True,
                     dict(
@@ -833,7 +833,7 @@ class TestEnsurePresent:
                     capacityBytes="199999",
                     replicationFactor="1",
                 ),
-                dict(file_content=bytes(545647), file_size=10240),
+                dict(file_size=10240),
                 (
                     True,
                     dict(
@@ -865,7 +865,7 @@ class TestEnsurePresent:
                     capacityBytes="199999",
                     replicationFactor="1",
                 ),
-                dict(file_content=bytes(545647), file_size=10240),
+                dict(file_size=10240),
                 (
                     True,
                     dict(
@@ -897,7 +897,7 @@ class TestEnsurePresent:
                     capacityBytes="199999",
                     replicationFactor="1",
                 ),
-                dict(file_content=bytes(545647), file_size=10240),
+                dict(file_size=10240),
                 (
                     True,
                     dict(
@@ -929,7 +929,7 @@ class TestEnsurePresent:
                     capacityBytes="199999",
                     replicationFactor="1",
                 ),
-                dict(file_content=bytes(545647), file_size=10240),
+                dict(file_size=10240),
                 (
                     True,
                     dict(
@@ -1122,39 +1122,7 @@ class TestEnsurePresent:
                     capacityBytes="1000000",
                     replicationFactor="2",
                 ),
-                dict(file_content=bytes(123)),
-                (
-                    True,
-                    dict(
-                        name="foobar.qcow2",
-                        uuid="123",
-                        block_size="1000",
-                        size="1000000",
-                        replication_factor="2",
-                    ),
-                    dict(
-                        before=None,
-                        after=dict(
-                            name="foobar.qcow2",
-                            uuid="123",
-                            block_size="1000",
-                            size="1000000",
-                            replication_factor="2",
-                        ),
-                    ),
-                ),
-                True,
-            ),
-            (
                 dict(),
-                dict(
-                    name="foobar.qcow2",
-                    uuid="123",
-                    blockSize="1000",
-                    capacityBytes="1000000",
-                    replicationFactor="2",
-                ),
-                dict(file_size=1024),
                 (
                     True,
                     dict(
@@ -1210,10 +1178,7 @@ class TestEnsurePresent:
             # Mock read_disk_file(); returns a tuple() with file content and file size.
             mocker.patch(
                 "ansible_collections.scale_computing.hypercore.plugins.modules.virtual_disk.read_disk_file"
-            ).return_value = (
-                disk_file_info.get("file_content"),
-                disk_file_info.get("file_size"),
-            )
+            ).return_value = disk_file_info.get("file_size")
 
         # Mock send_upload_request(); returns empty task tag.
         mocker.patch(
@@ -1233,7 +1198,7 @@ class TestEnsurePresent:
         if expected_exception:
             with pytest.raises(
                 ScaleComputingError,
-                match=f"Invalid content or size for file: {module.params['source']}",
+                match=f"Invalid size for file: {module.params['source']}",
             ):
                 virtual_disk.ensure_present(
                     module, rest_client, cluster_before_virtual_disk_obj
@@ -1666,35 +1631,32 @@ class TestReadDiskFile:
         (
             "file_location",
             "file_size",
-            "file_content",
             "expected_exception",
             "expected_result",
         ),
         [
             # Disk file is found
-            ("c:/here/foobar.qcow2", 1024, bytes(123), False, (bytes(123), 1024)),
+            ("c:/here/foobar.qcow2", 1024, False, 1024),
             (
                 "d:/somwhere/here/foobar.vhd",
                 3 * 1024,
-                bytes(43),
                 False,
-                (bytes(43), 3 * 1024),
+                3 * 1024,
             ),
             (
                 "b:/over/here/foobar.xvhd",
                 1020004,
-                bytes(111),
                 False,
-                (bytes(111), 1020004),
+                1020004,
             ),
-            ("q:/maybe/here/foobar.img", 65999, bytes(32), False, (bytes(32), 65999)),
-            ("c:/foobar.vmdk", 99999999, bytes(999), False, (bytes(999), 99999999)),
+            ("q:/maybe/here/foobar.img", 65999, False, 65999),
+            ("c:/foobar.vmdk", 99999999, False, 99999999),
             # Disk file is not found
-            ("c:/here/foobar.qcow2", 1024, bytes(123), True, ("", "")),
-            ("d:/somwhere/here/foobar.vhd", 3 * 1024, bytes(43), True, ("", "")),
-            ("b:/over/here/foobar.xvhd", 1020004, bytes(111), True, ("", "")),
-            ("q:/maybe/here/foobar.img", 65999, bytes(32), True, ("", "")),
-            ("c:/foobar.vmdk", 99999999, bytes(999), True, ("", "")),
+            ("c:/here/foobar.qcow2", 1024, True, None),
+            ("d:/somwhere/here/foobar.vhd", 3 * 1024, True, None),
+            ("b:/over/here/foobar.xvhd", 1020004, True, None),
+            ("q:/maybe/here/foobar.img", 65999, True, None),
+            ("c:/foobar.vmdk", 99999999, True, None),
         ],
     )
     def test_read_disk_file_virtual_disk(
@@ -1703,7 +1665,6 @@ class TestReadDiskFile:
         mocker,
         file_location,
         file_size,
-        file_content,
         expected_exception,
         expected_result,
     ):
@@ -1727,7 +1688,5 @@ class TestReadDiskFile:
             # Mock getsize() and return mocked size
             mocker.patch("os.path.getsize", return_value=file_size)
             # Mock file open() and read data
-            mocker.patch("builtins.open", mocker.mock_open(read_data=file_content))
             result = virtual_disk.read_disk_file(module)
-            assert isinstance(result, tuple)
             assert result == expected_result

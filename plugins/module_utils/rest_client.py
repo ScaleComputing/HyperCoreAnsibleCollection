@@ -13,7 +13,8 @@ from ..module_utils.typed_classes import TypedTaskTag
 
 __metaclass__ = type
 
-from typing import Any, Optional
+from typing import Any, Optional, Union
+from io import BufferedReader
 
 
 def _query(original: Optional[dict[Any, Any]] = None) -> dict[Any, Any]:
@@ -116,7 +117,7 @@ class RestClient:
         check_mode: bool,
         query: Optional[dict[Any, Any]] = None,
         timeout: Optional[float] = None,
-        binary_data: Optional[bytes] = None,
+        binary_data: Optional[Union[bytes, BufferedReader]] = None,
         headers: Optional[dict[Any, Any]] = None,
     ) -> TypedTaskTag:
         if check_mode:
