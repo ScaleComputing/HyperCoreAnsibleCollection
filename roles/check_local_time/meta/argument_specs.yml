@@ -1,19 +1,19 @@
 argument_specs:
 
   main:
-    short_description: Check if host's local time meets the required time interval
+    short_description: Check if local time meets the required time interval
     description:
-      - Check if local time meets the required time
+      - Check if local time meets the required time interval
     options:
       time_zone:
         description:
-          - Host's time zone
+          - Time zone for which to calculate if local time meets the required time interval
           - Must be provided in a form 'Europe/Amsterdam'
         required: true
         type: str
       time_interval:
         description:
-          - Time interval in which host's local time must be located
+          - Time interval in which local time must be located
           - Must be provided in a form '22:00-6:15' or '7:30-12:36'
         required: true
         type: str
