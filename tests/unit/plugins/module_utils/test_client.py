@@ -61,7 +61,7 @@ class TestResponseInit:
         assert resp.status == 404
         assert resp.headers == {}
         assert resp.data == "Not Found"
-        with pytest.raises(errors.ScaleComputingError, match="invalid JSON"):
+        with pytest.raises(ValueError, match="invalid JSON"):
             resp.json
 
     def test_json_is_cached(self, mocker):
