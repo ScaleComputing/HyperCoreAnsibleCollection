@@ -1,0 +1,3 @@
+---
+major_changes:
+  - Added a role for checking if local time is within required time interval. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/167)

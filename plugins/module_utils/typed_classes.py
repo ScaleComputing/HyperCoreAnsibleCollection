@@ -11,6 +11,7 @@ __metaclass__ = type
 
 from typing import TypedDict, Union, Any, Optional
 
+
 # Typed Classes use for Python hints.
 
 
@@ -223,3 +224,24 @@ class TypedSyslogServerFromAnsible(TypedDict):
     host: Optional[str]
     port: Optional[int]
     protocol: Optional[str]
+
+
+class TypedVMSnapshotToAnsible(TypedDict):
+    snapshot_uuid: Optional[str]
+    vm: Optional[dict[Any, Any]]
+    label: Optional[str]
+    type: Optional[str]
+    timestamp: Optional[int]
+    automated_trigger_timestamp: Optional[int]
+    local_retain_until_timestamp: Optional[int]
+    remote_retain_until_timestamp: Optional[int]
+    block_count_diff_from_serial_number: Optional[int]
+    replication: Optional[bool]
+
+
+class TypedVMSnapshotFromAnsible(TypedDict):
+    snapshot_uuid: Optional[str]
+    vm: Optional[dict[Any, Any]]
+    snapshot_serial_number: Optional[int]
+    label: Optional[str]
+    type: Optional[str]

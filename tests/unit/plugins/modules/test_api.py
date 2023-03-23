@@ -97,7 +97,9 @@ class TestPutMethod:
                 data=dict(),
             )
         )
-        mocker.patch("builtins.open", mocker.mock_open(read_data="this-data"))
+        this_data = "this-data"
+        mocker.patch("builtins.open", mocker.mock_open(read_data=this_data))
+        mocker.patch("os.stat").return_value = mocker.Mock(st_size=len(this_data))
         rest_client.put_record.return_value = "this-value"
         result = api.put_record(module, rest_client)
         assert result == (True, "this-value")

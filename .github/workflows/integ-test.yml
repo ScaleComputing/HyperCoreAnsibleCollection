@@ -41,9 +41,9 @@ jobs:
   # to delay integ-test until integration-prepare-env finishes.
   integration-prepare-env:
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     env:
-      ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
+      ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -68,7 +68,7 @@ jobs:
 
   integ-matrix:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -97,7 +97,7 @@ jobs:
 
   examples-matrix:
     runs-on: [ ubuntu-latest ]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -125,9 +125,9 @@ jobs:
     needs:
       - examples-matrix
     runs-on: [ self-hosted2 ]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     env:
-      ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
+      ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
       DEBIAN_FRONTEND: noninteractive
     defaults:
       run:
@@ -164,7 +164,7 @@ jobs:
       - integ-matrix
       # - units-test
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     env:
       DEBIAN_FRONTEND: noninteractive
     defaults:
@@ -203,9 +203,9 @@ jobs:
     needs:
       - integ
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     env:
-      ANSIBLE_COLLECTIONS_PATH:  $GITHUB_WORKSPACE/work-dir
+      ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -230,7 +230,7 @@ jobs:
     needs:
       - integ
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:1
+    container: quay.io/justinc1_github/scale_ci_integ:2
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -239,4 +239,16 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: cd tests/integration/cleanup && ./smb_cleanup.sh ${{ secrets.SMB_SERVER }} ${{ secrets.SMB_SHARE }} "${{ secrets.SMB_USERNAME }}" ${{ secrets.SMB_PASSWORD }}
+      - run: |
+          echo "${{ vars.CI_CONFIG_HC_IP50 }}" > tests/integration/integration_config.yml
+          cat tests/integration/integration_config.yml
+          echo "sc_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}" >> tests/integration/integration_config.yml
+          echo "sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}" >> tests/integration/integration_config.yml
+          ls -al tests/integration/integration_config.yml
+      - run: |
+          cd tests/integration/cleanup && ./smb_cleanup.sh \
+            "$(cat ../integration_config.yml | yq '.smb_server' | sed -e 's/^"//' -e 's/"$//')" \
+            "$(cat ../integration_config.yml | yq '.smb_share' | sed -e 's/^"//' -e 's/"$//')" \
+            "$(cat ../integration_config.yml | yq '.smb_username' | sed -e 's/^"//' -e 's/"$//')" \
+            "$(cat ../integration_config.yml | yq '.smb_password' | sed -e 's/^"//' -e 's/"$//')"

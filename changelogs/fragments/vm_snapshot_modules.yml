@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Added vm_snapshot and vm_snapshot_info modules.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/166)

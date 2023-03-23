@@ -1,0 +1,175 @@
+---
+- name: Test vm_snapshot_info
+  vars:
+    nonexistent_snapshot_label: no-label
+    nonexistent_snapshot_vm_name: no-vm-name
+    nonexistent_snapshot_serial: -1
+    non_unique_snapshot_label: not-unique
+    created_snapshot_test_vm_1:
+      vm_name: snapshot-test-vm-1
+      snap_labels:
+        - snap-0
+        - snap-1
+        - snap-2
+        - not-unique
+    created_snapshot_test_vm_2:
+      vm_name: snapshot-test-vm-2
+      snap_labels:
+        - snap-0
+        - snap-1
+        - snap-2
+        - not-unique
+  block:
+    - include_tasks: helper_api_vm_snapshot_create.yml
+      vars:
+        vms_number: "{{ test_vms_number }}"
+
+    # --------------------------------------------------------
+
+    - name: List all VM snapshots - API
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/VirDomainSnapshot
+      register: vm_snapshots_api
+    - ansible.builtin.set_fact:
+        existing_snapshot_label: "{{ vm_snapshots_api.record[0].label }}"
+        existing_snapshot_vm_name: "{{ vm_snapshots_api.record[0].domain.name }}"
+        existing_snapshot_serial: "{{ vm_snapshots_api.record[0].domain.snapshotSerialNumber }}"
+    - ansible.builtin.debug:
+        msg:
+          - "{{ existing_snapshot_label }}"
+          - "{{ existing_snapshot_vm_name }}"
+          - "{{ existing_snapshot_serial }}"
+
+    - name: Get info about "snapshot-test-vm-1"
+      scale_computing.hypercore.vm_info:
+        vm_name: snapshot-test-vm-1
+      register: vm1
+    - ansible.builtin.debug:
+        var: vm1
+
+    - name: Get info about "snapshot-test-vm-2"
+      scale_computing.hypercore.vm_info:
+        vm_name: snapshot-test-vm-2
+      register: vm2
+    - ansible.builtin.debug:
+        var: vm2
+
+    # --------------------------------------------------------
+
+    # ======== Test with no parameters =========
+    - name: List all VM snapshots
+      scale_computing.hypercore.vm_snapshot_info:
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records
+    - ansible.builtin.assert: &assert-existing
+        that:
+          - vm_snapshots is not changed
+          - vm_snapshots.records != []
+          - vm_snapshots.records[0].keys() | sort ==
+            ["automated_trigger_timestamp",
+            "block_count_diff_from_serial_number",
+            "label",
+            "local_retain_until_timestamp",
+            "remote_retain_until_timestamp",
+            "replication",
+            "snapshot_uuid",
+            "timestamp",
+            "type",
+            "vm"]
+
+     # ====== Test every parameter one by one =======
+    - name: List all VM snapshots with snapshot label "not-unique"
+      scale_computing.hypercore.vm_snapshot_info:
+        label: not-unique
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records[0].label
+    - ansible.builtin.assert: *assert-existing
+    - ansible.builtin.assert:
+        that:
+          - vm_snapshots.records | length == 6  # 3 on each of the 2 created testing vms
+          - vm_snapshots.records[0].label == "not-unique"
+
+    - name: List all VM snapshots with a nonexistent label
+      scale_computing.hypercore.vm_snapshot_info:
+        label: "{{ nonexistent_snapshot_label }}"
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records
+    - ansible.builtin.assert: &assert-nonexistent
+        that:
+          - vm_snapshots is not changed
+          - vm_snapshots.records == []
+
+    - name: List all VM snapshots with vm_name "snapshot-test-vm-1"
+      scale_computing.hypercore.vm_snapshot_info:
+        vm_name: "snapshot-test-vm-1"
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records | length
+    - ansible.builtin.assert: *assert-existing
+    - ansible.builtin.assert:
+        that:
+          - vm_snapshots.records | length == 6  # there are 6 snapshots of vm snapshot-test-vm-1
+          - vm_snapshots.records[0].vm.name == "snapshot-test-vm-1"
+
+    - name: List all VM snapshots with a nonexistent vm_name
+      scale_computing.hypercore.vm_snapshot_info:
+        vm_name: "{{ nonexistent_snapshot_vm_name }}"
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records
+    - ansible.builtin.assert: *assert-nonexistent
+
+    - name: List all VM snapshots with serial "3"  # the last snapshot serial of each vm is 3, so there should be 2 snapshots with the serial 3
+      scale_computing.hypercore.vm_snapshot_info:
+        serial: 3
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records | length
+    - ansible.builtin.assert: *assert-existing
+    - ansible.builtin.assert:
+        that:
+          - vm_snapshots.records | length >= 2  # there are 2 or more snapshots with serial "3": snap-0 and not-unique
+          - vm_snapshots.records[0].vm.snapshot_serial_number == 3
+          - vm1.records.0.uuid in vm_snapshots.records | map(attribute='vm.uuid')
+          - vm2.records.0.uuid in vm_snapshots.records | map(attribute='vm.uuid')
+
+    - name: List all VM snapshots with a nonexistent serial
+      scale_computing.hypercore.vm_snapshot_info:
+        serial: "{{ nonexistent_snapshot_serial | int }}"
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records
+    - ansible.builtin.assert: *assert-nonexistent
+
+    # ======= Test all parameters present =========
+    - name: >-
+        List all VM snapshots with label, vm_name, serial = "snap-0,
+        snapshot-test-vm-1, 1"
+      scale_computing.hypercore.vm_snapshot_info:
+        label: snap-0
+        serial: 1
+        vm_name: snapshot-test-vm-1
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records
+    - ansible.builtin.assert: *assert-existing
+    - ansible.builtin.assert:
+        that:
+          - vm_snapshots.records | length == 1
+          - vm_snapshots.records[0].label == "snap-0"
+          - vm_snapshots.records[0].vm.name == "snapshot-test-vm-1"
+          - vm_snapshots.records[0].vm.snapshot_serial_number == 1
+
+    - name: List all VM snapshots with nonexistent label, vm_name, serial
+      scale_computing.hypercore.vm_snapshot_info:
+        label: "{{ nonexistent_snapshot_label }}"
+        serial: "{{ nonexistent_snapshot_serial }}"
+        vm_name: "{{ nonexistent_snapshot_vm_name }}"
+      register: vm_snapshots
+    - ansible.builtin.debug:
+        var: vm_snapshots.records
+    - ansible.builtin.assert: *assert-nonexistent

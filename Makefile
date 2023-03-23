@@ -72,7 +72,8 @@ integration:  ## Run integration tests
 .PHONY: docs
 docs:  ## Build collection documentation
 	pip install -r docs.requirements
-	$(MAKE) -C docs -f Makefile.custom docs
+	pip install -r docs/requirements.txt
+	cd docs && ./build.sh
 
 .PHONY: mypy
 mypy: ## Run mypy hint checker

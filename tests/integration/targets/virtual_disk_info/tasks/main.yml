@@ -16,6 +16,14 @@
         endpoint: /rest/v1/VirtualDisk
       register: api_virtual_disk_result
 
+    - name: Remove partially uploaded virtual disk with name uploading-{{ image_filename }}
+      when: ('uploading-' + image_filename) in api_virtual_disk_result.record | map(attribute='name')
+      block:
+        - name: Remove {{ 'uploading-' + image_filename }}
+          scale_computing.hypercore.api:
+            action: delete
+            endpoint: /rest/v1/VirtualDisk/{{ (api_virtual_disk_result.record | selectattr("name", "==", 'uploading-' + image_filename))[0]["uuid"] }}
+
     - name: Upload new virtual disk with name {{ image_filename }} if it is missing
       when: image_filename not in api_virtual_disk_result.record | map(attribute='name')
       block:

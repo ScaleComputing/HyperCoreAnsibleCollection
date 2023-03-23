@@ -1,0 +1,27 @@
+---
+- name: Remove snapshot testing VMs
+  scale_computing.hypercore.vm:
+    vm_name: "snapshot-test-vm-{{ item }}"
+    state: absent
+  with_sequence: start=1 end={{ vms_number }}
+  register: vms_removed
+
+- name: Show removed VMs result
+  ansible.builtin.debug:
+    var: vms_removed
+
+- name: List all VM snapshots - API
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/VirDomainSnapshot
+  register: vm_snapshots_api
+
+# I don't think this task is currently necessary, since we don't have scheduled snapshots yet and all
+# created snapshots are deleted automatically along with their vms.
+# -----------
+#- name: Remove all testing snapshots
+#  scale_computing.hypercore.api:
+#    action: delete
+#    endpoint: /rest/v1/VirDomainSnapshot/{{ item.uuid }}
+#  when: item.domain.name == "snapshot-test-vm-1" or item.domain.name == "snapshot-test-vm-2"
+#  loop: "{{ vm_snapshots_api.record }}"

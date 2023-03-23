@@ -1,1 +1,0 @@
-plugins/inventory/hypercore.py pep8:E203

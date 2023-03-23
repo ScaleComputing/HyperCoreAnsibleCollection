@@ -11,7 +11,7 @@ set -eux
 # Where to push images
 DOCKER_REGISTRY_REPO=quay.io/justinc1_github/scale_ci_integ
 # Tag to push
-DOCKER_IMAGE_TAG=1
+DOCKER_IMAGE_TAG=2
 
 DOCKER_CACHE="${DOCKER_CACHE:-n}"
 if [ "$DOCKER_CACHE" == "n" ]
@@ -24,7 +24,7 @@ fi
 THIS_SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 REPO_DIR="$(realpath "$THIS_SCRIPT_DIR/../.." )"
 
-cat "$REPO_DIR/{docs,test,sanity,mypy}.requirements" > all.requirements
+cat "$REPO_DIR"/{docs,test,sanity,mypy}.requirements > all.requirements
 # TODO but is ghrc.io feature available/enabled?
 # Or push to quay.io?
 docker build "$DOCKER_BUILD_OPT" -t "$DOCKER_REGISTRY_REPO:$DOCKER_IMAGE_TAG" .

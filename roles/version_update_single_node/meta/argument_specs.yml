@@ -1,3 +1,4 @@
+---
 argument_specs:
   main:
     short_description: Update single-node systems
