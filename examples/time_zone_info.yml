@@ -5,7 +5,7 @@
   gather_facts: false
 
   tasks:
-    - name: List current Time Zone entries
+    - name: Get current Time Zone
       scale_computing.hypercore.time_zone_info:
       register: time_zone_info
     - ansible.builtin.debug:
