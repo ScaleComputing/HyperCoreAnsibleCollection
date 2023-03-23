@@ -40,6 +40,10 @@ jobs:
         env:
           ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
       - run: ls -al docs/build/html
+      - uses: actions/upload-artifact@v3
+        with:
+          name: docs-html
+          path: work-dir/ansible_collections/scale_computing/hypercore/docs/build/html
 
   sanity-test:
     runs-on: [ubuntu-latest]
