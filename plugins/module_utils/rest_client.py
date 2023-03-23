@@ -123,7 +123,7 @@ class RestClient:
         if check_mode:
             return utils.MOCKED_TASK_TAG
         try:
-            tt = self.client.put(
+            response_raw = self.client.put(
                 endpoint,
                 data=payload,
                 query=query,
@@ -132,7 +132,7 @@ class RestClient:
                 headers=headers,
             )
             try:
-                response: TypedTaskTag = tt.json
+                response: TypedTaskTag = response_raw.json
             except Exception:
                 return dict(createdUUID="", taskTag="")
         except TimeoutError as e:
