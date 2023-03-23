@@ -48,7 +48,7 @@ class Response:
             try:
                 self._json = json.loads(self.data)
             except ValueError:
-                raise ScaleComputingError(
+                raise ValueError(
                     "Received invalid JSON response: {0}".format(self.data)
                 )
         return self._json
