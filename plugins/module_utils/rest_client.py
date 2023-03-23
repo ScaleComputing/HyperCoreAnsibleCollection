@@ -15,6 +15,7 @@ __metaclass__ = type
 
 from typing import Any, Optional, Union
 from io import BufferedReader
+import json
 
 
 def _query(original: Optional[dict[Any, Any]] = None) -> dict[Any, Any]:
@@ -133,6 +134,8 @@ class RestClient:
             ).json
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
+        except (json.JSONDecodeError, json.decoder.JSONDecodeError) as e:
+            raise json.JSONDecodeError(e)
         return response
 
 
