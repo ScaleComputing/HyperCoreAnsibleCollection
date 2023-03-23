@@ -9,7 +9,7 @@ ARG ANSIBLE_CORE_VERSION
 
 ENV LANG=en_US.UTF-8
 
-RUN apt update && apt install -y git make smbclient genisoimage qemu-utils jq
+RUN apt update && apt install -y git make smbclient genisoimage qemu-utils jq sudo procps
 RUN pip install --upgrade pip wheel
 
 COPY all.requirements /code/ci-infra/docker-image/
