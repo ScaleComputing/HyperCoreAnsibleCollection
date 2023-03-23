@@ -12,22 +12,22 @@ on:
           Use "*" to run all tests.
           Use regex like 'node|^git_issue' to run only a subset.
         default: ""
-      # vm_import|vm_export - they need SMB server
       # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
       # git_issues - slow, do not run on each push. TODO - run them only once a day
       # oidc_config - during reconfiguration API returns 500/502 errors for other requests
       # smtp - email_alert test requires a configured SMTP
-      # role_ - role cluster_config reconfigures DNS, SMTP, OIDC.
+      # role_cluster_config - role cluster_config reconfigures DNS, SMTP, OIDC. And it is slow.
+      # version_update_single_node - role would change version, VSNS system cannot be updated.
       integ_tests_exclude:
         type: string
         description: |-
           List integration tests to exclude.
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
-        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_"
+        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^version_update_single_node$"
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
-  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_"
+  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^version_update_single_node$"
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
   WORKDIR: work-dir/ansible_collections/scale_computing/hypercore
