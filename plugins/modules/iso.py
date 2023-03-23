@@ -127,26 +127,26 @@ def ensure_present(module, rest_client):
 
     # Uploading ISO image.
     try:
-      file_size = os.stat(module.params["source"]).st_size
-      with open(module.params["source"], "rb") as source_file:
-          rest_client.put_record(
-              endpoint="/rest/v1/ISO/%s/data" % iso_uuid,
-              payload=None,
-              check_mode=module.check_mode,
-              timeout=ISO_TIMEOUT_TIME,
-              binary_data=source_file,
-              headers={
-                  "Content-Type": "application/octet-stream",
-                  "Accept": "application/json",
-                  "Content-Length": file_size,
-              },
-          )
+        file_size = os.stat(module.params["source"]).st_size
+        with open(module.params["source"], "rb") as source_file:
+            rest_client.put_record(
+                endpoint="/rest/v1/ISO/%s/data" % iso_uuid,
+                payload=None,
+                check_mode=module.check_mode,
+                timeout=ISO_TIMEOUT_TIME,
+                binary_data=source_file,
+                headers={
+                    "Content-Type": "application/octet-stream",
+                    "Accept": "application/json",
+                    "Content-Length": file_size,
+                },
+            )
     except FileNotFoundError:
-      raise errors.ScaleComputingError(
-        f"ISO file {module.params['source']} not found."
-      )
+        raise errors.ScaleComputingError(
+            f"ISO file {module.params['source']} not found."
+        )
     except json.JSONDecodeError:
-      pass # ISO API endpoint returns binary content.
+        pass  # ISO API endpoint returns binary content.
 
     # Now the ISO image is ready for insertion. Updating readyForInsert to True.
     task_tag_update = rest_client.update_record(
