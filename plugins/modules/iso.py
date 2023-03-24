@@ -145,7 +145,7 @@ def ensure_present(module, rest_client):
         raise errors.ScaleComputingError(
             f"ISO file {module.params['source']} not found."
         )
-    except (json.JSONDecodeError, ValueError):
+    except (json.JSONDecodeError, errors.ApiResponseNotJson):
         pass  # ISO API endpoint returns binary content.
 
     # Now the ISO image is ready for insertion. Updating readyForInsert to True.
