@@ -15,7 +15,12 @@ from io import BufferedReader
 
 from ansible.module_utils.urls import Request, basic_auth_header
 
-from .errors import AuthError, ScaleComputingError, UnexpectedAPIResponse
+from .errors import (
+    AuthError,
+    ScaleComputingError,
+    UnexpectedAPIResponse,
+    ApiResponseNotJson,
+)
 from ..module_utils.typed_classes import TypedClusterInstance
 
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
@@ -48,9 +53,7 @@ class Response:
             try:
                 self._json = json.loads(self.data)
             except ValueError:
-                raise ValueError(
-                    "Received invalid JSON response: {0}".format(self.data)
-                )
+                raise ApiResponseNotJson(self.data)
         return self._json
 
 

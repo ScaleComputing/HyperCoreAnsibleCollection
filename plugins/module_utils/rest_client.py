@@ -136,8 +136,6 @@ class RestClient:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
         except (json.JSONDecodeError, json.decoder.JSONDecodeError) as e:
             raise json.JSONDecodeError(e.msg, e.doc, e.pos)
-        except ValueError as e:
-            raise ValueError(e)
         return response
 
 
