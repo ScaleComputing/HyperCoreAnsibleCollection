@@ -18,6 +18,7 @@ author:
 short_description: Attach a disk from a snapshot to a VM on HyperCore API.
 description:
   - Use this module to attach a disk from a snapshot to a desired VM on HyperCore API.
+  - Specified disk from source snapshot will be cloned. Cloned disk is then attached to the destination VM.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -29,23 +30,29 @@ options:  # TODO: Change options!
     description:
       - Name of the VM we want to attach a VM snapshot disk to.
     required: False
+  vm_disk_type:
+    type: str
+    description:
+      - Type of disk on the VM that we want to attach a VM snapshot disk to.
+    required: True
+  vm_disk_slot:
+    type: int
+    description:
+      - Specify a disk slot from a vm to identify destination disk.
   source_snapshot_uuid:
     type: str
     description:
       - UUID of the snapshot we want to use on a VM.
-    required: False
-  snapshot_type:
+    required: True
+  source_disk_type:
     type: str
-    choices: [ user, automated ]
     description:
-      - Specify a type that the chosen snapshot has to be.
-      - C(snapshot_type=user) - snapshot was created manually.
-      - C(snapshot_type=automated) - snapshot was created automatically through a schedule.
+      - Specify a disk type from source snapshot.
     required: True
   source_disk_slot:
     type: int
     description:
-      - Specify a snapshot disk slot to use on a VM.
+      - Specify a disk slot from source snapshot to identify source disk.
     required: True
 """
 
@@ -64,6 +71,9 @@ EXAMPLES = r"""
     vm_disk_slot: 0
 """
 
+# TODO: return like vm module
+#  - will update this, when I implement the first integration tests
+#    for this module.
 RETURN = r"""
 records:
   description:
@@ -101,17 +111,34 @@ from typing import List, Optional
 # Must be reviewed - not sure if that's how this should work
 # ++++++++++++
 def attach_disk(module: AnsibleModule, rest_client: RestClient):
-    vm_name = module.params["vm_name"]  # maybe this parameter is not needed? We can get vm_uuid through the specified snapshot...
+    # =============== SAVE PARAMS VALUES ===============
+    # destination
+    vm_name = module.params["vm_name"]
+    vm_disk_type = module.params["vm_disk_type"]
+    vm_disk_slot = module.params["vm_disk_slot"]
+
+    # source
     source_snapshot_uuid = module.params["source_snapshot_uuid"]
-    # snapshot_type = module.params["snapshot_type"]
+    source_disk_type = module.params["source_disk_type"]
     source_disk_slot = module.params[
         "source_disk_slot"
     ]  # the higher the index, the newer the disk
+
+    # =============== IMPLEMENTATION ===================
 
     vm_snapshot = VMSnapshot.get_snapshots_by_query(
         {"uuid": source_snapshot_uuid}, rest_client
     )[0]  # there is only 1 snapshot with the specified uuid.
     vm_uuid = vm_snapshot["vm"]["uuid"]
+
+    # get wanted source device snapshot
+    source_device_snapshot = VMSnapshot.filter_snapshots_by_params(
+        dict(
+            source_disk_type=source_disk_type,
+            source_disk_slot=source_disk_slot,
+        ),
+        rest_client
+    )
 
     # TODO: add "device_snapshots" to module_utils/vm_snapshot.py
     #  add "device_snapshots" dict to the vm_snapshot from_hypercore() method
@@ -119,8 +146,10 @@ def attach_disk(module: AnsibleModule, rest_client: RestClient):
     source_disk_uuid = vm_snapshot["device_snapshots"][source_disk_slot]
 
     # TODO: implement this method!
-    #  should return a dict (NOT list)
-    source_disk_info = VMSnapshot.get_vm_disk_info(source_disk_uuid)
+    #  should return a dict (NOT list) ==> I updated filter_snapshots_by_params to be able to filter by source_disk_type, slot, uuid
+    source_disk_info = vm_snapshot.get_device_snapshot(
+        dict(uuid=source_disk_uuid), rest_client
+    )[1]
 
     # build a payload according to /rest/v1/VirDomainBlockDevice/{uuid}/clone documentation
     payload = dict(
@@ -131,13 +160,9 @@ def attach_disk(module: AnsibleModule, rest_client: RestClient):
         snapUUID=source_snapshot_uuid,
         template=dict(
             virDomainUUID=vm_uuid,
-            type=source_disk_info["type"],
+            # type=source_disk_info["type"], # --> omit for now
             chacheMode=source_disk_info["cache_mode"],
-            capacity=source_disk_info["capacity"],
-            shareUUID=source_disk_info["share_uuid"],
-            path=source_disk_info["path"],
             slot=source_disk_info["slot"],
-            name=source_disk_info["name"],
             disableSnapshotting=source_disk_info["disable_snapshotting"],
             tieringPriorityFactor=source_disk_info["tiering_priority_factor"],
         ),
@@ -180,14 +205,18 @@ def main() -> None:
                 type="str",
                 required=True,
             ),
-            source_snapshot_uuid=dict(type="str", required=True),
-            snapshot_type=dict(  # maybe we can throw out this one, since the user is already choosing a snapshot with its uuid and should already know if it's automated or not... I mean, the user knows what snapshot he's choosing
+            vm_disk_type=dict(
                 type="str",
                 required=True,
-                choices=[
-                    "user",
-                    "automated",
-                ],  # maybe just "auto" instead of "automated"?
+            ),
+            vm_disk_slot=dict(
+                type="int",
+                required=True,
+            ),
+            source_snapshot_uuid=dict(type="str", required=True),
+            source_disk_type=dict(
+                type="str",
+                required=True,
             ),
             source_disk_slot=dict(  # see /rest/v1/VirDomainSnapshot -> deviceSnapshots .. list of available snapshotted disks.
                 type="int",

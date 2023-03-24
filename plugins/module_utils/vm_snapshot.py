@@ -31,6 +31,7 @@ class VMSnapshot(PayloadMapper):
         vm_name: Optional[str] = None,
         vm: Optional[Dict[Any, Any]] = None,
         domain: Optional[VM] = None,
+        device_snapshots: Optional[List[Dict[Any, Any]]] = None,
         timestamp: Optional[int] = None,
         label: Optional[str] = None,
         type: Optional[str] = None,
@@ -45,6 +46,7 @@ class VMSnapshot(PayloadMapper):
         self.vm = vm if vm is not None else {}
         self.vm_name = vm_name
         self.domain = domain
+        self.device_snapshots = device_snapshots if device_snapshots is not None else []
         self.timestamp = timestamp
         self.label = label
         self.type = type
@@ -85,6 +87,9 @@ class VMSnapshot(PayloadMapper):
         retain_timestamp = cls.calculate_date(ansible_data.get("retain_for"))
         return cls(
             vm_name=ansible_data["vm_name"],
+            snapshot_uuid=ansible_data["snapshot_uuid"],
+            vm=ansible_data["vm"],
+            device_snapshots=ansible_data["device_snapshots"],
             label=ansible_data["label"],
             local_retain_until_timestamp=retain_timestamp,
             remote_retain_until_timestamp=retain_timestamp,
@@ -104,7 +109,22 @@ class VMSnapshot(PayloadMapper):
                 "snapshot_serial_number": hypercore_data["domain"][
                     "snapshotSerialNumber"
                 ],
+                "block_devices": [
+                    {
+                        "uuid": block_device["uuid"],
+                        "type": block_device["type"],
+                        "slot": block_device["slot"],
+                        "cache_mode": block_device["cacheMode"],
+                        "disable_snapshotting": block_device["disableSnapshotting"],
+                        "tiering_priority_factor": block_device["tieringPriorityFactor"],
+                    }
+                    for block_device in hypercore_data["domain"]["blockDevs"]
+                ]
             },
+            device_snapshots=[
+                {"uuid": device_snapshot["uuid"]}
+                for device_snapshot in hypercore_data["deviceSnapshots"]
+            ],
             timestamp=hypercore_data["timestamp"],
             label=hypercore_data["label"],
             type=hypercore_data["type"],
@@ -140,6 +160,7 @@ class VMSnapshot(PayloadMapper):
         return dict(
             snapshot_uuid=self.snapshot_uuid,
             vm=self.vm,
+            device_snapshots=self.device_snapshots,
             timestamp=self.timestamp,
             label=self.label,
             type=self.type,
@@ -162,6 +183,7 @@ class VMSnapshot(PayloadMapper):
             (
                 self.snapshot_uuid == other.snapshot_uuid,
                 self.vm == other.vm,
+                self.device_snapshots == other.device_snapshots,
                 self.timestamp == other.timestamp,
                 self.label == other.label,
                 self.type == other.type,
@@ -232,3 +254,31 @@ class VMSnapshot(PayloadMapper):
         return rest_client.delete_record(
             f"/rest/v1/VirDomainSnapshot/{snapshot_uuid}", False
         )
+
+    @classmethod
+    def get_source_disk_info(
+        cls,
+        device_snapshots: List[Dict[Any, Any]],
+        disk_uuid: str,
+    ) -> Optional[Dict[Any, Any]]:
+        for device_snapshot in device_snapshots:
+            if device_snapshot["uuid"] == disk_uuid:
+                return device_snapshot
+        return None
+
+    @classmethod
+    def get_device_snapshot(
+        cls,
+        vm_snapshot = TypedVMSnapshotToAnsible,
+        filter: Dict[Any, Any]
+    ) -> Optional[Dict[Any, Any]]:
+        new_device_snaps = vm_snapshot.device_snapshots[:]
+
+        if filter["uuid"]:
+            new_device_snaps = [device_snap for device_snap in cls.device_snapshots if device_snap["uuid"] == filter["uuid"]]
+        if filter["slot"]:
+            new_device_snaps = [device_snap for device_snap in cls.device_snapshots if device_snap["slot"] == filter["slot"]]
+        if filter["type"]:
+            new_device_snaps = [device_snap for device_snap in cls.device_snapshots if device_snap["type"] == filter["type"]]
+
+        return new_device_snaps[0]
