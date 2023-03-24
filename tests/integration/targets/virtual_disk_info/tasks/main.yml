@@ -6,6 +6,9 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
     image_filename: "ci-test-virtual-disk-1.qcow2"
+    expected_virtual_disk_replication_factors:
+      - 1  # (virtual) single node systems have no replication
+      - 2  # real 3 node systems
 
   block:
     # --------------------------------------------------------------------
@@ -71,7 +74,7 @@
           - result.records.0.block_size == 1048576
           - result.records.0.size == 1073741824
           - result.records.0.name == "{{ image_filename }}"
-          - result.records.0.replication_factor == 2
+          - result.records.0.replication_factor in expected_virtual_disk_replication_factors
           - result.records.0.uuid | length == 36
 
     - name: List a non-existent virtual disk
