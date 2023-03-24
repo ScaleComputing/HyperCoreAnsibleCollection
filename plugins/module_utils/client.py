@@ -11,10 +11,16 @@ __metaclass__ = type
 import json
 import ssl
 from typing import Any, Optional, Union
+from io import BufferedReader
 
 from ansible.module_utils.urls import Request, basic_auth_header
 
-from .errors import AuthError, ScaleComputingError, UnexpectedAPIResponse
+from .errors import (
+    AuthError,
+    ScaleComputingError,
+    UnexpectedAPIResponse,
+    ApiResponseNotJson,
+)
 from ..module_utils.typed_classes import TypedClusterInstance
 
 from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
@@ -47,9 +53,7 @@ class Response:
             try:
                 self._json = json.loads(self.data)
             except ValueError:
-                raise ScaleComputingError(
-                    "Received invalid JSON response: {0}".format(self.data)
-                )
+                raise ApiResponseNotJson(self.data)
         return self._json
 
 
@@ -100,7 +104,7 @@ class Client:
         self,
         method: str,
         path: str,
-        data: Optional[Union[dict[Any, Any], bytes, str]] = None,
+        data: Optional[Union[dict[Any, Any], bytes, str, BufferedReader]] = None,
         headers: Optional[dict[Any, Any]] = None,
         timeout: Optional[float] = None,
     ) -> Response:
@@ -135,13 +139,13 @@ class Client:
                 and isinstance(e.args, tuple)
                 and type(e.args[0]) == ConnectionRefusedError
             ):
-                raise ConnectionRefusedError(e)
+                raise ConnectionRefusedError(e.reason)
             elif (
                 e.args
                 and isinstance(e.args, tuple)
                 and type(e.args[0]) == ConnectionResetError
             ):
-                raise ConnectionResetError(e)
+                raise ConnectionResetError(e.reason)
             elif (
                 e.args
                 and isinstance(e.args, tuple)
@@ -159,7 +163,7 @@ class Client:
         query: Optional[dict[Any, Any]] = None,
         data: Optional[dict[Any, Any]] = None,
         headers: Optional[dict[Any, Any]] = None,
-        binary_data: Optional[bytes] = None,
+        binary_data: Optional[Union[bytes, BufferedReader]] = None,
         timeout: Optional[float] = None,
     ) -> Response:
         # Make sure we only have one kind of payload
@@ -184,6 +188,7 @@ class Client:
                 timeout=timeout,
             )
         elif binary_data is not None:
+            headers["Content-type"] = "application/octet-stream"
             return self._request(
                 method, url, data=binary_data, headers=headers, timeout=timeout
             )
@@ -227,10 +232,10 @@ class Client:
     def put(
         self,
         path: str,
-        data: dict[Any, Any],
+        data: Optional[dict[Any, Any]],
         query: Optional[dict[Any, Any]] = None,
         timeout: Optional[float] = None,
-        binary_data: Optional[bytes] = None,
+        binary_data: Optional[Union[bytes, BufferedReader]] = None,
         headers: Optional[dict[Any, Any]] = None,
     ) -> Request:
         resp = self.request(

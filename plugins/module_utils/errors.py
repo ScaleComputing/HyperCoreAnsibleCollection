@@ -99,3 +99,9 @@ class SupportTunnelError(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
         self.message = "{0}".format(data)
         super(SupportTunnelError, self).__init__(self.message)
+
+
+class ApiResponseNotJson(ScaleComputingError):
+    def __init__(self, data: Union[str, Exception]):
+        self.message = f"From API expected json got {data}."
+        super(ApiResponseNotJson, self).__init__(self.message)

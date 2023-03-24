@@ -1,0 +1,3 @@
+---
+major_changes:
+  - Added virtual_disk module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/153)

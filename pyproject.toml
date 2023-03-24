@@ -32,7 +32,6 @@ module = [
     "plugins.module_utils.remote_cluster",
     "plugins.module_utils.replication",
     "plugins.module_utils.snapshot_schedule",
-    "plugins.module_utils.task_tag",
     "plugins.module_utils.utils",
     "plugins.module_utils.vm",
     "plugins.module_utils.time_server",

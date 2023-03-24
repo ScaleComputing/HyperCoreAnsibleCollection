@@ -13,7 +13,9 @@ from ..module_utils.typed_classes import TypedTaskTag
 
 __metaclass__ = type
 
-from typing import Any, Optional
+from typing import Any, Optional, Union
+from io import BufferedReader
+import json
 
 
 def _query(original: Optional[dict[Any, Any]] = None) -> dict[Any, Any]:
@@ -112,14 +114,13 @@ class RestClient:
     def put_record(
         self,
         endpoint: str,
-        payload: dict[Any, Any],
+        payload: Optional[dict[Any, Any]],
         check_mode: bool,
         query: Optional[dict[Any, Any]] = None,
         timeout: Optional[float] = None,
-        binary_data: Optional[bytes] = None,
+        binary_data: Optional[Union[bytes, BufferedReader]] = None,
         headers: Optional[dict[Any, Any]] = None,
     ) -> TypedTaskTag:
-        # Method put doesn't support check mode # IT ACTUALLY DOES
         if check_mode:
             return utils.MOCKED_TASK_TAG
         try:
@@ -133,7 +134,8 @@ class RestClient:
             ).json
         except TimeoutError as e:
             raise errors.ScaleComputingError(f"Request timed out: {e}")
-
+        except (json.JSONDecodeError, json.decoder.JSONDecodeError) as e:
+            raise json.JSONDecodeError(e.msg, e.doc, e.pos)
         return response
 
 
