@@ -50,6 +50,8 @@ options:
       - It must not be http or smb link
 notes:
   - C(check_mode) is not supported.
+  - Return value C(record) is added in version 1.2.0, and deprecates return value C(results).
+    Return value C(results) will be removed in future release.
 """
 
 
@@ -68,18 +70,78 @@ EXAMPLES = r"""
 
 
 RETURN = r"""
-results:
+record:
   description:
     - Updated ISO object from HyperCore API.
   returned: success
+  type: dict
+  contains:
+    mounts:
+      description: VMs this image is attached to
+      type: list
+      elements: dict
+      sample:
+        vm_uuid: 51e6d073-7566-4273-9196-58720117bd7f
+        vm_name: xlab
+    name:
+      description: Filename of the image, must end in ".iso"
+      type: str
+      sample: SW_DVD9_Win_Server_STD_CORE_2022_2108.11_64Bit_English_DC_STD_MLF_X23-17134.ISO
+    path:
+      description: Storage device used in conjunction with VirDomainBlockDevice.path
+      type: str
+      sample: scribe/171afce9-2452-4294-9bc4-6e8ae49f7e4c
+    ready_for_insert:
+      description:
+        - The flag indicates the ISO image content is fully uploaded, and image is ready to be used.
+        - Flag is `false` only for images that are in middle of upload, or where upload was terminated in middle.
+      type: bool
+      sample: true
+    size:
+      description: Size of the ISO file, in bytes
+      type: int
+      sample: 5110759424
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: 171afce9-2452-4294-9bc4-6e8ae49f7e4c
+results:
+  description:
+    - List with one element - updated ISO object from HyperCore API.
+    - This value is deprecated and will be removed in a future release. Please use record instead.
+  returned: success
   type: list
-  sample:
-    - mounts: []
-      name: TinyCore-current.iso
-      path: scribe/171afce9-2452-4294-9bc4-6e8ae49f7e4c
-      readyForInsert: true
-      size: 23068672
-      uuid: 171afce9-2452-4294-9bc4-6e8ae49f7e4c
+  elements: dict
+  contains:
+    mounts:
+      description: VMs this image is attached to
+      type: list
+      elements: dict
+      sample:
+        vm_uuid: 51e6d073-7566-4273-9196-58720117bd7f
+        vm_name: xlab
+    name:
+      description: Filename of the image
+      type: str
+      sample: SW_DVD9_Win_Server_STD_CORE_2022_2108.11_64Bit_English_DC_STD_MLF_X23-17134.ISO
+    path:
+      description: Storage device used in conjunction with VirDomainBlockDevice.path
+      type: str
+      sample: scribe/171afce9-2452-4294-9bc4-6e8ae49f7e4c
+    ready_for_insert:
+      description:
+        - The flag indicates the ISO image content is fully uploaded, and image is ready to be used.
+        - Flag is `false` only for images that are in middle of upload, or where upload was terminated in middle.
+      type: bool
+      sample: true
+    size:
+      description: Size of the ISO file, in bytes
+      type: int
+      sample: 5110759424
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: 171afce9-2452-4294-9bc4-6e8ae49f7e4c
 """
 
 
@@ -110,7 +172,7 @@ def ensure_present(module, rest_client):
     iso_image = ISO.get_by_name(module.params, rest_client)
     if iso_image and iso_image.ready_for_insert:
         # ISO object with image uploaded already present, so there is nothing to do
-        return False, [iso_image.to_ansible()], dict()
+        return False, iso_image.to_ansible(), dict()
     # We need to create and upload ISO
     iso_image = ISO(
         name=module.params["name"],
@@ -156,7 +218,7 @@ def ensure_present(module, rest_client):
     )
     TaskTag.wait_task(rest_client, task_tag_update)
     iso_image = ISO.get_by_name(module.params, rest_client).to_ansible()
-    return True, [iso_image], dict(before=None, after=iso_image)
+    return True, iso_image, dict(before=None, after=iso_image)
 
 
 def ensure_absent(module, rest_client):
@@ -168,8 +230,8 @@ def ensure_absent(module, rest_client):
         )
         TaskTag.wait_task(rest_client, task_tag_delete)
         output = iso_image.to_ansible()
-        return True, [output], dict(before=output, after=None)
-    return False, [], dict()
+        return True, output, dict(before=output, after=None)
+    return False, {}, dict()
 
 
 def run(module, rest_client):
@@ -201,11 +263,19 @@ def main():
         ],
     )
 
+    module.deprecate(
+        "The 'results' return value is being renamed to 'record' and changed from list to dict."
+        "Please use 'record' since 'results' will be removed in future release."
+        "But for now both values are being returned to allow users to migrate their automation.",
+        version="3.0.0",
+        collection_name="scale_computing.hypercore",
+    )
+
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
-        changed, results, diff = run(module, rest_client)
-        module.exit_json(changed=changed, results=results, diff=diff)
+        changed, record, diff = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, results=[record], diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

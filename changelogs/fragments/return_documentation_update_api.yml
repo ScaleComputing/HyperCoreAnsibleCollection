@@ -1,0 +1,3 @@
+---
+major_changes:
+  - Deprecate results value and add record value in iso module return values. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/183)
