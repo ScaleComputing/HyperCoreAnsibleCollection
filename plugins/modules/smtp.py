@@ -67,7 +67,7 @@ notes:
     In this case it will always report C(changed=True).
 """
 
-
+# TODO: HOW TO DELETE SMTP CONFIGURATION?? SHOULD STATE PRESENT/ABSENT BE ADDED??
 EXAMPLES = r"""
 - name: Modify SMTP configuration (authorization disabled)
   scale_computing.hypercore.smtp:
@@ -89,32 +89,62 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - Output from modifying entries of the SMTP configuration on HyperCore API.
+    - Created or updated SMTP Alert configuration.
   returned: success
   type: dict
-  sample:
-    auth_user: ""
-    auth_password: ""
-    from_address: PUB6@scalecomputing.com
+  contains:
+    auth_user:
+      description: Username for authentication if use_auth is true
+      type: str
+      sample: ""
+    auth_password:
+      description:
+        - Password for authentication if use_auth is true
+        - HyperCore API currently does not allow retrieving configured SMPT password - returned `password` field contains emtpy string "".
+          To be consistent module returned value is also empty string.
+      type: str
+      sample: ""
+    from_address:
+      description: Email address the system alerts will be sent from
+      type: str
+      sample: PUB6@scalecomputing.com
     latest_task_tag:
-      completed: 1675435601
-      created: 1675435601
-      descriptionParameters: []
-      formattedDescription: Update Alert SMTP Config
-      formattedMessage: ""
-      messageParameters: []
-      modified: 1675435601
-      nodeUUIDs: []
-      objectUUID: smtpconfig_guid
-      progressPercent: 100
-      sessionID: 92b4a736-259c-4f3c-9492-ce0c36691372
-      state: COMPLETE
-      taskTag: 761
-    port: 25
-    server: smtp-relay.gmail.com
-    use_auth: false
-    use_ssl: false
-    uuid: smtpconfig_guid
+      description: Latest Task Tag
+      type: dict
+      sample:
+        completed: 1675435601
+        created: 1675435601
+        descriptionParameters: []
+        formattedDescription: Update Alert SMTP Config
+        formattedMessage: ""
+        messageParameters: []
+        modified: 1675435601
+        nodeUUIDs: []
+        objectUUID: smtpconfig_guid
+        progressPercent: 100
+        sessionID: 92b4a736-259c-4f3c-9492-ce0c36691372
+        state: COMPLETE
+        taskTag: 761
+    port:
+      description: TCP port of the SMTP server
+      type: int
+      sample: 25
+    server:
+      description: IP address or hostname of the SMTP server
+      type: str
+      sample: smtp-relay.gmail.com
+    use_auth:
+      description: Is authentication enabled or not
+      type: bool
+      sample: false
+    use_ssl:
+      description: Enable SSL encryption
+      type: bool
+      sample: false
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: smtpconfig_guid
 """
 
 

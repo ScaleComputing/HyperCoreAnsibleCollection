@@ -221,18 +221,52 @@ record:
     - The modified record from the HyperCore API endpoint C(/rest/v1/VirDomainBlockDevice).
   returned: success
   type: dict
-  sample:
-    uuid: 056ea04b-069c-4a22-84d5-5489b100029f
-    vm_uuid: 1596dab1-6f90-494c-9607-b14221830433
-    type: VIRTIO_DISK
-    cache_mode: NONE
-    size: 81001000100
-    disk_slot: 0
-    name: jc1-disk-0
-    disable_snapshotting: False
-    tiering_priority_factor: 8
-    mount_points: []
-    read_only: false
+  contains:
+    uuid:
+      description: Unique Identifier
+      type: str
+      sample: 056ea04b-069c-4a22-84d5-5489b100029f
+    vm_uuid:
+      description: Identifier of the VirDomain this device is attached to
+      type: str
+      sample: 1596dab1-6f90-494c-9607-b14221830433
+    type:
+      description: The bus type the VirDomainBlockDevice will use
+      type: str
+      sample: virtio_disk
+    cache_mode:
+      description: The cache mode the VirDomainBlockDevice will use
+      type: str
+      sample: none
+    size:
+      description: Logical size of the device in bytes, and can be increased on update or clone
+      type: int
+      sample: 81001000100
+    disk_slot:
+      description: Virtual slot the drive will occupy
+      type: int
+      sample: 0
+    name:
+      description: Name of the virtual storage device
+      type: str
+      sample: jc1-disk-0
+    disable_snapshotting:
+      description: Disables the ability to snapshot the drive
+      type: bool
+      sample: False
+    tiering_priority_factor:
+      description: SSD tiering priority factor for block placement
+      type: int
+      sample: 8
+    mount_points:
+      description: Mount points of the drive in the guest OS, populated by the guest-agent
+      type: list
+      elements: str
+      sample: []
+    read_only:
+      description: True if the device is read-only
+      type: bool
+      sample: false
 """
 
 

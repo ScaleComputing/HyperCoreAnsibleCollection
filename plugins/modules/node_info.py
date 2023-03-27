@@ -35,11 +35,24 @@ records:
     - A list of node records.
   returned: success
   type: list
-  sample:
-    - node_uuid: "51e6d073-7566-4273-9196-58720117bd7f"
-      backplane_ip: "10.0.0.1"
-      lan_ip: "10.0.0.1"
-      peer_id: 1
+  elements: dict
+  contains:
+    node_uuid:
+      description: Unique identifier
+      type: str
+      sample: 51e6d073-7566-4273-9196-58720117bd7f
+    backplane_ip:
+      description: IP address on the backplane network
+      type: str
+      sample: 10.0.0.1
+    lan_ip:
+      description: IP address on the LAN network
+      type: str
+      sample: 10.0.0.2
+    peer_id:
+      description: Cluster map peer identifier
+      type: str
+      sample: 1
 """
 
 from ansible.module_utils.basic import AnsibleModule

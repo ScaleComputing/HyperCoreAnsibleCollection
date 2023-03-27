@@ -48,12 +48,15 @@ record:
     - Certificate record.
   returned: success
   type: dict
-  sample:
-    certificate:|
-      -----BEGIN CERTIFICATE-----
-      MIIGKzCCBBOgAwIBAgIUWaGzXfgSUuwwPJu3F2Q/Ru/O8JQwDQYJKoZIhvcNAQEL
-      ...
-      -----END CERTIFICATE-----
+  contains:
+    certificate:
+      description: Cluster SSL certificate
+      type: str
+      sample:
+        -----BEGIN CERTIFICATE-----
+        MIIGKzCCBBOgAwIBAgIUWaGzXfgSUuwwPJu3F2Q/Ru/O8JQwDQYJKoZIhvcNAQEL
+        ...
+        -----END CERTIFICATE-----
 """
 
 from ansible.module_utils.basic import AnsibleModule

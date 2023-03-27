@@ -37,24 +37,33 @@ record:
     - Time Server configuration record.
   returned: success
   type: dict
-  sample:
-    uuid: timesource_guid
-    host: pool.ntp.org
+  contains:
+    uuid:
+      description: Unique identifer
+      type: str
+      sample: timesource_guid
+    host:
+      description: IP address or hostname of the time source server
+      type: str
+      sample: pool.ntp.org
     latest_task_tag:
-      completed: 1675169105
-      created: 1675169100
-      descriptionParameters: []
-      formattedDescription: TimeSource Update
-      formattedMessage: ""
-      messageParameters: []
-      modified: 1675169105
-      nodeUUIDs:
-        - 32c5012d-7d7b-49b4-9201-70e02b0d8758
-      objectUUID: timesource_guid
-      progressPercent: 100
-      sessionID: b0ef6ff6-e7dc-4b13-80f2-010e1bcbcfbf
-      state: COMPLETE
-      taskTag: 665
+      description: Latest Task Tag
+      type: dict
+      sample:
+        completed: 1675169105
+        created: 1675169100
+        descriptionParameters: []
+        formattedDescription: TimeSource Update
+        formattedMessage: ""
+        messageParameters: []
+        modified: 1675169105
+        nodeUUIDs:
+          - 32c5012d-7d7b-49b4-9201-70e02b0d8758
+        objectUUID: timesource_guid
+        progressPercent: 100
+        sessionID: b0ef6ff6-e7dc-4b13-80f2-010e1bcbcfbf
+        state: COMPLETE
+        taskTag: 665
 """
 
 from ansible.module_utils.basic import AnsibleModule

@@ -100,13 +100,30 @@ record:
     - User record.
   returned: success
   type: dict
-  sample:
-    full_name: xlab
+  contains:
+    full_name:
+      description: Human-readable display name
+      type: str
+      sample: xlab
     roles:
-      - Admin
-    session_limit: 0
-    username: xlab
-    uuid: 51e6d073-7566-4273-9196-58720117bd7f
+      description: Role identifiers this user is a member of
+      type: list
+      elements: dict
+      sample:
+        uuid: 38b346c6-a626-444b-b6ab-92ecd671afc0
+        name: Admin
+    session_limit:
+      description: The maximum number of Sessions this user may have at one time
+      type: int
+      sample: 0
+    username:
+      description: Human-readable unique identifier for authentication
+      type: str
+      sample: xlab
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: 51e6d073-7566-4273-9196-58720117bd7f
 """
 
 from ansible.module_utils.basic import AnsibleModule

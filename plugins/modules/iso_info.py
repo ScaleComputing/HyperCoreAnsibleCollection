@@ -53,12 +53,37 @@ records:
     - If I(name) is not specified, all ISO images will be returned
   returned: success
   type: list
-  sample:
-    - mounts: []
-      name: SW_DVD9_Win_Server_STD_CORE_2022_2108.11_64Bit_English_DC_STD_MLF_X23-17134.ISO
-      ready_for_insert: true
-      size: 5110759424
-      uuid: 51e6d073-7566-4273-9196-58720117bd7f
+  elements: dict
+  contains:
+    mounts:
+      description: VMs this image is attached to
+      type: list
+      elements: dict
+      sample:
+        vm_uuid: 51e6d073-7566-4273-9196-58720117bd7f
+        vm_name: xlab
+    name:
+      description: Filename of the image
+      type: str
+      sample: SW_DVD9_Win_Server_STD_CORE_2022_2108.11_64Bit_English_DC_STD_MLF_X23-17134.ISO
+    path:
+      description: Storage device used in conjunction with VirDomainBlockDevice.path
+      type: str
+      sample: scribe/171afce9-2452-4294-9bc4-6e8ae49f7e4c
+    ready_for_insert:
+      description:
+        - The flag indicates the ISO image content is fully uploaded, and image is ready to be used.
+        - Flag is `false` only for images that are in middle of upload, or where upload was terminated in middle.
+      type: bool
+      sample: true
+    size:
+      description: Size of the ISO file, in bytes
+      type: int
+      sample: 5110759424
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: 171afce9-2452-4294-9bc4-6e8ae49f7e4c
 """
 
 

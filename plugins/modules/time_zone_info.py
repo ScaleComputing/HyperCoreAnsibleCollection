@@ -38,24 +38,33 @@ record:
     - Time Zone configuration record.
   returned: success
   type: dict
-  sample:
-    uuid: timezone_guid
-    zone: US/Eastern
+  contains:
+    uuid:
+      description: Unique identifer
+      type: str
+      sample: timezone_guid
+    zone:
+      description: Time zone
+      type: str
+      sample: US/Eastern
     latest_task_tag:
-      completed: 1675170961
-      created: 1675170954
-      descriptionParameters: []
-      formattedDescription: TimeZone Update
-      formattedMessage: ""
-      messageParameters: []
-      modified: 1675170961
-      nodeUUIDs:
-        - 32c5012d-7d7b-49b4-9201-70e02b0d8758
-      objectUUID: timezone_guid
-      progressPercent: 100
-      sessionID: 7157e957-bfad-4506-8713-124d5eb2397d
-      state: COMPLETE
-      taskTag: 687
+      description: Latest Task Tag
+      type: dict
+      sample:
+        completed: 1675170961
+        created: 1675170954
+        descriptionParameters: []
+        formattedDescription: TimeZone Update
+        formattedMessage: ""
+        messageParameters: []
+        modified: 1675170961
+        nodeUUIDs:
+          - 32c5012d-7d7b-49b4-9201-70e02b0d8758
+        objectUUID: timezone_guid
+        progressPercent: 100
+        sessionID: 7157e957-bfad-4506-8713-124d5eb2397d
+        state: COMPLETE
+        taskTag: 687
 """
 
 from ansible.module_utils.basic import AnsibleModule

@@ -37,10 +37,19 @@ records:
     - A list of Email Alert Recipient records.
   returned: success
   type: list
-  sample:
-    - alert_tag_uuid: 0
-      email: sample@sample.com
-      latest_task_tag:
+  contains:
+    alert_tag_uuid:
+      description: Unique identifier for an AlertTag
+      type: str
+      sample: 0
+    email:
+      description: Email address of the alert recipient
+      type: str
+      sample: sample@sample.com
+    latest_task_tag:
+      description: Latest Task Tag
+      type: dict
+      sample:
         completed: 1675680830
         created: 1675680830
         descriptionParameters: []
@@ -54,9 +63,18 @@ records:
         sessionID: 2bed8c34-1ef3-4366-8895-360f4f786afe
         state: COMPLETE
         taskTag: 813
-      resend_delay: 86400
-      silent_period: 900
-      uuid: 8664ed18-c354-4bab-be96-78dae5f6377f
+    resend_delay:
+      description: Alert resend delay in seconds
+      type: int
+      sample: 86400
+    silent_period:
+      description: Alerts will not resend if there are additional event triggers within this time in seconds
+      type: int
+      sample: 900
+    uuid:
+      description: Unique identifer
+      type: str
+      sample: default-target
 """
 
 

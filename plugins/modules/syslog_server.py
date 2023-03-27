@@ -84,34 +84,58 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-records:
+record:
   description:
-    - Output from modifying entries of the Syslog Servers configuration on HyperCore API.
+    - Created or updated syslog server.
   returned: success
   type: dict
-  sample:
-    alert_tag_uuid: 0
-    host: 10.5.11.222
+  contains:
+    alert_tag_uuid:
+      description: Unique identifier for an AlertTag (internal)
+      type: str
+      sample: 0
+    host:
+      description: IP address or hostname of the syslog server
+      type: str
+      sample: 10.5.11.222
     latest_task_tag:
-      completed: 1623069193
-      created: 1623069187
-      descriptionParameters: []
-      formattedDescription: Create Alert Syslog Target
-      formattedMessage: ""
-      messageParameters: []
-      modified: 1623069193
-      nodeUUIDs:
-        - 32c5012d-7d7b-49b4-9201-70e02b0d8758
-      objectUUID: 21c65667-234a-437b-aead-df0199598ff9
-      progressPercent: 100
-      sessionID: ""
-      state: COMPLETE
-      taskTag: 13
-    port: 514
-    protocol: SYSLOG_PROTOCOL_UDP
-    resend_delay: 86400
-    silent_period: 900
-    uuid: 21c65667-234a-437b-aead-df0199598ff9
+      description: Latest Task Tag
+      type: dict
+      sample:
+        completed: 1623069193
+        created: 1623069187
+        descriptionParameters: []
+        formattedDescription: Create Alert Syslog Target
+        formattedMessage: ""
+        messageParameters: []
+        modified: 1623069193
+        nodeUUIDs:
+          - 32c5012d-7d7b-49b4-9201-70e02b0d8758
+        objectUUID: 21c65667-234a-437b-aead-df0199598ff9
+        progressPercent: 100
+        sessionID: ""
+        state: COMPLETE
+        taskTag: 13
+    port:
+      description: Network port of the syslog server
+      type: int
+      sample: 514
+    protocol:
+      description: Network protocol used to send syslog alerts
+      type: str
+      sample: udp
+    resend_delay:
+      description: Alert resend delay in seconds
+      type: int
+      sample: 86400
+    silent_period:
+      description: Alerts will not resend if there are additional event triggers within this time in seconds
+      type: str
+      sample: 900
+    uuid:
+      description: Unique identifer
+      type: str
+      sample: 21c65667-234a-437b-aead-df0199598ff9
 """
 
 

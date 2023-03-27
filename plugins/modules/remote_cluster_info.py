@@ -48,14 +48,30 @@ records:
     - A list of remote cluster records.
   returned: success
   type: list
-  sample:
-    - name: PUB4
-      connection_status: established
-      replication_ok: True
-      remote_node_ips:
-        - 10.5.11.11
-      remote_node_uuids:
-        - 0000-0000
+  elements: dict
+  contains:
+    name:
+      description: Assigned name to the system
+      type: str
+      sample: PUB4
+    connection_status:
+      description: Remote cluster connection status
+      type: str
+      sample: ESTABLISHED
+    replication_ok:
+      description: Indicates if the remote system is able to accept additional replication work
+      type: bool
+      sample: true
+    remote_node_ips:
+      description: The ipAddresses of the remote nodes
+      type: list
+      elements: str
+      sample: 10.5.11.11
+    remote_node_uuids:
+      description: The uuids of the the remote nodes
+      type: list
+      elements: str
+      sample: 32c5012d-7d7b-49b4-9201-70e02b0d8758
 """
 
 from ansible.module_utils.basic import AnsibleModule
