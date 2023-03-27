@@ -7,22 +7,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-# DOCUMENTATION = r"""
-# module: time_server_info
-#
-# author:
-#   - Ana Zobec (@anazobec)
-# short_description: List Time Server source configuration on HyperCore API.
-# description:
-#   - Use this module to list information about the Time Server configuration on HyperCore API.
-# version_added: 1.2.0
-# extends_documentation_fragment:
-#   - scale_computing.hypercore.cluster_instance
-# seealso:
-#   - module: scale_computing.hypercore.time_server
-#   - module: scale_computing.hypercore.time_zone
-#   - module: scale_computing.hypercore.time_zone_info
-# """
 
 DOCUMENTATION = r"""
 module: time_server_info
@@ -54,24 +38,33 @@ record:
     - Time Server configuration record.
   returned: success
   type: dict
-  sample:
-    uuid: timesource_guid
-    host: pool.ntp.org
+  contains:
+    uuid:
+      description: Unique identifer
+      type: str
+      sample: timesource_guid
+    host:
+      description: IP address or hostname of the time source server
+      type: str
+      sample: pool.ntp.org
     latest_task_tag:
-      completed: 1675169105
-      created: 1675169100
-      descriptionParameters: []
-      formattedDescription: TimeSource Update
-      formattedMessage: ""
-      messageParameters: []
-      modified: 1675169105
-      nodeUUIDs:
-        - 32c5012d-7d7b-49b4-9201-70e02b0d8758
-      objectUUID: timesource_guid
-      progressPercent: 100
-      sessionID: b0ef6ff6-e7dc-4b13-80f2-010e1bcbcfbf
-      state: COMPLETE
-      taskTag: 665
+      description: Latest Task Tag
+      type: dict
+      sample:
+        completed: 1675169105
+        created: 1675169100
+        descriptionParameters: []
+        formattedDescription: TimeSource Update
+        formattedMessage: ""
+        messageParameters: []
+        modified: 1675169105
+        nodeUUIDs:
+          - 32c5012d-7d7b-49b4-9201-70e02b0d8758
+        objectUUID: timesource_guid
+        progressPercent: 100
+        sessionID: b0ef6ff6-e7dc-4b13-80f2-010e1bcbcfbf
+        state: COMPLETE
+        taskTag: 665
 """
 
 from ansible.module_utils.basic import AnsibleModule

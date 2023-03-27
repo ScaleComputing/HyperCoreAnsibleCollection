@@ -269,16 +269,38 @@ record:
   description:
     - Created VM, if creating the record. If deleting the record, none is returned.
   returned: success
-  type: list
-  sample:
-    vm_name: demo-vm
-    description: demo-vm-description
-    vcpu: 2
-    power_state: stopped
-    tags: group-name,tag1,tag2
-    uuid: f0c91f97-cbfc-40f8-b918-ab77ae8ea7fb
+  type: dict
+  contains:
+    vm_name:
+      description: Human-readable virtual machine name
+      type: str
+      sample: demo-vm
+    description:
+      description: Human-readable description
+      type: str
+      sample: demo-vm-description
+    vcpu:
+      description: Number of allotted virtual CPUs
+      type: int
+      sample: 2
+    power_state:
+      description: VM's power state
+      type: str
+      sample: stopped
+    tags:
+      description: User-modifiable words for organizing a group of VMs
+      type: str
+      sample: group-name,tag1,tag2
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: f0c91f97-cbfc-40f8-b918-ab77ae8ea7fb
     boot_devices:
-      - cache_mode: none
+      description: Bootable disks or nics, in the order that they will boot
+      type: list
+      elements: dict
+      sample:
+        cache_mode: none
         disable_snapshotting: false
         disk_slot: 2
         mount_points: []
@@ -290,7 +312,11 @@ record:
         uuid: d48847d0-91b1-4edf-ab28-3be864494711
         vm_uuid: 183c5d7c-1e2e-4871-84e8-9ef35bfda5ca
     disks:
-      - uuid: e8c8aa6b-1043-48a0-8407-2c432d705378
+      description: Attached virtual block devices
+      type: list
+      elements: dict
+      sample:
+        uuid: e8c8aa6b-1043-48a0-8407-2c432d705378
         vm_uuid: 1596dab1-6f90-494c-9607-b14221830433
         type: virtio_disk
         cache_mode: none
@@ -302,32 +328,41 @@ record:
         mount_points: []
         read_only: false
     nics:
-      - uuid: 07a2a68a-0afa-4718-9c6f-00a39d08b67e
+      description: Attached virtual network devices
+      type: list
+      elements: dict
+      sample:
+        uuid: 07a2a68a-0afa-4718-9c6f-00a39d08b67e
         vlan: 15
         type: virtio
         mac: 12-34-56-78-AB
         connected: true
         ipv4_addresses: []
     node_affinity:
-      strict_affinity: true
-      preferred_node:
-        backplane_ip: "10.0.0.1"
-        lan_ip: "10.0.0.2"
-        peer_id: 1
-        node_uuid: 638920f2-1069-42ed-b311-5368946f4aca
-      backup_node:
-        node_uuid: f6v3c6b3-99c6-475b-8e8e-9ae2587db5fc
-        backplane_ip: 10.0.0.3
-        lan_ip: 10.0.0.4
-        peer_id: 2
-    snapshot_schedule: my-snapshot-schedule
+      description: VM's node affinity strategy
+      type: dict
+      sample:
+        strict_affinity: true
+        preferred_node:
+          backplane_ip: 10.0.0.1
+          lan_ip: 10.0.0.2
+          peer_id: 1
+          node_uuid: 638920f2-1069-42ed-b311-5368946f4aca
+        backup_node:
+          node_uuid: f6v3c6b3-99c6-475b-8e8e-9ae2587db5fc
+          backplane_ip: 10.0.0.3
+          lan_ip: 10.0.0.4
+          peer_id: 2
+    snapshot_schedule:
+      description: Name identifier of a snapshot schedule for automated snapshots
+      type: str
+      sample: demo-snapshot-schedule
 vm_rebooted:
   description:
       - Info if reboot of the VM was performed.
   returned: success
   type: bool
-  sample:
-      vm_rebooted: true
+  sample: true
 """
 
 from ansible.module_utils.basic import AnsibleModule

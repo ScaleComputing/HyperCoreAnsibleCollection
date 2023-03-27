@@ -46,12 +46,28 @@ records:
     - A list of virtual_disk records.
   returned: success
   type: list
-  sample:
-    name: demo-virtual-disk
-    block_size: 1048576
-    size: 1073741824
-    replication_factor: 2
-    uuid: 7983b298-c37a-4c99-8dfe-b2952e81b092
+  elements: dict
+  contains:
+    name:
+      description: Name identifier
+      type: str
+      sample: demo-virtual-disk
+    block_size:
+      description: Size of individual blocks (the smallest unit of measurement for VSDs) on the drive, in bytes
+      type: int
+      sample: 1048576
+    size:
+      description: Total capacity, in bytes
+      type: int
+      sample: 1073741824
+    replication_factor:
+      description: How many copies of each block are stored on physical drives
+      type: int
+      sample: 2
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: 7983b298-c37a-4c99-8dfe-b2952e81b092
 """
 
 

@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+
 DOCUMENTATION = r"""
 module: vm_boot_devices
 
@@ -15,8 +16,8 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: Manage HyperCore VM's boot devices
 description:
-  - Use this module to add or remove a list of devices from boot order (add to end of list) or set the exact boot order of the devices.
-  - Can also be used to set a specific list of devices as first, but leave everything else as is.
+  - Use this module to reconfigure VM boot devices.
+  - VM boot devices can be set exactly to provided list, or provided list can be inserted before or after current VM boot devices.
 version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -26,10 +27,10 @@ seealso: []
 options:
   state:
     description:
-      - The desired state of the boot devices specified by I(items).
-      - If I(present) devices specified by I(items) will be added to list of boot devices.
-      - If I(absent) devices specified by I(items) will be removed from the list of boot devices.
-      - If I(set) VM boot devices will be set exactly to devices specified by I(items).
+      - The desired state of the boot devices specified by C(items).
+      - If I(state=present) devices specified by C(items) will be added to list of boot devices.
+      - If I(state=absent) devices specified by C(items) will be removed from the list of boot devices.
+      - If I(state=set) VM boot devices will be set exactly to devices specified by C(items).
     choices: [ present, absent, set ]
     type: str
     required: true
@@ -153,22 +154,56 @@ EXAMPLES = r"""
 RETURN = r"""
 record:
   description:
-    - VM's device that we're assigning the boot order to, which can be either disks from the API endpoint C(/VirDomainBlockDevices), or
-      nics from the API endpoint C(/VirDomainNetDevices).
+    - VM's device that we're assigning the boot order to, which can be either disks from the API endpoint C(/VirDomainBlockDevices),
+      or nics from the API endpoint C(/VirDomainNetDevices).
   returned: success
   type: dict
-  sample:
-    cache_mode: none
-    disable_snapshotting: false
-    disk_slot: 2
-    mount_points: []
-    name: ""
-    read_only: false
-    size: 10737418240
-    tiering_priority_factor: 8
-    type: virtio_disk
-    uuid: d48847d0-91b1-4edf-ab28-3be864494711
-    vm_uuid: 183c5d7c-1e2e-4871-84e8-9ef35bfda5ca
+  contains:
+    cache_mode:
+      description: The cache mode the block device will use
+      type: str
+      sample: writeback
+    disable_snapshotting:
+      description: Disables the ability to snapshot the drive
+      type: bool
+      sample: false
+    disk_slot:
+      description: Virtual slot the drive will occupy
+      type: int
+      sample: 2
+    mount_points:
+      description: Mount points of the drive in the guest OS, populated by the guest-agent
+      type: list
+      elements: str
+      sample: /boot
+    name:
+      description: Name of the virtual storage device
+      type: str
+      sample: jc1-disk-0
+    read_only:
+      description: When true, this device was created via VirDomainSnapshotBlockDeviceCreate with VirDomainSnapshotBlockDeviceCreateOptions
+      type: bool
+      sample: false
+    size:
+      description: Logical size of the device in bytes, and can be increased on update or clone
+      type: int
+      sample: 10737418240
+    tiering_priority_factor:
+      description: SSD tiering priority factor for block placement
+      type: int
+      sample: 8
+    type:
+      description: The bus type the block device will use
+      type: str
+      sample: virtio_disk
+    uuid:
+      description: Unique Identifier
+      type: str
+      sample: d48847d0-91b1-4edf-ab28-3be864494711
+    vm_uuid:
+      description: Identifier of the VirDomain this device is attached to
+      type: str
+      sample: 183c5d7c-1e2e-4871-84e8-9ef35bfda5ca
 """
 
 from ansible.module_utils.basic import AnsibleModule

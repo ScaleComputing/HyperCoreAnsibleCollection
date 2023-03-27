@@ -45,10 +45,19 @@ record:
     - Updated cluster name.
   returned: success
   type: dict
-  sample:
-    - icos_version: 9.2.11.210763
-      name: updated_cluster_name
-      uuid: a5d9148c-37f7-4b43-843c-196751d3c050
+  contains:
+    icos_version:
+      description: HyperCore ICOS version
+      type: str
+      sample: 9.2.11.210763
+    name:
+      description: Cluster name
+      type: str
+      sample: PUB4
+    uuid:
+      description: Cluster UUID
+      type: str
+      sample: a5d9148c-37f7-4b43-843c-196751d3c050
 """
 
 from ansible.module_utils.basic import AnsibleModule

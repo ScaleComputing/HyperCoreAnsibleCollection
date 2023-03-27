@@ -18,7 +18,7 @@ short_description: Wait for a HyperCore TaskTag to be finished.
 description:
   - A helper module, which waits until the object with a given task_tag is actually created/updated/deleted .
   - Used within a context of a larger role. Whenever C(POST), C(PATCH) or C(DELETE) method is applied on the HyperCore
-    object, a dict in with keys C(createdUUID) and C(taskTag) is returned. Depending on taskTag's status, the object's
+    object, a dict with keys C(createdUUID) and C(taskTag) is returned. Depending on taskTag's status, the object's
     request might be still in queue or may be already executed. This module ensures that the object's request is not
     on queue anymore, and execution is finished.
 version_added: 1.0.0
@@ -43,15 +43,8 @@ EXAMPLES = r"""
 """
 
 
-RETURN = r"""
-records:
-  description:
-    - The module will always return false, null, null,
-  returned: success
-  type: list
-  sample:
-    - null
-"""
+RETURN = r""" # """  # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
+
 
 from ansible.module_utils.basic import AnsibleModule
 

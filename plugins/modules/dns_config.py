@@ -77,27 +77,39 @@ results:
     - Output from modifying entries of the DNS configuration on HyperCore API.
   returned: success
   type: dict
-  sample:
-    uuid: "dnsconfig_guid"
+  contains:
+    uuid:
+      description: Unique identifer
+      type: str
+      sample: dnsconfig_guid
     server_ips:
-      - "1.1.1.1"
-      - "1.0.0.1"
-    search_domains: []
+      description: IP address or hostname of DNS servers
+      type: list
+      elements: str
+      sample: 1.1.1.1
+    search_domains:
+      description: Domain search list used to resolve fully qualified domain names
+      type: list
+      elements: str
+      sample: example.domain1.com
     latest_task_tag:
-      completed: 1673966351
-      created: 1673966345
-      descriptionParameters: []
-      formattedDescription: "DNSConfig Update"
-      formattedMessage: ""
-      messageParameters: []
-      modified: 1673966351
-      nodeUUIDs:
-        - "32c5012d-7d7b-49b4-9201-70e02b0d8758"
-      objectUUID: "dnsconfig_guid"
-      progressPercent: 100
-      sessionID: "b8c45c35-3349-49e0-9474-0edfa73a2162"
-      state: "COMPLETE"
-      taskTag: "396"
+      description: Latest Task Tag
+      type: dict
+      sample:
+        completed: 1673946776
+        created: 1673946770
+        descriptionParameters: []
+        formattedDescription: "DNSConfig Update"
+        formattedMessage: ""
+        messageParameters: []
+        modified: 1673946776
+        nodeUUIDs:
+          - "32c5012d-7d7b-49b4-9201-70e02b0d8758"
+        objectUUID: "dnsconfig_guid"
+        progressPercent: 100
+        sessionID: "775155cc-bc4e-445c-9efa-a304f4f66c82"
+        state: "COMPLETE"
+        taskTag: "359"
 """
 
 
