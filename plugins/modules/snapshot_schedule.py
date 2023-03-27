@@ -90,18 +90,29 @@ EXAMPLES = r"""
         remote_retention:  # optional, None or 0 means same as local_retention.
 """
 
-
+# TODO record is list with single item, should be a dict.
 RETURN = r"""
 record:
   description:
-    - The created or deleted record from the HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
+    - The created or deleted snapshot schedule from the HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
   returned: success
-  type: dict
-  sample:
-    uuid: 74df5b47-c468-4626-a7e4-34eca13b2f81
-    name: demo-snap-schedule
+  type: list
+  elements: dict
+  contains:
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: 74df5b47-c468-4626-a7e4-34eca13b2f81
+    name:
+      description: Human-readable snapshot schedule name
+      type: str
+      sample: demo-snap-schedule
     recurrences:
-      - name: weekly-tuesday
+      description: Snapshot scheduling rules
+      type: list
+      elements: dict
+      sample:
+        name: weekly-tuesday
         frequency: "FREQ=WEEKLY;INTERVAL=1;BYDAY=TU"
         start: "2010-01-01 00:00:00"
         local_retention: 1296000
