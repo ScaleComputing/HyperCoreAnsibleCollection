@@ -57,8 +57,8 @@ record:
   returned: success
   type: dict
   sample:
-    - open: true
-      code: 4422
+    open: true
+    code: 4422
 """
 
 from ansible.module_utils.basic import AnsibleModule

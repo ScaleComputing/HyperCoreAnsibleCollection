@@ -163,19 +163,16 @@ EXAMPLES = r"""
 
 
 RETURN = r"""
-records:
+record:
   description:
-    - In case of I(action=get), the records from the specified endpoint. Below is example output for I(action=get).
-    - In case of I(action=post), I(action=patch) or I(action=delete), the task tag, returned from the HyperCore API.
+    - In case of I(action=get), list of records from the specified endpoint. Exact content depend on called API endpoint.
+    - In case of I(action=post), I(action=patch) or I(action=delete), usually the task tag dictionary, returned from the HyperCore API.
+      If task tag is returned, the module internally waits on returned task tag to be finished.
   returned: success
-  type: list
+  type: dict
   sample:
-    - uuid: 81178af9-fb4c-4e98-9dba-d272adc2cae2
-      virDomainUUID: 17a23be5-9cf2-4d79-b02f-b2a0cb29a0f7
-      type: RTL8139
-      macAddress: 7C:4C:58:18:23:4F
-      connected: true
-      ipv4Addresses: []
+    createdUUID: 51e6d073-7566-4273-9196-58720117bd7f
+    taskTag: 359
 """
 
 

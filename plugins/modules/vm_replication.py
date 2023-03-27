@@ -25,7 +25,7 @@ seealso: []
 options:
   state:
     description:
-      - State defines the desired state of the VM replication - C(enable), C(disable), C(reenable).
+      - State defines the desired state of the VM replication - C(enabled), C(disabled), C(reenabled).
       - Use C(enabled) for initial replication setup.
       - Use C(disabled) to pause a configured replication.
       - Use C(reenabled) to unpause a configured replication. I(remote_cluster) is optional in this case.
@@ -64,10 +64,19 @@ record:
     - The created or changed record for replication on a specified virtual machine.
   returned: success
   type: dict
-  sample:
-    remote_cluster: "cluster name example"
-    vm_name: demo-vm
-    state: "enabled"
+  contains:
+    vm_name:
+      description: Virtual machine name identifier
+      type: str
+      sample: demo-vm
+    remote_cluster:
+      description: Remote cluster name
+      type: str
+      sample: PUB4
+    state:
+      description: The desired state of the VM replication
+      type: str
+      sample: enabled
 """
 
 from ansible.module_utils.basic import AnsibleModule

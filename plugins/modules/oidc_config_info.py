@@ -34,10 +34,19 @@ record:
     - OIDC config record.
   returned: success
   type: dict
-  sample:
-    client_id: 1234
-    config_url: https://somewhere.com/this/endpoint
-    scopes: required_scopes
+  contains:
+    client_id:
+      description: Provided by authentication server when configuring a new client
+      type: str
+      sample: d2298ec0-0596-49d2-9554-840a2fe20603
+    config_url:
+      description: The OpenID Connect Provider Configuration Information endpoint
+      type: str
+      sample: https://login.microsoftonline.com/your_uuid/v2.0/.well-known/openid-configuration
+    scopes:
+      description: Scopes required to obtain necessary claims
+      type: str
+      sample: openid+profile
 """
 
 from ansible.module_utils.basic import AnsibleModule

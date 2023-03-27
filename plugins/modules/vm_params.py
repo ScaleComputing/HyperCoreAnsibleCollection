@@ -102,8 +102,7 @@ vm_rebooted:
       - Info if reboot of the VM was performed.
   returned: success
   type: bool
-  sample:
-      vm_rebooted: true
+  sample: true
 """
 
 

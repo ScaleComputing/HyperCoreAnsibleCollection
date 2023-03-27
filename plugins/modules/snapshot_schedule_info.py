@@ -46,14 +46,25 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - Records from the HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
+    - List of VM's snapshot schedules from the HyperCore API endpoint C(/rest/v1/VirDomainSnapshotSchedule).
   returned: success
-  type: dict
-  sample:
-    uuid: 74df5b47-c468-4626-a7e4-34eca13b2f81
-    name: demo-snap-schedule
+  type: list
+  elements: dict
+  contains:
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: 74df5b47-c468-4626-a7e4-34eca13b2f81
+    name:
+      description: Human-readable snapshot schedule name
+      type: str
+      sample: demo-snap-schedule
     recurrences:
-      - name: weekly-tuesday
+      description: Snapshot scheduling rules
+      type: list
+      elements: dict
+      sample:
+        name: weekly-tuesday
         frequency: "FREQ=WEEKLY;INTERVAL=1;BYDAY=TU"
         start: "2010-01-01 00:00:00"
         local_retention: 1296000

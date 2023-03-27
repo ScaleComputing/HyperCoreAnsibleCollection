@@ -45,12 +45,22 @@ RETURN = r"""
 records:
   description:
     - The replication records.
-  type: list
   returned: success
-  sample:
-    - vm_name: demo-vm
-      remote_cluster: PUB4
-      state: enabled
+  type: list
+  elements: dict
+  contains:
+    vm_name:
+      description: Virtual machine name identifier
+      type: str
+      sample: demo-vm
+    remote_cluster:
+      description: Remote cluster name
+      type: str
+      sample: PUB4
+    state:
+      description: The desired state of the VM replication
+      type: str
+      sample: enabled
 """
 
 

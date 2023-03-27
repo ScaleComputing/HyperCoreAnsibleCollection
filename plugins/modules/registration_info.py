@@ -38,11 +38,23 @@ record:
     - Cluster registration info
   returned: success
   type: dict
-  sample:
-    company_name: sample_company
-    contact: John Smith
-    email: john_smith@sgmail.com
-    phone: '777777777'
+  contains:
+    company_name:
+      description: Name of the company registering the cluster
+      type: str
+      sample: New company
+    contact:
+      description: Name of the person registering the cluster
+      type: str
+      sample: John Smith
+    email:
+      description: Email address for company contact
+      type: str
+      sample: john_smith@gmail.com
+    phone:
+      description: Phone number for company contact
+      type: str
+      sample: 056789987
 """
 
 from ansible.module_utils.basic import AnsibleModule
