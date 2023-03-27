@@ -1,0 +1,3 @@
+---
+major_changes:
+  - Deprecate records value and add record value in vm_nic module return values. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/183)
