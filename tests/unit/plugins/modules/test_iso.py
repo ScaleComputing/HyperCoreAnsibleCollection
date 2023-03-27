@@ -56,19 +56,17 @@ class TestEnsureAbsent:
         )
         assert result == (
             True,
-            [
-                {
-                    "mounts": [
-                        {"vm_name": "vm-name-1", "vm_uuid": "vm-uuid-1"},
-                        {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
-                    ],
-                    "name": "ISO-test-name",
-                    "path": "scribe/1234",
-                    "ready_for_insert": False,
-                    "size": 8000,
-                    "uuid": "id",
-                }
-            ],
+            {
+                "mounts": [
+                    {"vm_name": "vm-name-1", "vm_uuid": "vm-uuid-1"},
+                    {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
+                ],
+                "name": "ISO-test-name",
+                "path": "scribe/1234",
+                "ready_for_insert": False,
+                "size": 8000,
+                "uuid": "id",
+            },
             {
                 "after": None,
                 "before": {
@@ -130,19 +128,17 @@ class TestEnsurePresent:
 
         assert result == (
             True,
-            [
-                {
-                    "mounts": [
-                        {"vm_name": "vm-name-1", "vm_uuid": "vm-uuid-1"},
-                        {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
-                    ],
-                    "name": "ISO-test-name",
-                    "path": "scribe/1234",
-                    "ready_for_insert": False,
-                    "size": 8000,
-                    "uuid": "id",
-                }
-            ],
+            {
+                "mounts": [
+                    {"vm_name": "vm-name-1", "vm_uuid": "vm-uuid-1"},
+                    {"vm_name": "vm-name-2", "vm_uuid": "vm-uuid-2"},
+                ],
+                "name": "ISO-test-name",
+                "path": "scribe/1234",
+                "ready_for_insert": False,
+                "size": 8000,
+                "uuid": "id",
+            },
             {
                 "after": {
                     "mounts": [
@@ -189,15 +185,13 @@ class TestEnsurePresent:
         result = iso.ensure_present(module, rest_client)
         assert result == (
             False,
-            [
-                {
-                    "mounts": [],
-                    "name": "iso-image-name",
-                    "path": "/path/",
-                    "ready_for_insert": True,
-                    "size": 1234,
-                    "uuid": "id",
-                }
-            ],
+            {
+                "mounts": [],
+                "name": "iso-image-name",
+                "path": "/path/",
+                "ready_for_insert": True,
+                "size": 1234,
+                "uuid": "id",
+            },
             {},
         )
