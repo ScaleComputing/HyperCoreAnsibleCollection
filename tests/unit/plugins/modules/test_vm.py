@@ -68,6 +68,7 @@ class TestEnsureAbsent:
             },
             snapshotScheduleUUID="shapshot-id",
             machineType="scale-7.2",
+            sourceVirDomainUUID="",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -108,6 +109,7 @@ class TestEnsureAbsent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -142,6 +144,7 @@ class TestEnsureAbsent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -202,6 +205,7 @@ class TestEnsureAbsent:
             },
             snapshotScheduleUUID="snapshot_schedule_uuid",
             machineType="scale-7.2",
+            sourceVirDomainUUID="64c9b3a1-3eab-4d16-994f-177bed274f84",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -246,6 +250,7 @@ class TestEnsureAbsent:
                     },
                     "operating_system": None,
                     "power_state": "started",
+                    "replication_source_vm_uuid": "64c9b3a1-3eab-4d16-994f-177bed274f84",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -280,6 +285,7 @@ class TestEnsureAbsent:
                     },
                     "operating_system": None,
                     "power_state": "started",
+                    "replication_source_vm_uuid": "64c9b3a1-3eab-4d16-994f-177bed274f84",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -377,6 +383,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="snapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="64c9b3a1-3eab-4d16-994f-177bed274f84",
             ),
             dict(  # vm_after
                 uuid="id",
@@ -399,6 +406,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="snapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="64c9b3a1-3eab-4d16-994f-177bed274f84",
             ),
         ]
 
@@ -447,6 +455,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "64c9b3a1-3eab-4d16-994f-177bed274f84",
                     "snapshot_schedule": "",
                     "tags": ["group"],
                     "uuid": "id",
@@ -480,6 +489,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "64c9b3a1-3eab-4d16-994f-177bed274f84",
                     "snapshot_schedule": "",
                     "tags": ["group"],
                     "uuid": "id",
@@ -552,6 +562,7 @@ class TestEnsurePresent:
             },
             snapshot_schedule="snapshot-schedule-name",
             machine_type="BIOS",
+            replication_source_vm_uuid="",
         )
         vm_b = vm.VM(
             uuid="id",
@@ -584,6 +595,7 @@ class TestEnsurePresent:
             },
             snapshot_schedule="snapshot-schedule-name",
             machine_type="BIOS",
+            replication_source_vm_uuid="",
         )
 
         mocker.patch(
@@ -636,6 +648,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": "os_windows_server_2012",
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "snapshot-schedule-name",
                     "tags": ["group"],
                     "uuid": "id",
@@ -669,6 +682,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": "os_windows_server_2012",
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "snapshot-schedule-name",
                     "tags": ["group"],
                     "uuid": "id",
@@ -700,6 +714,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": "os_windows_server_2012",
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "snapshot-schedule-name",
                     "tags": [""],
                     "uuid": "id",
@@ -772,6 +787,7 @@ class TestEnsurePresent:
             },
             snapshot_schedule="snapshot-id",
             machine_type="BIOS",
+            replication_source_vm_uuid="",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.get_by_old_or_new_name"
@@ -881,6 +897,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
             dict(
                 uuid="id",
@@ -917,6 +934,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
         ]
         mocker.patch(
@@ -981,6 +999,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -1028,6 +1047,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -1073,6 +1093,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -1135,6 +1156,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="snapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
             dict(
                 uuid="id",
@@ -1157,6 +1179,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="snapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
         ]
         mocker.patch(
@@ -1198,6 +1221,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -1231,6 +1255,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -1322,6 +1347,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
             dict(
                 uuid="id",
@@ -1358,6 +1384,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
         ]
         mocker.patch(
@@ -1435,6 +1462,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -1496,6 +1524,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -1579,6 +1608,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
             dict(
                 uuid="id",
@@ -1615,6 +1645,7 @@ class TestEnsurePresent:
                 },
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
         ]
         mocker.patch(
@@ -1675,6 +1706,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",
@@ -1722,6 +1754,7 @@ class TestEnsurePresent:
                     },
                     "operating_system": None,
                     "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
                     "snapshot_schedule": "",
                     "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                     "uuid": "id",

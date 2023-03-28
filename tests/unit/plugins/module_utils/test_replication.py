@@ -87,6 +87,7 @@ class TestGet:
             },
             "snapshotScheduleUUID": "",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
