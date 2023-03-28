@@ -83,17 +83,13 @@ inventory file is organized like this:
            two.example.com:
            Three.example.com:
 
-*hosts* denotes individual target servers (in the case of HyperCore you
+``hosts`` denotes individual target servers (in the case of HyperCore you
 could point to a FQDN or IP address of a node in the cluster) while
-*children*: and signifiers like *webservers*: and *dbservers*: organize
+``children:`` and signifiers like ``webservers:`` and ``dbservers:`` organize
 hosts into different categories. A small HyperCore inventory might look
 something like this:
 
-.. comment
-   figure:: /docs/_static/file.png
-   :alt: Inventory File Example
-
-   Inventory File Example
+**Image**
 
 Ansible Configuration File
 ---------------------------
@@ -104,7 +100,7 @@ your Ansible collection path. This file serves as the center to all of
 your server interactions.
 
 Upon installing Ansible, you will be provided with a default
-configuration file (ansible.cfg). The default configuration is a large
+configuration file **(ansible.cfg)**. The default configuration is a large
 file that you can choose to use, however it is also fine to create your
 own simplified version. The most important thing is to make sure your
 work is referencing the correct configuration file. The easiest way to
@@ -113,16 +109,12 @@ are working with Ansible or setting it as an environment variable.
 
 For the purposes of this guide, you need to make sure your configuration
 file specifies where your inventory is located. All that is required is
-to set inventory = [folder that contains your inventory in your working
-ansible directory]. You can reference a specific file or an entire
+to set ``inventory = [folder that contains your inventory in your working
+ansible directory]``. You can reference a specific file or an entire
 inventory folder. An example of a simple configuration file looks like
 this:
 
-.. comment
-   figure:: /image/sample.png
-   :alt: Ansible Configuration File Example
-
-   Ansible Configuration File Example
+**Image**
 
 Ansible Module
 --------------
@@ -139,11 +131,11 @@ cluster REST API endpoints. Extensive documentation on our current
 available modules can be found
 `here <https://galaxy.ansible.com/scale_computing/hypercore>`__.
 
-For example: *scale_computing.hypercore.vm* is the module that will
-allow you to create, update, and delete virtual machines. When you begin
-writing playbooks, you will reference a specific module when attempting
-to automate a task associated with that said module is equipped to
-handle.
+For example: `scale_computing.hypercore.vm <https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs/modules/vm.html>'__ 
+is the module that will allow you to create, update, and delete virtual 
+machines. When you begin writing playbooks, you will reference a specific 
+module when attempting to automate a task associated with that said module 
+is equipped to handle.
 
 Ansible Playbook
 -----------------
@@ -162,8 +154,8 @@ configuration and skip tasks that do not need repeated.
 At a high level, playbooks typically begin with the author specifying
 which hosts (in our case HyperCore clusters) are going to be targeted.
 They will then establish the method by which Ansible will connect to the
-remote hosts (in our case this will be *connection:
-ansible.builtin.local*). Once these have been established, the author
+remote hosts (in our case this will be ``connection:
+ansible.builtin.local``). Once these have been established, the author
 can begin writing tasks in the order in which they will be carried out;
 calling out the necessary ansible modules and module parameters along
 the way.
@@ -174,8 +166,11 @@ your own playbooks.
 Ansible Installation
 ====================
 
-Now that you have a basic understanding of key Ansible concepts we can turn to installing Ansible and the HyperCore collection. **Note:** your ansible
-server (where you run your commands) must be a UNIX-like machine with Python 3.8 or newer. This guide uses an Ubuntu 20.04 virtual machine to demonstrate how to install Ansible. 
+Now that you have a basic understanding of key Ansible concepts we can turn to installing Ansible and the HyperCore collection. 
+
+.. note:: 
+   Your ansible server (where you run your commands) must be a UNIX-like machine with Python 3.8 or newer. This guide uses an 
+   Ubuntu 20.04 virtual machine to demonstrate how to install Ansible. 
 
 1. Install ansible: ``sudo apt install ansible``
 	a. This command will install of the ncessary packages, libraries, and bianaries needed to run Ansible. 
@@ -233,7 +228,8 @@ While exporting HyperCore cluster information at the command line works perfectl
             scale_pass: {your account password}
 
 3. Once you have created a basic inventory, save the file. 
-	a. **Note**: YAML formatting is picky and can disrupt running on Playbooks. We recommend using a source-code editor with an Ansible plug-in to help diagnose formatting issues. 
+.. note:: 
+   YAML formatting is picky and can disrupt running on Playbooks. We recommend using a source-code editor with an Ansible plug-in to help diagnose formatting issues. 
 
 In the previous section, you created an inventory that contains one cluster. Please note that in reality, Ansible inventories will contain all of the clusters within your fleet. Inventories can be a single file or a collection of several files that call out different host groups and host variables. Which strategy you determine when building your full inventory will depend on the size of your fleet and the granularity you require when running different types of Playbooks. 
 
@@ -260,7 +256,7 @@ This guide will now demonstrate how to create a Playbook that will create a VM o
 
 	a. **Note**: All YAML files, including Playbooks, begin with "---" and the information that specifies the purpose of the Playbook. This identifies host targets, whether to gather basic facts about the target hosts, and how Ansible will communicate with those targets. Remember, SSH is the default protocol used by Ansible, so when writing Playbooks with the HyperCore Collection, you should specify ``ansible.builtin.local``.
 
-3. After specifying this information, you can start adding tasks to your playbook
+3. After specifying this information, you can start adding tasks to your Playbook
 4. A few lines after your introduction block of test write ``tasks:``
 	a. This line tells Ansible that the text below will outline specific actions to be performed. 
 	b. ``tasks:`` should be lined up directly below ``gather_facts: False``
@@ -312,4 +308,79 @@ This guide will now demonstrate how to create a Playbook that will create a VM o
         cloud_init:
           user_data: |
             #cloud-config
-            key: value
+            valid:
+	    - yaml: 1
+	    - expression: 2
+	  meta_data: "{{ lookup('file',
+  'cloud-init-user-data-example.yml') }}"
+    register: result
+
+8. After copying and pasting the task into your editor of choice you only need to make a few changes to run the Playbook. 
+	a. First, directly under `scale_computing.hypercore.vm:`, insert a new code block that looks like this:
+
+**Image**
+
+		i. This is how we tell the playbook to reference our inventory file and includes our target host and the variables for HyperCore user and password. 
+	b. Second, delete the following section entirely:
+
+.. code-block:: yaml
+
+   cloud_init:
+	user_data:
+	  #cloud-config
+	  valid:
+	  - yaml: 1
+	  - expression: 2
+	meta_data: "{{ lookup('file',
+  'cloud-init-user-data-example.yml') }}"
+
+	c. This portion of the task facilitates passing configuration information to a cloud image for automatic in-guest customization via cloud-init, which is out of the scope of this guide. 
+
+.. note::
+   ``attach_guest_tools_iso: true`` will not attach Scale Computing guest tools in this example because we are deploying a Linux VM. The current collection only supports attaching the guest tools for Windows machines. 
+
+9. Once these changes have been made, you can go through and edit all of the VM settings to your liking. Ultimately, your Playbook should look like this:
+
+**Image**
+
+At this point you can save your Playbook in your working Ansible directory and test it against your cluster. 
+
+10. Using the command line of your Ansible server type the following:
+
+.. code:: shell
+   ansible-playbook -i /path/to/your/inventory.yml
+   /path/to/your/playbook.yml
+
+	a. For example, my command looks like this:
+
+.. code:: shell
+   ansible-playbook -i /Users/metchason/ansible_collections/scale_computing/hypercore/inventory/inventory.yml /Users/metchason/ansible_collections/scale_computing/hypercore/Mitch_Playbooks/windows_template_deploy.yml
+
+	b. If successful, you will see an output at the command line that looks like this, as well as a new VM running on your cluster (or clusters).
+
+**Image**
+
+11. Finally, if you want to test Ansible's idempotency you can re-run the exact same Playbook again with no changes. As long as you haven't changed anything about the VM, Ansible will be able to see that the VM you desire is already on the cluster and skip creating a new one. The result is called out as ``ok`` in the play recap. 
+
+**Image**
+
+Conclusion
+==========
+
+Congratulations, you now have a working understanding of how to get started with the HyperCore Collection for Ansible. With these fundamentals in place, you can start to write Playbooks that 
+automate several tasks. Remember, our documentation that can be accessed via `Ansible Galaxy <https://galaxy.ansible.com/scale_computing/hypercore>'__ is a great place to start when writing new tasks and using new modules. As a good rule of thumb, 
+if you find that you’re needing to manually accomplish the same task across your fleet of HyperCore clusters you likely have a great opportunity to automate said task with Ansible.
+
+Feedback & Support
+==================
+
+Document Feedback
+-----------------
+Scale Computing welcomes your suggestions for improving our documentation. Please send your feedback to `documentation@scalecomputing.com <documentation@scalecomputing.com>`__.
+
+Technical Support and Resources
+-------------------------------
+There are many technical support resources available for use. Access this document, and many others, at `Scale Computing Support <http://www.scalecomputing.com/support/login/>`_
+
+	`Partner Portal - Partner and Distributor use only <https://partners.scalecomputing.com/English/>`_
+	`User Community - Customer focused, including our online forum <https://community.scalecomputing.com/s/>`_
