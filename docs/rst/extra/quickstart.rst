@@ -172,7 +172,7 @@ Now that you have a basic understanding of key Ansible concepts we can turn to i
    Your ansible server (where you run your commands) must be a UNIX-like machine with Python 3.8 or newer. This guide uses an 
    Ubuntu 20.04 virtual machine to demonstrate how to install Ansible. 
 
-1. Install ansible: ``sudo apt install ansible``
+1. Install ansible ``sudo apt install ansible``
 	a. This command will install of the ncessary packages, libraries, and bianaries needed to run Ansible. 
 2. Now that you have installed Ansible, you need to install the HyperCored Collection with this command: ``ansible-galaxy collection install scale_computing.hypercore``
 	a. Installing the HyperCore collection will give you access to all of the modules we have built to allow you to automate tasks within HyperCore. 
