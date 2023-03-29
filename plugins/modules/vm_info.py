@@ -131,6 +131,10 @@ records:
           backplane_ip: 10.0.0.3
           lan_ip: 10.0.0.4
           peer_id: 2
+    replication_source_vm_uuid:
+      description: UUID of source VM if this VM is a replicated VM. Empty string is returned if this VM is not replicated.
+      type: str
+      sample: 64c9b3a1-3eab-4d16-994f-177bed274f84
     snapshot_schedule:
       description: Name identifier of a snapshot schedule for automated snapshots
       type: str
