@@ -24,20 +24,11 @@ inputs:
   working_directory:
     description: 'Path to working directory'
     required: true
-#outputs:
-#  integ_config:
-#    description: "Random number"
-#    value: ${{ steps.random-number-generator.outputs.random-number }}
 runs:
   using: "composite"
   steps:
     - run: echo Creating integration-config.yml for sc_host=${{ inputs.sc_host }}.
       shell: bash
-#    - id: random-number-generator
-#      run: echo "random-number=$(echo $RANDOM)" >> $GITHUB_OUTPUT
-#      shell: bash
-#    - run: echo "${{ github.action_path }}" >> $GITHUB_PATH
-#      shell: bash
     - run: |
         cd ${{ inputs.working_directory }}
         echo "${{ inputs.ci_config_all }}" > tests/integration/integration_config.yml
@@ -50,5 +41,3 @@ runs:
         pwd
         ls -al tests/integration/integration_config.yml
       shell: bash
-#    - run: goodbye.sh
-#      shell: bash
