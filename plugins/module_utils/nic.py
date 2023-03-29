@@ -8,7 +8,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from ..module_utils.type import NicType
 from ..module_utils.utils import PayloadMapper
 from ..module_utils import errors
 
@@ -60,9 +59,9 @@ class Nic(PayloadMapper):
     @classmethod
     def _handle_nic_type(cls, nic_type):
         if nic_type:
-            if nic_type.upper() == NicType.INTEL_E1000:
+            if nic_type.upper() == "INTEL_E1000":
                 actual_nic_type = nic_type.upper()  # INTEL_E1000
-            elif nic_type.upper() == NicType.VIRTIO:
+            elif nic_type.upper() == "VIRTIO":
                 actual_nic_type = nic_type.lower()  # virtio
             else:
                 actual_nic_type = nic_type.upper()  # RTL8139

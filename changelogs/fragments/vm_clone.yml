@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - Added preserve_mac_address option to vm_clone module.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/187)

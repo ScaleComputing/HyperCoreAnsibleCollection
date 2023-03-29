@@ -30,6 +30,7 @@ from ..module_utils.utils import (
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
 from ..module_utils.snapshot_schedule import SnapshotSchedule
+from ..module_utils.type import NicType
 
 # FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE and FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE are mappings for how
 # states are stored in python/ansible and how are they stored in hypercore
@@ -299,7 +300,14 @@ class VM(PayloadMapper):
 
     @classmethod
     def create_clone_vm_payload(
-        cls, clone_name, ansible_tags, hypercore_tags, cloud_init
+        cls,
+        clone_name,
+        ansible_tags,
+        hypercore_tags,
+        cloud_init,
+        *,
+        preserve_mac_address,
+        source_nics,
     ):
         data = {"template": {}}
         if clone_name:
@@ -313,6 +321,15 @@ class VM(PayloadMapper):
             data["template"]["tags"] = ",".join(hypercore_tags)
         if cloud_init:
             data["template"]["cloudInitData"] = cloud_init
+        if preserve_mac_address:
+            data["template"]["netDevs"] = [
+                dict(
+                    type=NicType.ansible_to_hypercore(nic.type),
+                    macAddress=nic.mac,
+                    vlan=nic.vlan,
+                )
+                for nic in source_nics
+            ]
         return data
 
     @classmethod
@@ -550,7 +567,12 @@ class VM(PayloadMapper):
     def clone_vm(self, rest_client, ansible_dict):
         cloud_init_data = VM.create_cloud_init_payload(ansible_dict)
         data = VM.create_clone_vm_payload(
-            ansible_dict["vm_name"], ansible_dict["tags"], self.tags, cloud_init_data
+            ansible_dict["vm_name"],
+            ansible_dict["tags"],
+            self.tags,
+            cloud_init_data,
+            preserve_mac_address=ansible_dict["preserve_mac_address"],
+            source_nics=self.nics,
         )
         return rest_client.create_record(
             endpoint=f"/rest/v1/VirDomain/{self.uuid}/clone",

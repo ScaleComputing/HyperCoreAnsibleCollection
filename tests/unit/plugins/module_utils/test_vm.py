@@ -1355,12 +1355,17 @@ class TestVMImport:
 class TestVMClone:
     def test_create_clone_vm_payload_without_cloud_init(self):
         results = VM.create_clone_vm_payload(
-            "clone_name", ["bla", "bla1"], ["oroginal_tag", "original_tag2"], None
+            "clone_name",
+            ["bla", "bla1"],
+            ["original_tag", "original_tag2"],
+            None,
+            preserve_mac_address=False,
+            source_nics=[],
         )
         assert results == {
             "template": {
                 "name": "clone_name",
-                "tags": "oroginal_tag,original_tag2,bla,bla1",
+                "tags": "original_tag,original_tag2,bla,bla1",
             }
         }
 
@@ -1368,19 +1373,69 @@ class TestVMClone:
         results = VM.create_clone_vm_payload(
             "clone_name",
             ["bla", "bla1"],
-            ["oroginal_tag", "original_tag2"],
+            ["original_tag", "original_tag2"],
             {"userData": "something", "metaData": "else"},
+            preserve_mac_address=False,
+            source_nics=[],
         )
         assert results == {
             "template": {
                 "name": "clone_name",
-                "tags": "oroginal_tag,original_tag2,bla,bla1",
+                "tags": "original_tag,original_tag2,bla,bla1",
                 "cloudInitData": {"userData": "something", "metaData": "else"},
             }
         }
 
+    def test_create_clone_vm_payload_with__preserve_mac_address__0_nics(self):
+        results = VM.create_clone_vm_payload(
+            "clone_name",
+            ["bla", "bla1"],
+            ["original_tag", "original_tag2"],
+            {"userData": "something", "metaData": "else"},
+            preserve_mac_address=True,
+            source_nics=[],
+        )
+        assert results == {
+            "template": {
+                "name": "clone_name",
+                "tags": "original_tag,original_tag2,bla,bla1",
+                "cloudInitData": {"userData": "something", "metaData": "else"},
+                "netDevs": [],
+            }
+        }
+
+    def test_create_clone_vm_payload_with__preserve_mac_address__1_nics(self):
+        results = VM.create_clone_vm_payload(
+            "clone_name",
+            ["bla", "bla1"],
+            ["original_tag", "original_tag2"],
+            {"userData": "something", "metaData": "else"},
+            preserve_mac_address=True,
+            source_nics=[
+                Nic.from_ansible(dict(type="virtio", mac="11:00:00:00:00:10", vlan=10))
+            ],
+        )
+        assert results == {
+            "template": {
+                "name": "clone_name",
+                "tags": "original_tag,original_tag2,bla,bla1",
+                "cloudInitData": {"userData": "something", "metaData": "else"},
+                "netDevs": [
+                    {
+                        "type": "VIRTIO",
+                        "macAddress": "11:00:00:00:00:10",
+                        "vlan": 10,
+                    },
+                ],
+            }
+        }
+
     def test_clone_vm(self, rest_client, mocker):
-        ansible_dict = {"vm_name": "XLAB-test-vm-clone", "tags": None}
+        ansible_dict = {
+            "vm_name": "XLAB-test-vm-clone",
+            "tags": None,
+            "preserve_mac_address": False,
+        }
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
