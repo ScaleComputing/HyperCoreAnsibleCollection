@@ -144,6 +144,7 @@ class TestRun:
                 vm_name="XLAB-test-vm-clone",
                 source_vm_name="XLAB-test-vm",
                 tags=None,
+                preserve_mac_address=False,
             )
         )
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
@@ -178,6 +179,40 @@ class TestRun:
                     "user_data": "valid yaml",
                     "meta_data": "valid yaml aswell",
                 },
+                preserve_mac_address=False,
+            )
+        )
+        rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
+        rest_client.create_record.return_value = {"taskTag": "1234"}
+        rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        results = vm_clone.run(module, rest_client)
+        assert results == (
+            True,
+            "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone.",
+        )
+
+    def test_run_with_preserve_mac_address(self, rest_client, create_module, mocker):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB-test-vm-clone",
+                source_vm_name="XLAB-test-vm",
+                tags="bla,bla1",
+                cloud_init={
+                    "user_data": "valid yaml",
+                    "meta_data": "valid yaml aswell",
+                },
+                preserve_mac_address=True,
             )
         )
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]

@@ -41,6 +41,11 @@ options:
     required: false
     type: list
     elements: str
+  preserve_mac_address:
+    description: Allows keeping same MAC addresses as in original VM.
+    type: bool
+    default: false
+    version_added: 1.3.0
 notes:
   - C(check_mode) is not supported.
 """
@@ -126,6 +131,11 @@ def main():
                     user_data=dict(type="str"),
                     meta_data=dict(type="str"),
                 ),
+            ),
+            preserve_mac_address=dict(
+                type="bool",
+                default=False,
+                required=False,
             ),
         ),
     )
