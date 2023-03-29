@@ -135,6 +135,7 @@ records:
       description: UUID of source VM if this VM is a replicated VM. Empty string is returned if this VM is not replicated.
       type: str
       sample: 64c9b3a1-3eab-4d16-994f-177bed274f84
+      version_added: 1.3.0
     snapshot_schedule:
       description: Name identifier of a snapshot schedule for automated snapshots
       type: str
