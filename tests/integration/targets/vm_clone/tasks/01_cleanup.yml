@@ -5,7 +5,6 @@
   scale_computing.hypercore.vm_info:
     vm_name: XLAB-vm_clone-CI_test-running
   register: source_running_info
-  ignore_errors: True
 
 # We ignore errors here, if VMs were already deleted
 - name: set XLAB-vm_clone-CI_test-running to power_state SHUTDOWN
@@ -18,15 +17,15 @@
       nodeUUID: ""
       cause: INTERNAL
   register: set_to_run_task
-  ignore_errors: True
+  when: source_running_info.records
 
 - name: Wait for the VM to be set to SHUTDOWN
   scale_computing.hypercore.task_wait:
     task_tag: "{{ set_to_run_task.record }}"
-  ignore_errors: True
+  when: set_to_run_task.record | default("")
 
 - name: Delete XLAB-vm_clone-CI_test
-  scale_computing.hypercore.vm: &delete-XLAB-vm_clone_CI-test
+  scale_computing.hypercore.vm:
     vm_name: "{{ item }}"
     state: absent
     memory: 536870912
