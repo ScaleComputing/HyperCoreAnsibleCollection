@@ -269,7 +269,8 @@ record:
   description:
     - Created VM, if creating the record. If deleting the record, none is returned.
   returned: success
-  type: dict
+  type: list
+  elements: dict
   contains:
     vm_name:
       description: Human-readable virtual machine name
