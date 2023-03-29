@@ -1,0 +1,133 @@
+# Create test VMs, no replication configured.
+# Test output for VM with no replication.
+
+# -------------------------------------------------------------------------
+# Test vm_replication_info for not present VM
+- name: Get replication info for one VM
+  scale_computing.hypercore.vm_replication_info:
+    vm_name: XLAB-vm_replication_info_CI_test-bf238ai6d2
+  register: replication_info
+  ignore_errors: true
+- ansible.builtin.assert:
+    that:
+      - replication_info is failed
+      - replication_info is not changed
+
+# -------------------------------------------------------------------------
+# Cleanup replicated VMs on dest cluster.
+# The vm module cannot be used - we can have old replicas still present,
+# so the VM name might not be unique on dest cluster.
+- name: List old replicated VMs on dest cluster
+  scale_computing.hypercore.vm_info:
+    cluster_instance: "{{ dest_cluster_instance }}"
+    vm_name: "{{ vm_name }}"
+  register: dest_old_replicated_vms
+  loop: "{{ vm_names }}"
+  loop_control:
+    loop_var: vm_name
+
+- name: Remove old replicated VMs on dest cluster
+  scale_computing.hypercore.api:
+    cluster_instance: "{{ dest_cluster_instance }}"
+    action: delete
+    endpoint: /rest/v1/VirDomain/{{ vm.uuid }}
+  loop: "{{ dest_old_replicated_vms.results.0.records + dest_old_replicated_vms.results.1.records }}"
+  loop_control:
+    loop_var: vm
+
+# -------------------------------------------------------------------------
+# Create 1st VM
+- name: Delete vm_name_0 XLAB-vm_replication_info_CI_test
+  scale_computing.hypercore.vm:
+    vm_name: "{{ vm_name_0 }}"
+    state: absent
+
+- name: Create a VM
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-vm_replication_info_CI_test
+        tags: Xlab,CI,test,vm_replication_info
+        mem: 512100100
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: true
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is succeeded
+      - vm_created is changed
+
+- name: Wait for the VM to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm_created.record }}"
+
+# -------------------------------------------------------------------------
+# Create 2nd VM
+- name: Delete vm_name_1 XLAB-vm2_replication_info_CI_test
+  scale_computing.hypercore.vm:
+    vm_name: "{{ vm_name_1 }}"
+    state: absent
+
+- name: Create a VM2
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-vm2_replication_info_CI_test
+        tags: Xlab,CI,test,vm_replication_info
+        mem: 512100100
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: true
+  register: vm2_created
+- ansible.builtin.assert:
+    that:
+      - vm2_created is succeeded
+      - vm2_created is changed
+
+- name: Wait for the VM2 to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm2_created.record }}"
+
+# -------------------------------------------------------------------------
+- name: Get available cluster connection
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/RemoteClusterConnection
+  register: cluster_connection_info
+- ansible.builtin.assert:
+    that:
+      - cluster_connection_info is succeeded
+      - cluster_connection_info.record | length > 0
+
+# -------------------------------------------------------------------------
+# Test vm_replication_info for VM without replication
+# Module fails if VM with given name is not present,
+# and does not fail if only replication is not configured.
+- name: Get replication info for one VM
+  scale_computing.hypercore.vm_replication_info:
+    vm_name: XLAB-vm_replication_info_CI_test
+  register: replication_info
+- ansible.builtin.assert:
+    that:
+      - replication_info is succeeded
+      - replication_info is not changed
+      - replication_info.records | length == 0

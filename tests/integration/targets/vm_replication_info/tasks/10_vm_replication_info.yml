@@ -1,0 +1,72 @@
+# Setup replication for 1st VM, test output.
+# Next setup replication for 2nd VM, test output.
+
+# -------------------------------------------------------------------------
+- name: Create replication
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainReplication
+    data:
+      sourceDomainUUID: "{{ vm_created.record.createdUUID }}"
+      connectionUUID: "{{ cluster_connection_info.record.0.uuid }}"
+      enable: true
+      label: "vm_replication_info test"
+  register: replication_created
+- ansible.builtin.assert:
+    that:
+      - replication_created is succeeded
+      - replication_created is changed
+
+- name: Wait for the replication to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ replication_created.record }}"
+# -------------------------------------------------------------------------
+
+- name: Get replication info for one VM
+  scale_computing.hypercore.vm_replication_info:
+    vm_name: XLAB-vm_replication_info_CI_test
+  register: replication_info
+- ansible.builtin.assert:
+    that:
+      - replication_info is succeeded
+      - replication_info is not changed
+      - replication_info.records | length == 1
+      - replication_info.records[0].vm_name == 'XLAB-vm_replication_info_CI_test'
+      - replication_info.records[0].state == 'enabled'
+      - replication_info.records[0].remote_cluster == "{{ cluster_connection_info.record.0.remoteClusterInfo.clusterName }}"
+
+# -------------------------------------------------------------------------
+- name: Create replication for VM2
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainReplication
+    data:
+      sourceDomainUUID: "{{ vm2_created.record.createdUUID }}"
+      connectionUUID: "{{ cluster_connection_info.record.0.uuid }}"
+      enable: true
+      label: "vm2_replication_info test"
+  register: vm2_replication_created
+- ansible.builtin.assert:
+    that:
+      - vm2_replication_created is succeeded
+      - vm2_replication_created is changed
+
+- name: Wait for the VM2 replication to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm2_replication_created.record }}"
+
+# -------------------------------------------------------------------------
+- name: Get replication info for all VMs
+  scale_computing.hypercore.vm_replication_info:
+  register: replication_info_all
+- ansible.builtin.assert:
+    that:
+      - replication_info_all is succeeded
+      - replication_info_all is not changed
+      - replication_info_all.records | length >= 2
+      - replication_info_all.records[0].vm_name
+      - replication_info_all.records[0].state in ['enabled', 'disabled']
+      - replication_info_all.records[0].remote_cluster
+      - replication_info_all.records[1].vm_name
+      - replication_info_all.records[1].state in ['enabled', 'disabled']
+      - replication_info_all.records[1].remote_cluster

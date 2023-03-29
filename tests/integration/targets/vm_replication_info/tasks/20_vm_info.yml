@@ -1,0 +1,57 @@
+# Test also vm_info module output.
+# If replication is configured, the replication_source_vm_uuid needs to be set for replicated VM
+
+# -------------------------------------------------------------------------
+# Source
+- name: Get vm_info for source VMs
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name }}"
+  loop: "{{ vm_names }}"
+  loop_control:
+    loop_var: vm_name
+  register: src_vm_info_results
+
+- name: Check vm_info for source VMs
+  ansible.builtin.assert:
+    that:
+      - result is not changed
+      - result.records | length == 1
+      - result.records[0].replication_source_vm_uuid == ""
+  loop: "{{ src_vm_info_results.results }}"
+  loop_control:
+    loop_var: result
+
+# -------------------------------------------------------------------------
+# Destination
+- name: Get vm_info for dest VMs
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name }}"
+    cluster_instance: "{{ dest_cluster_instance }}"
+  loop: "{{ vm_names }}"
+  loop_control:
+    loop_var: vm_name
+  register: dest_vm_info_results
+
+- name: Print vm_info for dest VMs
+  ansible.builtin.debug:
+    msg: |
+      SRC:
+        name: {{ item.0.records.0.vm_name }}
+        uuid: {{ item.0.records.0.uuid }}
+        replication_source_vm_uuid: {{ item.0.records.0.replication_source_vm_uuid }}
+      DEST:
+        name: {{ item.1.records.0.vm_name }}
+        uuid: {{ item.1.records.0.uuid }}
+        replication_source_vm_uuid: {{ item.1.records.0.replication_source_vm_uuid }}
+  # item.0.records[0] == src_vm
+  # item.1.records[0] == dest_vm
+  loop: "{{ src_vm_info_results.results | zip(dest_vm_info_results.results) }}"
+
+- name: Check vm_info for dest VMs
+  ansible.builtin.assert:
+    that:
+      - item[1] is not changed
+      - item[1].records | length == 1
+      - item[1].records[0].replication_source_vm_uuid | length == 36
+      - item[1].records[0].replication_source_vm_uuid == item[0].records[0].uuid
+  loop: "{{ src_vm_info_results.results | zip(dest_vm_info_results.results) }}"
