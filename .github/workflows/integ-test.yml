@@ -1,6 +1,5 @@
 name: integ-test
 on:
-  push:
   schedule:
     - cron: "0 6 * * *"
   workflow_dispatch:
@@ -73,7 +72,7 @@ jobs:
       - run: ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: ansible-playbook tests/integration/prepare/prepare_vm.yml
       - run: ansible-playbook tests/integration/prepare/prepare_examples.yml
-    # if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
+    if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
 
   integ-matrix:
     runs-on: [ubuntu-latest]
@@ -102,7 +101,7 @@ jobs:
             grep -E "${{ env.INTEG_TESTS_INCLUDE }}" |
             jq -R -s -c 'split("\n")[:-1]'
           )" >> $GITHUB_OUTPUT
-    # if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
+    if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
 
   examples-matrix:
     runs-on: [ ubuntu-latest ]
