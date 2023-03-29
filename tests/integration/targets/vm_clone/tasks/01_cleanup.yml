@@ -36,3 +36,4 @@
     - XLAB-vm_clone_CI-test-clone
     - XLAB-vm_clone_CI-test-cloud_init-clone
     - XLAB-vm_clone-while-running-test-clone
+    - XLAB-vm_clone_CI-test-preserve-mac-clone
