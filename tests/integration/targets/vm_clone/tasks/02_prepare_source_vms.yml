@@ -1,0 +1,105 @@
+# --------------------------------------------------------------------
+- name: Create XLAB-vm_clone-CI_test
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-vm_clone-CI_test
+        tags: Xlab,CI,test,vm_clone
+        mem: 511705088
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+            name: jc1-disk-0
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: False
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is succeeded
+      - vm_created is changed
+
+- name: Wait for the VM to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm_created.record }}"
+
+- name: Retrieve XLAB-vm_clone_CI-test
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone-CI_test
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+
+# --------------------------------------------------------------------
+- name: Create XLAB-vm_clone-CI_test-running
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-vm_clone-CI_test-running
+        tags: Xlab,CI,test,vm_clone,running
+        mem: 511705088
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+            name: jc1-disk-0
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: False
+  register: vm_created_running
+- ansible.builtin.assert:
+    that:
+      - vm_created_running is succeeded
+      - vm_created_running is changed
+
+- name: Wait for the VM running to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm_created_running.record }}"
+
+- name: Retrieve XLAB-vm_clone_CI-test-running
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone-CI_test-running
+  register: source_running_info
+- ansible.builtin.assert:
+    that:
+      - source_running_info.records | length == 1
+
+- name: set XLAB-vm_clone-CI_test-running to power_state running
+  scale_computing.hypercore.api:
+    action: post_list
+    endpoint: /rest/v1/VirDomain/action
+    data:
+      virDomainUUID: "{{ source_running_info.records.0.uuid }}"
+      actionType: START
+      nodeUUID: ""
+      cause: INTERNAL
+  register: set_to_run_task
+- ansible.builtin.assert:
+    that:
+      - set_to_run_task is succeeded
+      - set_to_run_task is changed
+
+- name: Wait for the VM to be set to running
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ set_to_run_task.record }}"
+
+- name: Retrieve XLAB-vm_clone_CI-test-running
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone-CI_test-running
+  register: source_running_info
+- ansible.builtin.assert:
+    that:
+      - source_running_info.records | length == 1
+      - source_running_info.records.0.power_state == "started"
