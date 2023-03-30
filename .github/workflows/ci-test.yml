@@ -62,6 +62,12 @@ jobs:
       - run: ansible-lint
       - run: flake8 --exclude tests/output/
       - run: ansible-test sanity --local --python 3.10
+      # Running `ansible-lint` will look at examples as being arbitrary yaml files.
+      # It will complain about missing space after hash in "#xy" comment.
+      # Running `ansible-lint examples/*` will interpret files as ansible playbooks.
+      # Here we need also installed collections used in examples.
+      - run: ansible-galaxy collection install community.crypto
+      - run: ansible-lint examples/*
 
   units-test:
     runs-on: [ubuntu-latest]
