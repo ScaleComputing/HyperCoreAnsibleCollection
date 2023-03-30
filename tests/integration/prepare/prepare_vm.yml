@@ -5,8 +5,8 @@
   vars:
     cluster_instance:
       host: "{{ sc_host }}"
-      username: "{{ sc_username }}"
-      password: "{{ sc_password }}"
+      username: "{{ sc_config[sc_host].sc_username }}"
+      password: "{{ sc_config[sc_host].sc_password }}"
       timeout: "{{ sc_timeout }}"
   vars_files:
     - ../integration_config.yml

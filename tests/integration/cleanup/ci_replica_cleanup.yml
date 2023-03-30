@@ -7,14 +7,14 @@
   gather_facts: false
   vars:
     replication_dest_cluster:
-      host: "{{ sc_replication_dest_host }}"
-      username: "{{ sc_replication_dest_username }}"
-      password: "{{ sc_replication_dest_password }}"
+      host: "{{ sc_config[sc_host].sc_replication_dest_host }}"
+      username: "{{ sc_config[sc_host].sc_replication_dest_username }}"
+      password: "{{ sc_config[sc_host].sc_replication_dest_password }}"
       timeout: "{{ sc_timeout }}"
     replication_src_cluster:
       host: "{{ sc_host }}"
-      username: "{{ sc_username }}"
-      password: "{{ sc_password }}"
+      username: "{{ sc_config[sc_host].sc_username }}"
+      password: "{{ sc_config[sc_host].sc_password }}"
       timeout: "{{ sc_timeout }}"
   vars_files:
     - ../integration_config.yml

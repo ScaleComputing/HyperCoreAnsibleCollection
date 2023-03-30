@@ -3,8 +3,8 @@
 # The main vm test was devided into smaller tests for sake of synchronous testing.
 - environment:
     SC_HOST: "{{ sc_host }}"
-    SC_USERNAME: "{{ sc_username }}"
-    SC_PASSWORD: "{{ sc_password }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
     iso_name: "Porteus-XFCE-v5.0-x86_64.iso"
