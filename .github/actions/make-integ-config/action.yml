@@ -3,7 +3,7 @@ name: 'Create ansible-test integration_config.yml'
 description: 'Create ansible-test integration_config.yml'
 inputs:
   ci_config_all:
-    description: 'CI config for all yperCore hosts'
+    description: 'CI config for all HyperCore hosts'
     required: true
   sc_host:  # id of input
     description: 'SC_HOST environ variable'
