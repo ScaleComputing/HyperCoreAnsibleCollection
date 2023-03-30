@@ -65,7 +65,7 @@ class TestNic:
                 "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
                 "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "macAddress": "00-00-00-00-00",
                 "connected": True,
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
@@ -123,7 +123,7 @@ class TestNicCompare:
                 "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "connected": True,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "macAddress": "00-00-00-00-00",
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             }
@@ -146,7 +146,7 @@ class TestNicCompare:
                 "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "connected": True,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "macAddress": "00-00-00-00-00",
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             }
@@ -168,7 +168,7 @@ class TestNicCompare:
                 "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "connected": True,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "macAddress": "00-00-00-00-00",
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             }
@@ -193,7 +193,7 @@ class TestNicCompare:
                 "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "connected": True,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "macAddress": "00-00-00-00-00",
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             }
@@ -216,7 +216,7 @@ class TestNicCompare:
                 "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "connected": True,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "macAddress": "00-00-00-00-00",
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             }
@@ -239,7 +239,7 @@ class TestNicCompare:
                 "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
                 "vlan": 1,
                 "connected": True,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "macAddress": "00-00-00-00-00",
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             }
@@ -264,7 +264,7 @@ class TestNicCompare:
                 "vlan": 1,
                 "macAddress": "12:34:56:78:AB",
                 "connected": True,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             }
         )
@@ -287,7 +287,7 @@ class TestNicCompare:
                 "vlan": 1,
                 "macAddress": "12:34:56:78:AB",
                 "connected": True,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             }
         )
@@ -310,7 +310,7 @@ class TestNicCompare:
                 "vlan": 2,
                 "macAddress": "12:34:56:78:AB",
                 "connected": True,
-                "type": "virtio",
+                "type": "VIRTIO",
                 "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             }
         )

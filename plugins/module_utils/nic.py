@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from ..module_utils.type import NicType
 from ..module_utils.utils import PayloadMapper
 from ..module_utils import errors
 
@@ -57,25 +58,13 @@ class Nic(PayloadMapper):
         return self.vlan == other.vlan and self.type == other.type
 
     @classmethod
-    def _handle_nic_type(cls, nic_type):
-        if nic_type:
-            if nic_type.upper() == "INTEL_E1000":
-                actual_nic_type = nic_type.upper()  # INTEL_E1000
-            elif nic_type.upper() == "VIRTIO":
-                actual_nic_type = nic_type.lower()  # virtio
-            else:
-                actual_nic_type = nic_type.upper()  # RTL8139
-            return actual_nic_type
-        return nic_type
-
-    @classmethod
     def from_hypercore(cls, hypercore_data):
         # If exception is thrown, there has been a change in the API or a big problem on their side.
         try:
             obj = Nic()
             obj.uuid = hypercore_data["uuid"]
             obj.vm_uuid = hypercore_data["virDomainUUID"]
-            obj.type = Nic._handle_nic_type(hypercore_data["type"])
+            obj.type = NicType.hypercore_to_ansible(hypercore_data["type"])
             obj.mac = hypercore_data["macAddress"]
             obj.vlan = hypercore_data["vlan"]
             obj.connected = hypercore_data["connected"]
@@ -88,7 +77,7 @@ class Nic(PayloadMapper):
     def from_ansible(cls, ansible_data):
         obj = Nic()
         obj.vm_uuid = ansible_data.get("vm_uuid", None)
-        obj.type = Nic._handle_nic_type(ansible_data.get("type", None))
+        obj.type = ansible_data.get("type", None)
         obj.mac = ansible_data.get("mac", None)
         obj.mac_new = ansible_data.get("mac_new", None)
         obj.vlan = ansible_data.get("vlan", 0)

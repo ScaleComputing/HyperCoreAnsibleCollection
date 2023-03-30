@@ -51,11 +51,12 @@ class TestEnsureAbsent:
 
     @classmethod
     def _get_test_vm(cls):
+        # Returned value is mock HyperCore API response (not ansible dict).
         nic_dict_1 = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
             "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "vlan": 1,
-            "type": "virtio",
+            "type": "VIRTIO",
             "connected": True,
             "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
             "macAddress": "00-00-00-00-00",
