@@ -12,7 +12,7 @@ import base64
 from time import sleep, time
 
 from ..module_utils.errors import DeviceNotUnique
-from ..module_utils.nic import Nic
+from ..module_utils.nic import Nic, NicType
 from ..module_utils.disk import Disk
 from ..module_utils.node import Node
 from ..module_utils.iso import ISO
@@ -30,7 +30,6 @@ from ..module_utils.utils import (
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
 from ..module_utils.snapshot_schedule import SnapshotSchedule
-from ..module_utils.type import NicType
 
 # FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE and FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE are mappings for how
 # states are stored in python/ansible and how are they stored in hypercore

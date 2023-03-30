@@ -8,8 +8,30 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from typing import Optional
 from ..module_utils.utils import PayloadMapper
 from ..module_utils import errors
+
+FROM_HYPERCORE_TO_ANSIBLE_NIC_TYPE = {
+    None: None,
+    "RTL8139": "RTL8139",
+    "VIRTIO": "virtio",
+    "INTEL_E1000": "INTEL_E1000",
+}
+FROM_ANSIBLE_TO_HYPERCORE_NIC_TYPE = {
+    v: k for k, v in FROM_HYPERCORE_TO_ANSIBLE_NIC_TYPE.items()
+}
+
+
+# Maybe create enums.py or scale_enums.py and move all enum classes there? @Jure @Justin
+class NicType:
+    @classmethod
+    def ansible_to_hypercore(cls, ansible_value: Optional[str]) -> Optional[str]:
+        return FROM_ANSIBLE_TO_HYPERCORE_NIC_TYPE[ansible_value]
+
+    @classmethod
+    def hypercore_to_ansible(cls, hypercore_value: str) -> Optional[str]:
+        return FROM_HYPERCORE_TO_ANSIBLE_NIC_TYPE[hypercore_value]
 
 
 class Nic(PayloadMapper):
@@ -57,25 +79,13 @@ class Nic(PayloadMapper):
         return self.vlan == other.vlan and self.type == other.type
 
     @classmethod
-    def _handle_nic_type(cls, nic_type):
-        if nic_type:
-            if nic_type.upper() == "INTEL_E1000":
-                actual_nic_type = nic_type.upper()  # INTEL_E1000
-            elif nic_type.upper() == "VIRTIO":
-                actual_nic_type = nic_type.lower()  # virtio
-            else:
-                actual_nic_type = nic_type.upper()  # RTL8139
-            return actual_nic_type
-        return nic_type
-
-    @classmethod
     def from_hypercore(cls, hypercore_data):
         # If exception is thrown, there has been a change in the API or a big problem on their side.
         try:
             obj = Nic()
             obj.uuid = hypercore_data["uuid"]
             obj.vm_uuid = hypercore_data["virDomainUUID"]
-            obj.type = Nic._handle_nic_type(hypercore_data["type"])
+            obj.type = NicType.hypercore_to_ansible(hypercore_data["type"])
             obj.mac = hypercore_data["macAddress"]
             obj.vlan = hypercore_data["vlan"]
             obj.connected = hypercore_data["connected"]
@@ -88,7 +98,7 @@ class Nic(PayloadMapper):
     def from_ansible(cls, ansible_data):
         obj = Nic()
         obj.vm_uuid = ansible_data.get("vm_uuid", None)
-        obj.type = Nic._handle_nic_type(ansible_data.get("type", None))
+        obj.type = ansible_data.get("type", None)
         obj.mac = ansible_data.get("mac", None)
         obj.mac_new = ansible_data.get("mac_new", None)
         obj.vlan = ansible_data.get("vlan", 0)
