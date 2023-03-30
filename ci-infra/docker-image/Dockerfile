@@ -14,6 +14,6 @@ RUN pip install --upgrade pip wheel
 
 COPY all.requirements /code/ci-infra/docker-image/
 RUN pip install -r /code/ci-infra/docker-image/all.requirements && \
-    pip install yq
+    pip install yq jinja2-cli
 
 RUN pip install ansible-core~=$ANSIBLE_CORE_VERSION
