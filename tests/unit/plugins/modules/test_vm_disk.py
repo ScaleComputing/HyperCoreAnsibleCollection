@@ -58,6 +58,7 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -80,6 +81,7 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
         ]
         mocker.patch(
@@ -152,6 +154,7 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -174,6 +177,7 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
         ]
         mocker.patch(
@@ -261,6 +265,7 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "iso-uuid",
@@ -291,6 +296,7 @@ class TestEnsureAbsent:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
         ]
         rest_client.update_record.return_value = {

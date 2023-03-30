@@ -99,6 +99,7 @@ class TestVM:
             },
             snapshot_schedule="",
             machine_type="BIOS",
+            replication_source_vm_uuid="64c9b3a1-3eab-4d16-994f-177bed274f84",
         )
 
         vm_dict = dict(
@@ -122,6 +123,7 @@ class TestVM:
             },
             snapshotScheduleUUID="9238175f-2d6a-489f-9157-fa6345719b3b",
             machineType="scale-7.2",
+            sourceVirDomainUUID="64c9b3a1-3eab-4d16-994f-177bed274f84",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -201,6 +203,7 @@ class TestVM:
                 },
             },
             machine_type=None,
+            replication_source_vm_uuid="64c9b3a1-3eab-4d16-994f-177bed274f84",
         )
 
         assert vm.to_ansible() == dict(
@@ -233,6 +236,7 @@ class TestVM:
             },
             snapshot_schedule=None,
             machine_type=None,
+            replication_source_vm_uuid="64c9b3a1-3eab-4d16-994f-177bed274f84",
         )
 
     def test_find_disk(self):
@@ -358,6 +362,7 @@ class TestVM:
             },
             snapshotScheduleUUID="snapshot_schedule_id",
             machineType="scale-7.2",
+            sourceVirDomainUUID="64c9b3a1-3eab-4d16-994f-177bed274f84",
         )
 
         vm = VM(
@@ -570,6 +575,7 @@ class TestVM:
                 },
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "64c9b3a1-3eab-4d16-994f-177bed274f84",
             }
         ]
         mocker.patch(
@@ -783,6 +789,7 @@ class TestVM:
                 },
                 "snapshotScheduleUUID": "",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "64c9b3a1-3eab-4d16-994f-177bed274f84",
             },
             rest_client,
         )
@@ -852,6 +859,7 @@ class TestNic:
                 },
                 "snapshotScheduleUUID": "",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             rest_client,
         )
@@ -891,6 +899,7 @@ class TestNic:
             },
             "snapshotScheduleUUID": "",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -952,6 +961,7 @@ class TestNic:
             },
             "snapshotScheduleUUID": "",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -1030,6 +1040,7 @@ class TestNic:
             },
             "snapshotScheduleUUID": "",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -1189,6 +1200,7 @@ class TestVMExport:
             },
             "snapshotScheduleUUID": "snapshot_schedule_id",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -1272,6 +1284,7 @@ class TestVMImport:
             },
             "snapshotScheduleUUID": "snapshot_schedule_id",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -1389,6 +1402,7 @@ class TestVMClone:
             },
             "snapshotScheduleUUID": "snapshot_schedule_id",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
         rest_client.list_records.return_value = [vm_dict]
         rest_client.create_record.return_value = {"taskTag": "1234"}
@@ -1939,6 +1953,7 @@ class TestManageVMDisks:
                 nodeUUID="node-id",
                 snapshotScheduleUUID="snapshot_schedule_id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
             dict(
                 uuid="node-id",
@@ -2042,6 +2057,7 @@ class TestManageVMDisks:
             nodeUUID="node-id",
             snapshotScheduleUUID="snapshot_schedule_id",
             machineType="scale-7.2",
+            sourceVirDomainUUID="",
         )
 
         vm = VM(
@@ -2089,6 +2105,7 @@ class TestManageVMDisks:
             node_uuid="node-id",
             snapshot_schedule="",
             machine_type="BIOS",
+            replication_source_vm_uuid="",
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -2362,6 +2379,7 @@ class TestManageVMDisks:
             "nodeUUID": "node-id",
             "snapshotScheduleUUID": "snapshot_schedule_id",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -2432,6 +2450,7 @@ class TestManageVMDisks:
             "nodeUUID": "node-id",
             "snapshotScheduleUUID": "snapshot_schedule_id",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
 
         changed = False
@@ -2615,6 +2634,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -2651,6 +2671,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
         ]
         rest_client.create_record.return_value = {
@@ -2758,6 +2779,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -2794,6 +2816,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
         ]
         mocker.patch(
@@ -2908,6 +2931,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -2944,6 +2968,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
         ]
         rest_client.update_record.return_value = {
@@ -3066,6 +3091,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "iso-uuid",
@@ -3111,6 +3137,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
         ]
         rest_client.update_record.return_value = {
@@ -3215,6 +3242,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "iso-uuid",
@@ -3260,6 +3288,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
         ]
         rest_client.update_record.return_value = {
@@ -3374,6 +3403,7 @@ class TestManageVMDisks:
             "nodeUUID": "node-id",
             "snapshotScheduleUUID": "snapshot_schedule_id",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -3463,6 +3493,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -3499,6 +3530,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -3521,6 +3553,7 @@ class TestManageVMDisks:
                 "nodeUUID": "node-id",
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
+                "sourceVirDomainUUID": "",
             },
         ]
         rest_client.delete_record.return_value = {
@@ -3928,6 +3961,7 @@ class TestManageVMNics:
             },
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
             "machineType": "scale-7.2",
+            "sourceVirDomainUUID": "",
         }
 
     @classmethod

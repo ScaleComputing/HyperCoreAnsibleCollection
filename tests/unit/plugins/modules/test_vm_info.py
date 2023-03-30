@@ -55,6 +55,7 @@ class TestRun:
                 },
                 snapshotScheduleUUID="snapshot_schedule_id",
                 machineType="scale-7.2",
+                sourceVirDomainUUID="",
             ),
         ]
         mocker.patch(
@@ -91,6 +92,7 @@ class TestRun:
                 },
                 "operating_system": None,
                 "power_state": "started",
+                "replication_source_vm_uuid": "",
                 "snapshot_schedule": "",
                 "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
                 "uuid": "id",

@@ -131,6 +131,7 @@ class VM(PayloadMapper):
         reboot=False,  # Is reboot needed
         was_shutdown_tried=False,  # Has shutdown request already been tried
         machine_type=None,
+        replication_source_vm_uuid=None,
     ):
         self.operating_system = operating_system
         self.uuid = uuid
@@ -150,6 +151,7 @@ class VM(PayloadMapper):
         self.reboot = reboot
         self.was_shutdown_tried = was_shutdown_tried
         self.machine_type = machine_type
+        self.replication_source_vm_uuid = replication_source_vm_uuid
 
     @property
     def nic_list(self):
@@ -247,6 +249,7 @@ class VM(PayloadMapper):
             if snapshot_schedule
             else "",  # "" for vm_params diff check
             machine_type=machine_type,
+            replication_source_vm_uuid=vm_dict["sourceVirDomainUUID"],
         )
 
     @classmethod
@@ -438,6 +441,7 @@ class VM(PayloadMapper):
             node_affinity=self.node_affinity,
             snapshot_schedule=self.snapshot_schedule,
             machine_type=self.machine_type,
+            replication_source_vm_uuid=self.replication_source_vm_uuid,
         )
 
     # search by vlan or mac as specified in US-11:

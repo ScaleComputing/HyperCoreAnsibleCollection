@@ -1,0 +1,20 @@
+# -------------------------------------------------------------------------
+- name: Delete vm_name_0 XLAB-vm_replication_info_CI_test
+  scale_computing.hypercore.vm:
+    vm_name: "{{ vm_name_0 }}"
+    state: absent
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is succeeded
+      - output is changed
+
+- name: Delete vm_name_1 XLAB-vm2_replication_info_CI_test
+  scale_computing.hypercore.vm:
+    vm_name: "{{ vm_name_1 }}"
+    state: absent
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is succeeded
+      - output is changed

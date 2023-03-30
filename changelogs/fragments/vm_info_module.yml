@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - Extend vm and vm_info modules output with replication_source_vm_uuid field.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/185)
