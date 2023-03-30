@@ -11,5 +11,26 @@
       register: updates
     - ansible.builtin.assert:
         that:
-          - updates.records != []
           - updates.records[0].keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
+          - not updates.record
+      when: updates.records != []
+
+    - name: Get next version update
+      scale_computing.hypercore.version_update_info:
+       select: next
+      register: updates
+    - ansible.builtin.assert:
+        that:
+          - updates.records[0].keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
+          - updates.record.keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
+      when: updates.records != []
+    
+    - name: Get latest version update
+      scale_computing.hypercore.version_update_info:
+       select: latest
+      register: updates
+    - ansible.builtin.assert:
+        that:
+          - updates.records[0].keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
+          - updates.record.keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
+      when: updates.records != []
