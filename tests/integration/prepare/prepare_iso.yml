@@ -5,14 +5,14 @@
 #  environment:
 #    # didn't work
 #    SC_HOST: "{{ sc_host }}"
-#    SC_USERNAME: "{{ sc_username }}"
-#    SC_PASSWORD: "{{ sc_password }}"
+#    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+#    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
 #    SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
     cluster_instance:
       host: "{{ sc_host }}"
-      username: "{{ sc_username }}"
-      password: "{{ sc_password }}"
+      username: "{{ sc_config[sc_host].sc_username }}"
+      password: "{{ sc_config[sc_host].sc_password }}"
       timeout: "{{ sc_timeout }}"
   vars_files:
     - ../integration_config.yml

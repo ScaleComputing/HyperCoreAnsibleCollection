@@ -50,8 +50,8 @@
   scale_computing.hypercore.vm_info:
     cluster_instance:
       host: "{{ sc_host }}"
-      username: "{{ sc_username }}"
-      password: "{{ sc_password }}"
+      username: "{{ sc_config[sc_host].sc_username }}"
+      password: "{{ sc_config[sc_host].sc_password }}"
       timeout: 10
     vm_name: XLAB-timeout-test
   register: source_info
@@ -64,8 +64,8 @@
   scale_computing.hypercore.vm_info:
     cluster_instance:
       host: "{{ sc_host }}"
-      username: "{{ sc_username }}"
-      password: "{{ sc_password }}"
+      username: "{{ sc_config[sc_host].sc_username }}"
+      password: "{{ sc_config[sc_host].sc_password }}"
       timeout: 0.000001     # This should "force" a timeout
     vm_name: XLAB-timeout-test
   register: source_info
