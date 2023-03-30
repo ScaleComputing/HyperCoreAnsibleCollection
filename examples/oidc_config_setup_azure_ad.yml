@@ -20,7 +20,7 @@
       register: oidc_config_info_results
 
     - name: Show oidc config entries
-      debug:
+      ansible.builtin.debug:
         var: oidc_config_info_results
 
     - name: Create or update OIDC config
@@ -35,5 +35,5 @@
       register: oidc_config_info_results
 
     - name: Show updated oidc config entries
-      debug:
+      ansible.builtin.debug:
         var: oidc_config_info_results

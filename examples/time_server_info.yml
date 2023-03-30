@@ -8,5 +8,7 @@
     - name: Get current Time Server
       scale_computing.hypercore.time_server_info:
       register: time_server_info
-    - ansible.builtin.debug:
+
+    - name: Show NTP time server configuration
+      ansible.builtin.debug:
         msg: "{{ time_server_info }}"

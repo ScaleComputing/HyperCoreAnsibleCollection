@@ -15,6 +15,7 @@
       ansible.builtin.get_url: # TODO: what if file doesn't download completely?
         url: "{{ image_url }}"
         dest: /tmp/{{ image_filename }}
+        mode: 0644
 
     - name: (Optionally) remove existing Virtual Disk {{ image_filename }} from HyperCore
       when: image_remove_old | bool
@@ -22,7 +23,7 @@
         name: "{{ item }}"
         state: absent
       loop:
-        - "uploading-{{ image_filename }}"
+        - uploading-{{ image_filename }}
         - "{{ image_filename }}"
 
     # ------------------------------------------------------
@@ -39,5 +40,5 @@
       register: result
 
     - name: Show uploaded disk info
-      debug:
+      ansible.builtin.debug:
         var: result.records[0]

@@ -13,11 +13,11 @@
       register: cluster_result
 
     - name: Show cluster info - complete API response
-      debug:
+      ansible.builtin.debug:
         var: cluster_result.record
 
     - name: Show cluster version
-      debug:
+      ansible.builtin.debug:
         msg:
           - Cluster name is '{{ cluster_result.record[0].clusterName }}'
           - Cluster SW version is '{{ cluster_result.record[0].icosVersion }}'

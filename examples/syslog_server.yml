@@ -38,5 +38,7 @@
     - name: List all Syslog servers
       scale_computing.hypercore.syslog_server_info:
       register: syslog_info_records
-    - ansible.builtin.debug:
+
+    - name: Show syslog configuration
+      ansible.builtin.debug:
         msg: "{{ syslog_info_records }}"

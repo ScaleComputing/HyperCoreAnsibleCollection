@@ -11,5 +11,5 @@
       register: dns_config_info_results
 
     - name: Show all DNS config entries
-      debug:
+      ansible.builtin.debug:
         var: dns_config_info_results

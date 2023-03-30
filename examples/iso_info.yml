@@ -16,7 +16,7 @@
       register: iso_results
 
     - name: Show all ISOs
-      debug:
+      ansible.builtin.debug:
         var: iso_results
 
     # ------------------------------------------------------
@@ -26,7 +26,7 @@
       register: iso_results
 
     - name: Show info about single ISO
-      debug:
+      ansible.builtin.debug:
         var: iso_results
 
     # ------------------------------------------------------
@@ -37,5 +37,5 @@
       register: iso_results
 
     - name: Show info about not present ISO
-      debug:
+      ansible.builtin.debug:
         var: iso_results

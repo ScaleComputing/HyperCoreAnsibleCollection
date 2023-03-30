@@ -8,5 +8,7 @@
     - name: List all Email alert recipients
       scale_computing.hypercore.email_alert_info:
       register: info
-    - ansible.builtin.debug:
+
+    - name: Show configured email alert recipients
+      ansible.builtin.debug:
         msg: "{{ info }}"
