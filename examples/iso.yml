@@ -14,6 +14,7 @@
       ansible.builtin.get_url:
         url: "{{ iso_url }}"
         dest: /tmp/{{ iso_filename }}
+        mode: 0644
 
     - name: (Optionally) remove existing ISO {{ iso_filename }} from HyperCore
       scale_computing.hypercore.iso:
@@ -36,5 +37,5 @@
       register: iso_results
 
     - name: Show info about {{ iso_filename }} ISO
-      debug:
+      ansible.builtin.debug:
         var: iso_results.records[0]

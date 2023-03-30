@@ -15,7 +15,7 @@
       register: virtual_disk_results
 
     - name: Show all virtual disks
-      debug:
+      ansible.builtin.debug:
         var: virtual_disk_results
 
     # ------------------------------------------------------
@@ -25,7 +25,7 @@
       register: virtual_disk_results
 
     - name: Show info about single virtual disk
-      debug:
+      ansible.builtin.debug:
         var: virtual_disk_results
 
     # ------------------------------------------------------
@@ -35,5 +35,5 @@
       register: virtual_disk_results
 
     - name: Show info about absent virtual disk
-      debug:
+      ansible.builtin.debug:
         var: virtual_disk_results

@@ -9,5 +9,6 @@
       scale_computing.hypercore.smtp_info:
       register: smtp_info
 
-    - ansible.builtin.debug:
+    - name: Show SMTP configuration
+      ansible.builtin.debug:
         msg: "{{ smtp_info }}"

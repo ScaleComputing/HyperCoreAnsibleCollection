@@ -47,7 +47,7 @@
         var: cluster_configuration
 
     - name: Configure HyperCore cluster
-      include_role:
+      ansible.builtin.include_role:
         name: scale_computing.hypercore.cluster_config
       vars:
         scale_computing_hypercore_cluster_config: "{{ cluster_configuration }}"

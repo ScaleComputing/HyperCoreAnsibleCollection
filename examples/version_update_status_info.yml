@@ -11,5 +11,5 @@
       register: version_update_status_info_result
 
     - name: Show version update status
-      debug:
+      ansible.builtin.debug:
         var: version_update_status_info_result
