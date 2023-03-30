@@ -41,7 +41,7 @@ jobs:
   # to delay integ-test until integration-prepare-env finishes.
   integration-prepare-env:
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:2
+    container: quay.io/justinc1_github/scale_ci_integ:3
     env:
       ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
     defaults:
@@ -64,10 +64,10 @@ jobs:
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: ${{ matrix.sc_host }}
-          sc_username: admin
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
+          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: ansible-playbook tests/integration/prepare/prepare_vm.yml
@@ -76,7 +76,7 @@ jobs:
 
   integ-matrix:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:2
+    container: quay.io/justinc1_github/scale_ci_integ:3
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -105,7 +105,7 @@ jobs:
 
   examples-matrix:
     runs-on: [ ubuntu-latest ]
-    container: quay.io/justinc1_github/scale_ci_integ:2
+    container: quay.io/justinc1_github/scale_ci_integ:3
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -133,7 +133,7 @@ jobs:
     needs:
       - examples-matrix
     runs-on: [ self-hosted2 ]
-    container: quay.io/justinc1_github/scale_ci_integ:2
+    container: quay.io/justinc1_github/scale_ci_integ:3
     env:
       ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
       DEBIAN_FRONTEND: noninteractive
@@ -159,10 +159,10 @@ jobs:
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: https://10.5.11.200
-          sc_username: admin
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
+          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           working_directory: ${{ env.WORKDIR }}
       - run: |
           pwd
@@ -171,8 +171,8 @@ jobs:
 
       - run: |
           eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
-          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_username')
-          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_password')
+          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_username')
+          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_password')
           eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
           ansible-playbook -i localhost, -e hypercore_example_check_mode=true examples/${{ matrix.example_name }}
 
@@ -181,7 +181,7 @@ jobs:
       - integ-matrix
       # - units-test
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:2
+    container: quay.io/justinc1_github/scale_ci_integ:3
     env:
       DEBIAN_FRONTEND: noninteractive
     defaults:
@@ -213,10 +213,10 @@ jobs:
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: ${{ matrix.sc_host }}
-          sc_username: admin
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
+          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-test integration --local ${{ matrix.test_name }}
 
@@ -225,7 +225,7 @@ jobs:
     needs:
       - integ
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:2
+    container: quay.io/justinc1_github/scale_ci_integ:3
     env:
       ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
     defaults:
@@ -242,10 +242,10 @@ jobs:
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: https://10.5.11.200
-          sc_username: admin
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
+          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-galaxy collection install community.general
       - run: ansible-playbook tests/integration/cleanup/ci_replica_cleanup.yml
@@ -254,7 +254,7 @@ jobs:
     needs:
       - integ
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:2
+    container: quay.io/justinc1_github/scale_ci_integ:3
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -268,10 +268,10 @@ jobs:
         with:
           ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: https://10.5.11.200
-          sc_username: admin
-          sc_password: ${{ secrets.CI_CONFIG_HC_IP200_SC_PASSWORD }}
+          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          sc_replication_dest_password: ${{ secrets.CI_CONFIG_HC_IP50_SC_REPLICATION_DEST_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           working_directory: ${{ env.WORKDIR }}
       - run: |
           cd tests/integration/cleanup && ./smb_cleanup.sh \

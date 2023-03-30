@@ -9,20 +9,21 @@ inputs:
     description: 'SC_HOST environ variable'
     required: true
     # default: 'World'
-  sc_username:
-    description: 'sc_username variable'
+  # Node with IP .50 is our physical node.
+  sc_username_50:
+    description: 'sc_username variable to access physical nodes'
     required: true
-  sc_password:
-    description: 'sc_password variable'
+  sc_password_50:
+    description: 'sc_password variable to access physical nodes'
     required: true
   smb_password:
     description: 'smb_password variable'
     required: true
-  sc_replication_dest_password:
-    description: 'sc_replication_dest_password variable'
-    required: true
   working_directory:
     description: 'Path to working directory'
+    required: true
+  oidc_client_secret:
+    description: 'oidc_client_secret'
     required: true
 runs:
   using: "composite"
@@ -31,13 +32,18 @@ runs:
       shell: bash
     - run: |
         cd ${{ inputs.working_directory }}
-        echo "${{ inputs.ci_config_all }}" > tests/integration/integration_config.yml
-        cat tests/integration/integration_config.yml
+        cat <<EOF >integ_config_vars.yml
+        sc_username_50: ${{ inputs.sc_username_50 }}
+        sc_password_50: ${{ inputs.sc_password_50 }}
+        smb_username: ;administrator
+        smb_password: ${{ inputs.smb_password }}
+        smb_server: 10.5.11.39
+        smb_share: /cidata
+        oidc_client_id: d2298ec0-0596-49d2-9554-840a2fe20603
+        oidc_client_secret: ${{ inputs.oidc_client_secret }}
+        EOF
+        cat integ_config_vars.yml | jinja2 --strict tests/integration/integration_config.yml.j2 > tests/integration/integration_config.yml
         echo "sc_host: ${{ inputs.sc_host }}" >> tests/integration/integration_config.yml
-        echo "sc_username: ${{ inputs.sc_username }}" >> tests/integration/integration_config.yml
-        echo "sc_password: ${{ inputs.sc_password }}" >> tests/integration/integration_config.yml
-        echo "smb_password: ${{ inputs.smb_password }}" >> tests/integration/integration_config.yml
-        echo "sc_replication_dest_password: ${{ inputs.sc_replication_dest_password }}" >> tests/integration/integration_config.yml
         pwd
         ls -al tests/integration/integration_config.yml
       shell: bash
