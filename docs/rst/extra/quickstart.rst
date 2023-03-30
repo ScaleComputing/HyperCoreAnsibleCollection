@@ -89,7 +89,7 @@ could point to a FQDN or IP address of a node in the cluster) while
 hosts into different categories. A small HyperCore inventory might look
 something like this:
 
-**Image**
+.. image:: images/qs_inventory.png
 
 Ansible Configuration File
 ---------------------------
@@ -114,7 +114,7 @@ ansible directory]``. You can reference a specific file or an entire
 inventory folder. An example of a simple configuration file looks like
 this:
 
-**Image**
+.. images: images/qs_configuration.png
 
 Ansible Module
 --------------
@@ -178,7 +178,7 @@ Now that you have a basic understanding of key Ansible concepts we can turn to i
 	a. Installing the HyperCore collection will give you access to all of the modules we have built to allow you to automate tasks within HyperCore. 
 	b. Full documentation on our collection can be found at `Ansible galaxy <https://galaxy.ansible.com/scale_computing/hypercore>`_.
 
-**Image**
+.. image:: images/qs_install1.png
 
 3. You are now ready to start using Ansible with your HyperCore clusters! Before turning to writing Playbooks, you can test that the collections was successfully installed by running single-module commands. 
 4. Specify a HyperCore cluster to test an Ansible module against with the following commands:
@@ -189,14 +189,14 @@ Now that you have a basic understanding of key Ansible concepts we can turn to i
     export SC_USERNAME=admin
     export SC_PASSWORD= admin_pass
 
-**Image**
+.. image:: images/qs_install2.png
 
 5. You can now run your first Ansible command against the test cluster you previously specified! Enter the following command:
 ``ansible -i localhost, --connection=ansible.builtin.local all -m scale_computing.hypercore.vm_info``
 
 This command is targeting your local host *(localhost)*, using the required connection protocol for HyperCore clusters instead of default ssh *(--connection=ansible.builtin.local)*, using the ``scale_computing.hypercore.vm_info`` module. If successful, this command should return information about every VM running on your target cluster.
 
-**Image**
+.. image: images/qs_install3.png
 
 Congratulations! You have successfully installed Ansible and the HyperCore collection. The next section will walk you through setting up a basic inventory file and writing a playbook. 
 
@@ -240,7 +240,7 @@ Due to the flexibility of Ansible, you will also need to create an Ansible Confi
 1. Create new file called ``ansible.cfg`` in the directory you are using for Ansible.
 2. Open an editing tool and create the following:
 
-**Image**
+.. image:: images/qs_gstarted.png
 
 3. This file allows you to set basic Ansible defaults, more importantly, you are instructing Ansible to reference your "inventory" file that you created in the previous step. **Note** this can be a full file path if you are referencing a specific file or simply call out the entire folder (if you are distributing your inventory amongst several files). In this case it does not really matter since you only have one file in your inventory folder. 
 
@@ -254,23 +254,23 @@ This guide will now demonstrate how to create a Playbook that will create a VM o
 1. Create a new file called ``simple_vm_create.yml`` in the directory you are using for Ansible.
 2. Open an editing tool and begin your Playbook with the following:
 
-**Image**
+.. image:: images/qs_wplaybooks1.png
 
-	a. **Note**: All YAML files, including Playbooks, begin with "---" and the information that specifies the purpose of the Playbook. This identifies host targets, whether to gather basic facts about the target hosts, and how Ansible will communicate with those targets. Remember, SSH is the default protocol used by Ansible, so when writing Playbooks with the HyperCore Collection, you should specify ``ansible.builtin.local``.
+.. note:: All YAML files, including Playbooks, begin with "---" and the information that specifies the purpose of the Playbook. This identifies host targets, whether to gather basic facts about the target hosts, and how Ansible will communicate with those targets. Remember, SSH is the default protocol used by Ansible, so when writing Playbooks with the HyperCore Collection, you should specify ``ansible.builtin.local``.
 
 3. After specifying this information, you can start adding tasks to your Playbook
 4. A few lines after your introduction block of test write ``tasks:``
 	a. This line tells Ansible that the text below will outline specific actions to be performed. 
 	b. ``tasks:`` should be lined up directly below ``gather_facts: False``
 
-**Image**
+.. image:: images/qs_wplaybooks2.png
 
 5. Each individual task in a Playbook shoule begin with ``- name:`` and a concise name that explains the purpose of that task. This name helps you understand what each task in a Playbook is attempting to accomplish. 
 6. The next line specifies which module you are using from the HyperCore Collecction to archieve the task. Right now the HyperCore Collection contains 19 individual modules that facilitate actions related to workload lifecycle management.
    The best place to start with writing and formatting tasks using these modules is our `published documentation <https://galaxy.ansible.com/scale_computing/hypercore>`_.
    At this link, you will find clear explanations of what each module enables and examples on how to correctly write a task with each module.
 
-**Image**
+.. image:: images/qs_wplaybooks3.png
 
 7. For the purposes of this guide, you can reference the `scale_computing.hypercore.vm <https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs/modules/vm.html>`_ module then copy and paste the example task for creating a VM into your Playbook.
    A valid `cloud_init user data <https://github.com/ScaleComputing/HyperCoreAnsibleCollection/blob/main/examples/cloud-init-user-data-example.yml>`_ sample file is available.
@@ -317,14 +317,13 @@ This guide will now demonstrate how to create a Playbook that will create a VM o
   'cloud-init-user-data-example.yml') }}"
     register: result
 
-8. After copying and pasting the task into your editor of choice you only need to make a few changes to run the Playbook. 
+8. After copying and pasting the task into your editor of choice you only need to make a few changes to run the Playbook.
 	a. First, directly under ``scale_computing.hypercore.vm:``, insert a new code block that looks like this:
 
-**Image**
-
-		i. This is how we tell the playbook to reference our inventory file and includes our target host and the variables for HyperCore user and password.
+.. image:: images/qs_wplaybooks4.png
+   :alt: This is how we tell the playbook to reference our inventory file and includes our target host and the variables for HyperCore user and password.
  
-	b. Second, delete the following section entirely:
+b. Second, delete the following section entirely:
 
 .. code-block:: yaml
 
@@ -343,7 +342,7 @@ c. This portion of the task facilitates passing configuration information to a c
 
 9. Once these changes have been made, you can go through and edit all of the VM settings to your liking. Ultimately, your Playbook should look like this:
 
-**Image**
+.. image:: images/qs_wplaybooks5.png
 
 At this point you can save your Playbook in your working Ansible directory and test it against your cluster. 
 
@@ -362,11 +361,11 @@ a. For example, my command looks like this:
 
 b. If successful, you will see an output at the command line that looks like this, as well as a new VM running on your cluster (or clusters).
 
-**Image**
+.. image: images/qs_wplaybooks6.png
 
 11. Finally, if you want to test Ansible's idempotency you can re-run the exact same Playbook again with no changes. As long as you haven't changed anything about the VM, Ansible will be able to see that the VM you desire is already on the cluster and skip creating a new one. The result is called out as ``ok`` in the play recap. 
 
-**Image**
+.. image: images/qs_wplaybooks7.png
 
 Conclusion
 ==========
