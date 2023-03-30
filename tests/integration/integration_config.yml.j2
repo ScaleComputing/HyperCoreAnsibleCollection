@@ -1,0 +1,110 @@
+---
+# ansible-test integration_config.yml
+# This file is jinja2 template for github CI.
+# It will be rendered to plain yml before ansible uses it.
+# For CI testing we have:
+# - real hardware nodes
+# - virtual nodes (VSNS)
+
+# Select SC_HOST to be used
+# sc_host: https://10.5.11.50
+
+sc_timeout: 60.0
+smb_server: "{{ smb_server }}"
+smb_share: "{{ smb_share }}"
+smb_username: "{{ smb_username }}"
+smb_password: "{{ smb_password }}"
+
+# sc_config is specific for each test cluster
+# The values should be set after tests, to ensure cluster is left in functional state.
+sc_config:
+
+  base_cfg: &base_cfg
+    # desired configuration after tests are done
+    time_server:
+      source: pool.ntp.org
+    time_zone:
+      zone: US/Eastern
+    dns_config:
+      dns_servers:
+        - 1.1.1.1
+        - 1.0.0.1
+      search_domains: []
+    registration:
+      company_name: Scale Computing
+      contact: Alex Nicholson
+      email: email_hidden@scalecomputing.com
+      phone: "123 456 7890"
+    smtp: &base_smtp
+      host: smtp-relay.gmail.com
+      port: 25
+      use_ssl: false
+      # from_address: PUB5@scalecomputing.com
+      use_auth: false
+      auth_user: ""
+      auth_password: ""
+    email_alert:
+      - email_hidden@scalecomputing.com
+    oidc:
+      client_id_default: "{{ oidc_client_id }}"
+      shared_secret_default: "{{ oidc_client_secret }}"
+      config_url_default: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
+      scopes: "openid+profile"
+      client_id_test: ci-client-id
+      shared_secret_test: ci-client-secret
+      config_url_test: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
+    cluster_shutdown:
+      magic_allow_string: "oh-no-no"  # use "allow-cluster-shutdown-test" to allow this integration test
+    version_update:
+      magic_allow_string: "oh-no-no"  # use "allow-version-update-test" to allow this integration test
+    syslog_server:
+      host: 10.5.11.222
+
+  https://10.5.11.50:
+    <<: *base_cfg
+    sc_username: "{{ sc_username_50 }}"
+    sc_password: "{{ sc_password_50 }}"
+    # Only .50 is configured with remote replication.
+    sc_replication_dest_host: https://10.5.11.60
+    # We have same username on .50 and .60 node.
+    sc_replication_dest_username: "{{ sc_username_50 }}"
+    sc_replication_dest_password: "{{ sc_password_50 }}"
+    # desired configuration after tests are done
+    cluster:
+      name: PUB5
+    support_tunnel:
+      open: true
+      code: "4422"
+    smtp:
+      <<: *base_smtp
+      from_address: PUB5@scalecomputing.com
+
+  https://10.5.11.200:
+    <<: *base_cfg
+    sc_username: admin
+    sc_password: admin
+    cluster:
+      name: VSNS200
+    support_tunnel:
+      open: true
+      code: "4423"
+    smtp:
+      <<: *base_smtp
+      from_address: VSNS200@scalecomputing.com
+    syslog_server:
+      host: 10.5.11.222
+
+  https://10.5.11.201:
+    <<: *base_cfg
+    sc_username: admin
+    sc_password: admin
+    cluster:
+      name: VSNS201
+    support_tunnel:
+      open: true
+      code: "4424"
+    smtp:
+      <<: *base_smtp
+      from_address: VSNS201@scalecomputing.com
+    syslog_server:
+      host: 10.5.11.222
