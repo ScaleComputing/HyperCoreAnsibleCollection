@@ -38,14 +38,23 @@ For integration tests we need to configure access to test cluster.
 Copy template and edit it:
 
 ```shell script
-cp tests/integration/integration_config.yml.template tests/integration/integration_config.yml
+cp tests/integration/integration_config.yml.j2 tests/integration/integration_config.yml
 nano tests/integration/integration_config.yml
 
-# sample content
+# Partial sample content
 cat tests/integration/integration_config.yml
-sc_host: https://1.2.3.4
-sc_username: admin
-sc_password: admin_pass
+sc_config:
+  base_cfg: &base_cfg
+    time_server:
+      source: pool.ntp.org
+    time_zone:
+      zone: US/Eastern
+      ...
+  https://1.2.3.4:
+    <<: *base_cfg
+    sc_username: admin
+    sc_password: admin_pass
+    ...
 ```
 
 # Development
