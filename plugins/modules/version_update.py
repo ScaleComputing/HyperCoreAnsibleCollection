@@ -46,15 +46,39 @@ record:
     - Version applied.
   returned: success
   type: dict
-  sample:
-    - uuid: 9.2.11.210763
-      description: 9.2.11 General Availability
-      change_log: ...Please allow between 20-40 minutes per node for the update to complete...
-      build_id: 210763
-      major_version: 9
-      minor_version: 2
-      revision: 11
-      timestamp: 0
+  contains:
+    uuid:
+      description: Unique identifier in format majorVersion.minorVersion.revision.buildID
+      type: str
+      sample: 9.2.11.210763
+    description:
+      description: Human-readable name for the update
+      type: str
+      sample: 9.2.11 General Availability
+    change_log:
+      description: Description of all changes that are in this update, in HTML format
+      type: str
+      sample: ...Please allow between 20-40 minutes per node for the update to complete...
+    build_id:
+      description: ID of the build which corresponds to this update
+      type: int
+      sample: 210763
+    major_version:
+      description: Major version number
+      type: int
+      sample: 9
+    minor_version:
+      description: Minor version number
+      type: int
+      sample: 2
+    revision:
+      description: Revision number
+      type: int
+      sample: 11
+    timestamp:
+      description: Unix timestamp when the update was released
+      type: int
+      sample: 0
 """
 
 from ansible.module_utils.basic import AnsibleModule

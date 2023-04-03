@@ -37,15 +37,39 @@ record:
     - None/null is returned if no update was ever applied.
   returned: success
   type: dict
-  sample:
-    - from_build: 207183
-      percent: 100
-      prepare_status: ""
-      update_status: COMPLETE
-      update_status_details: Update Complete. Press 'Reload' to reconnect
-      usernotes: ""
-      to_build: 209840
-      to_version: 9.1.18.209840
+  contains:
+    from_build:
+      description: Old build version
+      type: str
+      sample: 207183
+    percent:
+      description: Update progress in percentage
+      type: str
+      sample: 100
+    prepare_status:
+      description: Status of preparation necessary for update to start
+      type: str
+      sample: ""
+    update_status:
+      description: Update status
+      type: str
+      sample: COMPLETE # CHANGE TO LOWER?
+    update_status_details:
+      description: Update status details
+      type: str
+      sample: Update Complete. Press 'Reload' to reconnect
+    usernotes:
+      description: Update status usernotes
+      type: str
+      sample: Update Complete. Press 'Reload' to reconnect
+    to_build:
+      description: New build version
+      type: str
+      sample: 209840
+    to_version:
+      description: New hypercore version
+      type: str
+      sample: 9.1.18.209840
 """
 
 from typing import Optional

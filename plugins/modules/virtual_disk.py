@@ -63,12 +63,27 @@ record:
     - Virtual disk record.
   returned: success
   type: dict
-  sample:
-    name: foobar.qcow2
-    uuid: 57ec1fba-506a-45b9-8950-ffc3dc102c6b
-    block_size: 1048576
-    size: 104857600
-    replication_factor: 2
+  contains:
+    block_size:
+      description: Size of individual blocks (the smallest unit of measurement for VSDs) on the drive, in bytes
+      type: int
+      sample: 1048576
+    name:
+      description: Name identifier
+      type: str
+      sample: demo-virtual-disk
+    replication_factor:
+      description: How many copies of each block are stored on physical drives
+      type: int
+      sample: 2
+    size:
+      description: Total capacity, in bytes
+      type: int
+      sample: 1073741824
+    uuid:
+      description: Unique identifier
+      type: str
+      sample: 7983b298-c37a-4c99-8dfe-b2952e81b092
 """
 
 from ansible.module_utils.basic import AnsibleModule
