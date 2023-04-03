@@ -6,86 +6,10 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
     image_filename: "ci-test-virtual-disk-1.qcow2"
-    expected_virtual_disk_replication_factors:
-      - 1  # (virtual) single node systems have no replication
-      - 2  # real 3 node systems
+    expected_virtual_disk_replication_factor: "{{ sc_config[sc_host].features.virtual_disk.replication_factor }}"
 
   block:
-    # --------------------------------------------------------------------
-    # Prepare one disk with known content
-    - name: List all virtual disks using API module
-      scale_computing.hypercore.api:
-        action: get
-        endpoint: /rest/v1/VirtualDisk
-      register: api_virtual_disk_result
-
-    - name: Remove partially uploaded virtual disk with name uploading-{{ image_filename }}
-      when: ('uploading-' + image_filename) in api_virtual_disk_result.record | map(attribute='name')
-      block:
-        - name: Remove {{ 'uploading-' + image_filename }}
-          scale_computing.hypercore.api:
-            action: delete
-            endpoint: /rest/v1/VirtualDisk/{{ (api_virtual_disk_result.record | selectattr("name", "==", 'uploading-' + image_filename))[0]["uuid"] }}
-
-    - name: Upload new virtual disk with name {{ image_filename }} if it is missing
-      when: image_filename not in api_virtual_disk_result.record | map(attribute='name')
-      block:
-        - name: Create image
-          ansible.builtin.command: qemu-img create /tmp/{{ image_filename }}.uncompressed 1G
-        - name: Compress image
-          ansible.builtin.command: qemu-img convert -c -O qcow2 /tmp/{{ image_filename }}.uncompressed /tmp/{{ image_filename }}
-
-        - name: Get the Virtual Disk size
-          ansible.builtin.stat:
-            path: /tmp/{{ image_filename }}
-          register: disk_file_info
-
-        - name: Upload Virtual Disk {{ image_filename }} to HyperCore
-          scale_computing.hypercore.api:
-            action: put
-            endpoint: /rest/v1/VirtualDisk/upload
-            data:
-              filename: "{{ image_filename }}"
-              filesize: "{{ disk_file_info.stat.size }}"
-            source: /tmp/{{ image_filename }}
-          register: upload_result
-
-    # --------------------------------------------------------------------
-    # Test
-    - name: List all virtual disks
-      scale_computing.hypercore.virtual_disk_info:
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result is succeeded
-          - result is not changed
-          - result.records | length >= 1
-          - result.records.0.keys() | sort == ['block_size', 'name', 'replication_factor', 'size', 'uuid']
-
-    - name: List a single virtual disk
-      scale_computing.hypercore.virtual_disk_info:
-        name: "{{ image_filename }}"
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result is succeeded
-          - result is not changed
-          - result.records | length == 1
-          - result.records.0.block_size == 1048576
-          - result.records.0.size == 1073741824
-          - result.records.0.name == "{{ image_filename }}"
-          - result.records.0.replication_factor in expected_virtual_disk_replication_factors
-          - result.records.0.uuid | length == 36
-
-    - name: List a non-existent virtual disk
-      scale_computing.hypercore.virtual_disk_info:
-        name: "{{ image_filename }}-no-such-disk-2897gfabv9o7i6w4e"
-      register: result
-    - ansible.builtin.assert:
-        that:
-          - result is succeeded
-          - result is not changed
-          - result.records | length == 0
-
-    # --------------------------------------------------------------------
-    # Cleanup - not needed
+    - include_tasks: 01_supported.yml
+      when: sc_config[sc_host].features.virtual_disk.is_supported
+    - include_tasks: 02_not_supported.yml
+      when: not sc_config[sc_host].features.virtual_disk.is_supported
