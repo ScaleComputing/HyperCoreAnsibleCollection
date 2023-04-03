@@ -53,7 +53,7 @@ record:
     update_status:
       description: Update status
       type: str
-      sample: COMPLETE # CHANGE TO LOWER?
+      sample: COMPLETE
     update_status_details:
       description: Update status details
       type: str

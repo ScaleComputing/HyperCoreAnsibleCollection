@@ -114,7 +114,7 @@ records:
     type:
       description: Snapshot type
       type: str
-      sample: USER  # why not lower?
+      sample: USER
     vm:
       description: source VM
       type: dict
