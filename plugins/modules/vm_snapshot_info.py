@@ -77,17 +77,48 @@ records:
     - A list of VM Snapshot records.
   returned: success
   type: list
-  sample:
-    - automated_trigger_timestamp: 0
-      block_count_diff_from_serial_number: 2
-      label: snap-2
-      local_retain_until_timestamp: 0
-      remote_retain_until_timestamp: 0
-      replication: true
-      snapshot_uuid: 28d6ff95-2c31-4a1a-b3d9-47535164d6de
-      timestamp: 1679397326
-      type: USER
-      vm:
+  elements: dict
+  contains:
+    automated_trigger_timestamp:
+      description: Unix timestamp used when determining which automated snapshots to retain
+      type: int
+      sample: 0
+    block_count_diff_from_serial_number:
+      description: Snapshot serial number of the previous snapshot used to calculate VirDomainSnapshot.blockCountDiff
+      type: int
+      sample: 2
+    label:
+      description: User-readable label describing the snapshot
+      type: str
+      sample: snap-2
+    local_retain_until_timestamp:
+      description: Unix timestamp indicating when automated snapshots will be automatically removed
+      type: int
+      sample: 0
+    remote_retain_until_timestamp:
+      description: Unix timestamp indicating when remote automated snapshots will be removed
+      type: int
+      sample: 0
+    replication:
+      description: Will replicate snapshot to a remote system or not in case if replication is configured
+      type: bool
+      sample: true
+    snapshot_uuid:
+      description: Snapshot's unique identifier
+      type: str
+      sample: 28d6ff95-2c31-4a1a-b3d9-47535164d6de
+    timestamp:
+      description: Unix timestamp of when snapshot was created
+      type: int
+      sample: 1679397326
+    type:
+      description: Snapshot type
+      type: str
+      sample: USER
+    vm:
+      description: source VM
+      type: dict
+      sample:
         name: snapshot-test-vm-1
         snapshot_serial_number: 3
         uuid: 5e50977c-14ce-450c-8a1a-bf5c0afbcf43
