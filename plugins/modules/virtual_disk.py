@@ -71,7 +71,7 @@ record:
     name:
       description: Name identifier
       type: str
-      sample: demo-virtual-disk
+      sample: demo-virtual-disk.qcow2
     replication_factor:
       description: How many copies of each block are stored on physical drives
       type: int
