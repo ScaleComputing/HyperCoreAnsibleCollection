@@ -84,7 +84,7 @@ records:
       type: int
       sample: 0
     block_count_diff_from_serial_number:
-      description: Snapshot serial number of the previous snapshot used to calculate VirDomainSnapshot.blockCountDiff # zakaj nimamo block_count_diff ?
+      description: Snapshot serial number of the previous snapshot used to calculate VirDomainSnapshot.blockCountDiff
       type: int
       sample: 2
     label:
