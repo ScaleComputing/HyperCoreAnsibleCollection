@@ -15,6 +15,16 @@ smb_share: "{{ smb_share }}"
 smb_username: "{{ smb_username }}"
 smb_password: "{{ smb_password }}"
 
+__base_smtp: &base_smtp
+  host: smtp-relay.gmail.com
+  port: 25
+  use_ssl: false
+  # from_address: PUB5@scalecomputing.com
+  use_auth: false
+  auth_user: ""
+  auth_password: ""
+
+
 # sc_config is specific for each test cluster
 # The values should be set after tests, to ensure cluster is left in functional state.
 sc_config:
@@ -35,14 +45,7 @@ sc_config:
       contact: Alex Nicholson
       email: email_hidden@scalecomputing.com
       phone: "123 456 7890"
-    smtp: &base_smtp
-      host: smtp-relay.gmail.com
-      port: 25
-      use_ssl: false
-      # from_address: PUB5@scalecomputing.com
-      use_auth: false
-      auth_user: ""
-      auth_password: ""
+    # smtp: ...
     email_alert:
       - email_hidden@scalecomputing.com
     oidc:
