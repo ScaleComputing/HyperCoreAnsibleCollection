@@ -153,3 +153,12 @@ class TestRun:
             "revision": 11,
             "timestamp": 1676920067,
         }
+
+    def test_run_no_records(self, rest_client):
+        rest_client.list_records.return_value = []
+
+        records, next, latest = version_update_info.run(rest_client)
+
+        assert records == []
+        assert next is None
+        assert latest is None
