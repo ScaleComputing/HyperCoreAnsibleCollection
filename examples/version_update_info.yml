@@ -1,0 +1,14 @@
+---
+- name: Update a HyperCore single-node system
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: List available updates
+      scale_computing.hypercore.version_update_info:
+      register: version_update_info_result
+
+    - name: Show update with count, lowest and highest version
+      ansible.builtin.debug:
+        msg: Host has {{ version_update_info_result.records | length }} updates available, lowest is {{ (version_update_info_result.records | first).uuid }}, highest is {{ (version_update_info_result.records | last).uuid }}
