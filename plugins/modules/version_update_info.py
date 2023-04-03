@@ -33,18 +33,118 @@ EXAMPLES = r"""
 RETURN = r"""
 records:
   description:
-    - A list of updates that can be applied to this cluster.
+    - In ascending order sorted list of updates that can be applied to this cluster.
   returned: success
   type: list
-  sample:
-    - uuid: 9.2.11.210763
-      description: 9.2.11 General Availability
-      change_log: ...Please allow between 20-40 minutes per node for the update to complete...
-      build_id: 210763
-      major_version: 9
-      minor_version: 2
-      revision: 11
-      timestamp: 0
+  contains:
+    uuid:
+      description: Unique identifier in format majorVersion.minorVersion.revision.buildID
+      type: str
+      sample: 9.2.11.210763
+    description:
+      description: Human-readable name for the update
+      type: str
+      sample: 9.2.11 General Availability
+    change_log:
+      description: Description of all changes that are in this update, in HTML format
+      type: str
+      sample: ...Please allow between 20-40 minutes per node for the update to complete...
+    build_id:
+      description: ID of the build which corresponds to this update
+      type: int
+      sample: 210763
+    major_version:
+      description: Major version number
+      type: int
+      sample: 9
+    minor_version:
+      description: Minor version number
+      type: int
+      sample: 2
+    revision:
+      description: Revision number
+      type: int
+      sample: 11
+    timestamp:
+      description: Unix timestamp when the update was released
+      type: int
+      sample: 0
+next:
+  description:
+    - Version with the lowest number in the list of available updates
+  returned: success
+  type: dict
+  contains:
+    uuid:
+      description: Unique identifier in format majorVersion.minorVersion.revision.buildID
+      type: str
+      sample: 9.2.11.210763
+    description:
+      description: Human-readable name for the update
+      type: str
+      sample: 9.2.11 General Availability
+    change_log:
+      description: Description of all changes that are in this update, in HTML format
+      type: str
+      sample: ...Please allow between 20-40 minutes per node for the update to complete...
+    build_id:
+      description: ID of the build which corresponds to this update
+      type: int
+      sample: 210763
+    major_version:
+      description: Major version number
+      type: int
+      sample: 9
+    minor_version:
+      description: Minor version number
+      type: int
+      sample: 2
+    revision:
+      description: Revision number
+      type: int
+      sample: 11
+    timestamp:
+      description: Unix timestamp when the update was released
+      type: int
+      sample: 0
+latest:
+  description:
+    - Version with the highest number in the list of available updates
+  returned: success
+  type: dict
+  contains:
+    uuid:
+      description: Unique identifier in format majorVersion.minorVersion.revision.buildID
+      type: str
+      sample: 9.2.11.210763
+    description:
+      description: Human-readable name for the update
+      type: str
+      sample: 9.2.11 General Availability
+    change_log:
+      description: Description of all changes that are in this update, in HTML format
+      type: str
+      sample: ...Please allow between 20-40 minutes per node for the update to complete...
+    build_id:
+      description: ID of the build which corresponds to this update
+      type: int
+      sample: 210763
+    major_version:
+      description: Major version number
+      type: int
+      sample: 9
+    minor_version:
+      description: Minor version number
+      type: int
+      sample: 2
+    revision:
+      description: Revision number
+      type: int
+      sample: 11
+    timestamp:
+      description: Unix timestamp when the update was released
+      type: int
+      sample: 0
 """
 
 from ansible.module_utils.basic import AnsibleModule
@@ -54,14 +154,29 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.client import Client
 from ..module_utils.hypercore_version import Update
 from ..module_utils.typed_classes import TypedUpdateToAnsible
-from typing import List, Optional
+from typing import List, Optional, Tuple
+import operator
 
 
-def run(rest_client: RestClient) -> List[Optional[TypedUpdateToAnsible]]:
-    return [
+def run(
+    rest_client: RestClient,
+) -> Tuple[
+    List[Optional[TypedUpdateToAnsible]],
+    Optional[TypedUpdateToAnsible],
+    Optional[TypedUpdateToAnsible],
+]:
+    records = [
         Update.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
         for hypercore_dict in rest_client.list_records("/rest/v1/Update")
     ]
+    if records:
+        records.sort(
+            key=operator.itemgetter(
+                "major_version", "minor_version", "revision", "build_id"
+            )
+        )
+        return records, records[0], records[-1]
+    return records, None, None
 
 
 def main() -> None:
@@ -75,8 +190,8 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
-        records = run(rest_client)
-        module.exit_json(changed=False, records=records)
+        records, next, latest = run(rest_client)
+        module.exit_json(changed=False, records=records, next=next, latest=latest)
 
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))

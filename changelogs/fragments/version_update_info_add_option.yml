@@ -1,0 +1,3 @@
+---
+minor_changes:
+  - Added option select to version_update_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/189)

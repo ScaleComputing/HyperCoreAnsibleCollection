@@ -25,31 +25,140 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestRun:
-    def test_run(self, rest_client, mocker):
+    def test_run(self, rest_client):
         rest_client.list_records.return_value = [
-            dict(
-                uuid="9.2.11.210763",
-                description="description",
-                changeLog="change log",
-                buildID=210763,
-                majorVersion=9,
-                minorVersion=2,
-                revision=11,
-                timestamp=1676920067,
-            )
+            {
+                "uuid": "9.2.11.210764",
+                "description": "description",
+                "changeLog": "change log",
+                "buildID": 210764,
+                "majorVersion": 9,
+                "minorVersion": 2,
+                "revision": 11,
+                "timestamp": 1676920067,
+            },
+            {
+                "uuid": "9.2.12.210763",
+                "description": "description",
+                "changeLog": "change log",
+                "buildID": 210763,
+                "majorVersion": 9,
+                "minorVersion": 2,
+                "revision": 12,
+                "timestamp": 1676920067,
+            },
+            {
+                "uuid": "9.2.11.210763",
+                "description": "description",
+                "changeLog": "change log",
+                "buildID": 210763,
+                "majorVersion": 9,
+                "minorVersion": 2,
+                "revision": 11,
+                "timestamp": 1676920067,
+            },
+            {
+                "uuid": "10.2.11.210763",
+                "description": "description",
+                "changeLog": "change log",
+                "buildID": 210763,
+                "majorVersion": 10,
+                "minorVersion": 2,
+                "revision": 11,
+                "timestamp": 1676920067,
+            },
+            {
+                "uuid": "9.3.11.210763",
+                "description": "description",
+                "changeLog": "change log",
+                "buildID": 210763,
+                "majorVersion": 9,
+                "minorVersion": 3,
+                "revision": 11,
+                "timestamp": 1676920067,
+            },
         ]
 
-        records = version_update_info.run(rest_client)
+        records, next, latest = version_update_info.run(rest_client)
 
         assert records == [
-            dict(
-                uuid="9.2.11.210763",
-                description="description",
-                change_log="change log",
-                build_id=210763,
-                major_version=9,
-                minor_version=2,
-                revision=11,
-                timestamp=1676920067,
-            )
+            {
+                "uuid": "9.2.11.210763",
+                "description": "description",
+                "change_log": "change log",
+                "build_id": 210763,
+                "major_version": 9,
+                "minor_version": 2,
+                "revision": 11,
+                "timestamp": 1676920067,
+            },
+            {
+                "uuid": "9.2.11.210764",
+                "description": "description",
+                "change_log": "change log",
+                "build_id": 210764,
+                "major_version": 9,
+                "minor_version": 2,
+                "revision": 11,
+                "timestamp": 1676920067,
+            },
+            {
+                "uuid": "9.2.12.210763",
+                "description": "description",
+                "change_log": "change log",
+                "build_id": 210763,
+                "major_version": 9,
+                "minor_version": 2,
+                "revision": 12,
+                "timestamp": 1676920067,
+            },
+            {
+                "uuid": "9.3.11.210763",
+                "description": "description",
+                "change_log": "change log",
+                "build_id": 210763,
+                "major_version": 9,
+                "minor_version": 3,
+                "revision": 11,
+                "timestamp": 1676920067,
+            },
+            {
+                "uuid": "10.2.11.210763",
+                "description": "description",
+                "change_log": "change log",
+                "build_id": 210763,
+                "major_version": 10,
+                "minor_version": 2,
+                "revision": 11,
+                "timestamp": 1676920067,
+            },
         ]
+        assert next == {
+            "uuid": "9.2.11.210763",
+            "description": "description",
+            "change_log": "change log",
+            "build_id": 210763,
+            "major_version": 9,
+            "minor_version": 2,
+            "revision": 11,
+            "timestamp": 1676920067,
+        }
+        assert latest == {
+            "uuid": "10.2.11.210763",
+            "description": "description",
+            "change_log": "change log",
+            "build_id": 210763,
+            "major_version": 10,
+            "minor_version": 2,
+            "revision": 11,
+            "timestamp": 1676920067,
+        }
+
+    def test_run_no_records(self, rest_client):
+        rest_client.list_records.return_value = []
+
+        records, next, latest = version_update_info.run(rest_client)
+
+        assert records == []
+        assert next is None
+        assert latest is None

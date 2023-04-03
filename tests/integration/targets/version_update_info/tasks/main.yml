@@ -11,5 +11,7 @@
       register: updates
     - ansible.builtin.assert:
         that:
-          - updates.records != []
           - updates.records[0].keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
+          - updates.next.keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
+          - updates.latest.keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
+      when: updates.records != []
