@@ -186,7 +186,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible: [2.13.0]
+        # ansible: [2.13.0]
         # python: [3.11]
         # test_name: [user_info]
         test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
@@ -194,18 +194,21 @@ jobs:
           - https://10.5.11.200
           - https://10.5.11.201
         include:
-          - ansible: 2.13.0
-            sc_host: https://10.5.11.50
+          - sc_host: https://10.5.11.50
             test_name: vm_replication
-          - ansible: 2.13.0
-            sc_host: https://10.5.11.50
+          - sc_host: https://10.5.11.50
             test_name: vm_replication_info
+        exclude:
+          - sc_host: https://10.5.11.200
+            test_name: vm_replication
+          - sc_host: https://10.5.11.201
+            test_name: vm_replication
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=${{ matrix.ansible }}
+      - run: pip install ansible-core~=2.13.0
       # We have ansible.cfg "for testing" in git repo
       # (it is excluded in galaxy.yml, so it is not part of collection artifact)
       # But it does affect ansible-galaxy and ansible-test commands.
