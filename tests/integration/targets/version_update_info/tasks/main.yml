@@ -6,12 +6,24 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   block:
-    - name: Get list of hc version updates
+    - name: Get list of HyperCore version updates
       scale_computing.hypercore.version_update_info:
       register: updates
-    - ansible.builtin.assert:
+
+    - name: Check returned update list - updates available
+      ansible.builtin.assert:
         that:
           - updates.records[0].keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
           - updates.next.keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
           - updates.latest.keys() | sort == ['build_id', 'change_log', 'description', 'major_version', 'minor_version', 'revision', 'timestamp', 'uuid']
-      when: updates.records != []
+          - updates.records[0].uuid == sc_config[sc_host].features.version_update.next_version
+          - updates.records[-1].uuid == sc_config[sc_host].features.version_update.latest_version
+          - updates.next.uuid == sc_config[sc_host].features.version_update.next_version
+          - updates.latest.uuid == sc_config[sc_host].features.version_update.latest_version
+      when: sc_config[sc_host].features.version_update.next_version
+
+    - name: Check returned update list - no updates available
+      ansible.builtin.assert:
+        that:
+        - updates.records == []
+      when: not sc_config[sc_host].features.version_update.next_version
