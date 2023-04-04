@@ -62,9 +62,7 @@ jobs:
       - run: ansible-galaxy collection list
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: ${{ matrix.sc_host }}
-          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
@@ -157,9 +155,7 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: https://10.5.11.200
-          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
@@ -218,9 +214,7 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: ${{ matrix.sc_host }}
-          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
@@ -247,9 +241,7 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: https://10.5.11.200
-          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
@@ -273,9 +265,7 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          ci_config_all: ${{ vars.CI_CONFIG_HC_IP50 }}
           sc_host: https://10.5.11.200
-          sc_username_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_USERNAME }}
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
