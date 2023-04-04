@@ -1,0 +1,21 @@
+# -------------------------------------------------------------------------
+# Cleanup replicated VMs on dest cluster.
+# The vm module cannot be used - we can have old replicas still present,
+# so the VM name might not be unique on dest cluster.
+- name: List old replicated VMs on dest cluster
+  scale_computing.hypercore.vm_info:
+    cluster_instance: "{{ dest_cluster_instance }}"
+    vm_name: "{{ vm_name }}"
+  register: dest_old_replicated_vms
+  loop: "{{ vm_names }}"
+  loop_control:
+    loop_var: vm_name
+
+- name: Remove old replicated VMs on dest cluster
+  scale_computing.hypercore.api:
+    cluster_instance: "{{ dest_cluster_instance }}"
+    action: delete
+    endpoint: /rest/v1/VirDomain/{{ vm.uuid }}
+  loop: "{{ dest_old_replicated_vms.results.0.records + dest_old_replicated_vms.results.1.records }}"
+  loop_control:
+    loop_var: vm

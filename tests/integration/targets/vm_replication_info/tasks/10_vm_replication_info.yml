@@ -2,6 +2,17 @@
 # Next setup replication for 2nd VM, test output.
 
 # -------------------------------------------------------------------------
+- name: Get available cluster connection
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/RemoteClusterConnection
+  register: cluster_connection_info
+- ansible.builtin.assert:
+    that:
+      - cluster_connection_info is succeeded
+      - cluster_connection_info.record | length > 0
+
+# -------------------------------------------------------------------------
 - name: Create replication
   scale_computing.hypercore.api:
     action: post
