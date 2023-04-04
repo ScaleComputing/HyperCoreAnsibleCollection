@@ -197,6 +197,13 @@ jobs:
         sc_host:
           - https://10.5.11.200
           - https://10.5.11.201
+        include:
+          - ansible: 2.13.0
+            sc_host: https://10.5.11.50
+            test_name: vm_replication
+          - ansible: 2.13.0
+            sc_host: https://10.5.11.50
+            test_name: vm_replication_info
     steps:
       - name: Checkout
         uses: actions/checkout@v3
