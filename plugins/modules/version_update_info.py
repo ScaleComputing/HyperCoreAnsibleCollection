@@ -38,7 +38,7 @@ records:
   type: list
   contains:
     uuid:
-      description: Unique identifier in format majorVersion.minorVersion.revision.buildID
+      description: Unique identifier in format major_version.minor_version.revision.build_id
       type: str
       sample: 9.2.11.210763
     description:
@@ -76,7 +76,7 @@ next:
   type: dict
   contains:
     uuid:
-      description: Unique identifier in format majorVersion.minorVersion.revision.buildID
+      description: Unique identifier in format major_version.minor_version.revision.build_id
       type: str
       sample: 9.2.11.210763
     description:
@@ -114,7 +114,7 @@ latest:
   type: dict
   contains:
     uuid:
-      description: Unique identifier in format majorVersion.minorVersion.revision.buildID
+      description: Unique identifier in format major_version.minor_version.revision.build_id
       type: str
       sample: 9.2.11.210763
     description:
