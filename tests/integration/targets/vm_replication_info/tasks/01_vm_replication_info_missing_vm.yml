@@ -1,0 +1,12 @@
+# -------------------------------------------------------------------------
+# Test vm_replication_info for not present VM
+- name: Get replication info for one VM
+  scale_computing.hypercore.vm_replication_info:
+    vm_name: XLAB-vm_replication_info_CI_test-bf238ai6d2
+  register: replication_info
+  ignore_errors: true
+
+- ansible.builtin.assert:
+    that:
+      - replication_info is failed
+      - replication_info is not changed

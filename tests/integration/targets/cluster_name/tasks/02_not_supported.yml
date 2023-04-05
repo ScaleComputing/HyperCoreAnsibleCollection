@@ -1,0 +1,21 @@
+---
+- name: Retrieve cluster name
+  scale_computing.hypercore.cluster_info:
+  register: cluster_initial
+
+- ansible.builtin.assert:
+    that:
+      - cluster_initial.record.name == cluster_config.name
+
+- name: Update cluster name
+  scale_computing.hypercore.cluster_name:
+    name_new: cluster_config.cluster_name
+  register: cluster
+  ignore_errors: True
+
+- ansible.builtin.assert:
+    that:
+      - cluster is not changed
+      - cluster is failed
+      - "{{ 'does not match required version' in cluster.msg }}"
+      - "{{ 'record' not in cluster }}"

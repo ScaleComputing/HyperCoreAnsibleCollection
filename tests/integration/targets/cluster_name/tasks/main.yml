@@ -8,87 +8,9 @@
     cluster_config: "{{ sc_config[sc_host].cluster }}"
 
   block:
-    - name: Retrieve cluster name
-      scale_computing.hypercore.cluster_info:
-      register: cluster_initial
-
-    - name: Update cluster name
-      scale_computing.hypercore.cluster_name:
-        name_new: name_updated
-      register: cluster
-    - ansible.builtin.assert:
-        that:
-          - cluster is changed
-          - cluster.record.keys() | sort == ['icos_version', 'name', 'uuid']
-          - cluster.record.name == "name_updated"
-          - cluster.diff.before.name == cluster_initial.record.name
-          - cluster.diff.after.name == "name_updated"
-      register: cluster # to catch assertion msg for always
-    
-    - name: Check if cluster name is updated
-      scale_computing.hypercore.cluster_info:
-      register: cluster
-    - ansible.builtin.assert:
-        that:
-          - cluster.record.name == "name_updated"
-      register: cluster # to catch assertion msg for always
-    
-    - name: Update cluster name - idempotence
-      scale_computing.hypercore.cluster_name:
-        name_new: name_updated
-      register: cluster
-    - ansible.builtin.assert:
-        that:
-          - cluster is not changed
-          - cluster.record.keys() | sort == ['icos_version', 'name', 'uuid']
-          - cluster.record.name == "name_updated"
-          - cluster.diff.before.name == "name_updated"
-          - cluster.diff.after.name == "name_updated"
-      register: cluster # to catch assertion msg for always
-    
-    - name: Retrieve cluster name
-      scale_computing.hypercore.cluster_info:
-      register: cluster
-    - ansible.builtin.assert:
-        that:
-          - cluster.record.name == "name_updated"
-      register: cluster # to catch assertion msg for always
-    
-    - name: Set back the initial cluster name
-      scale_computing.hypercore.cluster_name:
-        name_new: "{{ cluster_initial.record.name }}"
-      register: cluster
-    - ansible.builtin.assert:
-        that:
-          - cluster is changed
-          - cluster.record.keys() | sort == ['icos_version', 'name', 'uuid']
-          - cluster.record.name == cluster_initial.record.name
-          - cluster.diff.before.name == "name_updated"
-          - cluster.diff.after.name == cluster_initial.record.name
-      register: cluster # to catch assertion msg for always
-    
-    - name: Check if cluster name is updated
-      scale_computing.hypercore.cluster_info:
-      register: cluster
-    - ansible.builtin.assert:
-        that:
-          - cluster.record.name == cluster_initial.record.name
-      register: cluster # to catch assertion msg for always
-
-  always:
-    - name: Set back the initial cluster_name
-      scale_computing.hypercore.api:
-        action: patch
-        endpoint: /rest/v1/Cluster/{{ cluster_initial.record.uuid }}
-        data:
-          clusterName: "{{ cluster_config.name }}"
-      when: "'does not match required version' not in cluster.msg"
-
-    - name: Get current cluster name
-      scale_computing.hypercore.api:
-        action: get
-        endpoint: /rest/v1/Cluster
-      register: cluster
-    - name: Show cluster
-      ansible.builtin.debug:
-        var: cluster
+    # if HC3 version is recent enough, we can change cluster name
+    - include_tasks: 01_supported.yml
+      when: sc_config[sc_host].features.cluster_name.is_writable
+    # if HC3 version is not recent, we cannot change cluster name
+    - include_tasks: 02_not_supported.yml
+      when: not sc_config[sc_host].features.cluster_name.is_writable

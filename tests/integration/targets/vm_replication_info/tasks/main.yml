@@ -11,11 +11,24 @@
       - "{{ vm_name_0 }}"
       - "{{ vm_name_1 }}"
     dest_cluster_instance:
-      host: "{{ sc_replication_dest_host }}"
-      username: "{{ sc_replication_dest_username }}"
-      password: "{{ sc_replication_dest_password }}"
+      host: "{{ sc_config[sc_host].sc_replication_dest_host }}"
+      username: "{{ sc_config[sc_host].sc_replication_dest_username }}"
+      password: "{{ sc_config[sc_host].sc_replication_dest_password }}"
+
   block:
-    - include_tasks: 01_prepare_create_vms.yml
+    - include_tasks: 01_vm_replication_info_missing_vm.yml
+
+    - include_tasks: 02_cleanup_destination_vms.yml
+      when: sc_config[sc_host].sc_replication_dest_host
+
+    # We can create VM and check vm_replication_info output also on
+    # cluster without replication
+    - include_tasks: 03_recreate_source_vms.yml
+
     - include_tasks: 10_vm_replication_info.yml
+      when: sc_config[sc_host].sc_replication_dest_host
+
     - include_tasks: 20_vm_info.yml
+      when: sc_config[sc_host].sc_replication_dest_host
+
     - include_tasks: 99_cleanup.yml

@@ -2,17 +2,11 @@
 name: 'Create ansible-test integration_config.yml'
 description: 'Create ansible-test integration_config.yml'
 inputs:
-  ci_config_all:
-    description: 'CI config for all HyperCore hosts'
-    required: true
   sc_host:  # id of input
     description: 'SC_HOST environ variable'
     required: true
     # default: 'World'
   # Node with IP .50 is our physical node.
-  sc_username_50:
-    description: 'sc_username variable to access physical nodes'
-    required: true
   sc_password_50:
     description: 'sc_password variable to access physical nodes'
     required: true
@@ -33,7 +27,7 @@ runs:
     - run: |
         cd ${{ inputs.working_directory }}
         cat <<EOF >integ_config_vars.yml
-        sc_username_50: ${{ inputs.sc_username_50 }}
+        sc_username_50: xlab
         sc_password_50: ${{ inputs.sc_password_50 }}
         smb_username: ;administrator
         smb_password: ${{ inputs.smb_password }}

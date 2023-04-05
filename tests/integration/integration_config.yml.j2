@@ -15,6 +15,16 @@ smb_share: "{{ smb_share }}"
 smb_username: "{{ smb_username }}"
 smb_password: "{{ smb_password }}"
 
+__base_smtp: &base_smtp
+  host: smtp-relay.gmail.com
+  port: 25
+  use_ssl: false
+  # from_address: PUB5@scalecomputing.com
+  use_auth: false
+  auth_user: ""
+  auth_password: ""
+
+
 # sc_config is specific for each test cluster
 # The values should be set after tests, to ensure cluster is left in functional state.
 sc_config:
@@ -35,14 +45,7 @@ sc_config:
       contact: Alex Nicholson
       email: email_hidden@scalecomputing.com
       phone: "123 456 7890"
-    smtp: &base_smtp
-      host: smtp-relay.gmail.com
-      port: 25
-      use_ssl: false
-      # from_address: PUB5@scalecomputing.com
-      use_auth: false
-      auth_user: ""
-      auth_password: ""
+    # smtp: ...
     email_alert:
       - email_hidden@scalecomputing.com
     oidc:
@@ -65,6 +68,7 @@ sc_config:
     sc_username: "{{ sc_username_50 }}"
     sc_password: "{{ sc_password_50 }}"
     # Only .50 is configured with remote replication.
+    # Set sc_replication_dest_host/username/password to "" to signal no replication is configured.
     sc_replication_dest_host: https://10.5.11.60
     # We have same username on .50 and .60 node.
     sc_replication_dest_username: "{{ sc_username_50 }}"
@@ -78,13 +82,36 @@ sc_config:
     smtp:
       <<: *base_smtp
       from_address: PUB5@scalecomputing.com
+    # Under features are described properties that affect expected integration test output.
+    features:
+      version_update:
+        # Current SW (ICOS) version running on the host.
+        current_version: "9.2.13.211102"
+        # The next version available update for the host.
+        next_version: ""
+        # The latest version available update for the host.
+        latest_version: ""
+        # Can we update the host? VSNS hosts report update as available,
+        # but if we try to update, the update fails (unsupported HW is reported back).
+        can_be_applied: True
+      virtual_disk:
+        # Virtual disk feature is supported iff version ">=9.2.10"
+        is_supported: True
+        # expected virtual disk replucation factor
+        replication_factor: 2
+      cluster_name:
+        # cluster name can be changed iff version ">=9.1.21 <9.2.0 || >=9.2.11"
+        is_writable: True
 
   https://10.5.11.200:
     <<: *base_cfg
     sc_username: admin
     sc_password: admin
+    sc_replication_dest_host: ""
+    sc_replication_dest_username: ""
+    sc_replication_dest_password: ""
     cluster:
-      name: VSNS200
+      name: "HC3 System"  # VSNS200
     support_tunnel:
       open: true
       code: "4423"
@@ -93,11 +120,25 @@ sc_config:
       from_address: VSNS200@scalecomputing.com
     syslog_server:
       host: 10.5.11.222
+    features:
+      version_update:
+        current_version: "9.1.14.208456"
+        next_version: "9.1.23.210897"
+        latest_version: "9.1.23.210897"
+        can_be_applied: False
+      virtual_disk:
+        is_supported: False
+        # replication_factor:
+      cluster_name:
+        is_writable: False
 
   https://10.5.11.201:
     <<: *base_cfg
     sc_username: admin
     sc_password: admin
+    sc_replication_dest_host: ""
+    sc_replication_dest_username: ""
+    sc_replication_dest_password: ""
     cluster:
       name: VSNS201
     support_tunnel:
@@ -108,3 +149,14 @@ sc_config:
       from_address: VSNS201@scalecomputing.com
     syslog_server:
       host: 10.5.11.222
+    features:
+      version_update:
+        current_version: "9.2.13.211102"
+        next_version: ""
+        latest_version: ""
+        can_be_applied: False
+      virtual_disk:
+        is_supported: True
+        replication_factor: 1
+      cluster_name:
+        is_writable: True
