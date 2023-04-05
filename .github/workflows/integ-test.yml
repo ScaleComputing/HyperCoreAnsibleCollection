@@ -24,9 +24,16 @@ on:
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
         default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$"
+      examples_tests_include:
+        type: string
+        description: |-
+          List examples to include into testing.
+          Use "*" to test all examples.
+        default: "iso_info"
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
   INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$"
+  EXAMPLES_TESTS_INCLUDE_SCHEDULE: "*"
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
   WORKDIR: work-dir/ansible_collections/scale_computing/hypercore
@@ -114,6 +121,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
+      - run: |
+          if [ "" != "${{ github.event.schedule }}" ]
+          then
+            echo 'EXAMPLES_TESTS_INCLUDE=${{ env.EXAMPLES_TESTS_INCLUDE_SCHEDULE }}' >> $GITHUB_ENV
+          else
+            echo 'EXAMPLES_TESTS_INCLUDE=${{ github.event.inputs.examples_tests_include }}' >> $GITHUB_ENV
+          fi
       # A few files are not an example playbook:
       #   hypercore_inventory.yml - inventory example
       #   cloud-init-user-data-example.yml - cloud-init user-data example
@@ -123,6 +137,7 @@ jobs:
           echo "matrix=$(
             ls -r examples |
             grep -v -E "^README.md$|^hypercore_inventory.yml$|^cloud-init-user-data-example.yml$" |
+            grep -E "${{ env.EXAMPLES_TESTS_INCLUDE }}" |
             jq -R -s -c 'split("\n")[:-1]'
           )" >> $GITHUB_OUTPUT
     if: "${{ github.event.inputs || github.event.schedule }}"
