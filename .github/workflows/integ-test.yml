@@ -259,7 +259,7 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          sc_host: https://10.5.11.200
+          sc_host: https://10.5.11.50
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
