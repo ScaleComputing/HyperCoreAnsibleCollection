@@ -29,7 +29,7 @@
         # certificate: plain_text_from_x509
         config_url: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
         scopes: openid+profile
-      time_server: 2.pool.ntp.org
+      time_server: 10.5.11.5
       time_zone: Europe/Ljubljana
       smtp:
         server: mail_a.example.com
@@ -71,7 +71,7 @@
         # certificate: plain_text_from_x509
         config_url: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
         scopes: openid+profile
-      time_server: 3.pool.ntp.org
+      time_server: 10.5.11.7
       time_zone: Europe/Zagreb
       smtp:
         server: mail_b.example.com
