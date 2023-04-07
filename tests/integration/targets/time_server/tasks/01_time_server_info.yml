@@ -6,7 +6,9 @@
 
   vars:
     actual_uuid: "timesource_guid"
-    actual_host: "3.pool.ntp.org"
+    # We need 2 NTP servers.
+    # Set them up per ci-infra/ntp-chrony/Readme.md.
+    actual_host: "10.5.11.5"
 
   block:
     # -------------------------------------------------------
