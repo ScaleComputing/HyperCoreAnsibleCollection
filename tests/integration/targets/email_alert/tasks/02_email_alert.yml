@@ -119,18 +119,30 @@
             ['alert_tag_uuid', 'email', 'latest_task_tag',
             'resend_delay', 'silent_period', 'uuid']
 
-
+    # Sending email can fail.
+    # We are using external SMTP server, and email address is from external domain.
+    # Either of two might not work.
+    # Try to resend after delay.
+    # Alternatives:
+    # - Set up a dedicated SMTP server, and use it during test.
+    #   It will have IP, but no DNS domain.
+    # - Use a temp email address from some public service (like https://temp-mail.org).
+    #   Again external service.
     - name: Send test email to an existing Email Alert Recipient
       scale_computing.hypercore.email_alert:
         email: "{{ new_email }}"
         state: test
       register: result
+      retries: 5
+      delay: 10
+      until: result is succeeded
     - scale_computing.hypercore.email_alert_info:
       register: info
     - ansible.builtin.debug:
         msg: "{{ result }}"
     - ansible.builtin.assert:
         that:
+          - result is succeeded
           - result.changed == False
           - result.diff.before == result.diff.after
           - info.records|length == 1|int
