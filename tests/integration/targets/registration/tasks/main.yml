@@ -6,10 +6,10 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   vars:
-    default_company_name: ""
-    default_contact: ""
-    default_email: ""
-    default_phone: ""
+    default_company_name: "{{ sc_config[sc_host].registration.company_name }}"
+    default_contact: "{{ sc_config[sc_host].registration.contact }}"
+    default_email: "{{ sc_config[sc_host].registration.email }}"
+    default_phone: "{{ sc_config[sc_host].registration.phone }}"
 
 # ----------------------------------Setup------------------------------------------------------------------------
   block:
@@ -18,11 +18,9 @@
         endpoint: rest/v1/Registration
         action: get
       register: registration_original
-    - ansible.builtin.set_fact:
-        default_company_name: "{{ registration_original.record.0.companyName }}"
-        default_contact: "{{ registration_original.record.0.contact }}"
-        default_email: "{{ registration_original.record.0.email }}"
-        default_phone: "{{ registration_original.record.0.phone }}"
+    - name: Show Registration info (original info)
+      ansible.builtin.debug:
+        var: registration_original
 
     - name: Delete current registration
       scale_computing.hypercore.registration:
