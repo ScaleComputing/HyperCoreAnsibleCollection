@@ -94,6 +94,9 @@ sc_config:
         # Can we update the host? VSNS hosts report update as available,
         # but if we try to update, the update fails (unsupported HW is reported back).
         can_be_applied: True
+        # If the cluster was updated before, then we can access
+        # https://IP/update/update_status.json (version_update_status_info module).
+        old_update_status_present: True
       virtual_disk:
         # Virtual disk feature is supported iff version ">=9.2.10"
         is_supported: True
@@ -126,6 +129,8 @@ sc_config:
         next_version: "9.1.23.210897"
         latest_version: "9.1.23.210897"
         can_be_applied: False
+        # We can try update, update will fail, and status.json will be present.
+        old_update_status_present: True
       virtual_disk:
         is_supported: False
         # replication_factor:
@@ -155,6 +160,7 @@ sc_config:
         next_version: ""
         latest_version: ""
         can_be_applied: False
+        old_update_status_present: False
       virtual_disk:
         is_supported: True
         replication_factor: 1
