@@ -6,9 +6,10 @@ eval "$(cat <<EOF | python
 import yaml
 with open("$vars_file") as fd:
     data = yaml.safe_load(fd)
-print("export SC_HOST='{}'".format(data["sc_host"]))
-print("export SC_USERNAME='{}'".format(data["sc_username"]))
-print("export SC_PASSWORD='{}'".format(data["sc_password"]))
+sc_host=data["sc_host"]
+print("export SC_HOST='{}'".format(sc_host))
+print("export SC_USERNAME='{}'".format(data["sc_config"][sc_host]["sc_username"]))
+print("export SC_PASSWORD='{}'".format(data["sc_config"][sc_host]["sc_password"]))
 EOF
 )"
 
