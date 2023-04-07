@@ -9,24 +9,38 @@
     - name: Retrieve list of remote clusters
       scale_computing.hypercore.remote_cluster_info:
       register: initial
-    - ansible.builtin.assert:
-        that:
-          - initial.records != []
-          - "{{ initial.records[0].keys() | sort == ['connection_status', 'name', 'remote_node_ips', 'remote_node_uuids', 'replication_ok'] }}"
-          - initial.records[0].name
-          - initial.records[0].connection_status
-          - initial.records[0].replication_ok
-          - initial.records[0].remote_node_ips
-          - initial.records[0].remote_node_uuids
 
-    - name: Retrieve remote cluster by name
-      scale_computing.hypercore.remote_cluster_info:
-        remote_cluster: "{{ initial.records[0].name }}"
-      register: results
-    - ansible.builtin.assert:
-        that:
-          - results.records[0].name == initial.records[0].name
-    
+    - name: If remote cluster is configured
+      when: sc_config[sc_host].sc_replication_dest_host
+      block:
+        - ansible.builtin.assert:
+            that:
+              - initial is succeeded
+              - initial.records != []
+              - "{{ initial.records[0].keys() | sort == ['connection_status', 'name', 'remote_node_ips', 'remote_node_uuids', 'replication_ok'] }}"
+              - initial.records[0].name
+              - initial.records[0].connection_status
+              - initial.records[0].replication_ok
+              - initial.records[0].remote_node_ips
+              - initial.records[0].remote_node_uuids
+
+        - name: Retrieve remote cluster by name
+          scale_computing.hypercore.remote_cluster_info:
+            remote_cluster: "{{ initial.records[0].name }}"
+          register: results
+        - ansible.builtin.assert:
+            that:
+              - results.records[0].name == initial.records[0].name
+
+    - name: If remote cluster is not configured
+      when: not sc_config[sc_host].sc_replication_dest_host
+      block:
+        - ansible.builtin.assert:
+            that:
+              - initial is succeeded
+              - initial.records == []
+
+    # Always
     - name: Retrieve nonexisting remote cluster
       scale_computing.hypercore.remote_cluster_info:
         remote_cluster: "DOES NOT EXIST"
