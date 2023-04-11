@@ -10,6 +10,10 @@
     desired_version: 9.1.23.210897
 
   tasks:
+    - name: Show desired_version
+      ansible.builtin.debug:
+        msg: Desired HyperCore version for host {{ lookup('ansible.builtin.env', 'SC_HOST') }} is {{ desired_version }}.
+
     - name: Get host's time zone
       scale_computing.hypercore.time_zone_info:
       register: time_zone_info

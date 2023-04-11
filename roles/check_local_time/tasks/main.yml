@@ -1,23 +1,7 @@
 ---
-- name: Is executable python3
-  ansible.builtin.command: which python3
-  register: executable
-  changed_when: false  # to avoid ansible-lint error "no-changed-when: Commands should not change things if nothing needs doing."
-  ignore_errors: true  # if there is no python3, the shell will fail
-
-- name: Is executable python
-  ansible.builtin.command: which python
-  register: executable_python
-  changed_when: false  # to avoid ansible-lint error "no-changed-when: Commands should not change things if nothing needs doing."
-  ignore_errors: true  # if there is no python, the shell will fail
-
-- name: If not python3, then set executable to python
-  ansible.builtin.set_fact: executable="{{ executable_python }}"
-  when: not executable.stdout_lines
-
 - name: Check if local time is in time interval (run check_local_time.py)
   ansible.builtin.script:
-    executable: "{{ executable.stdout_lines[0] }}"
+    executable: "{{ ansible_python_interpreter }}"
     cmd: check_local_time.py "{{ time_zone }}" "{{ time_interval }}"
   register: local_time_output
 
