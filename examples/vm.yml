@@ -27,3 +27,18 @@
     - name: Show the info about {{ vm_name }} VM
       debug:
         var: vm_result
+
+    # Use vm module output, syntax valid until release < 3.0.0
+    - name: Show VM {{ vm_name }} vCPU count - syntax valid until release < 3.0.0
+      ansible.builtin.debug:
+        msg: >-
+          VM {{ vm_name }} has {{ vm_result.record.0.vcpu }} vCPUs -
+          syntax valid until release < 3.0.0
+
+    # Use vm module output, new syntax, valid after release >= 3.0.0
+    - name: Show VM {{ vm_name }} vCPU count - syntax valid after release >= 3.0.0
+      ansible.builtin.debug:
+        msg: >-
+          VM {{ vm_name }} has {{ vm_result.record.vcpu }} vCPUs -
+          syntax valid after release >= 3.0.0
+      when: false  # 3.0.0 is not yet released

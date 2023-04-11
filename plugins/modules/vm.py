@@ -216,10 +216,11 @@ options:
 notes:
   - The C(record) return value will be changed from list (containing a single item) to dict.
     There will be no release where both old and new variant work at the same time.
+    The change will happen with release 3.0.0.
     To ease migration, the only change between last 1.x or 2.x release and 3.0.0 release
     will be changing the C(record) return value.
-    Affected modules are M(scale_computing.hypercore.vm) and M(scale_computing.hypercore.snapshot_schedule).
-    The change will happen with release 3.0.0.
+    R(List of deprecation changes, scale_computing.hypercore.deprecation)
+    includes examples to help with transition.
   - C(check_mode) is not supported.
 """
 

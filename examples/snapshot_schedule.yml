@@ -1,0 +1,38 @@
+- name: Create VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Setup snapshot schedule demo-snap-schedule
+      scale_computing.hypercore.snapshot_schedule:
+        name: demo-snap-schedule
+        state: present
+        recurrences:
+          - name: weekly-tuesday
+            frequency: "FREQ=WEEKLY;INTERVAL=1;BYDAY=TU"  # RFC-2445
+            start: "2010-01-01 00:00:00"
+            local_retention: "{{ 10 * 7*24*60*60 }}"  # 10 days, unit seconds
+            remote_retention:  # optional, None or 0 means same as local_retention.
+      register: demo_snapshot_schedule
+
+    - name: Show snapshot_schedule module output
+      ansible.builtin.debug:
+        var: demo_snapshot_schedule
+
+    # Use snapshot_schedule module output, syntax valid until release < 3.0.0
+    - name: Show snapshot schedule local retention - syntax valid until release < 3.0.0
+      ansible.builtin.debug:
+        msg: >-
+          Snapshot schedule {{ demo_snapshot_schedule.record.0.name }} has local retention
+          {{ demo_snapshot_schedule.record.0.recurrences.0.local_retention }} [sec] -
+          syntax valid until release < 3.0.0
+
+    # Use snapshot_schedule module output, new syntax, valid after release >= 3.0.0
+    - name: Show snapshot schedule local retention - syntax valid after release >= 3.0.0
+      ansible.builtin.debug:
+        msg: >-
+          Snapshot schedule {{ demo_snapshot_schedule.record.name }} has local retention
+          {{ demo_snapshot_schedule.record.recurrences.0.local_retention }} [sec] -
+          syntax valid after release >= 3.0.0
+      when: false  # 3.0.0 is not yet released

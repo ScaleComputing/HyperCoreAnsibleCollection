@@ -28,6 +28,17 @@
         name: "{{ iso_filename }}"
         source: /tmp/{{ iso_filename }}
         state: present
+      register: uploaded_iso
+
+    # Use iso module output, old syntax, valid until release < 3.0.0
+    - name: Show upload result for ISO {{ iso_filename }} - deprecated syntax
+      ansible.builtin.debug:
+        msg: The uploaded_iso size={{ uploaded_iso.results.0.size }} - deprecated syntax
+
+    # Use iso module output, new syntax, valid after release >= 1.2.0
+    - name: Show upload result for ISO {{ iso_filename }}
+      ansible.builtin.debug:
+        msg: The uploaded_iso size={{ uploaded_iso.record.size }}
 
     # ------------------------------------------------------
     - name: Get info about specific ISO image - {{ iso_filename }}

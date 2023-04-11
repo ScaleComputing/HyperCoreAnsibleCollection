@@ -71,6 +71,8 @@ notes:
   - C(check_mode) is not supported.
   - Return value C(record) is added in version 1.2.0, and deprecates return value C(records).
     Return value C(records) will be removed in future release.
+    R(List of deprecation changes, scale_computing.hypercore.deprecation)
+    includes examples to help with transition.
 """
 
 EXAMPLES = r"""
