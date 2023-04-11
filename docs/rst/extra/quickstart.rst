@@ -131,8 +131,8 @@ cluster REST API endpoints. Extensive documentation on our current
 available modules can be found
 `here <https://galaxy.ansible.com/scale_computing/hypercore>`__.
 
-For example: `scale_computing.hypercore.vm <https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs/modules/vm.html>`_ 
-is the module that will allow you to create, update, and delete virtual 
+For example: `scale_computing.hypercore.vm <../collections/scale_computing/hypercore/vm_module.html>`_
+is the module that will allow you to create, update, and delete virtual
 machines. When you begin writing Playbooks, you will reference a specific 
 module when attempting to automate a task associated with that said module 
 is equipped to handle.
@@ -293,7 +293,7 @@ This guide will now demonstrate how to create a Playbook that will create a VM o
 
 .. image:: images/qs_wplaybooks3.png
 
-7. For the purposes of this guide, you can reference the `scale_computing.hypercore.vm <https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs/modules/vm.html>`_ module then copy and paste the example task for creating a VM into your Playbook.
+7. For the purposes of this guide, you can reference the `scale_computing.hypercore.vm <../collections/scale_computing/hypercore/vm_module.html>`_ module then copy and paste the example task for creating a VM into your Playbook.
    A valid `cloud_init user data <https://github.com/ScaleComputing/HyperCoreAnsibleCollection/blob/main/examples/cloud-init-user-data-example.yml>`_ sample file is available.
 
 .. code-block:: yaml
