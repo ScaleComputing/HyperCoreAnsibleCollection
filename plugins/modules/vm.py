@@ -214,6 +214,12 @@ options:
     choices: [ BIOS, UEFI, vTPM+UEFI ]
     version_added: 1.1.0
 notes:
+  - The C(record) return value will be changed from list (containing a single item) to dict.
+    There will be no release where both old and new variant work at the same time.
+    To ease migration, the only change between last 1.x or 2.x release and 3.0.0 release
+    will be changing the C(record) return value.
+    Affected modules are M(scale_computing.hypercore.vm) and M(scale_computing.hypercore.snapshot_schedule).
+    The change will happen with release 3.0.0.
   - C(check_mode) is not supported.
 """
 
@@ -648,6 +654,16 @@ def main():
                 False,
             ),
         ],
+    )
+
+    module.deprecate(
+        "The 'record' return value will be changed from list (containing a single item) to dict. "
+        "There will be no release where both old and new variant work at the same time. "
+        "To ease migration, the only change between last 1.x or 2.x release and 3.0.0 release "
+        "will be changing the 'record' return value. "
+        "Affected modules are vm and snapshot_schedule.",
+        version="3.0.0",
+        collection_name="scale_computing.hypercore",
     )
 
     try:
