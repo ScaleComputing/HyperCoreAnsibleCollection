@@ -1,0 +1,29 @@
+---
+- name: Create VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_name: demo-vm
+
+  tasks:
+    - name: Create VM {{ vm_name }}
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        memory: "{{ '1 GB' | human_to_bytes }}"
+        vcpu: 2
+        disks:
+          - type: virtio_disk
+            disk_slot: 0
+            size: "{{ '10 GB' | human_to_bytes }}"
+        nics:
+          - type: virtio
+            vlan: 10
+        state: present
+        # os_other or os_windows_server_2012
+        operating_system: os_other
+      register: vm_result
+
+    - name: Show the info about {{ vm_name }} VM
+      debug:
+        var: vm_result
