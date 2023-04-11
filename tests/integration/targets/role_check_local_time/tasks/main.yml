@@ -6,17 +6,25 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   block:
+    - name: Get Timezone 
+      ansible.builtin.uri:
+        url: https://ipapi.co/timezone
+        return_content: true
+      register: respone
+
     - name: Check that local time meets required time interval
       ansible.builtin.include_role:
         name: scale_computing.hypercore.check_local_time
       vars:
-        time_zone: "{{ ansible_date_time.tz }}"
+        time_zone: "{{ respone.content }}" # ansible_date_time.tz returns CEST which is not a valid tz for env var TZ
         time_interval: "{{ ansible_date_time.hour }}:00-{{ ansible_date_time.hour }}:59"
     
     # it can fail when run near x:59
     - ansible.builtin.assert:
         that:
-          - "'Local time for time zone {{ ansible_date_time.tz }} is in required time interval {{ ansible_date_time.hour }}:00-{{ ansible_date_time.hour }}:59' in local_time_msg" 
+          - >-
+            "'Local time for time zone {{ respone.content }} is in required time interval 
+            {{ ansible_date_time.hour }}:00-{{ ansible_date_time.hour }}:59' in local_time_msg" 
 
     - name: Check that local time doesn't meet required time interval
       ansible.builtin.include_role:
@@ -24,10 +32,12 @@
         apply:
           ignore_errors: True
       vars:
-        time_zone: "{{ ansible_date_time.tz }}"
+        time_zone: "{{ respone.content }}"
         time_interval: "{{ ansible_date_time.hour }}:00-{{ ansible_date_time.hour }}:01"
 
     # it can fail when run near x:00
     - ansible.builtin.assert:
         that:
-          - "'Local time for time zone {{ ansible_date_time.tz }} is not in required time interval {{ ansible_date_time.hour }}:00-{{ ansible_date_time.hour }}:01' in local_time_msg" 
+          - >-
+            "'Local time for time zone {{ respone.content }} is not in required time interval 
+            {{ ansible_date_time.hour }}:00-{{ ansible_date_time.hour }}:01' in local_time_msg" 
