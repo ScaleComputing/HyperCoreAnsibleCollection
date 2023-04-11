@@ -73,6 +73,13 @@ options:
           - If either not set or set to either C(0) or C(None), remote_retention will be assigned
             I(local_retention)'s value.
 notes:
+  - The C(record) return value will be changed from list (containing a single item) to dict.
+    There will be no release where both old and new variant work at the same time.
+    The change will happen with release 3.0.0.
+    To ease migration, the only change between last 1.x or 2.x release and 3.0.0 release
+    will be changing the C(record) return value.
+    R(List of deprecation changes, scale_computing.hypercore.deprecation)
+    includes examples to help with transition.
   - C(check_mode) is not supported.
 """
 
@@ -226,6 +233,16 @@ def main():
             ),
         ),
         required_if=[("state", "present", ("recurrences",))],
+    )
+
+    module.deprecate(
+        "The 'record' return value will be changed from list (containing a single item) to dict. "
+        "There will be no release where both old and new variant work at the same time. "
+        "To ease migration, the only change between last 1.x or 2.x release and 3.0.0 release "
+        "will be changing the 'record' return value. "
+        "Affected modules are vm and snapshot_schedule.",
+        version="3.0.0",
+        collection_name="scale_computing.hypercore",
     )
 
     try:

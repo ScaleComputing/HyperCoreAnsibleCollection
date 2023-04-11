@@ -1,0 +1,31 @@
+---
+- name: Change VLAN for 1st NIC of a specific VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_name: demo-vm
+    vlan: 10
+
+  tasks:
+    - name: Set VLAN for VM {{ vm_name }} 1st NIC
+      scale_computing.hypercore.vm_nic:
+        vm_name: "{{ vm_name }}"
+        items:
+          - vlan: "{{ vlan }}"
+        state: present
+      register: vm_nic_result
+
+    - name: Show the VM {{ vm_name }} new NIC state
+      debug:
+        var: vm_nic_result.record
+
+    # Use vm_nic module output, old syntax, valid until release < 3.0.0
+    - name: Show VM {{ vm_name }} 1st NIC VLAN - deprecated syntax
+      ansible.builtin.debug:
+        msg: The configured VLAN is {{ vm_nic_result.records.vlan }} - deprecated syntax
+
+    # Use vm_nic module output, new syntax, valid after release >= 1.2.0
+    - name: Show VM {{ vm_name }} 1st NIC VLAN
+      ansible.builtin.debug:
+        msg: The configured VLAN is {{ vm_nic_result.record.vlan }}
