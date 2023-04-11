@@ -332,8 +332,8 @@ def main():
     )
 
     module.deprecate(
-        "The 'records' return value is being renamed to 'record'."
-        "Please use 'record' since 'records' will be removed in future release."
+        "The 'records' return value is being renamed to 'record'. "
+        "Please use 'record' since 'records' will be removed in future release. "
         "But for now both values are being returned to allow users to migrate their automation.",
         version="3.0.0",
         collection_name="scale_computing.hypercore",

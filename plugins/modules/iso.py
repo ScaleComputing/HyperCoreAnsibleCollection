@@ -256,8 +256,8 @@ def main():
     )
 
     module.deprecate(
-        "The 'results' return value is being renamed to 'record' and changed from list to dict."
-        "Please use 'record' since 'results' will be removed in future release."
+        "The 'results' return value is being renamed to 'record' and changed from list to dict. "
+        "Please use 'record' since 'results' will be removed in future release. "
         "But for now both values are being returned to allow users to migrate their automation.",
         version="3.0.0",
         collection_name="scale_computing.hypercore",
