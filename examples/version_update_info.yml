@@ -13,6 +13,6 @@
       ansible.builtin.debug:
         msg: >-
           Host has {{ result.records | length }} updates available.
-          All available updates: {{ result.records | map(attribute='uuid')}}.
+          All available updates: {{ result.records | map(attribute='uuid') }}.
           Lowest update is "{{ result.next.uuid | default('') }}".
           Highest update is "{{ result.latest.uuid | default('') }}".
