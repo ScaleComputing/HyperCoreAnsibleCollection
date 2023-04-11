@@ -52,6 +52,8 @@ notes:
   - C(check_mode) is not supported.
   - Return value C(record) is added in version 1.2.0, and deprecates return value C(results).
     Return value C(results) will be removed in future release.
+    R(List of deprecation changes, scale_computing.hypercore.deprecation)
+    includes examples to help with transition.
 """
 
 
@@ -256,8 +258,8 @@ def main():
     )
 
     module.deprecate(
-        "The 'results' return value is being renamed to 'record' and changed from list to dict."
-        "Please use 'record' since 'results' will be removed in future release."
+        "The 'results' return value is being renamed to 'record' and changed from list to dict. "
+        "Please use 'record' since 'results' will be removed in future release. "
         "But for now both values are being returned to allow users to migrate their automation.",
         version="3.0.0",
         collection_name="scale_computing.hypercore",
