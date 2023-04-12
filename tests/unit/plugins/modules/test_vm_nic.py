@@ -197,7 +197,6 @@ class TestMain:
         assert results == {
             "changed": False,
             "records": {},
-            "record": {},
             "diff": {"before": {}, "after": {}},
             "vm_rebooted": False,
         }

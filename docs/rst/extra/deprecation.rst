@@ -25,13 +25,8 @@ return value ``results`` is deprecated.
 A new return value ``record`` is added as replacement.
 The old ``results`` return value will remain available until release 3.0.0.
 
-Module `scale_computing.hypercore.vm_nic <../collections/scale_computing/hypercore/vm_nic_module.html>`_
-return value ``records`` is deprecated.
-A new return value ``record`` is added as replacement.
-The old ``records`` return value will remain available until release 3.0.0.
-
 Only playbooks that store output from ``scale_computing.hypercore.iso``
-(or ``scale_computing.hypercore.vm_nic``) module using ``register:`` keyword are affected.
+module using ``register:`` keyword are affected.
 
 Added deprecation note for modules
 `scale_computing.hypercore.vm <../collections/scale_computing/hypercore/vm_module.html>`_ and
@@ -61,31 +56,6 @@ For ``scale_computing.hypercore.iso`` module:
     - name: Show upload result for ISO {{ iso_filename }}
       ansible.builtin.debug:
         msg: The uploaded_iso size={{ uploaded_iso.record.size }}
-
-
-For ``scale_computing.hypercore.vm_nic`` module:
-
-.. code-block:: yaml
-
-    # Store vm_nic module output
-    - name: Set VLAN for VM {{ vm_name }} 1st NIC
-      scale_computing.hypercore.vm_nic:
-        vm_name: "{{ vm_name }}"
-        items:
-          - vlan: "{{ vlan }}"
-        state: present
-      register: vm_nic_result
-
-    # Use vm_nic module output, old syntax, valid until release < 3.0.0
-    - name: Show VM {{ vm_name }} 1st NIC VLAN - deprecated syntax
-      ansible.builtin.debug:
-        msg: The configured VLAN is {{ vm_nic_result.records.vlan }} - deprecated syntax
-
-    # Use vm_nic module output, new syntax, valid after release >= 1.2.0
-    - name: Show VM {{ vm_name }} 1st NIC VLAN
-      ansible.builtin.debug:
-        msg: The configured VLAN is {{ vm_nic_result.record.vlan }}
-
 
 Release 3.0.0 (not yet released)
 ================================
