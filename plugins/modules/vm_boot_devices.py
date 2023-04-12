@@ -204,6 +204,12 @@ record:
       description: Identifier of the VirDomain this device is attached to
       type: str
       sample: 183c5d7c-1e2e-4871-84e8-9ef35bfda5ca
+vm_rebooted:
+  description:
+      - Info if reboot of the VM was performed.
+  returned: success
+  type: bool
+  sample: true
 """
 
 from ansible.module_utils.basic import AnsibleModule
