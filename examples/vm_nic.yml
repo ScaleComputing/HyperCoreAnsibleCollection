@@ -17,7 +17,7 @@
       register: vm_nic_result
 
     - name: Show the VM {{ vm_name }} new NIC state
-      debug:
+      ansible.builtin.debug:
         var: vm_nic_result.record
 
     # Use vm_nic module output, old syntax, valid until release < 3.0.0
