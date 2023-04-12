@@ -267,6 +267,12 @@ record:
       description: True if the device is read-only
       type: bool
       sample: false
+vm_rebooted:
+  description:
+      - Info if reboot of the VM was performed.
+  returned: success
+  type: bool
+  sample: true
 """
 
 
