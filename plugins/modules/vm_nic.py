@@ -69,10 +69,6 @@ options:
           - Is network interface connected or not.
 notes:
   - C(check_mode) is not supported.
-  - Return value C(record) is added in version 1.2.0, and deprecates return value C(records).
-    Return value C(records) will be removed in future release.
-    R(List of deprecation changes, scale_computing.hypercore.deprecation)
-    includes examples to help with transition.
 """
 
 EXAMPLES = r"""
@@ -140,43 +136,12 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-record:
-  description:
-    - The created or changed record for nic on a specified virtual machine.
-  returned: success
-  type: dict
-  contains:
-    uuid:
-      description: Unique identifier
-      type: str
-      sample: 07a2a68a-0afa-4718-9c6f-00a39d08b67e
-    vlan:
-      description: VLAN tag of the interface
-      type: int
-      sample: 15
-    type:
-      description: Virtualized network device types
-      type: str
-      sample: virtio
-    mac:
-      description: MAC address of the virtual network device
-      type: str
-      sample: 12-34-56-78-AB
-    connected:
-      description: Enabled and can make connections
-      type: bool
-      sample: true
-    ipv4_addresses:
-      description: IPv4 addresses registered with this device
-      type: list
-      elements: str
-      sample: 192.0.2.1
 records:
   description:
     - The created or changed record for nic on a specified virtual machine.
-    - This value is deprecated and will be removed in a future release. Please use record instead.
   returned: success
-  type: dict
+  type: list
+  elements: dict
   contains:
     uuid:
       description: Unique identifier
@@ -339,22 +304,13 @@ def main():
         ),
     )
 
-    module.deprecate(
-        "The 'records' return value is being renamed to 'record'. "
-        "Please use 'record' since 'records' will be removed in future release. "
-        "But for now both values are being returned to allow users to migrate their automation.",
-        version="3.0.0",
-        collection_name="scale_computing.hypercore",
-    )
-
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client=client)
-        changed, record, diff, reboot = run(module, rest_client)
+        changed, records, diff, reboot = run(module, rest_client)
         module.exit_json(
             changed=changed,
-            records=record,
-            record=record,
+            records=records,
             diff=diff,
             vm_rebooted=reboot,
         )
