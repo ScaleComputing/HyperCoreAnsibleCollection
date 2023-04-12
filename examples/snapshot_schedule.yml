@@ -12,7 +12,7 @@
           - name: weekly-tuesday
             frequency: "FREQ=WEEKLY;INTERVAL=1;BYDAY=TU"  # RFC-2445
             start: "2010-01-01 00:00:00"
-            local_retention: "{{ 10 * 7*24*60*60 }}"  # 10 days, unit seconds
+            local_retention: "{{ 10 * 7 * 24 * 60 * 60 }}"  # 10 days, unit seconds
             remote_retention:  # optional, None or 0 means same as local_retention.
       register: demo_snapshot_schedule
 

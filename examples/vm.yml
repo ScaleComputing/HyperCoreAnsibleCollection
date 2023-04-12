@@ -25,7 +25,7 @@
       register: vm_result
 
     - name: Show the info about {{ vm_name }} VM
-      debug:
+      ansible.builtin.debug:
         var: vm_result
 
     # Use vm module output, syntax valid until release < 3.0.0
