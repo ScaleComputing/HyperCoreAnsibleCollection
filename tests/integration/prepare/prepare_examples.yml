@@ -17,6 +17,8 @@
       msg: SC_HOST={{ lookup('ansible.builtin.env', 'SC_HOST') }} sc_host={{ sc_host }}
 
   # For examples/vm_replication_info.yml
+  # Keep the VM parameters in sync with examples/vm.yml -
+  # the VM disk size cannot be shrinked.
   - name: Create VM demo-vm for examples/vm_replication_info.yml
     scale_computing.hypercore.vm:
       cluster_instance: "{{ cluster_instance }}"
@@ -32,7 +34,7 @@
       disks:
         - type: virtio_disk
           disk_slot: 0
-          size: "{{ '1.1 GB' | human_to_bytes }}"
+          size: "{{ '10 GB' | human_to_bytes }}"
       nics:
         - vlan: 1
           type: RTL8139
