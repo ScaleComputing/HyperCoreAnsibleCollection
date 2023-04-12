@@ -10,6 +10,14 @@
       scale_computing.hypercore.version_update_info:
       register: updates
 
+    - name: Show available updates
+      ansible.builtin.debug:
+        var: updates
+
+    - name: Show expected updates
+      ansible.builtin.debug:
+        var: sc_config[sc_host].features.version_update
+
     - name: Check returned update list - updates available
       ansible.builtin.assert:
         that:
