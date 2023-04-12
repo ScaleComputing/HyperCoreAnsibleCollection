@@ -6,14 +6,16 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   vars:
-    desired_version_new: 9.1.23.210897
-    desired_version_current: 9.1.18.209840
+    # Update to .next_version or .latest_version
+    desired_version_new: "{{ sc_config[sc_host].features.version_update.next_version }}"
+    desired_version_current: "{{ sc_config[sc_host].features.version_update.current_version }}"
 
   block:
     - name: Get available updates
       scale_computing.hypercore.version_update_info:
       register: updates
-    - ansible.builtin.debug:
+    - name: Show available updates
+      ansible.builtin.debug:
         var: updates
 
     - name: Test role version_update_single_node - no updates available
