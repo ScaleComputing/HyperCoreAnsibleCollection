@@ -24,9 +24,13 @@
     - name: Get status of the latest update applied
       scale_computing.hypercore.version_update_status_info:
       register: update_status
+    # Fail early if update is in progress
     - ansible.builtin.assert:
         that:
-          - update_status.record.update_status == "COMPLETE" or update_status.record.update_status == "TERMINATING" # Fail early if update in progress
+          - >-
+            update_status.record == None or
+            update_status.record.update_status == "COMPLETE" or
+            update_status.record.update_status == "TERMINATING"
 
     - name: Update to the same hc version
       scale_computing.hypercore.version_update:
@@ -53,7 +57,9 @@
     - name: Get status of the latest update applied
       scale_computing.hypercore.version_update_status_info:
       register: update_status
-      until:  update_status.record.update_status == "EXECUTING"
+      # It takes a while (2 minutes) for update_status.json to appear.
+      # We get update_status.record=None on first invocation.
+      until:  update_status.record != None and update_status.record.update_status == "EXECUTING"
       retries: 100
       delay: 5
     - ansible.builtin.assert:
