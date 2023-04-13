@@ -237,7 +237,29 @@ jobs:
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           working_directory: ${{ env.WORKDIR }}
-      - run: ansible-test integration --local ${{ matrix.test_name }}
+      # If merged stdout/stderr is fine:
+      #   cmd 1> >(tee ansible_test_stdouterr.log ) 2>&1
+      # If separate stdout/stderr are needed:
+      #   https://stackoverflow.com/questions/692000/how-do-i-write-standard-error-to-a-file-while-using-tee-with-a-pipe/692407#692407
+      # Plain "ls -al no-such-file | tee log" - exit code is 0 (without pipe-fail).
+      - id: attempt_0
+        shell: bash
+        run: |
+          # ANSIBLE_TEST_RC=-1
+          TEST_NAME=${{ matrix.test_name }}
+
+          echo = RETRY 0 ===========================================================================
+          (ansible-test integration --local $TEST_NAME; echo $? > ansible_test_rc) | tee ansible_test_stdouterr.log
+          if [ "$(cat ansible_test_rc)" == "0" ]; then exit 0; fi
+          cat ansible_test_stdouterr.log | grep -e 'The handshake operation timed out' -e 'The read operation timed out' -e 'ConnectionRefusedError'
+
+          echo = RETRY 1 ===========================================================================
+          (ansible-test integration --local $TEST_NAME; echo $? > ansible_test_rc) | tee ansible_test_stdouterr.log
+          if [ "$(cat ansible_test_rc)" == "0" ]; then exit 0; fi
+          cat ansible_test_stdouterr.log | grep -e 'The handshake operation timed out' -e 'The read operation timed out' -e 'ConnectionRefusedError'
+
+          echo = RETRY DONE ===========================================================================
+          exit "$(cat ansible_test_rc)"
 
 
   replica_cleanup:
