@@ -44,3 +44,7 @@
         - type: nic
           nic_vlan: 1
       machine_type: BIOS
+      # VM will need to be shutdown if NIC needs to be removed.
+      # It does not respond to ACPI shutdown, so we do allow force shutdown
+      force_reboot: true
+      shutdown_timeout: 60
