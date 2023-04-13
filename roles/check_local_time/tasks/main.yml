@@ -1,7 +1,7 @@
 ---
 - name: Check if local time is in time interval (run check_local_time.py)
   ansible.builtin.script:
-    executable: "{{ ansible_python_interpreter }}"
+    executable: "{{ ansible_python_interpreter | default(ansible_playbook_python) }}"
     cmd: check_local_time.py "{{ time_zone }}" "{{ time_interval }}"
   register: local_time_output
 
