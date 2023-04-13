@@ -32,7 +32,9 @@ sc_config:
   base_cfg: &base_cfg
     # desired configuration after tests are done
     time_server:
-      source: pool.ntp.org
+      # pool.ntp.org servers frequently return KOD.
+      # time.google.com does not complain.
+      source: time.google.com
     time_zone:
       zone: US/Eastern
     dns_config:
