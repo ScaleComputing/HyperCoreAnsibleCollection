@@ -25,10 +25,22 @@
       scale_computing.hypercore.version_update_status_info:
       register: update_status
     # Fail early if update is in progress
+    # In some cases update fails and we get record.update_status == None
+    # Example from https://172.31.6.11/update/update_status.json
+    # {
+    #    "prepareStatus": "",
+    #    "updateStatus": {
+    #        "percent": "0",
+    #        "status": {
+    #            "usernotes": "Failed to open update tunnel"
+    #        }
+    #    }
+    #}
     - ansible.builtin.assert:
         that:
           - >-
             update_status.record == None or
+            update_status.record.update_status == None or
             update_status.record.update_status == "COMPLETE" or
             update_status.record.update_status == "TERMINATING"
 
@@ -54,11 +66,12 @@
           - update.diff.before.icos_version == cluster_initial.record.icos_version
           - update.diff.after.icos_version == updates.records[0].uuid
 
-    - name: Get status of the latest update applied
+    - name: Wait on update to move into EXECUTING state
       scale_computing.hypercore.version_update_status_info:
       register: update_status
       # It takes a while (2 minutes) for update_status.json to appear.
       # We get update_status.record=None on first invocation.
+      # Should we quit waiting if update_status.record.update_status == None ? It could be transient state.
       until:  update_status.record != None and update_status.record.update_status == "EXECUTING"
       retries: 100
       delay: 5
