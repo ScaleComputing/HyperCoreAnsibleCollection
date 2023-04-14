@@ -9,6 +9,9 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.cluster import (
     Cluster,
 )
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import (
+    ScaleTimeoutError,
+)
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
 )
@@ -111,6 +114,8 @@ class TestCluster:
 
     def test_cluster_shutdown(self, rest_client):
         force_shutdown = True
+        rest_client.create_record.side_effect = ScaleTimeoutError("Timeout error")
+        rest_client.get_record.side_effect = ConnectionRefusedError
 
         Cluster.shutdown(rest_client, force_shutdown)
 
@@ -121,6 +126,9 @@ class TestCluster:
         )
 
     def test_cluster_shutdown_default_force_shutdown(self, rest_client):
+        rest_client.create_record.side_effect = ScaleTimeoutError("Timeout error")
+        rest_client.get_record.side_effect = ConnectionRefusedError
+
         Cluster.shutdown(rest_client)
 
         rest_client.create_record.assert_called_with(
