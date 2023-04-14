@@ -105,3 +105,9 @@ class ApiResponseNotJson(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
         self.message = f"From API expected json got {data}."
         super(ApiResponseNotJson, self).__init__(self.message)
+
+
+class ScaleTimeoutError(ScaleComputingError):
+    def __init__(self, data: Union[str, Exception]):
+        self.message = f"Request timed out: {data}."
+        super(ScaleTimeoutError, self).__init__(self.message)

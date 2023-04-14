@@ -39,7 +39,7 @@ class RestClient:
         try:
             records = self.client.get(path=endpoint, timeout=timeout).json
         except TimeoutError as e:
-            raise errors.ScaleComputingError(f"Request timed out: {e}")
+            raise errors.ScaleTimeoutError(e)
         return utils.filter_results(records, query)
 
     def get_record(
@@ -78,7 +78,7 @@ class RestClient:
                 endpoint, payload, query=_query(), timeout=timeout
             ).json
         except TimeoutError as e:
-            raise errors.ScaleComputingError(f"Request timed out: {e}")
+            raise errors.ScaleTimeoutError(e)
         return response
 
     def update_record(
@@ -96,7 +96,7 @@ class RestClient:
                 endpoint, payload, query=_query(), timeout=timeout
             ).json
         except TimeoutError as e:
-            raise errors.ScaleComputingError(f"Request timed out: {e}")
+            raise errors.ScaleTimeoutError(e)
         return response
 
     def delete_record(
@@ -108,7 +108,7 @@ class RestClient:
         try:
             response: TypedTaskTag = self.client.delete(endpoint, timeout=timeout).json
         except TimeoutError as e:
-            raise errors.ScaleComputingError(f"Request timed out: {e}")
+            raise errors.ScaleTimeoutError(e)
         return response
 
     def put_record(
@@ -133,7 +133,7 @@ class RestClient:
                 headers=headers,
             ).json
         except TimeoutError as e:
-            raise errors.ScaleComputingError(f"Request timed out: {e}")
+            raise errors.ScaleTimeoutError(e)
         except (json.JSONDecodeError, json.decoder.JSONDecodeError) as e:
             raise json.JSONDecodeError(e.msg, e.doc, e.pos)
         return response
@@ -159,7 +159,7 @@ class CachedRestClient(RestClient):
             try:
                 records = self.client.get(path=endpoint, timeout=timeout).json
             except TimeoutError as e:
-                raise errors.ScaleComputingError(f"Request timed out: {e}")
+                raise errors.ScaleTimeoutError(e)
             self.cache[endpoint] = records
 
         return utils.filter_results(records, query)
