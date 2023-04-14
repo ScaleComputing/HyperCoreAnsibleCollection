@@ -134,6 +134,7 @@ class Client:
             return Response(e.code, e.read(), e.headers)
         except URLError as e:
             # TODO: Add other errors here; we need to handle them in modules.
+            # TimeoutError is handled in the rest_client
             if (
                 e.args
                 and isinstance(e.args, tuple)
