@@ -11,7 +11,7 @@ __metaclass__ = type
 from time import sleep
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.rest_client import RestClient
-from ..module_utils.errors import ScaleComputingError, ScaleTimeoutError
+from ..module_utils.errors import ScaleTimeoutError
 from ..module_utils.typed_classes import TypedClusterToAnsible, TypedTaskTag
 from typing import Any
 
