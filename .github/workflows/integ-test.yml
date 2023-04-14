@@ -213,11 +213,21 @@ jobs:
             test_name: vm_replication
           - sc_host: https://10.5.11.50
             test_name: vm_replication_info
+          - sc_host: https://10.5.11.50
+            test_name: support_tunnel
         exclude:
+          # The VSNS were not configured with remote replication cluster.
           - sc_host: https://10.5.11.200
             test_name: vm_replication
           - sc_host: https://10.5.11.201
             test_name: vm_replication
+          # Seem as VSNS nodes cannot open remote tunnel.
+          # Code/port that worked (was opened, then closed) on real HyperCode
+          # did not work with VSNS.
+          - sc_host: https://10.5.11.200
+            test_name: support_tunnel
+          - sc_host: https://10.5.11.201
+            test_name: support_tunnel
     steps:
       - name: Checkout
         uses: actions/checkout@v3
