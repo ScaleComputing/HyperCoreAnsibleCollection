@@ -1,8 +1,8 @@
 ---
 - environment:
     SC_HOST: "{{ sc_host }}"
-    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
-    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_USERNAME: "{{ sc_username_50 }}"
+    SC_PASSWORD: "{{ sc_password_50 }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   vars:
@@ -12,11 +12,12 @@
     # -- snap-0 is the oldest snapshot, anything greater than 0, is a newer snapshot
 
   block:
-    - include_tasks: 01_vm_snapshot_info.yml
-      vars:
-        test_vms_number: "{{ number_of_snapshot_testing_vms }}"
-    - include_tasks: 02_vm_snapshot.yml
-  always:
-    - include_tasks: helper_api_vm_snapshot_delete_all.yml
-      vars:
-        vms_number: "{{ number_of_snapshot_testing_vms }}"
+#    - include_tasks: 01_vm_snapshot_info.yml
+#      vars:
+#        test_vms_number: "{{ number_of_snapshot_testing_vms }}"
+
+    - include_tasks: 02_vm_snapshot_attach_disk.yml
+#  always:
+#    - include_tasks: helper_api_vm_snapshot_delete_all.yml
+#      vars:
+#        vms_number: "{{ number_of_snapshot_testing_vms }}"

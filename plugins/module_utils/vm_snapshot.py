@@ -267,18 +267,41 @@ class VMSnapshot(PayloadMapper):
         return None
 
     @classmethod
+    def get_vm_disk_info(
+        cls,
+        block_device_uuid: str,
+        rest_client: RestClient
+    ):
+        return rest_client.get_record(
+            endpoint="/rest/v1/VirDomainBlockDevice",
+            query={"uuid": block_device_uuid},
+        ).to_ansible()
+
+
+    @classmethod
+    def get_source_disk_uuid(cls, vm_snapshot: Dict[Any, Any], disk_slot: str) -> Optional[str]:
+        for block_device in vm_snapshot["block_devices"]:
+            if block_device["slot"] == disk_slot:
+                return block_device["uuid"]
+        return None
+
+    @classmethod
     def get_device_snapshot(
         cls,
-        vm_snapshot = TypedVMSnapshotToAnsible,
-        filter: Dict[Any, Any]
+        vm_snapshot: TypedVMSnapshotToAnsible,
+        uuid: str,
+        slot: str,
+        type: str,
     ) -> Optional[Dict[Any, Any]]:
-        new_device_snaps = vm_snapshot.device_snapshots[:]
+        new_device_snaps = vm_snapshot["device_snapshots"][:]
 
-        if filter["uuid"]:
-            new_device_snaps = [device_snap for device_snap in cls.device_snapshots if device_snap["uuid"] == filter["uuid"]]
-        if filter["slot"]:
-            new_device_snaps = [device_snap for device_snap in cls.device_snapshots if device_snap["slot"] == filter["slot"]]
-        if filter["type"]:
-            new_device_snaps = [device_snap for device_snap in cls.device_snapshots if device_snap["type"] == filter["type"]]
+        # 1) filter by uuid
+        new_device_snaps = [device_snap for device_snap in new_device_snaps if device_snap["uuid"] == uuid]
 
-        return new_device_snaps[0]
+        # 2) filter by slot
+        new_device_snaps = [device_snap for device_snap in new_device_snaps if device_snap["slot"] == slot]
+
+        # 3) filter by type
+        new_device_snaps = [device_snap for device_snap in new_device_snaps if device_snap["type"] == type]
+
+        return new_device_snaps[0]  # return the first element from list (there is only 1)
