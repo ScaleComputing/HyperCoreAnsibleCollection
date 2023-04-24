@@ -310,8 +310,11 @@ class VM(PayloadMapper):
         *,
         preserve_mac_address,
         source_nics,
+        snapshot_label,
     ):
-        data = {"template": {}}
+        data = dict(template=dict())
+        if snapshot_label:
+            data["snapUUID"] = snapshot_label
         if clone_name:
             data["template"]["name"] = clone_name
         if (
@@ -579,6 +582,7 @@ class VM(PayloadMapper):
             cloud_init_data,
             preserve_mac_address=ansible_dict["preserve_mac_address"],
             source_nics=self.nics,
+            snapshot_label=ansible_dict["snapshot_label"],
         )
         return rest_client.create_record(
             endpoint=f"/rest/v1/VirDomain/{self.uuid}/clone",

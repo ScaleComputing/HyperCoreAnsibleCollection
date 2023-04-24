@@ -1361,6 +1361,7 @@ class TestVMClone:
             None,
             preserve_mac_address=False,
             source_nics=[],
+            snapshot_label="this-label",
         )
         assert results == {
             "template": {
@@ -1377,6 +1378,7 @@ class TestVMClone:
             {"userData": "something", "metaData": "else"},
             preserve_mac_address=False,
             source_nics=[],
+            snapshot_label="this-label",
         )
         assert results == {
             "template": {
@@ -1394,6 +1396,7 @@ class TestVMClone:
             {"userData": "something", "metaData": "else"},
             preserve_mac_address=True,
             source_nics=[],
+            snapshot_label="this-label",
         )
         assert results == {
             "template": {
@@ -1414,6 +1417,7 @@ class TestVMClone:
             source_nics=[
                 Nic.from_ansible(dict(type="virtio", mac="11:00:00:00:00:10", vlan=10))
             ],
+            snapshot_label="this-label",
         )
         assert results == {
             "template": {
