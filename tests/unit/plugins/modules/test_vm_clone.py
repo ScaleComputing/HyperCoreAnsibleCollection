@@ -102,6 +102,7 @@ class TestRun:
                 ),
                 vm_name="XLAB-test-vm-clone",
                 source_vm_name="XLAB-test-vm",
+                snapshot_label=None,
             )
         )
         rest_client.list_records.side_effect = [[self._get_empty_vm()]]
@@ -145,6 +146,7 @@ class TestRun:
                 source_vm_name="XLAB-test-vm",
                 tags=None,
                 preserve_mac_address=False,
+                snapshot_label=None,
             )
         )
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
@@ -180,6 +182,7 @@ class TestRun:
                     "meta_data": "valid yaml aswell",
                 },
                 preserve_mac_address=False,
+                snapshot_label=None,
             )
         )
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
@@ -213,6 +216,7 @@ class TestRun:
                     "meta_data": "valid yaml aswell",
                 },
                 preserve_mac_address=True,
+                snapshot_label=None,
             )
         )
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
