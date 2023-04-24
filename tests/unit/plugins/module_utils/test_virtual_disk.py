@@ -790,3 +790,21 @@ class TestSendDeleteRequest:
             print(result)
             assert isinstance(result, dict)
             assert result == expected_result
+
+
+class TestAttachToVm:
+    def test_attach_to_vm(self, rest_client):
+        virtual_disk = VirtualDisk(
+            uuid="asd-123123",
+            name="",
+            block_size="",
+            size="",
+            replication_factor="",
+        )
+        virtual_disk.attach_to_vm(rest_client, None)
+
+        rest_client.create_record.assert_called_with(
+            endpoint="/rest/v1/VirtualDisk/asd-123123/attach",
+            payload=None,
+            check_mode=False,
+        )
