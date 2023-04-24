@@ -134,6 +134,7 @@ class TypedDiff(TypedDict):
         TypedSyslogServerToAnsible,
         TypedUpdateToAnsible,
         TypedVirtualDiskToAnsible,
+        TypedDiskToAnsible,
         None,
         dict[None, None],
     ]
@@ -146,6 +147,7 @@ class TypedDiff(TypedDict):
         TypedCertificateToAnsible,
         TypedSyslogServerToAnsible,
         TypedVirtualDiskToAnsible,
+        TypedDiskToAnsible,
         None,
         dict[None, None],
     ]
@@ -245,3 +247,17 @@ class TypedVMSnapshotFromAnsible(TypedDict):
     snapshot_serial_number: Optional[int]
     label: Optional[str]
     type: Optional[str]
+
+
+class TypedDiskToAnsible(TypedDict):
+    uuid: str
+    vm_uuid: str
+    type: str
+    cache_mode: str
+    size: int
+    disk_slot: int
+    name: str
+    disable_snapshotting: bool
+    tiering_priority_factor: int
+    mount_points: list[str]
+    read_only: bool
