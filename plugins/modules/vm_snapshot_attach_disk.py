@@ -8,7 +8,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from hypercore.plugins.module_utils.task_tag import TaskTag
 
 DOCUMENTATION = r"""
 module: vm_snapshot_attach_disk
@@ -24,14 +23,22 @@ extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
 seealso:
   - module: scale_computing.hypercore.vm_snapshot_info
-options:  # TODO: Change options!
+options:
   vm_name:
     type: str
     description:
       - Name of the VM we want to attach a VM snapshot disk to.
-    required: False
+    required: True
   vm_disk_type:
     type: str
+    choices:
+      - ide_disk
+      - scsi_disk
+      - virtio_disk
+      - ide_cdrom
+      - ide_floppy
+      - nvram
+      - vtpm
     description:
       - Type of disk on the VM that we want to attach a VM snapshot disk to.
     required: True
@@ -39,6 +46,7 @@ options:  # TODO: Change options!
     type: int
     description:
       - Specify a disk slot from a vm to identify destination disk.
+    required: True
   source_snapshot_uuid:
     type: str
     description:
@@ -46,6 +54,14 @@ options:  # TODO: Change options!
     required: True
   source_disk_type:
     type: str
+    choices:
+      - ide_disk
+      - scsi_disk
+      - virtio_disk
+      - ide_cdrom
+      - ide_floppy
+      - nvram
+      - vtpm
     description:
       - Specify a disk type from source snapshot.
     required: True
@@ -58,42 +74,39 @@ options:  # TODO: Change options!
 
 
 EXAMPLES = r"""
-- name: Attach a disk from an automated (scheduled) VM Snapshot to VM
-  scale_computing.hypercore.vm_snapshot_attach_disk
-    source_snapshot_uuid: ec91ce38-a795-4c0b-bc72-60f8ddba8d91
-    snapshot_type: automated
-    vm_disk_slot: 0
-  
-- name: Attach a disk from an user-made VM Snapshot to VM
-  scale_computing.hypercore.vm_snapshot_attach_disk
-    source_snapshot_uuid: ec91ce38-a795-4c0b-bc72-60f8ddba8d91
-    snapshot_type: user
-    vm_disk_slot: 0
+- name: Attach a disk from a VM Snapshot to a VM
+  scale_computing.hypercore.vm_snapshot_attach_disk:
+    vm_name: test-snapshot_attach_disk-ana
+    vm_disk_type: virtio_disk
+    vm_disk_slot: 19
+    source_snapshot_uuid: "116d51cc-ec25-4628-a092-86de42699aac"
+    source_disk_type: virtio_disk
+    source_disk_slot: 1
 """
 
-# TODO: return like vm module
-#  - will update this, when I implement the first integration tests
-#    for this module.
 RETURN = r"""
 records:
   description:
-    - A list of VM Snapshot records.
+    - Newly attached disk from a VM snapshot to a VM.
   returned: success
-  type: list
+  type: dict
   sample:
-    - automated_trigger_timestamp: 0
-      block_count_diff_from_serial_number: 2
-      label: snap-2
-      local_retain_until_timestamp: 0
-      remote_retain_until_timestamp: 0
-      replication: true
-      snapshot_uuid: 28d6ff95-2c31-4a1a-b3d9-47535164d6de
-      timestamp: 1679397326
-      type: USER
-      vm:
-        name: snapshot-test-vm-1
-        snapshot_serial_number: 3
-        uuid: 5e50977c-14ce-450c-8a1a-bf5c0afbcf43
+    allocation: 0
+    block_device_uuid: 5b4b7324-eccf-43c9-925a-6417e02860ff
+    cache_mode: "NONE"
+    capacity: 100000595968
+    created_timestamp: 0
+    disable_snapshotting: false
+    mount_points: []
+    name: ""
+    path: scribe/5b4b7324-eccf-43c9-925a-6417e02860ff
+    physical: 0
+    read_only: false
+    share_uuid: ""
+    slot: 21
+    tiering_priority_factor: 8
+    type: VIRTIO_DISK
+    vm_uuid: e18ec6af-9dd2-41dc-89af-8ce637171524
 """
 
 
@@ -103,8 +116,16 @@ from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm_snapshot import VMSnapshot
-from ..module_utils.typed_classes import TypedVMSnapshotToAnsible, TypedDiff
-from typing import Tuple, Dict, Union
+from ..module_utils.task_tag import TaskTag
+from ..module_utils.typed_classes import TypedDiff
+from typing import Tuple, Dict, Any, Optional
+
+
+# TODO:
+#  - [x] fix code for mypy, sanity, etc.
+#  - [ ] create integration tests for vm_snapshot_attach_disk
+#  - [ ] create unit tests for vm_snapshot modules
+#     - check if vm_snapshot_info already has unit tests (if not, add them)
 
 
 # ++++++++++++
@@ -112,7 +133,7 @@ from typing import Tuple, Dict, Union
 # ++++++++++++
 def attach_disk(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedVMSnapshotToAnsible, Dict[None, None]], TypedDiff]:
+) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff]:
     # =============== SAVE PARAMS VALUES ===============
     # destination
     vm_name = module.params["vm_name"]
@@ -121,42 +142,53 @@ def attach_disk(
 
     # source
     source_snapshot_uuid = module.params["source_snapshot_uuid"]
-    source_disk_type = module.params["source_disk_type"]
+    source_disk_type = module.params["source_disk_type"].upper()
     source_disk_slot = module.params[
         "source_disk_slot"
     ]  # the higher the index, the newer the disk
 
     # =============== IMPLEMENTATION ===================
+    vm_snapshot = VMSnapshot.get_snapshot_by_uuid(
+        source_snapshot_uuid, rest_client
+    ).to_ansible()  # type: ignore
 
-    vm_snapshot_list = VMSnapshot.get_snapshots_by_query(
-        {"uuid": source_snapshot_uuid}, rest_client
-    )  # there is only 1 snapshot with the specified uuid.
-    if len(vm_snapshot_list) > 0:
-        raise errors.ScaleComputingError(
-            "There are too many snapshots with the provided UUID. There should be only one."
+    vm_uuid = VMSnapshot.get_external_vm_uuid(
+        vm_name, rest_client
+    )
+
+    # Check if slot already taken
+    # - check if there is already a disk (vm_disk) with type (vm_type) on slot (vm_slot)
+    # - if this slot is already taken, return no change
+    #   --> should it be an error that tells the user that the slot is already taken instead?
+    temp_block_device = VMSnapshot.get_vm_disk_info(
+        vm_uuid=vm_uuid,
+        slot=vm_disk_slot,
+        _type=vm_disk_type,
+        rest_client=rest_client,
+    )
+    if temp_block_device is not None:
+        # changed, after, diff
+        return (
+            False,
+            temp_block_device,
+            dict(before=temp_block_device, after=None),
         )
-    vm_snapshot = vm_snapshot_list[0]
 
-    vm_uuid = vm_snapshot["vm"]["uuid"]
-
-    source_disk_uuid = VMSnapshot.get_source_disk_uuid(vm_snapshot, source_disk_slot)
-    source_disk_info = VMSnapshot.get_device_snapshot(
-        vm_snapshot,
-        uuid=source_disk_uuid,
-        slot=source_disk_slot,
-        type=source_disk_type
+    source_disk_info = VMSnapshot.get_block_device(
+        vm_snapshot, slot=source_disk_slot, _type=source_disk_type
     )
 
     # build a payload according to /rest/v1/VirDomainBlockDevice/{uuid}/clone documentation
     payload = dict(
         options=dict(
-            regenerateDiskID=True,
-            readOnly=source_disk_info["read_only"],
+            regenerateDiskID=True,  # required
+            readOnly=source_disk_info["read_only"],  # required
         ),
         snapUUID=source_snapshot_uuid,
         template=dict(
-            virDomainUUID=vm_uuid,
-            # type=source_disk_info["type"], # --> omit for now
+            virDomainUUID=vm_uuid,  # required
+            type=source_disk_type,  # required
+            capacity=source_disk_info["capacity"],  # required
             chacheMode=source_disk_info["cache_mode"],
             slot=vm_disk_slot,
             disableSnapshotting=source_disk_info["disable_snapshotting"],
@@ -166,28 +198,31 @@ def attach_disk(
 
     create_task_tag = rest_client.create_record(
         endpoint="/rest/v1/VirDomainBlockDevice/{0}/clone".format(
-            source_disk_uuid
+            source_disk_info["uuid"]
         ),
         payload=payload,
         check_mode=module.check_mode,
     )
 
     TaskTag.wait_task(rest_client, create_task_tag)
-    created_block_device = VMSnapshot.get_vm_disk_info(create_task_tag["createdUUID"], rest_client)
+    created_block_device = VMSnapshot.get_vm_disk_info_by_uuid(
+        create_task_tag["createdUUID"], rest_client
+    )
 
     # return changed, after, diff
     return (
-        created_block_device is not None,  # if new block device was created, then this should not be None
+        created_block_device
+        is not None,  # if new block device was created, then this should not be None
         created_block_device,
         dict(
-            before={}, after=created_block_device
+            before=None, after=created_block_device
         ),  # before, we ofcourse, didn't have that new block device, and after we should have it
     )
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Union[TypedVMSnapshotToAnsible, Dict[None, None]], TypedDiff]:
+) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff]:
     return attach_disk(module, rest_client)
 
 
@@ -196,13 +231,24 @@ def main() -> None:
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
+            # vm_name parameter is not needed for this to work. Remove it?
+            # or instead use it as "name" of the created block device which
+            # if not specified, will always be set to empty string "".
             vm_name=dict(
                 type="str",
                 required=True,
             ),
             vm_disk_type=dict(
                 type="str",
-                choices=["ide_disk", "scsi_disk", "virtio_disk", "ide_cdrom", "ide_floppy", "nvram", "vtpm"],
+                choices=[
+                    "ide_disk",
+                    "scsi_disk",
+                    "virtio_disk",
+                    "ide_cdrom",
+                    "ide_floppy",
+                    "nvram",
+                    "vtpm",
+                ],
                 required=True,
             ),
             vm_disk_slot=dict(
@@ -212,6 +258,15 @@ def main() -> None:
             source_snapshot_uuid=dict(type="str", required=True),
             source_disk_type=dict(
                 type="str",
+                choices=[
+                    "ide_disk",
+                    "scsi_disk",
+                    "virtio_disk",
+                    "ide_cdrom",
+                    "ide_floppy",
+                    "nvram",
+                    "vtpm",
+                ],
                 required=True,
             ),
             source_disk_slot=dict(  # see /rest/v1/VirDomainSnapshot -> deviceSnapshots .. list of available snapshotted disks.

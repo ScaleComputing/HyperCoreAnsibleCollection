@@ -1,12 +1,13 @@
 ---
-- name: Test vm_snapshot_attach_disk
-  block:
-    # --------------------------------------------------------
-    - name: Test snapshot attach disk
-      scale_computing.hypercore.vm_snapshot_attach_disk:
-        vm_name: test-snapshot_attach_disk-ana
-        vm_disk_type: virtio_disk
-        vm_disk_slot: 0
-        source_snapshot_uuid: 18a7cd20-0da3-4b0b-9903-5c4b41a0e7b8
-        source_disk_type: virtio_disk
-        source_disk_slot: 1
+# --------------------------------------------------------
+- name: Test snapshot attach disk
+  scale_computing.hypercore.vm_snapshot_attach_disk:
+    vm_name: test-snapshot_attach_disk-ana-2
+    vm_disk_type: virtio_disk
+    vm_disk_slot: 22
+    source_snapshot_uuid: "116d51cc-ec25-4628-a092-86de42699aac"
+    source_disk_type: virtio_disk
+    source_disk_slot: 1
+  register: output
+- ansible.builtin.debug:
+    var: output
