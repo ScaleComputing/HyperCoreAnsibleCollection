@@ -35,4 +35,8 @@
     - include_tasks: 02_shutdown_none.yml
     - include_tasks: 03_shutdown_some.yml
     - include_tasks: 04_shutdown_tagged_a.yml
+      vars:
+        # Porteus VM needs about 20 sec to shut down.
+        # Use longer wait time, we want to check VM did shut down, without exceeding the wait time.
+        scale_computing_hypercore_shutdown_wait_time: 300
     - include_tasks: 05_shutdown_tagged_bc.yml

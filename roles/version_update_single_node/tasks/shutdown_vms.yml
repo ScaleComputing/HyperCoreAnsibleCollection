@@ -17,11 +17,15 @@
   register: vm_shutdown_result
   ignore_errors: true # if VMs fail to shut down without force, error will occur, so we skip and try on to shut down with force
 
+- name: Set fact version_update_all_vms_stopped to initial false
+  ansible.builtin.set_fact:
+    version_update_all_vms_stopped: false
+
 # Wait up to 300 sec (30*10)
 - name: Wait until VMs shutdown
   include_tasks: wait_vm_shutdown.yml
   loop: "{{ range(0, (scale_computing_hypercore_shutdown_wait_time / 10.0) | round(0, 'ceil') | int) | list }}"
-  when: version_update_all_vms_stopped | default(true)
+  when: not version_update_all_vms_stopped
 
 - name: Show shutdown results
   ansible.builtin.debug:

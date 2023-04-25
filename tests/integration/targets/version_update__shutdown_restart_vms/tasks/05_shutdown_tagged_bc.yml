@@ -39,6 +39,13 @@
 
 # ------------------------------------------------------------------------------------------------------------------
 # after shutdown
+# vm_name_b does not have ACPI, it should require force-shutdown.
+# Check shutdown_vms.yml did wait.
+- name: Check VM force shutdown was needed
+  ansible.builtin.assert:
+    that:
+      - version_update_all_vms_stopped is false
+
 - name: List all VMs
   scale_computing.hypercore.vm_info:
   register: vm_info_b
