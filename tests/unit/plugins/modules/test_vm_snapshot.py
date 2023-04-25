@@ -5,7 +5,6 @@ __metaclass__ = type
 import sys
 
 import pytest
-import datetime
 
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_snapshot
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import (
