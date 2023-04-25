@@ -256,7 +256,7 @@ class TypedDiskToAnsible(TypedDict):
     cache_mode: str
     size: int
     disk_slot: int
-    name: str
+    iso_name: str
     disable_snapshotting: bool
     tiering_priority_factor: int
     mount_points: list[str]
