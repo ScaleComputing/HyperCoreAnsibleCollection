@@ -56,7 +56,7 @@
     - name: Shutdown all running VMs
       include_tasks: shutdown_vms.yml
       vars:
-        vms: "{{ vm_info }}"
+        scale_computing_hypercore_shutdown_vms: "{{ vm_info }}"
       when: vms.records != []
 
     # ----------------- UPDATE --------------------
@@ -78,7 +78,7 @@
     - name: Restart previously running VMs
       include_tasks: restart_vms.yml
       vars:
-        vms: "{{ vm_info }}"
+        scale_computing_hypercore_restart_vms: "{{ vm_info }}"
       when: vms.records != []
 
     - name: Check if updating to desired version failed

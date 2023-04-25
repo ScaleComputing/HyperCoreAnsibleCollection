@@ -4,7 +4,7 @@
     vm_name: "{{ item.vm_name }}"
     power_state: start
   when: item.power_state == 'started'
-  loop: "{{ vms.records }}"
+  loop: "{{ scale_computing_hypercore_restart_vms.records }}"
   register: vm_start_result
 
 - name: Show restart results
