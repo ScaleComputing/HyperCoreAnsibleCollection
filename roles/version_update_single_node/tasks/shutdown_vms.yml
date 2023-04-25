@@ -18,7 +18,7 @@
 # Wait up to 300 sec (30*10)
 - name: Wait until VMs shutdown
   include_tasks: wait_vm_shutdown.yml
-  loop: "{{ range(0, 30) | list }}"
+  loop: "{{ range(0, (scale_computing_hypercore_shutdown_wait_time / 10.0) | round(0, 'ceil') | int) | list }}"
   when: version_update_all_vms_stopped | default(true)
 
 - name: Show shutdown results

@@ -13,3 +13,9 @@ argument_specs:
           - If multi-node system was detected, no update will be applied.
         required: true
         type: str
+      scale_computing_hypercore_shutdown_wait_time:
+        description:
+          - How much time (in seconds) VMs have to gracefully shutdown.
+          - After wait time expires a force shutdown is issued. Force shutdown can corrupt VM disk data.
+        default: 300
+        type: int
