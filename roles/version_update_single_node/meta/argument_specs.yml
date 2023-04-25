@@ -33,6 +33,14 @@ argument_specs:
           - VM list as returned by M(scale_computing.hypercore.vm_info) module.
         required: true
         type: dict
+      scale_computing_hypercore_shutdown_tags:
+        description:
+          - VM will be shutdown only if it has assigned (at least one) tag from this list.
+          - If tag list is empty, than every running VM from the VM list is shutdown.
+        required: false
+        type: list
+        elements: str
+        default: []
 
   restart_vms:
     short_description: Start VMs that were running before upgrade

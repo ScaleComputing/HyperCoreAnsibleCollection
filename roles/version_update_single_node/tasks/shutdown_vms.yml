@@ -10,7 +10,9 @@
   scale_computing.hypercore.vm_params:
     vm_name: "{{ item.vm_name }}"
     power_state: shutdown
-  when: item.power_state == 'started'
+  when:
+    - item.power_state == 'started'
+    - (scale_computing_hypercore_shutdown_tags == []) or (scale_computing_hypercore_shutdown_tags | intersect(item.tags))
   loop: "{{ scale_computing_hypercore_shutdown_vms.records }}"
   register: vm_shutdown_result
   ignore_errors: true # if VMs fail to shut down without force, error will occur, so we skip and try on to shut down with force
@@ -29,7 +31,9 @@
   scale_computing.hypercore.vm_params:
     vm_name: "{{ item.item.vm_name }}"
     power_state: stop
-  when: item.item.power_state == 'started'
+  when:
+    - item.item.power_state == 'started'
+    - (scale_computing_hypercore_shutdown_tags == []) or (scale_computing_hypercore_shutdown_tags | intersect(item.item.tags))
   loop: "{{ vm_shutdown_result.results }}"
   register: vm_stop_result
 

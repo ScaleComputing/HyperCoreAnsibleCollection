@@ -34,3 +34,5 @@
     - include_tasks: 01_shutdown_all.yml
     - include_tasks: 02_shutdown_none.yml
     - include_tasks: 03_shutdown_some.yml
+    - include_tasks: 04_shutdown_tagged_a.yml
+    - include_tasks: 05_shutdown_tagged_bc.yml
