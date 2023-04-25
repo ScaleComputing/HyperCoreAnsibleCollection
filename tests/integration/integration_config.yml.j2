@@ -72,6 +72,7 @@ sc_config:
     # Only .50 is configured with remote replication.
     # Set sc_replication_dest_host/username/password to "" to signal no replication is configured.
     sc_replication_dest_host: https://10.5.11.60
+    sc_replication_dest_cluster_name: PUB6
     # We have same username on .50 and .60 node.
     sc_replication_dest_username: "{{ sc_username_50 }}"
     sc_replication_dest_password: "{{ sc_password_50 }}"
@@ -113,6 +114,7 @@ sc_config:
     sc_username: admin
     sc_password: admin
     sc_replication_dest_host: ""
+    sc_replication_dest_cluster_name: ""
     sc_replication_dest_username: ""
     sc_replication_dest_password: ""
     cluster:
@@ -144,6 +146,7 @@ sc_config:
     sc_username: admin
     sc_password: admin
     sc_replication_dest_host: ""
+    sc_replication_dest_cluster_name: ""
     sc_replication_dest_username: ""
     sc_replication_dest_password: ""
     cluster:

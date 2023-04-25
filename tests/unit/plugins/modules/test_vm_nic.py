@@ -47,6 +47,7 @@ class TestEnsureAbsent:
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
             "machineType": "scale-7.2",
             "sourceVirDomainUUID": "",
+            "snapUUIDs": [],
         }
 
     @classmethod
@@ -92,6 +93,7 @@ class TestEnsureAbsent:
             "snapshotScheduleUUID": "snapshot_schedule_uuid",
             "machineType": "scale-7.2",
             "sourceVirDomainUUID": "",
+            "snapUUIDs": [],
         }
 
     def test_ensure_absent_when_no_change(self, create_module, rest_client, mocker):

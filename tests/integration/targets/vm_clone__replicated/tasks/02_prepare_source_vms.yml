@@ -1,0 +1,92 @@
+# --------------------------------------------------------------------
+- name: Create {{ vm_name_src }}
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: "{{ vm_name_src }}"
+        tags: Xlab,CI,test,vm_clone
+        mem: 511705088
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+            name: jc1-disk-0
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: False
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is succeeded
+      - vm_created is changed
+
+- name: Wait for the VM to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm_created.record }}"
+
+- name: Retrieve {{ vm_name_src }}
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name_src }}"
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+
+- name: Setup replication for {{ vm_name_src }}
+  scale_computing.hypercore.vm_replication:
+    vm_name: "{{ vm_name_src }}"
+    remote_cluster: "{{ cluster_name_dest }}"
+    state: enabled
+
+# --------------------------------------------------------------------
+# Wait until replication setup finishes in background.
+- name: dest-cluster Wait until 1st snapshot appears
+  scale_computing.hypercore.vm_snapshot_info:
+    cluster_instance: "{{ cluster_instance_dest }}"
+    vm_name: "{{ vm_name_src }}"
+    # TODO - we should filter by source_vm_uuid - the snapshot can belong to some other VM with same name
+  register: dest_cluster_vm_snapshot_info_result
+  delay: 10
+  retries: 30
+  until: dest_cluster_vm_snapshot_info_result.records | length == 1
+
+# TODO add unavailable/available to vm_snapshot_info output
+- name: dest-cluster Wait until 1st snapshot is available
+  scale_computing.hypercore.api:
+    cluster_instance: "{{ cluster_instance_dest }}"
+    action: get
+    endpoint: /rest/v1/VirDomainSnapshot/{{ dest_cluster_vm_snapshot_info_result.records.0.snapshot_uuid }}
+  register: dest_cluster_vm_snapshot_info_api_result
+  delay: 10
+  retries: 30
+  until: dest_cluster_vm_snapshot_info_api_result.record.0.unavailable == False
+
+- name: dest-cluster Get replicated VM info
+  scale_computing.hypercore.vm_info:
+    cluster_instance: "{{ cluster_instance_dest }}"
+    vm_name: "{{ vm_name_src }}"
+  register: dest_cluster_vm_info_result
+
+- name: src-cluster Get replicated VM info
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name_src }}"
+  register: src_cluster_vm_info_result
+
+- name: Check the dest snapshot does belong to the current src VM (not some older VM with same name)
+  ansible.builtin.assert:
+    that:
+      - dest_cluster_vm_snapshot_info_result.records.0.vm.name == vm_name_src
+      - dest_cluster_vm_snapshot_info_result.records | length == 1
+      - dest_cluster_vm_info_result.records.0.vm_name == vm_name_src
+      - dest_cluster_vm_info_result.records | length == 1
+      - src_cluster_vm_info_result.records.0.vm_name == vm_name_src
+      - src_cluster_vm_info_result.records | length == 1
+      # snapshot on dest cluster must belong to VM on dest cluster
+      - dest_cluster_vm_snapshot_info_result.records.0.vm.uuid == dest_cluster_vm_info_result.records.0.uuid
+      # VM on dest cluster must be replica of VM on src cluster
+      - dest_cluster_vm_info_result.records.0.replication_source_vm_uuid == src_cluster_vm_info_result.records.0.uuid
