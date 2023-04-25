@@ -122,7 +122,7 @@ record:
     type:
       description: The bus type the VirDomainBlockDevice will use
       type: str
-      sample: virtio_disk
+      sample: ide_cdrom
     cache_mode:
       description: The cache mode the VirDomainBlockDevice will use
       type: str
@@ -135,10 +135,10 @@ record:
       description: Virtual slot the drive will occupy
       type: int
       sample: 0
-    name:
+    iso_name:
       description: Name of the virtual storage device
       type: str
-      sample: jc1-disk-0
+      sample: cloud-init-08425e56.iso
     disable_snapshotting:
       description: Disables the ability to snapshot the drive
       type: bool
