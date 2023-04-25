@@ -8,6 +8,7 @@ import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_clone
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
 )
@@ -102,6 +103,7 @@ class TestRun:
                 ),
                 vm_name="XLAB-test-vm-clone",
                 source_vm_name="XLAB-test-vm",
+                snapshot_label=None,
             )
         )
         rest_client.list_records.side_effect = [[self._get_empty_vm()]]
@@ -145,6 +147,7 @@ class TestRun:
                 source_vm_name="XLAB-test-vm",
                 tags=None,
                 preserve_mac_address=False,
+                snapshot_label=None,
             )
         )
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
@@ -180,6 +183,7 @@ class TestRun:
                     "meta_data": "valid yaml aswell",
                 },
                 preserve_mac_address=False,
+                snapshot_label=None,
             )
         )
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
@@ -213,6 +217,7 @@ class TestRun:
                     "meta_data": "valid yaml aswell",
                 },
                 preserve_mac_address=True,
+                snapshot_label=None,
             )
         )
         rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
@@ -229,3 +234,70 @@ class TestRun:
             True,
             "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone.",
         )
+
+
+class TestGetSnapshot:
+    @pytest.mark.parametrize(
+        # snapshot_label                    ... snapshot label
+        # snapshot_list                     ... snapshot query result list
+        # expected_missing_exception        ... snapshot not exist exception
+        # expected_result                   ... expected get_snapshot return
+        (
+            "snapshot_label",
+            "snapshot_list",
+            "expected_missing_exception",
+            "expected_result",
+        ),
+        [
+            # No exception
+            ("this-snapshot", [dict(snapshot_uuid="123")], False, "123"),
+            (None, [], False, None),
+            ("", [], False, ""),
+            # Exception
+            ("this-snapshot", [], True, None),
+            ("this-snapshot", None, True, None),
+            ("this-snapshot", "", True, None),
+        ],
+    )
+    def test_get_snapshot(
+        self,
+        create_module,
+        rest_client,
+        mocker,
+        snapshot_label,
+        snapshot_list,
+        expected_missing_exception,
+        expected_result,
+    ):
+        module = module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="XLAB-test-vm-clone",
+                source_vm_name="XLAB-test-vm",
+                snapshot_label=snapshot_label,
+            )
+        )
+        # Mock VM
+        mock_vm_obj = mocker.MagicMock(spec=VM)
+        mock_vm_obj.uuid = "123"
+
+        # Mock get_snapshot
+        if snapshot_label:
+            mocker.patch(
+                "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot.VMSnapshot.get_snapshots_by_query"
+            ).return_value = snapshot_list
+
+        # Check for exception, otherwise compare results.
+        if expected_missing_exception:
+            with pytest.raises(
+                errors.ScaleComputingError,
+                match=f"Snapshot with label - {module.params['snapshot_label']} - not found.",
+            ):
+                vm_clone.get_snapshot(module, rest_client, mock_vm_obj)
+        else:
+            results = vm_clone.get_snapshot(module, rest_client, mock_vm_obj)
+            assert results.params["snapshot_label"] == expected_result
