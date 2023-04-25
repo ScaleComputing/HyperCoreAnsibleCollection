@@ -34,7 +34,9 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag
 
 @pytest.fixture
 def client(mocker):
-    return mocker.Mock(spec=Client)
+    mock_client = mocker.Mock(spec=Client)
+    mock_client.username = "mock_username"
+    return mock_client
 
 
 @pytest.fixture
