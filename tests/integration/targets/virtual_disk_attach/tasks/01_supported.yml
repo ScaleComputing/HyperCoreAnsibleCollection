@@ -1,0 +1,246 @@
+---
+# ----------------------------------Setup virtual disk-----------------------------------
+- name: Delete virtual disk file if exists
+  scale_computing.hypercore.virtual_disk:
+    state: absent
+    name: "{{ item }}"
+  loop:
+    - xlab-ci-test-VD-attach.qcow2
+    # half-uploaded VD has "uploading-" magic prefix.
+    - uploading-xlab-ci-test-VD-attach.qcow2
+
+- name: Assert cleanup was successful
+  scale_computing.hypercore.virtual_disk_info:
+    name: xlab-ci-test-VD-attach.qcow2
+  register: virtual_disk
+- ansible.builtin.assert:
+    that:
+      - virtual_disk is succeeded
+      - virtual_disk.records|length==0
+
+- name: Generate virtual disk file qcow2
+  ansible.builtin.shell:
+    cmd: qemu-img create -f qcow2 xlab-ci-test-VD-attach.qcow2 10M
+
+- name: Upload xlab-ci-test-VD-attach.qcow2
+  scale_computing.hypercore.virtual_disk:
+    state: present
+    source: xlab-ci-test-VD-attach.qcow2
+    name: xlab-ci-test-VD-attach.qcow2
+  register: virtual_disk
+- ansible.builtin.assert:
+    that:
+      - virtual_disk is succeeded
+      - virtual_disk is changed
+      - virtual_disk.record.keys() | sort == ['block_size', 'name', 'replication_factor', 'size', 'uuid']
+      - virtual_disk.record.name == "xlab-ci-test-VD-attach.qcow2"
+      - virtual_disk.record.block_size == 1048576
+      - virtual_disk.record.replication_factor == expected_virtual_disk_replication_factor | int
+      - virtual_disk.record.size == 10485760
+
+- name: Assert that xlab-ci-test-VD-attach.qcow2 exists on cluster
+  scale_computing.hypercore.virtual_disk_info:
+    name: xlab-ci-test-VD-attach.qcow2
+  register: virtual_disk
+- ansible.builtin.assert:
+    that:
+      - virtual_disk is succeeded
+      - virtual_disk is not changed
+      - virtual_disk.records | length == 1
+      - virtual_disk.records.0.keys() | sort == ['block_size', 'name', 'replication_factor', 'size', 'uuid']
+      - virtual_disk.records.0.name == "xlab-ci-test-VD-attach.qcow2"
+      - virtual_disk.records.0.block_size == 1048576
+      - virtual_disk.records.0.replication_factor == expected_virtual_disk_replication_factor | int
+      - virtual_disk.records.0.size == 10485760
+
+# ----------------------------------Setup virtual machine-----------------------------------
+- name: Delete the VM with name XLAB-attach-virtual-disk, if it exists from before
+  scale_computing.hypercore.vm: &vm-delete
+    vm_name: XLAB-attach-virtual-disk
+    state: absent
+
+- name: Create XLAB-attach-virtual-disk on which we'll attach virtual disk/block device
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-attach-virtual-disk
+    tags:
+      - "Xlab"
+    memory: 536870912
+    vcpu: 2
+    power_state: shutdown
+    state: present
+    disks: [ ]
+    nics: [ ]
+    machine_type: BIOS
+  register: vm
+- ansible.builtin.assert:
+    that:
+      - vm is succeeded
+      - vm is changed
+      - vm.record.0.disks | length == 0  # No disks present
+
+# ----------------------------------Job--------------------------------------------
+- name: Attach virtual disk in slot 3 as a virtio_disk
+  scale_computing.hypercore.virtual_disk_attach: &attach
+    vm_name: XLAB-attach-virtual-disk
+    name: xlab-ci-test-VD-attach.qcow2
+    block_device:
+      type: virtio_disk
+      disk_slot: 3
+      size: 104857600 # virtual disk size: 10485760
+      iso_name: ""
+      cache_mode: writethrough
+      disable_snapshotting: true
+      tiering_priority_factor: 8
+      read_only: true
+      regenerate_disk_id: false # How to test this??
+  register: block_device
+- ansible.builtin.assert:
+    that:
+      - block_device is succeeded
+      - block_device is changed
+      - >
+        block_device.record.keys() | sort == ['cache_mode', 'disable_snapshotting', 'disk_slot', 'iso_name',
+        'mount_points', 'read_only', 'size', 'tiering_priority_factor', 'type', 'uuid', 'vm_uuid']
+      - block_device.record.type == "virtio_disk"
+      - block_device.record.disk_slot == 3
+      - block_device.record.size == 104857600
+      - block_device.record.iso_name == ""
+      - block_device.record.tiering_priority_factor == 8 # THIS DOESN'T ALWAYS WORK - RETURNS 0
+      - block_device.record.cache_mode == "writethrough"
+      - block_device.record.disable_snapshotting == true
+      - block_device.record.read_only == true
+      - block_device.record.vm_uuid == vm.record.0.uuid 
+      - not block_device.diff.before
+      - block_device.diff.after == block_device.record
+  
+- name: Assert that disk is attached to XLAB-attach-virtual-disk
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-virtual-disk
+  register: vm
+- ansible.builtin.assert:
+    that:
+      - vm.records.0.vm_name == "XLAB-attach-virtual-disk"
+      - vm.records.0.disks | length == 1
+      - vm.records.0.disks.0.type == "virtio_disk"
+      - vm.records.0.disks.0.disk_slot == 3
+      - vm.records.0.disks.0.size == 104857600
+      - vm.records.0.disks.0.size > virtual_disk.records.0.size 
+      - vm.records.0.disks.0.iso_name == ""
+      - vm.records.0.disks.0.tiering_priority_factor == 8 # THIS DOESN'T ALWAYS WORK - RETURNS 0
+      - vm.records.0.disks.0.cache_mode == "writethrough"
+      - vm.records.0.disks.0.disable_snapshotting == true
+      - vm.records.0.disks.0.read_only == true
+      - vm.records.0.disks.0.uuid == block_device.record.uuid
+      - vm.records.0.disks.0.vm_uuid == block_device.record.vm_uuid
+
+- name: Attach virtual disk in slot 3 as a virtio_disk - IDEMPOTENCE
+  scale_computing.hypercore.virtual_disk_attach: *attach
+  register: block_device
+- ansible.builtin.assert: 
+    that:
+      - block_device is succeeded
+      - block_device is not changed
+      - >
+        block_device.record.keys() | sort == ['cache_mode', 'disable_snapshotting', 'disk_slot', 'iso_name',
+        'mount_points', 'read_only', 'size', 'tiering_priority_factor', 'type', 'uuid', 'vm_uuid']
+      - block_device.record.type == "virtio_disk"
+      - block_device.record.disk_slot == 3
+      - block_device.record.size == 104857600
+      - block_device.record.iso_name == ""
+      - block_device.record.tiering_priority_factor == 8 # THIS DOESN'T ALWAYS WORK - RETURNS 0
+      - block_device.record.cache_mode == "writethrough"
+      - block_device.record.disable_snapshotting == true
+      - block_device.record.read_only == true
+      - block_device.record.vm_uuid == vm.records.0.uuid
+      - block_device.diff.after == block_device.record
+      - block_device.diff.before == block_device.record
+
+- name: Attach virtual disk with only type defined (test default values)
+  scale_computing.hypercore.virtual_disk_attach:
+    vm_name: XLAB-attach-virtual-disk
+    name: xlab-ci-test-VD-attach.qcow2
+    block_device:
+      type: virtio_disk
+  register: block_device
+- ansible.builtin.assert:
+    that:
+      - block_device is succeeded
+      - block_device is changed
+      - >
+        block_device.record.keys() | sort == ['cache_mode', 'disable_snapshotting', 'disk_slot', 'iso_name',
+        'mount_points', 'read_only', 'size', 'tiering_priority_factor', 'type', 'uuid', 'vm_uuid']
+      - block_device.record.type == "virtio_disk"
+      - block_device.record.disk_slot == 0 # Default takes the first free slot
+      - block_device.record.size == 10485760 # Default takes size of virtual disk
+      - block_device.record.size == virtual_disk.records.0.size
+      - block_device.record.iso_name == ""
+      - block_device.record.tiering_priority_factor == 4 # Default # THIS DOESN'T ALWAYS WORK - RETURNS 0
+      - block_device.record.cache_mode == "none" # Default
+      - block_device.record.disable_snapshotting == false
+      - block_device.record.read_only == false # Default
+      - block_device.record.vm_uuid == vm.records.0.uuid
+      - not block_device.diff.before
+      - block_device.diff.after == block_device.record
+
+- name: Attach virtual disk as ide_cdrom with size defined, but smaller than size of virtual disk
+  scale_computing.hypercore.virtual_disk_attach:
+    vm_name: XLAB-attach-virtual-disk
+    name: xlab-ci-test-VD-attach.qcow2
+    block_device:
+      type: ide_cdrom
+      size: 1
+      disk_slot: 2
+  register: block_device
+- ansible.builtin.assert:
+    that:
+      - block_device is succeeded
+      - block_device is changed
+      - >
+        block_device.record.keys() | sort == ['cache_mode', 'disable_snapshotting', 'disk_slot', 'iso_name',
+        'mount_points', 'read_only', 'size', 'tiering_priority_factor', 'type', 'uuid', 'vm_uuid']
+      - block_device.record.type == "ide_cdrom"
+      - block_device.record.disk_slot == 2
+      - block_device.record.size == 10485760 # size is the one from virtual disk
+      - block_device.record.size == virtual_disk.records.0.size
+      - block_device.record.iso_name == ""
+      - block_device.record.tiering_priority_factor == 4 # Default # THIS DOESN'T ALWAYS WORK - RETURNS 0
+      - block_device.record.cache_mode == "none" # Default
+      - block_device.record.disable_snapshotting == false
+      - block_device.record.read_only == false # Default
+      - block_device.record.vm_uuid == vm.records.0.uuid
+      - not block_device.diff.before
+      - block_device.diff.after == block_device.record
+
+# ----------------------------------Cleanup--------------------------------------------
+- name: Delete virtual machine XLAB-attach-virtual-disk
+  scale_computing.hypercore.vm: *vm-delete
+
+- name: Assert that XLAB-attach-virtual-disk is deleted
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-virtual-disk
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result is succeeded
+      - result.records | length == 0
+
+- name: Delete virtual disk xlab-ci-test-VD-attach.qcow2
+  scale_computing.hypercore.virtual_disk:
+    state: absent
+    name: xlab-ci-test-VD-attach.qcow2
+  register: deleted_virtual_disk
+- ansible.builtin.assert:
+    that:
+      - deleted_virtual_disk is succeeded
+      - deleted_virtual_disk is changed
+      - deleted_virtual_disk.diff.before.name == "xlab-ci-test-VD-attach.qcow2"
+
+- name: Assert that xlab-ci-test-VD-attach.qcow2 is deleted
+  scale_computing.hypercore.virtual_disk_info:
+    name: xlab-ci-test-VD-attach.qcow2
+  register: virtual_disk
+- ansible.builtin.assert:
+    that:
+      - virtual_disk is succeeded
+      - virtual_disk is not changed
+      - virtual_disk.records | length == 0
