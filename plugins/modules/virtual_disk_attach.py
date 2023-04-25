@@ -15,7 +15,7 @@ author:
   - Polona Mihalič (@PolonaM)
 short_description: Clones an uploaded virtual disk and attaches it to a virtual machine.
 description:
-  - Clones an uploaded virtual disk and attaches it to a virtual machine, to selected slot.
+  - Clones an uploaded virtual disk and attaches it to a virtual machine.
   - If selected slot is not empty, selected virtual disk will not be attached.
 version_added: 1.2.0
 extends_documentation_fragment:
@@ -92,15 +92,20 @@ options:
 
 
 EXAMPLES = r"""
-- name: upload VD to HyperCore cluster
+- name: Clone an uploaded virtual disk and attach it to a virtual machine.
   scale_computing.hypercore.virtual_disk_attach:
     name: foobar.qcow2
     vm_name: my_virtual_machine
     block_device:
-      disk_slot: 0
       type: virtio_disk
+      disk_slot: 0
       size: "{{ '11.1 GB' | human_to_bytes }}"
-      cache_mode: writeback
+      iso_name: ""
+      cache_mode: writethrough
+      disable_snapshotting: true
+      tiering_priority_factor: 8
+      read_only: true
+      regenerate_disk_id: false
   register: block_device
 """
 
