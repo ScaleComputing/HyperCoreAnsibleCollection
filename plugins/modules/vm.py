@@ -319,7 +319,7 @@ record:
         disable_snapshotting: false
         disk_slot: 2
         mount_points: []
-        name: ""
+        iso_name: ""
         read_only: false
         size: 10737418240
         tiering_priority_factor: 8
@@ -337,7 +337,7 @@ record:
         cache_mode: none
         size: 8100100100
         disk_slot: 0
-        name: ""
+        iso_name: ""
         disable_snapshotting: false
         tiering_priority_factor: 8
         mount_points: []
