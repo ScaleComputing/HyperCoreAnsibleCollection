@@ -159,6 +159,8 @@ class VMSnapshot(PayloadMapper):
         if params["serial"]:
             new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["vm"]["snapshot_serial_number"] == params["serial"]]  # type: ignore
         if params["label"]:
-            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["label"] == params["label"]]
+            new_snaps = [
+                vm_snap for vm_snap in new_snaps if vm_snap["label"] == params["label"]
+            ]
 
         return new_snaps
