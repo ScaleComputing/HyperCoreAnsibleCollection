@@ -71,7 +71,7 @@ class TestIsSlotAvailable:
                 ),
                 name="foobar.qcow2",
                 vm_name="XLAB_test_attach",
-                block_device=dict(disk_slot=disk_slot, type="virtio_disk"),
+                disk=dict(disk_slot=disk_slot, type="virtio_disk"),
             )
         )
 
@@ -91,7 +91,7 @@ class TestCreatePayload:
                 ),
                 name="foobar.qcow2",
                 vm_name="XLAB_test_attach",
-                block_device=dict(
+                disk=dict(
                     disk_slot=3,
                     size=645922816,
                     type="virtio_disk",
@@ -135,8 +135,8 @@ class TestCreatePayload:
                 ),
                 name="foobar.qcow2",
                 vm_name="XLAB_test_attach",
-                block_device=dict(
-                    disk_slot=None,
+                disk=dict(
+                    disk_slot=1,
                     size=None,  # default virtual_disk.size
                     type="virtio_disk",
                     iso_name=None,
@@ -161,6 +161,7 @@ class TestCreatePayload:
             template={
                 "virDomainUUID": "f847daa6-80f3-4042-a016-ee56186939f7",
                 "type": "VIRTIO_DISK",
+                "slot": 1,
                 "capacity": virtual_disk.size,
                 "tieringPriorityFactor": 8,
             },

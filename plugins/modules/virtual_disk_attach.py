@@ -28,13 +28,13 @@ seealso:
 options:
   name:
     description:
-      - Virtual disk name that we want to attach.
-      - Used as a unique identifier of an uploaded virtual disk.  # should we use UUID??
+      - Name of the virtual disk that we want to attach.
+      - Used as a unique identifier of an uploaded virtual disk.
     type: str
     required: true
-  block_device: # in vm_disk this is named "items", should we use disk?
+  disk:
     description:
-      - The block device that will be created when selected virtual disk is attached to selected virtual machine.
+      - The disk that will be created when selected virtual disk is attached to selected virtual machine.
     type: dict
     suboptions:
       type:
@@ -47,14 +47,14 @@ options:
       disk_slot:
         description:
           - Virtual slot the drive will occupy.
-          - If not defined, the next empty slot will be occupied.
         type: int
+        required: true
       size:
         description:
           - Logical size of the block device in bytes.
-          - Should be greater or equal than the size of virtul_disk. If smaller then capacity of the new block device
-            will automatically be set to the size of virtual disk to be cloned and attached.
-          - If not set, defaults to size of virtual disk to be cloned and attached.
+          - Should be greater or equal than the size of virtual disk.
+            If smaller then capacity of the new block device/disk will automatically be set to the size of source virtual disk.
+          - If not set, defaults to size of source virtual disk.
         type: int
       iso_name:
         description:
@@ -96,7 +96,7 @@ EXAMPLES = r"""
   scale_computing.hypercore.virtual_disk_attach:
     name: foobar.qcow2
     vm_name: my_virtual_machine
-    block_device:
+    disk:
       type: virtio_disk
       disk_slot: 0
       size: "{{ '11.1 GB' | human_to_bytes }}"
@@ -106,13 +106,13 @@ EXAMPLES = r"""
       tiering_priority_factor: 8
       read_only: true
       regenerate_disk_id: false
-  register: block_device
+  register: disk
 """
 
 RETURN = r"""
 record:
   description:
-    - Created block device.
+    - Created and attached disk or existing disk in C(disk_slot) in case when the slot is already occupied.
   returned: success
   type: dict
   contains:
@@ -178,12 +178,12 @@ from ..module_utils.vm import VM
 from ..module_utils.hypercore_version import HyperCoreVersion
 
 
-HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"  # WHICH VERSION?
+HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"
 
 
 def is_slot_available(module: AnsibleModule, vm: VM) -> Tuple[bool, Optional[Disk]]:
     for disk in vm.disks:
-        if disk.slot == module.params["block_device"]["disk_slot"]:
+        if disk.slot == module.params["disk"]["disk_slot"]:
             return False, disk
     return True, None
 
@@ -193,17 +193,17 @@ def create_payload(
 ) -> Dict[Any, Any]:
     payload = {}
     payload["options"] = dict(
-        regenerateDiskID=module.params["block_device"]["regenerate_disk_id"],
-        readOnly=module.params["block_device"]["read_only"],
+        regenerateDiskID=module.params["disk"]["regenerate_disk_id"],
+        readOnly=module.params["disk"]["read_only"],
     )
     payload["template"] = Disk.from_ansible(  # type: ignore
-        module.params["block_device"]
+        module.params["disk"]
     ).post_and_patch_payload(vm)
     payload["template"].pop("readOnly")
     # get() does not work, since key is always present
-    if module.params["block_device"]["size"]:
-        # if block_device.size < virtual_disk.size, the new block device will automatically have capacity = virtual_disk.size
-        payload["template"]["capacity"] = module.params["block_device"]["size"]
+    if module.params["disk"]["size"]:
+        # if disk.size < virtual_disk.size, the new block device will automatically have capacity = virtual_disk.size
+        payload["template"]["capacity"] = module.params["disk"]["size"]
     else:
         # capacity is required parameter in payload
         payload["template"]["capacity"] = virtual_disk.size
@@ -242,7 +242,7 @@ def main() -> None:
             arguments.get_spec("cluster_instance"),
             name=dict(type="str", required=True),
             vm_name=dict(type="str", required=True),
-            block_device=dict(
+            disk=dict(
                 type="dict",
                 options=dict(
                     type=dict(
@@ -257,7 +257,7 @@ def main() -> None:
                         ],
                         required=True,
                     ),
-                    disk_slot=dict(type="int"),
+                    disk_slot=dict(type="int", required=True),
                     size=dict(type="int"),
                     iso_name=dict(type="str"),
                     cache_mode=dict(
