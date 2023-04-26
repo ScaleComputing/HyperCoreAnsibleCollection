@@ -5,13 +5,16 @@
 
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 __metaclass__ = type
 
 import base64
 from time import sleep, time
+from typing import Dict, Any, Optional
 
 from ..module_utils.errors import DeviceNotUnique
+from ..module_utils.rest_client import RestClient
 from ..module_utils.nic import Nic, NicType
 from ..module_utils.disk import Disk
 from ..module_utils.node import Node
@@ -183,7 +186,7 @@ class VM(PayloadMapper):
         )
 
     @classmethod
-    def from_hypercore(cls, vm_dict, rest_client):
+    def from_hypercore(cls, vm_dict, rest_client) -> Optional[VM]:
         # In case we call RestClient.get_record and there is no results
         if vm_dict is None:
             return None
@@ -307,8 +310,11 @@ class VM(PayloadMapper):
         *,
         preserve_mac_address,
         source_nics,
+        snapshot_label,
     ):
-        data = {"template": {}}
+        data = dict(template=dict())
+        if snapshot_label:
+            data["snapUUID"] = snapshot_label
         if clone_name:
             data["template"]["name"] = clone_name
         if (
@@ -359,8 +365,12 @@ class VM(PayloadMapper):
 
     @classmethod
     def get_by_name(
-        cls, ansible_dict, rest_client, must_exist=False, name_field="vm_name"
-    ):
+        cls,
+        ansible_dict: Dict[Any, Any],
+        rest_client: RestClient,
+        must_exist: bool = False,
+        name_field: str = "vm_name",
+    ) -> Optional[VM]:
         """
         With given dict from playbook, finds the existing vm by name from the HyperCore api and constructs object VM if
         the record exists. If there is no record with such name, None is returned.
@@ -572,6 +582,7 @@ class VM(PayloadMapper):
             cloud_init_data,
             preserve_mac_address=ansible_dict["preserve_mac_address"],
             source_nics=self.nics,
+            snapshot_label=ansible_dict["snapshot_label"],
         )
         return rest_client.create_record(
             endpoint=f"/rest/v1/VirDomain/{self.uuid}/clone",
