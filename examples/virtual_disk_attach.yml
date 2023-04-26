@@ -1,0 +1,44 @@
+---
+- name: Attach a virtual disk to VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_name: demo-vm
+    virtual_disk_name: focal-server-cloudimg-amd64.img
+    # attach virtual_disk_name to vm_name to this disk type/slot.
+    vm_disk_type: virtio_disk
+    vm_disk_slot: 1
+
+  tasks:
+    # ------------------------------------------------------
+    - name: List VM {{ vm_name }}
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name }}"
+      register: vm_info_result
+
+    - name: List virtual disk {{ virtual_disk_name }}
+      scale_computing.hypercore.virtual_disk_info:
+        name: "{{ virtual_disk_name }}"
+      register: virtual_disk_info_result
+
+    - name: Check VM and virtual disk are present
+      ansible.builtin.assert:
+        that:
+          - vm_info_result.records | length == 1
+          - virtual_disk_info_result.records | length == 1
+
+    # ------------------------------------------------------
+    - name: Attach virtual disk {{ virtual_disk_name }} to VM {{ vm_name }} {{ vm_disk_type }}:{{ vm_disk_slot }}
+      scale_computing.hypercore.virtual_disk_attach:
+        name: "{{ virtual_disk_name }}"
+        vm_name: "{{ vm_name }}"
+        block_device:
+          type: "{{ vm_disk_type }}"
+          disk_slot: "{{ vm_disk_slot }}"
+          disable_snapshotting: false
+      register: attach_result
+
+    - name: Show attach action result
+      ansible.builtin.debug:
+        var: attach_result
