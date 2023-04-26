@@ -126,7 +126,7 @@ class VMSnapshot(PayloadMapper):
         cls,
         query: Dict[Any, Any],
         rest_client: RestClient,
-    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
+    ) -> List[TypedVMSnapshotToAnsible]:
         snapshots = [
             cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
             for hypercore_dict in rest_client.list_records(
@@ -143,7 +143,7 @@ class VMSnapshot(PayloadMapper):
             Any, Any
         ],  # params must be a dict with keys: "vm_name", "serial", "label"
         rest_client: RestClient,
-    ) -> List[Optional[TypedVMSnapshotToAnsible]]:
+    ) -> List[TypedVMSnapshotToAnsible]:
         vm_snapshots = cls.get_snapshots_by_query({}, rest_client)
         if not params["vm_name"] and not params["serial"] and not params["label"]:
             return (
@@ -159,6 +159,6 @@ class VMSnapshot(PayloadMapper):
         if params["serial"]:
             new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["vm"]["snapshot_serial_number"] == params["serial"]]  # type: ignore
         if params["label"]:
-            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["label"] == params["label"]]  # type: ignore
+            new_snaps = [vm_snap for vm_snap in new_snaps if vm_snap["label"] == params["label"]]
 
         return new_snaps

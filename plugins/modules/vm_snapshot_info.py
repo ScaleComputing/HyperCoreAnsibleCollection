@@ -137,7 +137,7 @@ from typing import List, Optional
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> List[Optional[TypedVMSnapshotToAnsible]]:
+) -> List[TypedVMSnapshotToAnsible]:
     filtered = VMSnapshot.filter_snapshots_by_params(module.params, rest_client)
     return filtered
 
