@@ -87,12 +87,11 @@
       type: virtio_disk
       disk_slot: 3
       size: 104857600 # virtual disk size: 10485760
-      iso_name: ""
       cache_mode: writethrough
       disable_snapshotting: true
       tiering_priority_factor: 8
       read_only: true
-      regenerate_disk_id: false # How to test this?
+      regenerate_disk_id: false
   register: disk
 - ansible.builtin.assert:
     that:
@@ -160,7 +159,7 @@
     vm_name: XLAB-attach-virtual-disk
     name: xlab-ci-test-VD-attach.qcow2
     disk:
-      type: virtio_disk
+      type: ide_disk
       disk_slot: 1
   register: disk
 - ansible.builtin.assert:
@@ -170,7 +169,7 @@
       - >
        disk.record.keys() | sort == ['cache_mode', 'disable_snapshotting', 'disk_slot', 'iso_name',
         'mount_points', 'read_only', 'size', 'tiering_priority_factor', 'type', 'uuid', 'vm_uuid']
-      - disk.record.type == "virtio_disk"
+      - disk.record.type == "ide_disk"
       - disk.record.disk_slot == 1
       - disk.record.size == 10485760 # Default takes size of virtual disk
       - disk.record.size == virtual_disk.records.0.size
@@ -183,12 +182,12 @@
       - not disk.diff.before
       - disk.diff.after == disk.record
 
-- name: Attach virtual disk as ide_cdrom with size defined, but smaller than size of virtual disk
+- name: Attach virtual disk as scsi_disk with size defined, but smaller than size of virtual disk
   scale_computing.hypercore.virtual_disk_attach:
     vm_name: XLAB-attach-virtual-disk
     name: xlab-ci-test-VD-attach.qcow2
     disk:
-      type: ide_cdrom
+      type: scsi_disk
       size: 1
       disk_slot: 2
   register: disk
@@ -199,7 +198,7 @@
       - >
        disk.record.keys() | sort == ['cache_mode', 'disable_snapshotting', 'disk_slot', 'iso_name',
         'mount_points', 'read_only', 'size', 'tiering_priority_factor', 'type', 'uuid', 'vm_uuid']
-      - disk.record.type == "ide_cdrom"
+      - disk.record.type == "scsi_disk"
       - disk.record.disk_slot == 2
       - disk.record.size == 10485760 # size is the one from virtual disk
       - disk.record.size == virtual_disk.records.0.size

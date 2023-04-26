@@ -42,7 +42,7 @@ options:
           - The bus type the block device will use.
           - If I(type=ide_cdrom), I(iso_name) is also required. Se documentation of I(iso_name) for more details.
         type: str
-        choices: [ ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
+        choices: [ virtio_disk, ide_disk, scsi_disk ]
         required: true
       disk_slot:
         description:
@@ -56,11 +56,6 @@ options:
             If smaller then capacity of the new block device/disk will automatically be set to the size of source virtual disk.
           - If not set, defaults to size of source virtual disk.
         type: int
-      iso_name:
-        description:
-          - The name of ISO image we want to attach. Must end in '.iso'
-          - Relevant only when C(type) is I(ide_cdrom)
-        type: str
       cache_mode:
         description:
           - The cache mode the virtual machine will use.
@@ -100,7 +95,6 @@ EXAMPLES = r"""
       type: virtio_disk
       disk_slot: 0
       size: "{{ '11.1 GB' | human_to_bytes }}"
-      iso_name: ""
       cache_mode: writethrough
       disable_snapshotting: true
       tiering_priority_factor: 8
@@ -248,18 +242,14 @@ def main() -> None:
                     type=dict(
                         type="str",
                         choices=[
-                            "ide_cdrom",
                             "virtio_disk",
                             "ide_disk",
                             "scsi_disk",
-                            "ide_floppy",
-                            "nvram",
                         ],
                         required=True,
                     ),
                     disk_slot=dict(type="int", required=True),
                     size=dict(type="int"),
-                    iso_name=dict(type="str"),
                     cache_mode=dict(
                         type="str", choices=["none", "writeback", "writethrough"]
                     ),

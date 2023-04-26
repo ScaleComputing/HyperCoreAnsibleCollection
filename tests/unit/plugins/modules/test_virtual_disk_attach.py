@@ -95,7 +95,6 @@ class TestCreatePayload:
                     disk_slot=3,
                     size=645922816,
                     type="virtio_disk",
-                    iso_name="iso_name",
                     cache_mode="writethrough",
                     disable_snapshotting=False,
                     tiering_priority_factor=8,
@@ -117,7 +116,6 @@ class TestCreatePayload:
                 "cacheMode": "WRITETHROUGH",
                 "capacity": 645922816,
                 "slot": 3,
-                "name": "iso_name",
                 "disableSnapshotting": False,
                 "tieringPriorityFactor": 128,
             },
@@ -139,7 +137,6 @@ class TestCreatePayload:
                     disk_slot=1,
                     size=None,  # default virtual_disk.size
                     type="virtio_disk",
-                    iso_name=None,
                     cache_mode=None,
                     disable_snapshotting=None,
                     tiering_priority_factor=4,
