@@ -154,7 +154,6 @@ class TestDisk:
         )
 
         hypercore_dict = dict(
-            # uuid="id",
             virDomainUUID="vm-id",
             type="VIRTIO_DISK",
             cacheMode="NONE",
