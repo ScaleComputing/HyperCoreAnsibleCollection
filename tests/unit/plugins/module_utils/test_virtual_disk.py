@@ -801,10 +801,22 @@ class TestAttachToVm:
             size="",
             replication_factor="",
         )
-        virtual_disk.attach_to_vm(rest_client, None)
+        payload = dict(
+            options={
+                "readOnly": False,
+                "regenerateDiskID": True,
+            },
+            template={
+                "virDomainUUID": "f847daa6-80f3-4042-a016-ee56186939f7",
+                "type": "VIRTIO_DISK",
+                "capacity": virtual_disk.size,
+                "tieringPriorityFactor": 8,
+            },
+        )
+        virtual_disk.attach_to_vm(rest_client, payload)
 
         rest_client.create_record.assert_called_with(
             endpoint="/rest/v1/VirtualDisk/asd-123123/attach",
-            payload=None,
+            payload=payload,
             check_mode=False,
         )
