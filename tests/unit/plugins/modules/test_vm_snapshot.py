@@ -5,6 +5,7 @@ __metaclass__ = type
 import sys
 
 import pytest
+import datetime
 
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_snapshot
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import (
@@ -378,3 +379,52 @@ class TestEnsureAbsent:
         print(result, expected_result)
         assert isinstance(result, tuple)
         assert result == expected_result
+
+
+# Test calculate_data() module function
+class TestCalculateDate:
+    @pytest.mark.parametrize(
+        "days, expected_output",
+        [
+            (1, (datetime.datetime.today().date() + datetime.timedelta(days=1))),
+            (0, None),
+            (None, None),
+        ],
+    )
+    def test_calculate_date(self, days, expected_output):
+        result = vm_snapshot.calculate_date(days)
+        if result:
+            result = result.date()
+        assert result == expected_output
+
+
+# Test check_parameters module function
+class TestCheckParameters:
+    @pytest.mark.parametrize(
+        "retain_for, expected_retain_for",
+        [
+            (1, datetime.datetime.today().date() + datetime.timedelta(days=1)),
+            (0, None),
+            (None, None),
+        ],
+    )
+    def test_check_parameters(self, create_module, retain_for, expected_retain_for):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://my.host.name", username="user", password="pass"
+                ),
+                vm_name="this-VM",
+                label="this-label",
+                retain_for=retain_for,
+                replication=True,
+                state="present",
+            )
+        )
+        expected_params = module.params.copy()
+        expected_params["retain_for"] = expected_retain_for
+
+        result = vm_snapshot.check_parameters(module)
+        if result.params["retain_for"]:
+            result.params["retain_for"] = result.params["retain_for"].date()
+        assert result.params == expected_params

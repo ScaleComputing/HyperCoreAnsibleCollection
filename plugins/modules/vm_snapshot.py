@@ -38,6 +38,7 @@ options:
       - How many days does hypercore retain snapshot.
       - Local and remote retention is set by this.
       - Number of days.
+      - VM must be powered on during automatic deletion process.
   replication:
     type: bool
     description: When false, will not replicate snapshot to a remote system if replication is configured.
