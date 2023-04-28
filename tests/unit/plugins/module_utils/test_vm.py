@@ -1361,7 +1361,6 @@ class TestVMClone:
             None,
             preserve_mac_address=False,
             source_nics=[],
-            snapshot_label=None,
         )
         assert results == {
             "template": {
@@ -1378,7 +1377,6 @@ class TestVMClone:
             {"userData": "something", "metaData": "else"},
             preserve_mac_address=False,
             source_nics=[],
-            snapshot_label=None,
         )
         assert results == {
             "template": {
@@ -1396,7 +1394,6 @@ class TestVMClone:
             {"userData": "something", "metaData": "else"},
             preserve_mac_address=True,
             source_nics=[],
-            snapshot_label=None,
         )
         assert results == {
             "template": {
@@ -1417,7 +1414,6 @@ class TestVMClone:
             source_nics=[
                 Nic.from_ansible(dict(type="virtio", mac="11:00:00:00:00:10", vlan=10))
             ],
-            snapshot_label=None,
         )
         assert results == {
             "template": {
@@ -1439,7 +1435,6 @@ class TestVMClone:
             "vm_name": "XLAB-test-vm-clone",
             "tags": None,
             "preserve_mac_address": False,
-            "snapshot_label": None,
         }
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
