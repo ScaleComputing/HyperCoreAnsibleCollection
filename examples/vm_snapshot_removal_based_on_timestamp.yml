@@ -1,0 +1,68 @@
+---
+- name: Example - delete all snapshots that are older than X days.
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  environment:
+    SC_HOST: "your_host"
+    SC_USERNAME: "your_username"
+    SC_PASSWORD: "your_password"
+  vars:
+    # Format: 'YYYY-MM-DD hh:mm:ss'
+    # All snapshots older than this date will be deleted.
+    use_date: '2023-05-03 12:52:00'
+
+  tasks:
+  # ------------------------------------------------------
+    - name: List all snapshots
+      scale_computing.hypercore.vm_snapshot_info:
+      register: snapshot_results
+
+    - name: Convert date to unix timestamp "epoch"
+      set_fact:
+        epoch_timestamp: "{{ (use_date | to_datetime).strftime('%s') }}"
+    
+    - name: Show epoch_timestamp
+      ansible.builtin.debug:
+        var: epoch_timestamp
+
+    - name: Create filtered_snapshots list
+      set_fact:
+        filtered_snapshots: []
+
+    - name: Loop through snapshots and add snapshots that are older than "use_date"
+      set_fact:
+        filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
+      when: "{{ item.timestamp  > epoch_timestamp | int }}"
+      loop: "{{ snapshot_results.records }}"
+      no_log: true
+
+    - name: Show only snapshots that are older than "use_date"
+      ansible.builtin.debug:
+        var: filtered_snapshots
+
+    # We could reuse "filtered_snapshots" here instead of "snapshot_results" and avoid the "when" statement.
+    # But leaving it as is for example purposes.
+    # Since this is the only mandatory task of the playbook, can be copy-pasted and reused as standalone task.
+    - name: Loop through list of snapshots and delete all older than the "use_date"
+      scale_computing.hypercore.vm_snapshot:
+        vm_name: "{{ item.vm.name }}"
+        label: "{{ item.label }}"
+        state: absent
+      when: "{{ item.timestamp > epoch_timestamp | int }}"
+      loop: "{{ snapshot_results.records }}"
+
+    - name: Create filtered_snapshots list - second time
+      set_fact:
+        filtered_snapshots: []
+
+    - name: Loop through snapshots and add snapshots that are older than "use_date" - second time
+      set_fact:
+        filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
+      when: "{{ item.timestamp  > epoch_timestamp | int }}"
+      loop: "{{ snapshot_results.records }}"
+      no_log: true
+
+    - name: Show only snapshots that are older than "use_date" - second time
+      ansible.builtin.debug:
+        var: filtered_snapshots
