@@ -18,7 +18,7 @@
       set_fact:
         filtered_snapshots: []
 
-    - name: Loop through snapshots and add snapshots with label "TEST" and type "USER" to filtered_snapshots
+    - name: Loop through snapshots and add snapshots with label 'TEST' and type 'USER' to filtered_snapshots
       set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
       when: "{{ item.label  == 'TEST' and item.type == 'USER' }}"
@@ -32,7 +32,7 @@
     # We could reuse "filtered_snapshots" here instead of "snapshot_results" and avoid the "when" statement.
     # But leaving it as is for example purposes.
     # Since this is the only mandatory task of the playbook, can be copy-pasted and reused as standalone task.
-    - name: Loop through list of snapshots delete if label is "TEST" and type is "USER"
+    - name: Loop through list of snapshots delete if label is 'TEST' and type is 'USER'
       scale_computing.hypercore.vm_snapshot:
         vm_name: "{{ item.vm.name }}"
         label: "{{ item.label }}"
@@ -48,13 +48,13 @@
       set_fact:
         filtered_snapshots: []
 
-    - name: Loop through snapshots and add snapshots with label "TEST" and type "USER" to filtered_snapshots - second time
+    - name: Loop through snapshots and add snapshots with label 'TEST' and type 'USER' to filtered_snapshots - second time
       set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
       when: "{{ item.label  == 'TEST' and item.type == 'USER' }}"
       loop: "{{ snapshot_results.records }}"
       no_log: true
 
-    - name: Show only snapshots with label "TEST" and type "USER" - second time
+    - name: Show only snapshots with label 'TEST' and type 'USER' - second time
       ansible.builtin.debug:
         var: filtered_snapshots
