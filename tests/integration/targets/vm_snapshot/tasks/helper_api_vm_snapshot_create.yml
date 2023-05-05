@@ -1,4 +1,7 @@
 ---
+# ++++++++++++++++++++++++++++++
+# First two VMs will have snapshots, the rest will not!
+# ++++++++++++++++++++++++++++++
 - name: Create test VMs
   scale_computing.hypercore.vm:
     vm_name: "snapshot-test-vm-{{ item }}"
@@ -6,7 +9,7 @@
     state: present
     tags:
       - Xlab_snapshot_testing
-    memory: "{{ '512 MB' | human_to_bytes }}"
+    memory: "{{ '4 GB' | human_to_bytes }}"
     vcpu: 2
     attach_guest_tools_iso: false
     power_state: start

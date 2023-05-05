@@ -85,7 +85,7 @@ EXAMPLES = r"""
 """
 
 RETURN = r"""
-records:
+record:
   description:
     - Newly attached disk from a VM snapshot to a VM.
   returned: success
@@ -148,9 +148,17 @@ def attach_disk(
     ]  # the higher the index, the newer the disk
 
     # =============== IMPLEMENTATION ===================
-    vm_snapshot = VMSnapshot.get_snapshot_by_uuid(
+    vm_snapshot_hypercore = VMSnapshot.get_snapshot_by_uuid(
         source_snapshot_uuid, rest_client
-    ).to_ansible()  # type: ignore
+    )
+
+    # if the desired snapshot (with source_snapshot_uuid) doesn't exist, raise an error.
+    if vm_snapshot_hypercore is None:
+        raise errors.ScaleComputingError(
+            "Snapshot with uuid='" + source_snapshot_uuid + "' doesn't exist."
+        )
+
+    vm_snapshot = vm_snapshot_hypercore.to_ansible()
 
     vm_uuid = VMSnapshot.get_external_vm_uuid(
         vm_name, rest_client
@@ -160,18 +168,18 @@ def attach_disk(
     # - check if there is already a disk (vm_disk) with type (vm_type) on slot (vm_slot)
     # - if this slot is already taken, return no change
     #   --> should it be an error that tells the user that the slot is already taken instead?
-    temp_block_device = VMSnapshot.get_vm_disk_info(
+    before_block_device = VMSnapshot.get_vm_disk_info(
         vm_uuid=vm_uuid,
         slot=vm_disk_slot,
         _type=vm_disk_type,
         rest_client=rest_client,
     )
-    if temp_block_device is not None:
+    if before_block_device is not None:
         # changed, after, diff
         return (
             False,
-            temp_block_device,
-            dict(before=temp_block_device, after=None),
+            before_block_device,
+            dict(before=before_block_device, after=None),
         )
 
     source_disk_info = VMSnapshot.get_block_device(
@@ -187,7 +195,7 @@ def attach_disk(
         snapUUID=source_snapshot_uuid,
         template=dict(
             virDomainUUID=vm_uuid,  # required
-            type=source_disk_type,  # required
+            type=vm_disk_type,  # required
             capacity=source_disk_info["capacity"],  # required
             chacheMode=source_disk_info["cache_mode"],
             slot=vm_disk_slot,
@@ -211,8 +219,7 @@ def attach_disk(
 
     # return changed, after, diff
     return (
-        created_block_device
-        is not None,  # if new block device was created, then this should not be None
+        created_block_device is not None,  # if new block device was created, then this should not be None
         created_block_device,
         dict(
             before=None, after=created_block_device
@@ -231,9 +238,6 @@ def main() -> None:
         supports_check_mode=True,
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
-            # vm_name parameter is not needed for this to work. Remove it?
-            # or instead use it as "name" of the created block device which
-            # if not specified, will always be set to empty string "".
             vm_name=dict(
                 type="str",
                 required=True,
@@ -279,8 +283,8 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
-        records = run(module, rest_client)
-        module.exit_json(changed=False, records=records)
+        changed, record, diff = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

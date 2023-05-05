@@ -267,24 +267,6 @@ class VMSnapshot(PayloadMapper):
                 for vm_snap in new_snaps
                 if vm_snap["label"] == params["label"]  # type: ignore
             ]
-        if params["source_disk_type"]:
-            new_snaps = [
-                (vm_snap, device_snap)  # type: ignore
-                for vm_snap in new_snaps for device_snap in vm_snap["device_snapshots"]  # type: ignore
-                if device_snap["type"] == params["source_disk_type"]
-            ]
-        if params["source_disk_slot"]:
-            new_snaps = [
-                (vm_snap, device_snap)  # type: ignore
-                for vm_snap in new_snaps for device_snap in vm_snap["device_snapshots"]  # type: ignore
-                if device_snap["slot"] == params["source_disk_slot"]
-            ]
-        if params["source_disk_uuid"]:
-            new_snaps = [
-                (vm_snap, device_snap)  # type: ignore
-                for vm_snap in new_snaps for device_snap in vm_snap["device_snapshots"]  # type: ignore
-                if device_snap["uuid"] == params["source_disk_uuid"]
-            ]
         return new_snaps
 
     def send_create_request(self, rest_client: RestClient) -> TypedTaskTag:
