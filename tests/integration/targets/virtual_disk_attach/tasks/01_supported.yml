@@ -111,7 +111,7 @@
       - disk.record.vm_uuid == vm.record.0.uuid 
       - not disk.diff.before
       - disk.diff.after == disk.record
-  
+
 - name: Assert that disk is attached to XLAB-attach-virtual-disk
   scale_computing.hypercore.vm_info:
     vm_name: XLAB-attach-virtual-disk
@@ -135,7 +135,11 @@
 - name: Attach virtual disk in slot 3 as a virtio_disk - IDEMPOTENCE
   scale_computing.hypercore.virtual_disk_attach: *attach
   register: disk
-- ansible.builtin.assert: 
+- name: Get vm_info
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-virtual-disk
+  register: vm
+- ansible.builtin.assert:
     that:
       - disk is succeeded
       - disk is not changed
@@ -153,6 +157,7 @@
       - disk.record.vm_uuid == vm.records.0.uuid
       - disk.diff.after == disk.record
       - disk.diff.before == disk.record
+      - vm.records.0.disks | length == 1
 
 - name: Attach virtual disk with only type and slot defined (test default values)
   scale_computing.hypercore.virtual_disk_attach:
@@ -162,6 +167,10 @@
       type: ide_disk
       disk_slot: 1
   register: disk
+- name: Get vm_info
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-virtual-disk
+  register: vm
 - ansible.builtin.assert:
     that:
       - disk is succeeded
@@ -181,6 +190,7 @@
       - disk.record.vm_uuid == vm.records.0.uuid
       - not disk.diff.before
       - disk.diff.after == disk.record
+      - vm.records.0.disks | length == 2
 
 - name: Attach virtual disk as scsi_disk with size defined, but smaller than size of virtual disk
   scale_computing.hypercore.virtual_disk_attach:
@@ -191,6 +201,10 @@
       size: 1
       disk_slot: 2
   register: disk
+- name: Get VM info
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-attach-virtual-disk
+  register: vm
 - ansible.builtin.assert:
     that:
       - disk is succeeded
@@ -210,6 +224,7 @@
       - disk.record.vm_uuid == vm.records.0.uuid
       - not disk.diff.before
       - disk.diff.after == disk.record
+      - vm.records.0.disks | length == 3
 
 # ----------------------------------Cleanup--------------------------------------------
 - name: Delete virtual machine XLAB-attach-virtual-disk
