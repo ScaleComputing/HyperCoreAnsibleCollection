@@ -33,7 +33,7 @@
       scale_computing.hypercore.virtual_disk_attach:
         name: "{{ virtual_disk_name }}"
         vm_name: "{{ vm_name }}"
-        block_device:
+        disk:
           type: "{{ vm_disk_type }}"
           disk_slot: "{{ vm_disk_slot }}"
           disable_snapshotting: false
