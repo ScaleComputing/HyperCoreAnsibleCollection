@@ -154,7 +154,6 @@ class TestDisk:
         )
 
         hypercore_dict = dict(
-            uuid="id",
             virDomainUUID="vm-id",
             type="VIRTIO_DISK",
             cacheMode="NONE",
@@ -262,3 +261,40 @@ class TestDisk:
             "type": "VIRTIO_DISK",
             "virDomainUUID": "id",
         }
+
+    def test_get_by_uuid(self, rest_client, mocker):
+        disk_uuid = "disk_uuid"
+        rest_client.get_record.return_value = dict(
+            uuid="disk_uuid",
+            virDomainUUID="vm-id",
+            type="VIRTIO_DISK",
+            cacheMode="NONE",
+            capacity=4200,
+            slot=0,
+            disableSnapshotting=False,
+            tieringPriorityFactor=8,
+            mountPoints=[],
+            readOnly=False,
+            name="jc1-disk-0",
+        )
+
+        disk = Disk.get_by_uuid(disk_uuid, rest_client, must_exist=True)
+
+        rest_client.get_record.assert_called_with(
+            "/rest/v1/VirDomainBlockDevice/disk_uuid",
+            must_exist=True,
+        )
+
+        assert disk == Disk(
+            type="virtio_disk",
+            slot=0,
+            uuid="disk_uuid",
+            vm_uuid="vm-id",
+            cache_mode="none",
+            size=4200,
+            name="jc1-disk-0",
+            disable_snapshotting=False,
+            tiering_priority_factor=4,
+            mount_points=[],
+            read_only=False,
+        )

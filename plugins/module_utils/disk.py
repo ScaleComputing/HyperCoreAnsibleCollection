@@ -5,11 +5,15 @@
 
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
 from ..module_utils import errors
+from ..module_utils.rest_client import RestClient
+from typing import Optional, Any
+
 
 TIERING_PRIORITY_MAPPING_TO_HYPERCORE = {
     0: 0,
@@ -72,7 +76,6 @@ class Disk(PayloadMapper):
 
     def to_hypercore(self):
         return dict(
-            uuid=self.uuid,
             virDomainUUID=self.vm_uuid,
             type=self.type.upper(),
             cacheMode=self.cache_mode.upper() if self.cache_mode else None,
@@ -105,7 +108,7 @@ class Disk(PayloadMapper):
         )
 
     @classmethod
-    def from_hypercore(cls, hypercore_data):
+    def from_hypercore(cls, hypercore_data: dict[Any, Any]) -> Optional[Disk]:
         if not hypercore_data:
             return None
         try:
@@ -157,7 +160,7 @@ class Disk(PayloadMapper):
             tiering_priority_factor=ansible_data.get("tiering_priority_factor", None),
             mount_points=ansible_data.get("mount_points", None),
             read_only=ansible_data.get("read_only", None),
-            uuid=ansible_data.get("uuid", None),
+            uuid=ansible_data.get("uuid", None),  # Needed in delete disk
         )
 
     def __eq__(self, other):
@@ -200,3 +203,12 @@ class Disk(PayloadMapper):
         ):  # ide_cdrom can never be deleted when VM is running.
             return True
         return False
+
+    @classmethod
+    def get_by_uuid(
+        cls, uuid: str, rest_client: RestClient, must_exist: bool
+    ) -> Optional[Disk]:
+        hypercore_dict = rest_client.get_record(
+            f"/rest/v1/VirDomainBlockDevice/{uuid}", must_exist=must_exist
+        )
+        return cls.from_hypercore(hypercore_dict)

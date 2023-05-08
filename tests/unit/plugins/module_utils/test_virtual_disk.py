@@ -790,3 +790,33 @@ class TestSendDeleteRequest:
             print(result)
             assert isinstance(result, dict)
             assert result == expected_result
+
+
+class TestAttachToVm:
+    def test_attach_to_vm(self, rest_client):
+        virtual_disk = VirtualDisk(
+            uuid="asd-123123",
+            name="",
+            block_size="",
+            size="",
+            replication_factor="",
+        )
+        payload = dict(
+            options={
+                "readOnly": False,
+                "regenerateDiskID": True,
+            },
+            template={
+                "virDomainUUID": "f847daa6-80f3-4042-a016-ee56186939f7",
+                "type": "VIRTIO_DISK",
+                "capacity": virtual_disk.size,
+                "tieringPriorityFactor": 8,
+            },
+        )
+        virtual_disk.attach_to_vm(rest_client, payload)
+
+        rest_client.create_record.assert_called_with(
+            endpoint="/rest/v1/VirtualDisk/asd-123123/attach",
+            payload=payload,
+            check_mode=False,
+        )
