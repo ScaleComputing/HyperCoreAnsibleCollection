@@ -57,6 +57,7 @@
       include_tasks: shutdown_vms.yml
       vars:
         scale_computing_hypercore_shutdown_vms: "{{ vm_info }}"
+      loop: "{{ range(0, (scale_computing_hypercore_shutdown_wait_time / 10.0) | round(0, 'ceil') | int) | list }}"
       when: vms.records != []
 
     # ----------------- UPDATE --------------------
