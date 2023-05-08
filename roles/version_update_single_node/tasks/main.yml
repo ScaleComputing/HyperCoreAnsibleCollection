@@ -57,8 +57,7 @@
       include_tasks: shutdown_vms.yml
       vars:
         scale_computing_hypercore_shutdown_vms: "{{ vm_info }}"
-      loop: "{{ range(0, (scale_computing_hypercore_shutdown_wait_time / 10.0) | round(0, 'ceil') | int) | list }}"
-      when: vms.records != []
+      when: scale_computing_hypercore_shutdown_vms.records != []
 
     # ----------------- UPDATE --------------------
 
@@ -80,7 +79,7 @@
       include_tasks: restart_vms.yml
       vars:
         scale_computing_hypercore_restart_vms: "{{ vm_info }}"
-      when: vms.records != []
+      when: scale_computing_hypercore_restart_vms.records != []
 
     - name: Check if updating to desired version failed
       ansible.builtin.fail:

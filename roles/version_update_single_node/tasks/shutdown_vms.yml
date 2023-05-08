@@ -6,17 +6,6 @@
   loop: "{{ scale_computing_hypercore_shutdown_vms.records }}"
   register: running_vms
 
-- name: Shutdown running VMs
-  scale_computing.hypercore.vm_params:
-    vm_name: "{{ item.vm_name }}"
-    power_state: shutdown
-  when:
-    - item.power_state == 'started'
-    - (scale_computing_hypercore_shutdown_tags == []) or (scale_computing_hypercore_shutdown_tags | intersect(item.tags))
-  loop: "{{ scale_computing_hypercore_shutdown_vms.records }}"
-  register: vm_shutdown_result
-  ignore_errors: true # if VMs fail to shut down without force, error will occur, so we skip and try on to shut down with force
-
 - name: Set fact version_update_all_vms_stopped to initial false
   ansible.builtin.set_fact:
     version_update_all_vms_stopped: false
@@ -26,10 +15,6 @@
   include_tasks: wait_vm_shutdown.yml
   loop: "{{ range(0, (scale_computing_hypercore_shutdown_wait_time / 10.0) | round(0, 'ceil') | int) | list }}"
   when: not version_update_all_vms_stopped
-
-- name: Show shutdown results
-  ansible.builtin.debug:
-    var: vm_shutdown_result
 
 - name: Force shutdown the remaining running VMs
   scale_computing.hypercore.vm_params:
