@@ -89,5 +89,4 @@
     - cluster_info.record.icos_version != scale_computing_hypercore_desired_version
     - >-
       update_status_before_update.record == None or
-      update_status_before_update.record.update_status == "COMPLETED" or
       update_status_before_update.record.update_status != "IN PROGRESS"
