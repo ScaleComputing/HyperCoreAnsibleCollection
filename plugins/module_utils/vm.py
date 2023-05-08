@@ -132,6 +132,7 @@ class VM(PayloadMapper):
         was_shutdown_tried=False,  # Has shutdown request already been tried
         machine_type=None,
         replication_source_vm_uuid=None,
+        snapshot_uuids=None,
     ):
         self.operating_system = operating_system
         self.uuid = uuid
@@ -148,6 +149,7 @@ class VM(PayloadMapper):
         self.attach_guest_tools_iso = attach_guest_tools_iso
         self.node_affinity = node_affinity
         self.snapshot_schedule = snapshot_schedule  # name of the snapshot_schedule
+        self.snapshot_uuids = snapshot_uuids or []
         self.reboot = reboot
         self.was_shutdown_tried = was_shutdown_tried
         self.machine_type = machine_type
@@ -248,6 +250,7 @@ class VM(PayloadMapper):
             snapshot_schedule=snapshot_schedule.name
             if snapshot_schedule
             else "",  # "" for vm_params diff check
+            snapshot_uuids=vm_dict["snapUUIDs"],
             machine_type=machine_type,
             replication_source_vm_uuid=vm_dict["sourceVirDomainUUID"],
         )
@@ -307,8 +310,11 @@ class VM(PayloadMapper):
         *,
         preserve_mac_address,
         source_nics,
+        source_snapshot_uuid,
     ):
         data = {"template": {}}
+        if source_snapshot_uuid:
+            data["snapUUID"] = source_snapshot_uuid
         if clone_name:
             data["template"]["name"] = clone_name
         if (
@@ -565,6 +571,18 @@ class VM(PayloadMapper):
 
     def clone_vm(self, rest_client, ansible_dict):
         cloud_init_data = VM.create_cloud_init_payload(ansible_dict)
+        if self.replication_source_vm_uuid:
+            # The VM represented by self is a replication target VM.
+            # Do restore from the latest snapshot.
+            # We always have at least one shapshot available.
+            # But it takes a while for a snapshot to transfer.
+            source_snapshot_uuid = self.snapshot_uuids[-1]
+        else:
+            # The VM represented by self is a regular VM.
+            # We omit snapUUID from clone API payload, and HC3 will
+            # first automatically create a snaphost,
+            # then clone the snapshot into a new VM.
+            source_snapshot_uuid = ""
         data = VM.create_clone_vm_payload(
             ansible_dict["vm_name"],
             ansible_dict["tags"],
@@ -572,6 +590,7 @@ class VM(PayloadMapper):
             cloud_init_data,
             preserve_mac_address=ansible_dict["preserve_mac_address"],
             source_nics=self.nics,
+            source_snapshot_uuid=source_snapshot_uuid,
         )
         return rest_client.create_record(
             endpoint=f"/rest/v1/VirDomain/{self.uuid}/clone",

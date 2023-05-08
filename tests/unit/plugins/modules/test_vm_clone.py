@@ -89,6 +89,7 @@ class TestRun:
             "snapshotScheduleUUID": "snapshot_schedule_id",
             "machineType": "scale-7.2",
             "sourceVirDomainUUID": "",
+            "snapUUIDs": [],
         }
         return vm_dict
 

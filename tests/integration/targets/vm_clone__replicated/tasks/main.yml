@@ -1,0 +1,30 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    vm_name_src: XLAB-vm_clone-dr-src
+    vm_name_dest: XLAB-vm_clone-dr-dest
+    cluster_instance_src:
+      host: "{{ sc_host }}"
+      username: "{{ sc_config[sc_host].sc_username }}"
+      password: "{{ sc_config[sc_host].sc_password }}"
+    cluster_instance_dest:
+      host: "{{ sc_config[sc_host].sc_replication_dest_host }}"
+      username: "{{ sc_config[sc_host].sc_replication_dest_username }}"
+      password: "{{ sc_config[sc_host].sc_replication_dest_password }}"
+    cluster_name_dest: "{{ sc_config[sc_host].sc_replication_dest_cluster_name }}"
+
+
+  block:
+    - name: Check replication is configured
+      ansible.builtin.assert:
+        that:
+          - sc_config[sc_host].sc_replication_dest_host
+
+    - include_tasks: 01_cleanup.yml
+    - include_tasks: 02_prepare_source_vms.yml
+    - include_tasks: 10_clone_stopped.yml
+    - include_tasks: 01_cleanup.yml
