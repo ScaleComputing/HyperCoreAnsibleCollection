@@ -14,7 +14,12 @@
     - name: Check update status - will report FAILED-RETRYING until update COMPLETE/TERMINATED
       scale_computing.hypercore.version_update_status_info:
       register: update_status
-      until: update_status.record.update_status == "COMPLETE" | default(omit) or update_status.record.update_status == "TERMINATING" | default(omit)
+      until: >-
+        update_status.record != None and
+        (
+          update_status.record.update_status == "COMPLETE" or
+          update_status.record.update_status == "TERMINATING"
+        )
       retries: 100
       delay: 30
       ignore_unreachable: true
