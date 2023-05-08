@@ -60,8 +60,9 @@ sc_config:
       config_url_test: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
     cluster_shutdown:
       magic_allow_string: "oh-no-no"  # use "allow-cluster-shutdown-test" to allow this integration test
-    version_update:
-      magic_allow_string: "oh-no-no"  # use "allow-version-update-test" to allow this integration test
+    # version_update:
+    #   magic_allow_string: "oh-no-no"  # use "allow-version-update-test" to allow this integration test
+    #   vm_shutdown_restart_allow_string: "oh-no-no"  # use "allow-vm-shutdown-restart-test" to test VM shutdown/restart
     syslog_server:
       host: 10.5.11.222
 
@@ -85,6 +86,9 @@ sc_config:
     smtp:
       <<: *base_smtp
       from_address: PUB5@scalecomputing.com
+    version_update:
+      magic_allow_string: "oh-no-no"
+      vm_shutdown_restart_allow_string: "oh-no-no"
     # Under features are described properties that affect expected integration test output.
     features:
       version_update:
@@ -125,6 +129,9 @@ sc_config:
     smtp:
       <<: *base_smtp
       from_address: VSNS200@scalecomputing.com
+    version_update:
+      magic_allow_string: "oh-no-no"
+      vm_shutdown_restart_allow_string: "allow-vm-shutdown-restart-test"
     syslog_server:
       host: 10.5.11.222
     features:
@@ -157,6 +164,9 @@ sc_config:
     smtp:
       <<: *base_smtp
       from_address: VSNS201@scalecomputing.com
+    version_update:
+      magic_allow_string: "oh-no-no"
+      vm_shutdown_restart_allow_string: "allow-vm-shutdown-restart-test"
     syslog_server:
       host: 10.5.11.222
     features:
