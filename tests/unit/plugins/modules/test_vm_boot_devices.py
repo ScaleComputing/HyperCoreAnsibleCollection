@@ -84,6 +84,7 @@ class TestEnsureAbsent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -121,6 +122,7 @@ class TestEnsureAbsent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
         ]
         mocker.patch(
@@ -242,6 +244,7 @@ class TestEnsureAbsent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -279,6 +282,7 @@ class TestEnsureAbsent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
         ]
         mocker.patch(
@@ -352,6 +356,7 @@ class TestEnsureAbsent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -389,6 +394,7 @@ class TestEnsureAbsent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
         ]
         rest_client.update_record.return_value = {
@@ -491,6 +497,7 @@ class TestEnsurePresent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -528,6 +535,7 @@ class TestEnsurePresent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
         ]
         mocker.patch(
@@ -602,6 +610,7 @@ class TestEnsurePresent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -639,6 +648,7 @@ class TestEnsurePresent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
         ]
 
@@ -755,6 +765,7 @@ class TestEnsurePresent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -792,6 +803,7 @@ class TestEnsurePresent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
         ]
         rest_client.update_record.return_value = {
@@ -920,6 +932,7 @@ class TestEnsurePresent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -957,6 +970,7 @@ class TestEnsurePresent:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
         ]
         rest_client.update_record.return_value = {
@@ -1073,6 +1087,7 @@ class TestEnsureSet:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -1110,6 +1125,7 @@ class TestEnsureSet:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
         ]
         mocker.patch(
@@ -1183,6 +1199,7 @@ class TestEnsureSet:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -1220,6 +1237,7 @@ class TestEnsureSet:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             },
             dict(
                 uuid="disk-id",

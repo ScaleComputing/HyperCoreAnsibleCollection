@@ -1,0 +1,22 @@
+# Remove any old test VM
+
+- name: src-cluster Delete VM {{ item }}
+  scale_computing.hypercore.vm:
+    vm_name: "{{ item }}"
+    state: absent
+    memory: 536870912
+    vcpu: 2
+  loop:
+    - "{{ vm_name_src }}"
+    - "{{ vm_name_dest }}"
+
+- name: dest-cluster Delete VM {{ item }}
+  scale_computing.hypercore.vm:
+    cluster_instance: "{{ cluster_instance_dest }}"
+    vm_name: "{{ item }}"
+    state: absent
+    memory: 536870912
+    vcpu: 2
+  loop:
+    - "{{ vm_name_src }}"
+    - "{{ vm_name_dest }}"

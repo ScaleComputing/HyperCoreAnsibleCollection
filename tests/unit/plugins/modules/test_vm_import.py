@@ -78,6 +78,7 @@ class TestRun:
             },
             "snapshotScheduleUUID": "snapshot_schedule_id",
             "sourceVirDomainUUID": "",
+            "snapUUIDs": [],
         }
         smb_dict = {
             "uuid": "8145f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -110,6 +111,7 @@ class TestRun:
             },
             "snapshotScheduleUUID": "snapshot_schedule_id",
             "sourceVirDomainUUID": "",
+            "snapUUIDs": [],
         }
         module = create_module(
             params=dict(
@@ -186,6 +188,7 @@ class TestRun:
                 "snapshotScheduleUUID": "snapshot_schedule_id",
                 "machineType": "scale-7.2",
                 "sourceVirDomainUUID": "",
+                "snapUUIDs": [],
             }
         ]
         mocker.patch(
