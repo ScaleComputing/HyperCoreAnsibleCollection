@@ -1,0 +1,58 @@
+- name: dest-cluster Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-clone
+  scale_computing.hypercore.vm_clone:
+    cluster_instance: "{{ cluster_instance_dest }}"
+    vm_name: "{{ vm_name_dest }}"
+    source_vm_name: "{{ vm_name_src }}"
+    tags:
+      - new tag
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output.msg == "Virtual machine - {{ vm_name_src }} - cloning complete to - {{ vm_name_dest }}."
+
+- name: dest-cluster Retrieve {{ vm_name_dest }}
+  scale_computing.hypercore.vm_info:
+    cluster_instance: "{{ cluster_instance_dest }}"
+    vm_name: "{{ vm_name_dest }}"
+  register: cloned_info
+- ansible.builtin.assert:
+    that:
+      - cloned_info.records | length == 1
+      - source_info.records.0.vcpu == cloned_info.records.0.vcpu
+      - source_info.records.0.tags != cloned_info.records.0.tags
+      - source_info.records.0.boot_devices | length == cloned_info.records.0.boot_devices | length
+      - source_info.records.0.disks | length ==  cloned_info.records.0.disks | length
+      - source_info.records.0.nics | length ==  cloned_info.records.0.nics | length
+      - source_info.records.0.nics.0.mac !=  cloned_info.records.0.nics.0.mac
+      - source_info.records.0.node_affinity == cloned_info.records.0.node_affinity
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: dest-cluster Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-clone
+  scale_computing.hypercore.vm_clone:
+    cluster_instance: "{{ cluster_instance_dest }}"
+    vm_name: "{{ vm_name_dest }}"
+    source_vm_name: "{{ vm_name_src }}"
+    tags:
+      - new tag
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is not changed
+      - output.msg == "Virtual machine {{ vm_name_dest }} already exists."
+
+- name: dest-cluster Retrieve {{ vm_name_dest }}
+  scale_computing.hypercore.vm_info:
+    cluster_instance: "{{ cluster_instance_dest }}"
+    vm_name: "{{ vm_name_dest }}"
+  register: cloned_info
+- ansible.builtin.assert:
+    that:
+      - cloned_info.records | length == 1
+      - source_info.records.0.vcpu == cloned_info.records.0.vcpu
+      - source_info.records.0.tags != cloned_info.records.0.tags
+      - source_info.records.0.boot_devices | length == cloned_info.records.0.boot_devices | length
+      - source_info.records.0.disks | length ==  cloned_info.records.0.disks | length
+      - source_info.records.0.nics | length ==  cloned_info.records.0.nics | length
+      - source_info.records.0.nics.0.mac !=  cloned_info.records.0.nics.0.mac
+      - source_info.records.0.node_affinity == cloned_info.records.0.node_affinity

@@ -69,8 +69,15 @@ class SupportTunnel(PayloadMapper):
 
     @staticmethod
     def open_tunnel(module: AnsibleModule, client: Client) -> None:
-        client.get("/support-api/open", query={"code": module.params["code"]})
+        query = {
+            "code": module.params["code"],
+            "user": client.username,
+        }
+        client.get("/support-api/open", query=query)
 
     @staticmethod
     def close_tunnel(client: Client) -> None:
-        client.get("/support-api/close")
+        query = {
+            "user": client.username,
+        }
+        client.get("/support-api/close", query=query)
