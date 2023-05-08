@@ -70,6 +70,9 @@ options:
     description:
       - Specify a disk slot from source snapshot to identify source disk.
     required: True
+notes:
+  - C(check_mode) is not supported
+  - The VM to which the user is trying to attach the snapshot disk, B(must not) be running.
 """
 
 
@@ -123,7 +126,7 @@ from typing import Tuple, Dict, Any, Optional
 
 # TODO:
 #  - [x] fix code for mypy, sanity, etc.
-#  - [ ] create integration tests for vm_snapshot_attach_disk
+#  - [x] create integration tests for vm_snapshot_attach_disk
 #  - [ ] create unit tests for vm_snapshot modules
 #     - check if vm_snapshot_info already has unit tests (if not, add them)
 
@@ -160,9 +163,7 @@ def attach_disk(
 
     vm_snapshot = vm_snapshot_hypercore.to_ansible()
 
-    vm_uuid = VMSnapshot.get_external_vm_uuid(
-        vm_name, rest_client
-    )
+    vm_uuid = VMSnapshot.get_external_vm_uuid(vm_name, rest_client)
 
     # Check if slot already taken
     # - check if there is already a disk (vm_disk) with type (vm_type) on slot (vm_slot)
@@ -219,7 +220,8 @@ def attach_disk(
 
     # return changed, after, diff
     return (
-        created_block_device is not None,  # if new block device was created, then this should not be None
+        # if new block device was created, then this should not be None
+        created_block_device is not None,
         created_block_device,
         dict(
             before=None, after=created_block_device

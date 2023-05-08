@@ -12,14 +12,14 @@
     # -- snap-0 is the oldest snapshot, anything greater than 0, is a newer snapshot
 
   block:
-#    - include_tasks: 01_vm_snapshot_info.yml
-#      vars:
-#        test_vms_number: "{{ number_of_snapshot_testing_vms }}"
+    - include_tasks: 01_vm_snapshot_info.yml
+      vars:
+        test_vms_number: "{{ number_of_snapshot_testing_vms }}"
 
     - include_tasks: 02_vm_snapshot_attach_disk.yml
       vars:
         test_vms_number: "{{ number_of_snapshot_testing_vms }}"
-#  always:
-#    - include_tasks: helper_api_vm_snapshot_delete_all.yml
-#      vars:
-#        vms_number: "{{ number_of_snapshot_testing_vms }}"
+  always:
+    - include_tasks: helper_api_vm_snapshot_delete_all.yml
+      vars:
+        vms_number: "{{ number_of_snapshot_testing_vms }}"

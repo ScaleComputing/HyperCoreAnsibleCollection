@@ -101,7 +101,9 @@ class VMSnapshot(PayloadMapper):
         )
 
     @classmethod
-    def from_hypercore(cls, hypercore_data: Optional[Dict[Any, Any]]) -> Optional[VMSnapshot]:
+    def from_hypercore(
+        cls, hypercore_data: Optional[Dict[Any, Any]]
+    ) -> Optional[VMSnapshot]:
         if not hypercore_data:
             return None
         return cls(
@@ -296,7 +298,9 @@ class VMSnapshot(PayloadMapper):
 
     @classmethod
     # Used to rename dict keys of a hypercore object that doesn't have an implemented class
-    def hypercore_block_device_to_ansible(cls, _dict: Optional[Dict[Any, Any]]) -> Optional[Dict[Any, Any]]:
+    def hypercore_block_device_to_ansible(
+        cls, _dict: Optional[Dict[Any, Any]]
+    ) -> Optional[Dict[Any, Any]]:
         if _dict is None:
             return None
 
@@ -320,7 +324,9 @@ class VMSnapshot(PayloadMapper):
         return new_dict
 
     @classmethod
-    def get_vm_disk_info_by_uuid(cls, block_device_uuid: str, rest_client: RestClient) -> Optional[Dict[Any, Any]]:
+    def get_vm_disk_info_by_uuid(
+        cls, block_device_uuid: str, rest_client: RestClient
+    ) -> Optional[Dict[Any, Any]]:
         record_dict = rest_client.get_record(
             endpoint="/rest/v1/VirDomainBlockDevice",
             query={"uuid": block_device_uuid},
@@ -342,9 +348,7 @@ class VMSnapshot(PayloadMapper):
         return cls.hypercore_block_device_to_ansible(record_dict)
 
     @classmethod
-    def get_source_disk_uuid(
-        cls, vm_snapshot: Dict[Any, Any], disk_slot: str
-    ) -> Any:
+    def get_source_disk_uuid(cls, vm_snapshot: Dict[Any, Any], disk_slot: str) -> Any:
         for block_device in vm_snapshot["vm"]["block_devices"]:
             if block_device["slot"] == disk_slot:
                 return block_device["uuid"]
