@@ -90,7 +90,8 @@ records:
     device_snapshots:
       description: Snapshots of each VM block device
       type: list
-      sample: []
+      sample:
+        - uuid: adcfc72f-4578-48b1-a7f8-da4d9ee915ed
     label:
       description: User-readable label describing the snapshot
       type: str
@@ -123,7 +124,15 @@ records:
       description: source VM
       type: dict
       sample:
-        block_devices: []
+        block_devices:
+          - cache_mode: WRITETHROUGH
+            capacity: 107374182
+            disable_snapshotting: false
+            read_only: false
+            slot: 0
+            tiering_priority_factor: 8
+            type: VIRTIO_DISK
+            uuid: adcfc72f-4578-48b1-a7f8-da4d9ee915ed
         name: snapshot-test-vm-1
         snapshot_serial_number: 3
         uuid: 5e50977c-14ce-450c-8a1a-bf5c0afbcf43
