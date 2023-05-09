@@ -1,0 +1,15 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    image_filename: "ci-test-virtual-disk-1.qcow2"
+    expected_virtual_disk_replication_factor: "{{ sc_config[sc_host].features.virtual_disk.replication_factor }}"
+
+  block:
+    - include_tasks: 01_supported.yml
+      when: sc_config[sc_host].features.virtual_disk.is_supported
+    - include_tasks: 02_not_supported.yml
+      when: not sc_config[sc_host].features.virtual_disk.is_supported

@@ -176,7 +176,7 @@ record:
       type: list
       elements: str
       sample: /boot
-    name:
+    iso_name:
       description: Name of the virtual storage device
       type: str
       sample: jc1-disk-0

@@ -56,8 +56,8 @@
     - name: Shutdown all running VMs
       include_tasks: shutdown_vms.yml
       vars:
-        vms: "{{ vm_info }}"
-      when: vms.records != []
+        scale_computing_hypercore_shutdown_vms: "{{ vm_info }}"
+      when: scale_computing_hypercore_shutdown_vms.records != []
 
     # ----------------- UPDATE --------------------
 
@@ -78,8 +78,8 @@
     - name: Restart previously running VMs
       include_tasks: restart_vms.yml
       vars:
-        vms: "{{ vm_info }}"
-      when: vms.records != []
+        scale_computing_hypercore_restart_vms: "{{ vm_info }}"
+      when: scale_computing_hypercore_restart_vms.records != []
 
     - name: Check if updating to desired version failed
       ansible.builtin.fail:
@@ -89,5 +89,4 @@
     - cluster_info.record.icos_version != scale_computing_hypercore_desired_version
     - >-
       update_status_before_update.record == None or
-      update_status_before_update.record.update_status == "COMPLETED" or
       update_status_before_update.record.update_status != "IN PROGRESS"

@@ -1,0 +1,12 @@
+---
+- name: List all virtual disks, must fail
+  scale_computing.hypercore.virtual_disk_info:
+  register: result
+  ignore_errors: True
+
+- ansible.builtin.assert:
+    that:
+      - result is failed
+      - result is not changed
+      - "{{ 'records' not in result }}"
+      - "{{ 'does not match required version >=9.2.10' in result.msg }}"
