@@ -5,6 +5,72 @@ Scale_Computing.Hypercore Release Notes
 .. contents:: Topics
 
 
+v1.2.0
+======
+
+Release Summary
+---------------
+
+Feature release with new modules and roles, minor changes and small bugfixes.
+
+Major Changes
+-------------
+
+- Added a role for cluster configuration (registration data, DNS resolver, SMPT server, email alert recipients, etc).
+- Added certificate module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/119)
+- Added cluster_name and cluster_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/112)
+- Added cluster_shutdown module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/117)
+- Added dns_config and dns_config_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/73)
+- Added email_alert and email_alert_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/99)
+- Added oidc_config and oidc_config_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/106)
+- Added registration and registration_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/98)
+- Added smtp and smtp_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/93)
+- Added support_tunnel module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/92)
+- Added support_tunnel_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/92)
+- Added syslog_server and syslog_server_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/120)
+- Added time_server and time_server_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/82)
+- Added time_zone and time_zone_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/82)
+- Added user module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/79)
+- Added user_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/74)
+- Added virtual_disk_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/84)
+- Deprecate results value and add record value in iso module return values. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/183)
+
+Minor Changes
+-------------
+
+- Fixed timeout error in cluster_shutdown module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/127)
+- Updated version check in cluster_name module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/123)
+
+Deprecated Features
+-------------------
+
+- Added deprecation note for return value, for modules `scale_computing.hypercore.vm <../collections/scale_computing/hypercore/vm_module.html>`_ and `scale_computing.hypercore.snapshot_schedule <../collections/scale_computing/hypercore/snapshot_schedule_module.html>`_.
+- Module `scale_computing.hypercore.iso <../collections/scale_computing/hypercore/iso_module.html>`_ return value ``results`` is deprecated. A new return value ``record`` is added as replacement.
+
+New Modules
+-----------
+
+- scale_computing.hypercore.cluster_info - Retrieve cluster info.
+- scale_computing.hypercore.cluster_name - Update cluster name.
+- scale_computing.hypercore.cluster_shutdown - Shutdown the cluster.
+- scale_computing.hypercore.dns_config - Modify DNS configuration on HyperCore API
+- scale_computing.hypercore.dns_config_info - List DNS configuration on HyperCore API
+- scale_computing.hypercore.email_alert - Create, update, delete or send test emails to Email Alert Recipients on HyperCore API.
+- scale_computing.hypercore.email_alert_info - List Email Alert Recipients on HyperCore API
+- scale_computing.hypercore.smtp - Modify SMTP configuration on HyperCore API.
+- scale_computing.hypercore.smtp_info - List SMTP configuration on HyperCore API.
+- scale_computing.hypercore.support_tunnel - Opens or closes remote support tunnel.
+- scale_computing.hypercore.support_tunnel_info - Checks status of the remote support tunnel.
+- scale_computing.hypercore.syslog_server - Create, update or delete Syslog servers from HyperCore API.
+- scale_computing.hypercore.syslog_server_info - List Syslog servers on HyperCore API
+- scale_computing.hypercore.time_server - Modify Time Zone configuration on HyperCore API
+- scale_computing.hypercore.time_server_info - List Time Server configuration on HyperCore API.
+- scale_computing.hypercore.time_zone - Modify Time Zone configuration on HyperCore API
+- scale_computing.hypercore.time_zone_info - List Time Zone configuration on HyperCore API
+- scale_computing.hypercore.user - Creates, updates or deletes local hypercore user accounts.
+- scale_computing.hypercore.user_info - Returns information about the users.
+- scale_computing.hypercore.virtual_disk_info - List DNS configuration on HyperCore API
+
 v1.1.0
 ======
 

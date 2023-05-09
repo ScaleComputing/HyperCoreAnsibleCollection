@@ -96,3 +96,119 @@ releases:
     fragments:
     - release_110.yml
     release_date: '2023-01-10'
+  1.2.0:
+    changes:
+      deprecated_features:
+      - Added deprecation note for return value, for modules `scale_computing.hypercore.vm
+        <../collections/scale_computing/hypercore/vm_module.html>`_ and `scale_computing.hypercore.snapshot_schedule
+        <../collections/scale_computing/hypercore/snapshot_schedule_module.html>`_.
+      - Module `scale_computing.hypercore.iso <../collections/scale_computing/hypercore/iso_module.html>`_
+        return value ``results`` is deprecated. A new return value ``record`` is added
+        as replacement.
+      major_changes:
+      - Added a role for cluster configuration (registration data, DNS resolver, SMPT
+        server, email alert recipients, etc).
+      - Added certificate module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/119)
+      - Added cluster_name and cluster_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/112)
+      - Added cluster_shutdown module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/117)
+      - Added dns_config and dns_config_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/73)
+      - Added email_alert and email_alert_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/99)
+      - Added oidc_config and oidc_config_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/106)
+      - Added registration and registration_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/98)
+      - Added smtp and smtp_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/93)
+      - Added support_tunnel module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/92)
+      - Added support_tunnel_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/92)
+      - Added syslog_server and syslog_server_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/120)
+      - Added time_server and time_server_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/82)
+      - Added time_zone and time_zone_info modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/82)
+      - Added user module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/79)
+      - Added user_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/74)
+      - Added virtual_disk_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/84)
+      - Deprecate results value and add record value in iso module return values.
+        (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/183)
+      minor_changes:
+      - Fixed timeout error in cluster_shutdown module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/127)
+      - Updated version check in cluster_name module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/123)
+      release_summary: Feature release with new modules and roles, minor changes and
+        small bugfixes.
+    fragments:
+    - 73_dns_config_modules.yml
+    - cluster_config_role.yml
+    - cluster_modules.yml
+    - email_alert.yml
+    - oidc_module.yml
+    - registration_module.yml
+    - release_120.yml
+    - return_documentation_update_api.yml
+    - smtp_modules.yml
+    - ssl_certificate_module.yml
+    - support_tunnel_modules.yml
+    - syslog_server.yml
+    - time_server_modules.yml
+    - time_zone_modules.yml
+    - user_info_module.yml
+    - user_module.yml
+    - virtual_disk_info_module.yml
+    modules:
+    - description: Retrieve cluster info.
+      name: cluster_info
+      namespace: ''
+    - description: Update cluster name.
+      name: cluster_name
+      namespace: ''
+    - description: Shutdown the cluster.
+      name: cluster_shutdown
+      namespace: ''
+    - description: Modify DNS configuration on HyperCore API
+      name: dns_config
+      namespace: ''
+    - description: List DNS configuration on HyperCore API
+      name: dns_config_info
+      namespace: ''
+    - description: Create, update, delete or send test emails to Email Alert Recipients
+        on HyperCore API.
+      name: email_alert
+      namespace: ''
+    - description: List Email Alert Recipients on HyperCore API
+      name: email_alert_info
+      namespace: ''
+    - description: Modify SMTP configuration on HyperCore API.
+      name: smtp
+      namespace: ''
+    - description: List SMTP configuration on HyperCore API.
+      name: smtp_info
+      namespace: ''
+    - description: Opens or closes remote support tunnel.
+      name: support_tunnel
+      namespace: ''
+    - description: Checks status of the remote support tunnel.
+      name: support_tunnel_info
+      namespace: ''
+    - description: Create, update or delete Syslog servers from HyperCore API.
+      name: syslog_server
+      namespace: ''
+    - description: List Syslog servers on HyperCore API
+      name: syslog_server_info
+      namespace: ''
+    - description: Modify Time Zone configuration on HyperCore API
+      name: time_server
+      namespace: ''
+    - description: List Time Server configuration on HyperCore API.
+      name: time_server_info
+      namespace: ''
+    - description: Modify Time Zone configuration on HyperCore API
+      name: time_zone
+      namespace: ''
+    - description: List Time Zone configuration on HyperCore API
+      name: time_zone_info
+      namespace: ''
+    - description: Creates, updates or deletes local hypercore user accounts.
+      name: user
+      namespace: ''
+    - description: Returns information about the users.
+      name: user_info
+      namespace: ''
+    - description: List DNS configuration on HyperCore API
+      name: virtual_disk_info
+      namespace: ''
+    release_date: '2023-05-09'
