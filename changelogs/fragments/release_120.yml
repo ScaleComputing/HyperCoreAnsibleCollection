@@ -1,0 +1,8 @@
+release_summary: Feature release with new modules and roles, minor changes and small bugfixes.
+deprecated_features:
+  - Module `scale_computing.hypercore.iso <../collections/scale_computing/hypercore/iso_module.html>`_
+    return value ``results`` is deprecated.
+    A new return value ``record`` is added as replacement.
+  - Added deprecation note for return value, for modules
+    `scale_computing.hypercore.vm <../collections/scale_computing/hypercore/vm_module.html>`_ and
+    `scale_computing.hypercore.snapshot_schedule <../collections/scale_computing/hypercore/snapshot_schedule_module.html>`_.
