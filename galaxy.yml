@@ -27,6 +27,7 @@ build_ignore:
   - docs.requirements
   - sanity.requirements
   - test.requirements
+  - mypy.requirements
   - Makefile
   # files used during local testing/building
   - ansible.cfg
