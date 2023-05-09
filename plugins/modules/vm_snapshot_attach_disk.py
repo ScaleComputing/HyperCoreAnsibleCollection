@@ -141,14 +141,14 @@ def attach_disk(
     # destination
     vm_name = module.params["vm_name"]
     vm_disk_type = module.params["vm_disk_type"].upper()
-    vm_disk_slot = module.params["vm_disk_slot"]
+    vm_disk_slot = int(module.params["vm_disk_slot"])
 
     # source
     source_snapshot_uuid = module.params["source_snapshot_uuid"]
     source_disk_type = module.params["source_disk_type"].upper()
-    source_disk_slot = module.params[
+    source_disk_slot = int(module.params[
         "source_disk_slot"
-    ]  # the higher the index, the newer the disk
+    ])  # the higher the index, the newer the disk
 
     # =============== IMPLEMENTATION ===================
     vm_snapshot_hypercore = VMSnapshot.get_snapshot_by_uuid(
@@ -183,7 +183,7 @@ def attach_disk(
             dict(before=before_block_device, after=None),
         )
 
-    source_disk_info = VMSnapshot.get_block_device(
+    source_disk_info = VMSnapshot.get_snapshot_block_device(
         vm_snapshot, slot=source_disk_slot, _type=source_disk_type
     )
 

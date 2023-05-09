@@ -188,10 +188,18 @@ class VMSnapshot(PayloadMapper):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, VMSnapshot):
             return NotImplemented
+
+        vm_sorted_block_devices = [dict(sorted(bd.items(), key=lambda item: item[0])) for bd in self.vm["block_devices"]]
+        other_sorted_block_devices = [dict(sorted(bd.items(), key=lambda item: item[0])) for bd in other.vm["block_devices"]]
+
+
         return all(
             (
                 self.snapshot_uuid == other.snapshot_uuid,
-                self.vm == other.vm,
+                self.vm["name"] == other.vm["name"],
+                self.vm["uuid"] == other.vm["uuid"],
+                self.vm["snapshot_serial_number"] == other.vm["snapshot_serial_number"],
+                vm_sorted_block_devices == other_sorted_block_devices,
                 self.device_snapshots == other.device_snapshots,
                 self.timestamp == other.timestamp,
                 self.label == other.label,
@@ -219,7 +227,7 @@ class VMSnapshot(PayloadMapper):
         return vm_snapshot
 
     @classmethod
-    def get_snapshots_by_query(  # will leave as is for now
+    def get_snapshots_by_query(
         cls,
         query: Dict[Any, Any],
         rest_client: RestClient,
@@ -286,17 +294,6 @@ class VMSnapshot(PayloadMapper):
         )
 
     @classmethod
-    def get_source_disk_info(
-        cls,
-        device_snapshots: List[Dict[Any, Any]],
-        disk_uuid: str,
-    ) -> Optional[Dict[Any, Any]]:
-        for device_snapshot in device_snapshots:
-            if device_snapshot["uuid"] == disk_uuid:
-                return device_snapshot
-        return None
-
-    @classmethod
     # Used to rename dict keys of a hypercore object that doesn't have an implemented class
     def hypercore_block_device_to_ansible(
         cls, _dict: Optional[Dict[Any, Any]]
@@ -314,7 +311,7 @@ class VMSnapshot(PayloadMapper):
 
             if new_key == "uuid":
                 new_key = "block_device_uuid"
-            elif new_key == "vir_domain_uuid":
+            if new_key == "vir_domain_uuid":
                 new_key = "vm_uuid"
 
             new_dict[new_key] = _dict[key]
@@ -335,7 +332,7 @@ class VMSnapshot(PayloadMapper):
 
     @classmethod
     def get_vm_disk_info(
-        cls, vm_uuid: str, slot: str, _type: str, rest_client: RestClient
+        cls, vm_uuid: str, slot: int, _type: str, rest_client: RestClient
     ) -> Optional[Dict[Any, Any]]:
         record_dict = rest_client.get_record(
             endpoint="/rest/v1/VirDomainBlockDevice",
@@ -348,17 +345,10 @@ class VMSnapshot(PayloadMapper):
         return cls.hypercore_block_device_to_ansible(record_dict)
 
     @classmethod
-    def get_source_disk_uuid(cls, vm_snapshot: Dict[Any, Any], disk_slot: str) -> Any:
-        for block_device in vm_snapshot["vm"]["block_devices"]:
-            if block_device["slot"] == disk_slot:
-                return block_device["uuid"]
-        return None
-
-    @classmethod
-    def get_block_device(
+    def get_snapshot_block_device(
         cls,
         vm_snapshot: TypedVMSnapshotToAnsible,
-        slot: str,
+        slot: int,
         _type: str,
     ) -> Any:
         block_devices = vm_snapshot["vm"]["block_devices"][:]  # type: ignore
@@ -374,49 +364,6 @@ class VMSnapshot(PayloadMapper):
         if len(block_devices) == 0:
             return None
         return block_devices[0]
-
-    @classmethod
-    def get_device_snapshot(
-        cls,
-        vm_snapshot: TypedVMSnapshotToAnsible,
-        uuid: str,
-        slot: str,
-        type: str,
-    ) -> Optional[Dict[Any, Any]]:
-        new_device_snaps = vm_snapshot["device_snapshots"][:]  # type: ignore
-
-        # 1) filter by uuid
-        new_device_snaps = [
-            device_snap
-            for device_snap in new_device_snaps
-            if device_snap["uuid"] == uuid
-        ]
-
-        # 2) filter by slot
-        new_device_snaps = [
-            device_snap
-            for device_snap in new_device_snaps
-            if device_snap["slot"] == slot
-        ]
-
-        # 3) filter by type
-        new_device_snaps = [
-            device_snap
-            for device_snap in new_device_snaps
-            if device_snap["type"] == type
-        ]
-
-        if len(new_device_snaps) > 1:
-            raise errors.ScaleComputingError(
-                "There are too many device snapshots of the provided filter. There should be only one."
-            )
-        if len(new_device_snaps) == 0:
-            raise errors.ScaleComputingError(
-                "There are no device snapshots of the provided filter."
-            )
-        return new_device_snaps[
-            0
-        ]  # return the first element from list (there is only 1)
 
     @classmethod
     # Get VM UUID of a VM which does not have this snapshot

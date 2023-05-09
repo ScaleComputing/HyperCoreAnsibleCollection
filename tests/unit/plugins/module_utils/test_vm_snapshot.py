@@ -60,16 +60,16 @@ class TestVMSnapshot:
                     "slot": 0,
                     "tiering_priority_factor": 8,
                     "type": "VIRTIO_DISK",
-                    "uuid": "block-uuid-1"
+                    "uuid": "block-uuid-1",
                 },
             ]
         }
 
         self.device_snapshots = [
             {
-                "uuid": "block-uuid-1"
+                "uuid": "block-uuid-1",
             },
-        ],
+        ]
 
         self.vm_snapshot = VMSnapshot(
             snapshot_uuid="test",
@@ -86,27 +86,32 @@ class TestVMSnapshot:
         )
         self.from_hypercore_dict = dict(
             uuid=self.vm_snapshot.snapshot_uuid,
+            domainUUID=self.vm_snapshot.vm["uuid"],
             domain={
-                "name": self.vm_snapshot.vm.name,
-                "domainUUID": self.vm_snapshot.vm.uuid,
-                "snapshotSerialNumber": self.vm_snapshot.vm.snapshot_serial_number,
-                "blockDevs": {
-                    "cacheMode": "WRITETHROUGH",
-                    "capacity": 100,
-                    "disableSnapshotting": False,
-                    "readOnly": False,
-                    "slot": 0,
-                    "tieringPriorityFactor": 8,
-                    "type": "VIRTIO_DISK",
-                    "uuid": "block-uuid-1"
-                },
+                "name": self.vm_snapshot.vm["name"],
+                "snapshotSerialNumber": self.vm_snapshot.vm["snapshot_serial_number"],
+                "blockDevs": [
+                    {
+                        "cacheMode": "WRITETHROUGH",
+                        "capacity": 100,
+                        "disableSnapshotting": False,
+                        "readOnly": False,
+                        "slot": 0,
+                        "tieringPriorityFactor": 8,
+                        "type": "VIRTIO_DISK",
+                        "uuid": "block-uuid-1",
+                    },
+                ],
             },
-            host="0.0.0.0",
-            port=42,
-            protocol=HYPERCORE_PROTOCOL_TCP,
-            resendDelay=123,
-            silentPeriod=123,
-            latestTaskTag={},
+            deviceSnapshots=self.device_snapshots,
+            timestamp=self.vm_snapshot.timestamp,
+            label=self.vm_snapshot.label,
+            type=self.vm_snapshot.type,
+            automatedTriggerTimestamp=self.vm_snapshot.automated_trigger_timestamp,
+            localRetainUntilTimestamp=self.vm_snapshot.local_retain_until_timestamp,
+            remoteRetainUntilTimestamp=self.vm_snapshot.remote_retain_until_timestamp,
+            blockCountDiffFromSerialNumber=self.vm_snapshot.block_count_diff_from_serial_number,
+            replication=self.vm_snapshot.replication,
         )
         self.to_hypercore_dict = dict(
             snapshot_uuid=self.vm_snapshot.snapshot_uuid,
@@ -128,69 +133,140 @@ class TestVMSnapshot:
             replication=self.vm_snapshot.replication,
         )
 
+        self.block_device_hypercore = dict(
+            allocation=0,
+            uuid="new-block-uuid",
+            cacheMode="NONE",
+            capacity=100000595968,
+            createdTimestamp=0,
+            disableSnapshotting=False,
+            mountPoints=[],
+            name="",
+            path="scribe/new-block-uuid",
+            physical=0,
+            readOnly=False,
+            shareUUID="",
+            slot=21,
+            tieringPriorityFactor=8,
+            type="VIRTIO_DISK",
+            virDomainUUID="vm-uuid",
+        )
+
+        self.block_device_ansible = dict(
+            allocation=0,
+            block_device_uuid="new-block-uuid",
+            cache_mode="NONE",
+            capacity=100000595968,
+            created_timestamp=0,
+            disable_snapshotting=False,
+            mount_points=[],
+            name="",
+            path="scribe/new-block-uuid",
+            physical=0,
+            read_only=False,
+            share_uuid="",
+            slot=21,
+            tiering_priority_factor=8,
+            type="VIRTIO_DISK",
+            vm_uuid="vm-uuid",
+        )
+
     def test_vm_snapshot_to_hypercore(self):
         assert self.vm_snapshot.to_hypercore() == self.to_hypercore_dict
 
-    def test_syslog_server_from_hypercore_dict_not_empty(self):
-        syslog_server_from_hypercore = SyslogServer.from_hypercore(
+    def test_vm_snapshot_from_hypercore_dict_not_empty(self):
+        vm_snapshot_from_hypercore = VMSnapshot.from_hypercore(
             self.from_hypercore_dict
         )
-        assert self.syslog_server == syslog_server_from_hypercore
+        assert self.vm_snapshot == vm_snapshot_from_hypercore
 
-    def test_syslog_server_from_hypercore_dict_empty(self):
-        assert SyslogServer.from_hypercore([]) is None
+    def test_vm_snapshot_from_hypercore_dict_empty(self):
+        assert VMSnapshot.from_hypercore([]) is None
 
-    def test_syslog_server_to_ansible(self):
-        assert self.syslog_server.to_ansible() == self.ansible_dict
+    def test_vm_snapshot_to_ansible(self):
+        assert self.vm_snapshot.to_ansible() == self.ansible_dict
 
-    def test_syslog_server_from_ansible(self):
-        syslog_server_from_ansible = SyslogServer.from_ansible(self.ansible_dict)
-        assert syslog_server_from_ansible == SyslogServer(
-            uuid=syslog_server_from_ansible.uuid,
-            host=syslog_server_from_ansible.host,
-            port=syslog_server_from_ansible.port,
-            protocol=syslog_server_from_ansible.protocol,
+    def test_vm_snapshot_from_ansible(self):
+        vm_snapshot_from_ansible = VMSnapshot.from_ansible(self.ansible_dict)
+        assert vm_snapshot_from_ansible == VMSnapshot(
+            snapshot_uuid=vm_snapshot_from_ansible.snapshot_uuid,
+            vm=vm_snapshot_from_ansible.vm,
+            device_snapshots=vm_snapshot_from_ansible.device_snapshots,
+            label=vm_snapshot_from_ansible.label,
+            type=vm_snapshot_from_ansible.type,
         )
 
-    def test_get_by_uuid(self, rest_client):
+    def test_get_snapshot_by_uuid(self, rest_client):
         rest_client.get_record.return_value = dict(**self.from_hypercore_dict)
-        ansible_dict = dict(
-            uuid="test",
+        vm_snapshot_from_hypercore = VMSnapshot.get_snapshot_by_uuid(
+            snapshot_uuid="test",
+            rest_client=rest_client,
         )
-        syslog_server_from_hypercore = SyslogServer.get_by_uuid(
-            ansible_dict, rest_client
-        )
-        assert syslog_server_from_hypercore == self.syslog_server
+        assert vm_snapshot_from_hypercore == self.vm_snapshot
 
-    def test_get_state(self, rest_client):
-        rest_client.list_records.return_value = [
-            self.from_hypercore_dict,
-            self.from_hypercore_dict,
+    @pytest.mark.parametrize(
+        ("query",),
+        [
+            (dict(uuid="test",)),
+            (dict(domainUUID="vm-uuid",)),
+            (dict(label="snapshot",)),
+            (dict(type="USER",)),
         ]
+    )
+    def test_get_snapshots_by_query(self, rest_client, query):
+        rest_client.list_records.return_value = [
+            dict(**self.from_hypercore_dict)
+        ]
+        vm_snapshot_from_hypercore = VMSnapshot.get_snapshots_by_query(
+            query=query,
+            rest_client=rest_client,
+        )
+        assert vm_snapshot_from_hypercore == [self.ansible_dict]
 
-        expected = {
-            "uuid": "test",
-            "alert_tag_uuid": "0",
-            "host": "0.0.0.0",
-            "port": 42,
-            "protocol": ANSIBLE_PROTOCOL_TCP,
-            "resend_delay": 123,
-            "silent_period": 123,
-            "latest_task_tag": {},
-        }
-        result = SyslogServer.get_state(rest_client)
-        print(result)
+    # =============================
+    # "filter_snapshots_by_params" function is already being tested with integration tests... should I still make unit tests for it?
+    # =============================
 
-        assert result == [expected, expected]
+    def test_hypercore_block_device_to_ansible(self):
+        hypercore_block_device_to_ansible = VMSnapshot.hypercore_block_device_to_ansible(
+            self.block_device_hypercore
+        )
+        assert hypercore_block_device_to_ansible == self.block_device_ansible
 
-    def test_get_state_no_record(self, rest_client):
-        rest_client.list_records.return_value = []
+    def test_get_vm_disk_info_by_uuid(self, rest_client):
+        rest_client.get_record.return_value = dict(**self.block_device_hypercore)
+        vm_disk_info_from_hypercore = VMSnapshot.get_vm_disk_info_by_uuid(
+            block_device_uuid="new-block-uuid",
+            rest_client=rest_client,
+        )
+        assert vm_disk_info_from_hypercore == self.block_device_ansible
 
-        result = SyslogServer.get_state(rest_client)
-        assert result == []
+    def test_get_vm_disk_info(self, rest_client):
+        rest_client.get_record.return_value = dict(**self.block_device_hypercore)
+        vm_disk_info_from_hypercore = VMSnapshot.get_vm_disk_info(
+            vm_uuid="new-block-uuid",
+            slot=21,
+            _type="VIRTIO_DISK",
+            rest_client=rest_client,
+        )
+        assert vm_disk_info_from_hypercore == self.block_device_ansible
 
-    def test_get_by_host(self, rest_client):
-        rest_client.get_record.return_value = dict(**self.from_hypercore_dict)
+    def test_get_snapshot_block_device(self):
+        snapshot_block_device = VMSnapshot.get_snapshot_block_device(
+            vm_snapshot=self.ansible_dict,
+            slot=0,
+            _type="VIRTIO_DISK",
+        )
 
-        result = SyslogServer.get_by_host("0.0.0.0", rest_client)
-        assert result == self.syslog_server
+        assert snapshot_block_device == self.ansible_dict["vm"]["block_devices"][0]
+
+    def test_get_external_vm_uuid(self, rest_client):
+        rest_client.get_record.return_value = dict(
+            name="test-vir-domain",
+            uuid="test-vir-domain-uuid",
+        )
+        external_vm_uuid = VMSnapshot.get_external_vm_uuid(
+            vm_name="test-vir-domain",
+            rest_client=rest_client,
+        )
+        assert external_vm_uuid == "test-vir-domain-uuid"
