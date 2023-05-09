@@ -33,6 +33,7 @@ def list_plugins(module_type):
     }
     modules_dir = os.path.join("plugins", module_type_to_subdir[module_type])
     module_rel_paths = glob.glob(f"{modules_dir}/*.py")
+    module_rel_paths = sorted(module_rel_paths)
 
     # module_rel_paths = ['plugins/modules/cluster_info.py']
     fragment = ""
@@ -69,6 +70,7 @@ def list_roles():
     roles_dir = 'roles'
     role_names = os.listdir(roles_dir)
     role_names = [rn for rn in role_names if os.path.isdir(os.path.join(roles_dir, rn))]
+    role_names = sorted(role_names)
 
     fragment = ""
     for role_name in role_names:
