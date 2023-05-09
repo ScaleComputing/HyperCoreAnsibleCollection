@@ -192,7 +192,6 @@ class VMSnapshot(PayloadMapper):
         vm_sorted_block_devices = [dict(sorted(bd.items(), key=lambda item: item[0])) for bd in self.vm["block_devices"]]
         other_sorted_block_devices = [dict(sorted(bd.items(), key=lambda item: item[0])) for bd in other.vm["block_devices"]]
 
-
         return all(
             (
                 self.snapshot_uuid == other.snapshot_uuid,
@@ -315,9 +314,6 @@ class VMSnapshot(PayloadMapper):
                 new_key = "vm_uuid"
 
             new_dict[new_key] = _dict[key]
-
-        # print("new dict: ")
-        # print(new_dict)
         return new_dict
 
     @classmethod
