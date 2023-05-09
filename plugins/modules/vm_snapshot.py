@@ -128,7 +128,6 @@ record:
         uuid: 7c4f0fa5-868c-4d06-89d7-c5db7d142030
 """
 
-import datetime
 from ansible.module_utils.basic import AnsibleModule
 from typing import Tuple, Optional, List
 
@@ -142,19 +141,8 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.utils import is_changed
 from ..module_utils.state import State
 from ..module_utils.task_tag import TaskTag
-from ..module_utils.vm_snapshot import VMSnapshot as SnapShot
+from ..module_utils.vm_snapshot import VMSnapshot
 from ..module_utils.vm import VM
-
-
-def calculate_date(days: Optional[int]) -> Optional[datetime.date]:
-    if days is None or days == 0:
-        return None
-    return datetime.datetime.today() + datetime.timedelta(days=days)
-
-
-def check_parameters(module: AnsibleModule) -> AnsibleModule:
-    module.params["retain_for"] = calculate_date(module.params["retain_for"])
-    return module
 
 
 def ensure_present(
@@ -166,20 +154,18 @@ def ensure_present(
     before = snapshot_list[0] if snapshot_list and len(snapshot_list) > 0 else None
     after = None
 
-    module = check_parameters(module)
-
     # snapshot already exist, do nothing.
     if snapshot_list:
         return False, before, dict(before=before, after=before)
 
     # Create object and send create request.
-    snapshot_ansible_obj = SnapShot.from_ansible(module.params)
+    snapshot_ansible_obj = VMSnapshot.from_ansible(module.params)
     snapshot_ansible_obj.domain = vm_object
     task = snapshot_ansible_obj.send_create_request(rest_client)
     TaskTag.wait_task(rest_client, task)
 
     # Get after from API
-    after_list = SnapShot.get_snapshots_by_query(
+    after_list = VMSnapshot.get_snapshots_by_query(
         dict(label=module.params["label"], domainUUID=vm_object.uuid), rest_client
     )
     after = after_list[0] if after_list and len(after_list) > 0 else None
@@ -200,11 +186,13 @@ def ensure_absent(
         return False, before, dict(before=before, after=before)
 
     # Send delete request.
-    task = SnapShot.send_delete_request(rest_client, snapshot_list[0]["snapshot_uuid"])
+    task = VMSnapshot.send_delete_request(
+        rest_client, snapshot_list[0]["snapshot_uuid"]
+    )
     TaskTag.wait_task(rest_client, task)
 
     # Get after from API, check snapshot was deleted.
-    after_list = SnapShot.get_snapshots_by_query(
+    after_list = VMSnapshot.get_snapshots_by_query(
         dict(label=module.params["label"], domainUUID=vm_object.uuid), rest_client
     )
     after = after_list[0] if after_list and len(after_list) > 0 else None
@@ -215,7 +203,7 @@ def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Optional[TypedVMSnapshotToAnsible], TypedDiff]:
     vm_object: VM = VM.get_by_name(module.params, rest_client, must_exist=True)  # type: ignore
-    snapshot_list = SnapShot.get_snapshots_by_query(
+    snapshot_list = VMSnapshot.get_snapshots_by_query(
         dict(label=module.params["label"], domainUUID=vm_object.uuid), rest_client
     )
 
