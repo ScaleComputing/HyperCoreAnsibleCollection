@@ -71,7 +71,7 @@ class VMSnapshot(PayloadMapper):
         return None
 
     @staticmethod
-    def calculate_date(days: Optional[int]) -> Optional[datetime.date]:
+    def calculate_date(days: Optional[int]) -> Optional[float]:
         if days is None or days == 0:
             return None
         return VMSnapshot.convert_to_unix_timestamp(
@@ -80,7 +80,7 @@ class VMSnapshot(PayloadMapper):
 
     @classmethod
     def from_ansible(cls, ansible_data: TypedVMSnapshotFromAnsible) -> VMSnapshot:
-        retain_timestamp = cls.calculate_date(ansible_data["retain_for"])
+        retain_timestamp = cls.calculate_date(ansible_data["retain_for"]) # type: ignore
         return VMSnapshot(
             vm_name=ansible_data["vm_name"],
             label=ansible_data["label"],
