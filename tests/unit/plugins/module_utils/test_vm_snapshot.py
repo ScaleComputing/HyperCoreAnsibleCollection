@@ -62,7 +62,7 @@ class TestVMSnapshot:
                     "type": "VIRTIO_DISK",
                     "uuid": "block-uuid-1",
                 },
-            ]
+            ],
         }
 
         self.device_snapshots = [
@@ -175,9 +175,7 @@ class TestVMSnapshot:
         assert self.vm_snapshot.to_hypercore() == self.to_hypercore_dict
 
     def test_vm_snapshot_from_hypercore_dict_not_empty(self):
-        vm_snapshot_from_hypercore = VMSnapshot.from_hypercore(
-            self.from_hypercore_dict
-        )
+        vm_snapshot_from_hypercore = VMSnapshot.from_hypercore(self.from_hypercore_dict)
         assert self.vm_snapshot == vm_snapshot_from_hypercore
 
     def test_vm_snapshot_from_hypercore_dict_empty(self):
@@ -207,16 +205,30 @@ class TestVMSnapshot:
     @pytest.mark.parametrize(
         ("query",),
         [
-            (dict(uuid="test",)),
-            (dict(domainUUID="vm-uuid",)),
-            (dict(label="snapshot",)),
-            (dict(type="USER",)),
-        ]
+            (
+                dict(
+                    uuid="test",
+                )
+            ),
+            (
+                dict(
+                    domainUUID="vm-uuid",
+                )
+            ),
+            (
+                dict(
+                    label="snapshot",
+                )
+            ),
+            (
+                dict(
+                    type="USER",
+                )
+            ),
+        ],
     )
     def test_get_snapshots_by_query(self, rest_client, query):
-        rest_client.list_records.return_value = [
-            dict(**self.from_hypercore_dict)
-        ]
+        rest_client.list_records.return_value = [dict(**self.from_hypercore_dict)]
         vm_snapshot_from_hypercore = VMSnapshot.get_snapshots_by_query(
             query=query,
             rest_client=rest_client,
@@ -228,8 +240,8 @@ class TestVMSnapshot:
     # =============================
 
     def test_hypercore_block_device_to_ansible(self):
-        hypercore_block_device_to_ansible = VMSnapshot.hypercore_block_device_to_ansible(
-            self.block_device_hypercore
+        hypercore_block_device_to_ansible = (
+            VMSnapshot.hypercore_block_device_to_ansible(self.block_device_hypercore)
         )
         assert hypercore_block_device_to_ansible == self.block_device_ansible
 

@@ -189,8 +189,14 @@ class VMSnapshot(PayloadMapper):
         if not isinstance(other, VMSnapshot):
             return NotImplemented
 
-        vm_sorted_block_devices = [dict(sorted(bd.items(), key=lambda item: item[0])) for bd in self.vm["block_devices"]]
-        other_sorted_block_devices = [dict(sorted(bd.items(), key=lambda item: item[0])) for bd in other.vm["block_devices"]]
+        vm_sorted_block_devices = [
+            dict(sorted(bd.items(), key=lambda item: item[0]))  # type: ignore
+            for bd in self.vm["block_devices"]
+        ]
+        other_sorted_block_devices = [
+            dict(sorted(bd.items(), key=lambda item: item[0]))  # type: ignore
+            for bd in other.vm["block_devices"]
+        ]
 
         return all(
             (

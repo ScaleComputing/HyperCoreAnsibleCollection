@@ -127,8 +127,11 @@ from typing import Tuple, Dict, Any, Optional
 # TODO:
 #  - [x] fix code for mypy, sanity, etc.
 #  - [x] create integration tests for vm_snapshot_attach_disk
-#  - [ ] create unit tests for vm_snapshot modules
-#     - check if vm_snapshot_info already has unit tests (if not, add them)
+#  - [x] create unit tests for vm_snapshot modules
+#     - [x] check if vm_snapshot_info already has unit tests (if not, add them)
+#     - [x] create unit tests for module_utils/vm_snapshot
+#     - [x] create unit tests for modules/vm_snapshot_attach_disk
+#  - [ ] before attaching disk, make sure that the VM we are attaching to is not running (shut it down)!
 
 
 # ++++++++++++
@@ -146,9 +149,9 @@ def attach_disk(
     # source
     source_snapshot_uuid = module.params["source_snapshot_uuid"]
     source_disk_type = module.params["source_disk_type"].upper()
-    source_disk_slot = int(module.params[
-        "source_disk_slot"
-    ])  # the higher the index, the newer the disk
+    source_disk_slot = int(
+        module.params["source_disk_slot"]
+    )  # the higher the index, the newer the disk
 
     # =============== IMPLEMENTATION ===================
     vm_snapshot_hypercore = VMSnapshot.get_snapshot_by_uuid(
