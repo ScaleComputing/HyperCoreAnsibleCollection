@@ -244,6 +244,6 @@ class TypedVMSnapshotToAnsible(TypedDict):
 
 class TypedVMSnapshotFromAnsible(TypedDict):
     vm_name: Optional[str]
-    retain_for: Optional[datetime.date]
+    retain_for: Optional[int]
     label: Optional[str]
     replication: Optional[bool]

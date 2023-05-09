@@ -80,7 +80,7 @@ class VMSnapshot(PayloadMapper):
 
     @classmethod
     def from_ansible(cls, ansible_data: TypedVMSnapshotFromAnsible) -> VMSnapshot:
-        retain_timestamp = cls.calculate_date(ansible_data["retain_for"]) # type: ignore
+        retain_timestamp = cls.calculate_date(ansible_data["retain_for"])
         return VMSnapshot(
             vm_name=ansible_data["vm_name"],
             label=ansible_data["label"],
