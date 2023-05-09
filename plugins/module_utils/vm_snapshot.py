@@ -89,7 +89,7 @@ class VMSnapshot(PayloadMapper):
             local_retain_until_timestamp=retain_timestamp,
             remote_retain_until_timestamp=retain_timestamp,
             replication=ansible_data["replication"],
-            retain_for=ansible_data.get("retain_for")
+            retain_for=ansible_data.get("retain_for"),
         )
 
     @classmethod
