@@ -8,8 +8,10 @@
   vars:
     number_of_snapshot_testing_vms: 3
     non_unique_snapshot_label: not_unique
-    # unique snapshot labels are strings like: snap-x, where x is an iterative number
-    # -- snap-0 is the oldest snapshot, anything greater than 0, is a newer snapshot
+    # unique snapshot labels are strings like:
+    # snap-x, where x is an iterative number
+    # -- snap-0 is the oldest snapshot, anything
+    #    greater than 0, is a newer snapshot
 
   block:
     - include_tasks: 01_vm_snapshot_info.yml

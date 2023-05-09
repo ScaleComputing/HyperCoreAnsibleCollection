@@ -41,8 +41,6 @@ class TestCalculateDate:
         if result:  # If not None or 0 convert to date.
             result = date.fromtimestamp(result)
         assert result == expected_output
-HYPERCORE_PROTOCOL_TCP = "SYSLOG_PROTOCOL_TCP"
-ANSIBLE_PROTOCOL_TCP = "tcp"
 
 
 class TestVMSnapshot:

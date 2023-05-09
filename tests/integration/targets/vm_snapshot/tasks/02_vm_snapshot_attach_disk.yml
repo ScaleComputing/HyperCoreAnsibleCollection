@@ -1,6 +1,7 @@
 ---
 # ==============================
-# The VM to which we are trying to attach the snapshot disk to MUST NOT be running!
+# The VM to which we are trying to attach the
+# snapshot disk to MUST NOT be running!
 # ==============================
 - name: Test vm_snapshot_attach_disk
 
@@ -11,7 +12,8 @@
     vm_2: snapshot-test-vm-3 # test-snapshot_attach_disk-ana-2
     slot_a: 42  # later set to 0
     slot_b: 43  # later set to 1
-    slot_c: -1  # I've seen this option for the slot in the documentation for endpoint "rest/v1/VirDomainBlockDevice/{uuid}/clone"
+    slot_c: -1  # I've seen this option for the slot in the
+    # documentation for endpoint "rest/v1/VirDomainBlockDevice/{uuid}/clone"
 
   block:
     - include_tasks: helper_api_vm_snapshot_create.yml
@@ -42,12 +44,14 @@
     # ++++++++++++ Test attach snapshot disk from one VM to another +++++++++++
     # --------- Test VIRTIO_DISK to VIRTIO_DISK ---------
 
-    - name: Attach "snap-0" from VM "{{ vm_1 }}" to VM "{{ vm_2 }}" - as VIRTIO_DISK
+    - name: >-
+        Attach "snap-0" from VM "{{ vm_1 }}" to VM "{{ vm_2 }}" - as VIRTIO_DISK
       scale_computing.hypercore.vm_snapshot_attach_disk:
         vm_name: "{{ vm_2 }}"
         vm_disk_type: virtio_disk
         vm_disk_slot: "{{ slot_a }}"
-        source_snapshot_uuid: "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_snapshot_uuid: |
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
       register: result
@@ -62,12 +66,15 @@
           - result.record.slot == slot_a
           - result.record.vm_uuid == vm_2_info.records[0].uuid
 
-    - name: IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}" to VM "{{ vm_2 }}" - as VIRTIO_DISK
+    - name: >-
+        IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}"
+        to VM "{{ vm_2 }}" - as VIRTIO_DISK
       scale_computing.hypercore.vm_snapshot_attach_disk:
         vm_name: "{{ vm_2 }}"
         vm_disk_type: virtio_disk
         vm_disk_slot: "{{ slot_a }}"
-        source_snapshot_uuid: "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_snapshot_uuid: |
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
       register: result
@@ -79,12 +86,15 @@
     - ansible.builtin.assert: *test-virtio
 
 #    # --------- Test VIRTIO_DISK to SOME_OTHER_TYPE_OF_DISK ---------
-    - name: Attach "snap-0" from VM "{{ vm_1 }}" to VM "{{ vm_2 }}" - as NOT VIRTIO_DISK
+    - name: >-
+        Attach "snap-0" from VM "{{ vm_1 }}" to
+        VM "{{ vm_2 }}" - as NOT VIRTIO_DISK
       scale_computing.hypercore.vm_snapshot_attach_disk:
         vm_name: "{{ vm_2 }}"
         vm_disk_type: ide_disk
         vm_disk_slot: "{{ slot_b }}"
-        source_snapshot_uuid: "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_snapshot_uuid: |
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
       register: result
@@ -99,12 +109,15 @@
           - result.record.slot == slot_b
           - result.record.vm_uuid == vm_2_info.records[0].uuid
 
-    - name: IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}" to VM "{{ vm_2 }}" - as NOT VIRTIO_DISK
+    - name: >-
+        IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}"
+        to VM "{{ vm_2 }}" - as NOT VIRTIO_DISK
       scale_computing.hypercore.vm_snapshot_attach_disk:
         vm_name: "{{ vm_2 }}"
         vm_disk_type: ide_disk
         vm_disk_slot: "{{ slot_b }}"
-        source_snapshot_uuid: "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_snapshot_uuid: |
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
       register: result
@@ -117,12 +130,15 @@
 
     # ++++++++++++ Test attach snapshot disk from a VM to itself +++++++++++++
 
-    - name: Attach "snap-0" from VM "{{ vm_1 }}" to VM "{{ vm_1 }}" - as VIRTIO_DISK
+    - name: >-
+        Attach "snap-0" from VM "{{ vm_1 }}"
+        to VM "{{ vm_1 }}" - as VIRTIO_DISK
       scale_computing.hypercore.vm_snapshot_attach_disk:
         vm_name: "{{ vm_1 }}"
         vm_disk_type: virtio_disk
         vm_disk_slot: "{{ slot_a }}"
-        source_snapshot_uuid: "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_snapshot_uuid: |
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
       register: result
@@ -137,12 +153,15 @@
           - result.record.slot == slot_a
           - result.record.vm_uuid == vm_1_info.records[0].uuid
 
-    - name: IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}" to VM "{{ vm_1 }}" - as VIRTIO_DISK
+    - name: >-
+        IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}"
+        to VM "{{ vm_1 }}" - as VIRTIO_DISK
       scale_computing.hypercore.vm_snapshot_attach_disk:
         vm_name: "{{ vm_1 }}"
         vm_disk_type: virtio_disk
         vm_disk_slot: "{{ slot_a }}"
-        source_snapshot_uuid: "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_snapshot_uuid: |
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
       register: result
