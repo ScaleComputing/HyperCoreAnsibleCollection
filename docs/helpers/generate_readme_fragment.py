@@ -18,7 +18,7 @@ logging.basicConfig(level=_loglevel)
 logger = logging.getLogger(__name__)
 
 # URL with uploaded docs/build/html content
-DOCS_URL = "https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs"
+DOCS_URL = "https://scalecomputing.github.io/HyperCoreAnsibleCollection"
 FQCN = "scale_computing.hypercore"
 
 
@@ -55,9 +55,9 @@ def list_plugins(module_type):
             assert module_name == documentation["name"]
 
         # old docs, modules are at https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs/modules/api.html
-        http_link = f"{DOCS_URL}/modules/{module_name}.html"
-        # new docs, modules will be at https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs/collections/scale_computing/hypercore/api_module.html
-        # http_link = f"{DOCS_URL}/collections/{FQCN.replace('.', '/')}/{module_name}_{module_type}.html"
+        # http_link = f"{DOCS_URL}/modules/{module_name}.html"
+        # new docs, modules will be at https://scalecomputing.github.io/HyperCoreAnsibleCollection/collections/scale_computing/hypercore/api_module.html
+        http_link = f"{DOCS_URL}/collections/{FQCN.replace('.', '/')}/{module_name}_{module_type}.html"
 
         fragment += f"| [{FQCN}.{module_name}]({http_link}) | {documentation['short_description']}  |\n"
 
@@ -85,9 +85,9 @@ def list_roles():
             short_description = f"Role {role_name}"
 
         # old docs, roles were not included at all
-        http_link = f"{DOCS_URL}"
-        # new docs, roles will be athttps://scalecomputing.github.io/HyperCoreAnsibleCollection-docs/collections/scale_computing/hypercore/cluster_config_role.html  # noqa: E501
-        # http_link = f"{DOCS_URL}/collections/{FQCN.replace('.', '/')}/{role_name}_role.html"
+        # http_link = f"{DOCS_URL}"
+        # new docs, roles will be at https://scalecomputing.github.io/HyperCoreAnsibleCollection/collections/scale_computing/hypercore/cluster_config_role.html  # noqa: E501
+        http_link = f"{DOCS_URL}/collections/{FQCN.replace('.', '/')}/{role_name}_role.html"
         fragment += f"| [{FQCN}.{role_name}]({http_link}) | {short_description}  |\n"
 
     return fragment
