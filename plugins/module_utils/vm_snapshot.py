@@ -37,6 +37,7 @@ class VMSnapshot(PayloadMapper):
         automated_trigger_timestamp: Optional[int] = None,
         local_retain_until_timestamp: Optional[float] = None,
         remote_retain_until_timestamp: Optional[float] = None,
+        retain_for: Optional[int] = None,
         block_count_diff_from_serial_number: Optional[int] = None,
         replication: Optional[bool] = True,
     ):
@@ -50,6 +51,7 @@ class VMSnapshot(PayloadMapper):
         self.automated_trigger_timestamp = automated_trigger_timestamp
         self.local_retain_until_timestamp = local_retain_until_timestamp
         self.remote_retain_until_timestamp = remote_retain_until_timestamp
+        self.retain_for = retain_for
         self.block_count_diff_from_serial_number = block_count_diff_from_serial_number
         self.replication = replication
 
@@ -80,13 +82,14 @@ class VMSnapshot(PayloadMapper):
 
     @classmethod
     def from_ansible(cls, ansible_data: TypedVMSnapshotFromAnsible) -> VMSnapshot:
-        retain_timestamp = cls.calculate_date(ansible_data["retain_for"])
-        return VMSnapshot(
+        retain_timestamp = cls.calculate_date(ansible_data.get("retain_for"))
+        return cls(
             vm_name=ansible_data["vm_name"],
             label=ansible_data["label"],
             local_retain_until_timestamp=retain_timestamp,
             remote_retain_until_timestamp=retain_timestamp,
             replication=ansible_data["replication"],
+            retain_for=ansible_data.get("retain_for")
         )
 
     @classmethod
