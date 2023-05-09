@@ -14,7 +14,7 @@ tags:
   - virtualization
 dependencies: {}
 repository: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
-documentation: https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs
+documentation: https://scalecomputing.github.io/HyperCoreAnsibleCollection
 homepage: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
 issues: https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues
 build_ignore:
