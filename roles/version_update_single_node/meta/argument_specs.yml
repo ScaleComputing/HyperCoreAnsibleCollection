@@ -4,6 +4,10 @@ argument_specs:
     short_description: Update single-node systems
     description:
       - Role version_update_single_node can be use to to update a single-node HyperCore system to a desired HyperCore version.
+      - Role performs following steps during version update -
+          shutdown all running VMs,
+          upgrade cluster,
+          start back VMs that were running before upgrade.
     options:
       scale_computing_hypercore_desired_version:
         description:
