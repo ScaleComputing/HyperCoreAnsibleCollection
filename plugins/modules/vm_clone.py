@@ -131,7 +131,7 @@ def get_snapshot(
     elif module.params["source_snapshot_label"]:
         snapshot_list = Snapshot.get_snapshots_by_query(
             dict(
-                label=module.params["snapshot_label"],
+                label=module.params["source_snapshot_label"],
                 domainUUID=virtual_machine_obj.uuid,
             ),
             rest_client,
