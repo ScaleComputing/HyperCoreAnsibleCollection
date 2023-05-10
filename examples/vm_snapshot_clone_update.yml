@@ -1,0 +1,77 @@
+---
+- name: Create VM
+  hosts: localhost # Do I need this??
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Create VM {{ vm_name }}
+      scale_computing.hypercore.vm:
+        vm_name: vm-focal-fossa
+        memory: "{{ '1 GB' | human_to_bytes }}"
+        vcpu: 2
+        disks:
+          - type: virtio_disk
+            disk_slot: 0
+            size: "{{ '10 GB' | human_to_bytes }}"
+        nics:
+          - type: virtio
+            vlan: 10
+        state: present
+        operating_system: os_other  # os_other or os_windows_server_2012
+        cloud_init:
+          meta_data: "{{ lookup('file', 'cloud-init-install-focal.yml') }}"
+      register: vm_created
+    - ansible.builtin.assert:
+        that:
+          - vm_created is succeeded
+          - vm_created is changed
+    
+    - name: Create vm-focal-fossa snapshot
+      scale_computing.hypercore.api:
+        action: post
+        endpoint: /rest/v1/VirDomainSnapshot
+        data:
+          domainUUID: "{{ vm_created.record.0.uuid }}"
+          label: snap-1
+      register: vm_created_snapshot
+    
+    - name: Wait for the snapshot
+      scale_computing.hypercore.task_wait:
+        task_tag: "{{ vm_created_snapshot.record }}"
+    
+    - name: Clone vm-focal-fossa snapshot into vm-focal-fossa-clone
+      scale_computing.hypercore.vm_clone:
+        vm_name: vm-focal-fossa-clone
+        source_vm_name: vm-focal-fossa  # latest snapshot will be cloned
+        # tags:
+        #   - new tag
+      register: vm_cloned
+    - ansible.builtin.assert:
+        that:
+          - vm_cloned is changed
+          - vm_cloned.msg == "Virtual machine - vm-focal-fossa - cloning complete to - vm-focal-fossa-clone."
+
+    - name: Upgrade the OS (apt-get dist-upgrade) # on which host? new host needs to be added?
+      ansible.builtin.apt:
+        upgrade: dist
+
+    # ansible_user                 = "ubuntu",
+    # ansible_ssh_private_key_file = "~/.ssh/id_rsa",
+    # ansible_python_interpreter   = "/usr/bin/python3",
+
+
+    # Use vm module output, syntax valid until release < 3.0.0
+    - name: Show VM {{ vm_name }} vCPU count - syntax valid until release < 3.0.0
+      ansible.builtin.debug:
+        msg: >-
+          VM {{ vm_name }} has {{ vm_result.record.0.vcpu }} vCPUs -
+          syntax valid until release < 3.0.0
+
+    # Use vm module output, new syntax, valid after release >= 3.0.0
+    - name: Show VM {{ vm_name }} vCPU count - syntax valid after release >= 3.0.0
+      ansible.builtin.debug:
+        msg: >-
+          VM {{ vm_name }} has {{ vm_result.record.vcpu }} vCPUs -
+          syntax valid after release >= 3.0.0
+      when: false  # 3.0.0 is not yet released
