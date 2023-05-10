@@ -1,4 +1,4 @@
 ---
 plugin: scale_computing.hypercore.hypercore
-look_for_ansible_enable: True
-look_for_ansible_disable: False
+look_for_ansible_enable: true
+look_for_ansible_disable: false

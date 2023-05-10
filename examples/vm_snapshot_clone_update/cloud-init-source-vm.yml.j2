@@ -12,7 +12,8 @@ autoinstall:
             size: 100M
     ssh:
         install-server: true
-        authorized-keys: ['ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE8SNzKoqj89P6Z9kiYEhgbDogY0Y7YXSS68W2B5b2u7 justin_cinkelj@jcnuc']
+        authorized-keys:
+          - {% include demo_ssh_key_path + ".pub" %}
         allow-pw: false
     user-data:
         hostname: mytestvm
@@ -27,7 +28,8 @@ autoinstall:
                 lock_passwd: false
                 primary_group: myuser
                 groups: 'adm, cdrom, sudo, dip, plugdev, netdev, lxd'
-                ssh_authorized_keys: ['ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE8SNzKoqj89P6Z9kiYEhgbDogY0Y7YXSS68W2B5b2u7 justin_cinkelj@jcnuc']
+                authorized-keys:
+                  - {% include demo_ssh_key_path + ".pub" %}
         ssh:
             disable_root: false
 

@@ -15,6 +15,7 @@
         tags:
           - demo
           - ansible_enable
+          - ansible_ssh_private_key_file__examples/vm_snapshot_clone_update/demo_ssh_key
         memory: "{{ '1 GB' | human_to_bytes }}"
         vcpu: 2
         disks:
@@ -35,8 +36,7 @@
         state: present
         operating_system: os_other  # os_other or os_windows_server_2012
         cloud_init:
-    #      user_data: "{{ lookup('template', 'cloud-init-source-vm.yml.j2') }}"
-          user_data: "{{ lookup('file', 'cloud-init-source-vm.yml') }}"
+          user_data: "{{ lookup('template', 'cloud-init-source-vm.yml.j2') }}"
 
     - name: Confirm Ubuntu ISO image autoinstall
       ansible.builtin.pause:
@@ -63,3 +63,6 @@
   until: source_vm_info.records.0.nics.0.ipv4_addresses
   retries: 60
   delay: 10
+
+- name: Refresh inventory
+  ansible.builtin.meta: refresh_inventory
