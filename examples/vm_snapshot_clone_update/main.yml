@@ -1,4 +1,6 @@
 ---
+# Run as:
+#
 - name: Create VM
   hosts: localhost # Do I need this??
   connection: local
@@ -15,35 +17,22 @@
     # SSH key to create and use
     demo_ssh_key_path: demo_ssh_key
 
+    # image_url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+    iso_url: https://releases.ubuntu.com/20.04.4/ubuntu-20.04.4-live-server-amd64.iso
+    iso_filename: "{{ iso_url | split('/') | last }}"
+
   tasks:
     - name: Create SSH key
-      include_tasks: 01_create_ssh_key.yml
-#    - ansible.builtin.import_playbook: 02_create_vm.yml
-#    - ansible.builtin.import_playbook: 02_create_vm.yml
+      ansible.builtin.include_tasks: 01_create_ssh_key.yml
+    - name: Upload ISO image
+      ansible.builtin.include_tasks: 02_upload_iso.yml
+    - name: Create source VM
+      ansible.builtin.include_tasks: 03_create_source_vm.yml
+
     - meta: end_play
 
-    - name: Create VM {{ vm_name }}
-      scale_computing.hypercore.vm:
-        vm_name: vm-focal-fossa
-        memory: "{{ '1 GB' | human_to_bytes }}"
-        vcpu: 2
-        disks:
-          - type: virtio_disk
-            disk_slot: 0
-            size: "{{ '10 GB' | human_to_bytes }}"
-        nics:
-          - type: virtio
-            vlan: 10
-        state: present
-        operating_system: os_other  # os_other or os_windows_server_2012
-        cloud_init:
-          meta_data: "{{ lookup('file', 'cloud-init-install-focal.yml') }}"
-      register: vm_created
-    - ansible.builtin.assert:
-        that:
-          - vm_created is succeeded
-          - vm_created is changed
-    
+
+
     - name: Create vm-focal-fossa snapshot
       scale_computing.hypercore.api:
         action: post

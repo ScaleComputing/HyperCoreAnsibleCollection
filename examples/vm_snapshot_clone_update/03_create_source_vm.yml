@@ -1,0 +1,65 @@
+- name: List VM "{{ source_vm_name }}"
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ source_vm_name }}"
+  register: source_vm_info
+
+# Do not alter existing VM (descrption or other parameters)
+# We want to set those only if VM does not already exist.
+- name: Create new VM "{{ source_vm_name }}"
+  when: not source_vm_info.records
+  block:
+    - name: Create new VM "{{ source_vm_name }}"
+      scale_computing.hypercore.vm:
+        vm_name: "{{ source_vm_name }}"
+        description: "demo VM for testing upgrade on VM clone"
+        tags:
+          - demo
+          - ansible_enable
+        memory: "{{ '1 GB' | human_to_bytes }}"
+        vcpu: 2
+        disks:
+          - type: virtio_disk
+            disk_slot: 0
+            size: "{{ '10 GB' | human_to_bytes }}"
+          - type: ide_cdrom
+            disk_slot: 0
+            iso_name: "{{ iso_filename }}"
+        nics:
+          - type: virtio
+            vlan: 0
+        boot_devices:
+          - type: virtio_disk
+            disk_slot: 0
+          - type: ide_cdrom
+            iso_name: "{{ iso_filename }}"
+        state: present
+        operating_system: os_other  # os_other or os_windows_server_2012
+        cloud_init:
+    #      user_data: "{{ lookup('template', 'cloud-init-source-vm.yml.j2') }}"
+          user_data: "{{ lookup('file', 'cloud-init-source-vm.yml') }}"
+
+    - name: Confirm Ubuntu ISO image autoinstall
+      ansible.builtin.pause:
+        prompt: "Please confirm Ubuntu ISO image autoinstall - answer 'yes' in VM console"
+
+    # poweroff in cloud-init is used to signal installation is done
+    - name: Wait until VM finishes autoinstall
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ source_vm_name }}"
+      register: source_vm_info
+      until: source_vm_info.records.0.power_state == 'stopped'
+      retries: 60
+      delay: 10
+
+- name: Power on the VM
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ source_vm_name }}"
+    power_state: start
+
+- name: Wait until VM reports its IP address
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ source_vm_name }}"
+  register: source_vm_info
+  until: source_vm_info.records.0.nics.0.ipv4_addresses
+  retries: 60
+  delay: 10
