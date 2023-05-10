@@ -1,6 +1,6 @@
 - name: Get source VM info
   scale_computing.hypercore.vm_info:
-    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
   register: vm_created_info
 - ansible.builtin.assert:
     that:
@@ -28,7 +28,7 @@
 
 - name: Get snapshot info - test1
   scale_computing.hypercore.vm_snapshot_info:
-    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     label: test1
   register: snapshot_info
 - ansible.builtin.assert:
@@ -38,12 +38,12 @@
       - snapshot_info.records | length == 1
       - snapshot_info.records.0.type == "USER"
       - snapshot_info.records.0.label == "test1"
-      - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot"
+      - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
 
 # ----------------------------------------------------------------------------------
 - name: Alter source VM - number of VCPU
   scale_computing.hypercore.vm_params: # Using params instead of API ... too much work with URL
-    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     vcpu: 3
   register: updated_vm
 - ansible.builtin.assert:
@@ -53,7 +53,7 @@
 
 - name: Alter source VM - number of disks # Using params instead of API ... too much work with URL
   scale_computing.hypercore.vm_disk:
-    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     items:
       - disk_slot: 1
         type: virtio_disk
@@ -67,14 +67,14 @@
 
 - name: Assert source VM was changed
   scale_computing.hypercore.vm_info:
-    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
   register: vm_created_info
 - ansible.builtin.assert:
     that:
       - vm_created_info is succeeded
       - vm_created_info is not changed
       - vm_created_info.records | length == 1
-      - vm_created_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot"
+      - vm_created_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
       - vm_created_info.records.0.vcpu == 3
       - vm_created_info.records.0.disks | length == 2
 
@@ -98,7 +98,7 @@
 
 - name: Get snapshot info - test2
   scale_computing.hypercore.vm_snapshot_info:
-    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     label: test2
   register: snapshot_info
 - ansible.builtin.assert:
@@ -108,19 +108,19 @@
       - snapshot_info.records | length == 1
       - snapshot_info.records.0.type == "USER"
       - snapshot_info.records.0.label == "test2"
-      - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot"
+      - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
 
 # ----------------------------------------------------------------------------------
-- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot using test1 snapshot
+- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test1 snapshot
   scale_computing.hypercore.vm_clone:
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone
-    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot
+    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     snapshot_label: test1
   register: output
 - ansible.builtin.assert:
     that:
       - output is changed
-      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone."
+      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot-source - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone."
 
 - name: Assert that cloning was successful
   scale_computing.hypercore.vm_info:
@@ -138,16 +138,16 @@
       - vm_clone_info.records.0.vcpu == 2
       - vm_clone_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-clone"
 
-- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot using test2 snapshot
+- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test2 snapshot
   scale_computing.hypercore.vm_clone:
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-2
-    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot
+    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     snapshot_label: test2
   register: output
 - ansible.builtin.assert:
     that:
       - output is changed
-      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone-2."
+      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot-source - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone-2."
 
 - name: Assert that cloning was successful and clones differ
   scale_computing.hypercore.vm_info:
