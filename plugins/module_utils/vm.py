@@ -589,7 +589,7 @@ class VM(PayloadMapper):
             # We omit snapUUID from clone API payload, and HC3 will
             # first automatically create a snaphost,
             # then clone the snapshot into a new VM.
-            source_snapshot_uuid = ansible_dict["snapshot_label"]
+            source_snapshot_uuid = ansible_dict.get("hypercore_snapshot_uuid")
         data = VM.create_clone_vm_payload(
             ansible_dict["vm_name"],
             ansible_dict["tags"],

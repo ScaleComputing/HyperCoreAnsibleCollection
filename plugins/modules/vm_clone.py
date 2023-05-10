@@ -46,8 +46,12 @@ options:
     type: bool
     default: false
     version_added: 1.3.0
-  snapshot_label:
-    description: Allows cloning VM from a specific snapshot.
+  source_snapshot_label:
+    description: Allows cloning VM from a specific snapshot using snapshot label.
+    type: str
+    version_added: 1.3.0
+  source_snapshot_uuid:
+    description: Allows cloning VM from a specific snapshot using snapshot uuid.
     type: str
     version_added: 1.3.0
 notes:
@@ -90,11 +94,41 @@ from ..module_utils.vm_snapshot import VMSnapshot as Snapshot
 from ..module_utils.task_tag import TaskTag
 
 
+# Check snapshot list, raise error if necessary.
+def check_snapshot_list(module: AnsibleModule, snapshot_list: list) -> None:
+    # No snapshot was found, raise error.
+    if not snapshot_list or not snapshot_list[0].get("snapshot_uuid"):
+        if module.params["source_snapshot_label"]:
+            raise errors.ScaleComputingError(
+                f"Snapshot with label - {module.params['source_snapshot_label']} - not found."
+            )
+        else:
+            raise errors.ScaleComputingError(
+                f"Snapshot with uuid - {module.params['source_snapshot_uuid']} - not found."
+            )
+
+    # More than one snapshot was found, raise error.
+    if snapshot_list and len(snapshot_list) > 1:
+        raise errors.ScaleComputingError(
+            "More than one snapshot exist with these parameters, please specify source_snapshot_uuid."
+        )
+
+
 def get_snapshot(
     module: AnsibleModule, rest_client: RestClient, virtual_machine_obj: VM
 ) -> AnsibleModule:
+    snapshot_list = []
+    # Get snapshot from uuid.
+    if module.params["source_snapshot_uuid"]:
+        snapshot_list = Snapshot.get_snapshots_by_query(
+            dict(
+                uuid=module.params["source_snapshot_uuid"],
+                domainUUID=virtual_machine_obj.uuid,
+            ),
+            rest_client,
+        )
     # Get snapshot from label.
-    if module.params["snapshot_label"]:
+    elif module.params["source_snapshot_label"]:
         snapshot_list = Snapshot.get_snapshots_by_query(
             dict(
                 label=module.params["snapshot_label"],
@@ -102,11 +136,12 @@ def get_snapshot(
             ),
             rest_client,
         )
-        if not snapshot_list or not snapshot_list[0].get("snapshot_uuid"):
-            raise errors.ScaleComputingError(
-                f"Snapshot with label - {module.params['snapshot_label']} - not found."
-            )
-        module.params["snapshot_label"] = snapshot_list[0]["snapshot_uuid"]
+    # Check list, raise error if necessary
+    check_snapshot_list(module, snapshot_list)
+    # Snapshot should be unique at this point
+    # Create new key in module.params "hypercore_snapshot_uuid"
+    # This key is used in payload function later on.
+    module.params["hypercore_snapshot_uuid"] = snapshot_list[0]["snapshot_uuid"]
     return module
 
 
@@ -123,7 +158,8 @@ def run(module, rest_client):
         query={"name": module.params["source_vm_name"]}, rest_client=rest_client
     )[0]
 
-    module = get_snapshot(module, rest_client, virtual_machine_obj)
+    if module.params["source_snapshot_label"] or module.params["source_snapshot_uuid"]:
+        module = get_snapshot(module, rest_client, virtual_machine_obj)
 
     # Clone and wait for task to finish.
     task = virtual_machine_obj.clone_vm(rest_client, module.params)
@@ -168,10 +204,14 @@ def main():
                 default=False,
                 required=False,
             ),
-            snapshot_label=dict(
+            source_snapshot_label=dict(
+                type="str",
+            ),
+            source_snapshot_uuid=dict(
                 type="str",
             ),
         ),
+        mutually_exclusive=[("source_snapshot_label", "source_snapshot_uuid")],
     )
 
     try:
