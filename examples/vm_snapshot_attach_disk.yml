@@ -1,0 +1,23 @@
+---
+- name: Attack disk from a source snapshot to a destination VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_name: demo-vm
+    vm_disk_type: ide_disk
+    source_snapshot_uuid: 116d51cc-ec25-4628-a092-86de42699aac
+    source_disk_type: virtio_disk
+
+  tasks:
+    - name: Attach a disk from a VM Snapshot to a VM
+      scale_computing.hypercore.vm_snapshot_attach_disk:
+        # destination VM
+        vm_name: "{{ vm_name }}"
+        vm_disk_type: "{{ vm_disk_type }}"
+        vm_disk_slot: 42
+
+        # source snapshot disk
+        source_snapshot_uuid: "{{ source_snapshot_uuid }}"
+        source_disk_type: "{{ source_disk_type }}"
+        source_disk_slot: 1
