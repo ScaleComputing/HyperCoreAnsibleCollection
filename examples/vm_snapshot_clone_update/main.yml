@@ -3,8 +3,25 @@
   hosts: localhost # Do I need this??
   connection: local
   gather_facts: false
+  vars:
+    # VM to create, install nginx and "deploy" a simple static web page.
+    source_vm_name: demo-snapshot-source
+    # VM snapshot with label source_snapshot_label will be craete from VM source_vm_name.
+    source_snapshot_label: demo-snapshot-label-0
+    # Old snapshot with same label will be removed, and new one created.
+    source_snapshot_force_recreate: True
+    # A VM with name cloned_vm_name will be created from source_snapshot_label.
+    cloned_vm_name: demo-snapshot-clone
+    # SSH key to create and use
+    demo_ssh_key_path: demo_ssh_key
 
   tasks:
+    - name: Create SSH key
+      include_tasks: 01_create_ssh_key.yml
+#    - ansible.builtin.import_playbook: 02_create_vm.yml
+#    - ansible.builtin.import_playbook: 02_create_vm.yml
+    - meta: end_play
+
     - name: Create VM {{ vm_name }}
       scale_computing.hypercore.vm:
         vm_name: vm-focal-fossa
