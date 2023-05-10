@@ -10,6 +10,7 @@ from __future__ import annotations
 __metaclass__ = type
 
 from typing import TypedDict, Union, Any, Optional
+import datetime
 
 
 # Typed Classes use for Python hints.
@@ -134,6 +135,7 @@ class TypedDiff(TypedDict):
         TypedSyslogServerToAnsible,
         TypedUpdateToAnsible,
         TypedVirtualDiskToAnsible,
+        TypedVMSnapshotToAnsible,
         TypedDiskToAnsible,
         None,
         dict[None, None],
@@ -147,6 +149,7 @@ class TypedDiff(TypedDict):
         TypedCertificateToAnsible,
         TypedSyslogServerToAnsible,
         TypedVirtualDiskToAnsible,
+        TypedVMSnapshotToAnsible,
         TypedDiskToAnsible,
         None,
         dict[None, None],
@@ -235,17 +238,17 @@ class TypedVMSnapshotToAnsible(TypedDict):
     type: Optional[str]
     timestamp: Optional[int]
     automated_trigger_timestamp: Optional[int]
-    local_retain_until_timestamp: Optional[int]
-    remote_retain_until_timestamp: Optional[int]
+    local_retain_until_timestamp: Optional[datetime.date]
+    remote_retain_until_timestamp: Optional[datetime.date]
     block_count_diff_from_serial_number: Optional[int]
     replication: Optional[bool]
 
 
 class TypedVMSnapshotFromAnsible(TypedDict):
-    snapshot_uuid: Optional[str]
-    vm: Optional[dict[Any, Any]]
-    snapshot_serial_number: Optional[int]
+    vm_name: Optional[str]
+    retain_for: Optional[int]
     label: Optional[str]
+    replication: Optional[bool]
     type: Optional[str]
 
 
