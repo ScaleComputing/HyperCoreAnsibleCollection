@@ -1,0 +1,43 @@
+#cloud-config
+# For Ubuntu 20.04.4 LTS server ISO image
+# https://releases.ubuntu.com/20.04.4/ubuntu-20.04.4-live-server-amd64.iso
+autoinstall:
+    version: 1
+    locale: en_US
+    storage:
+        layout:
+            name: lvm
+        swap:
+            filename: /swap.img
+            size: 100M
+    ssh:
+        install-server: true
+        authorized-keys: ['ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE8SNzKoqj89P6Z9kiYEhgbDogY0Y7YXSS68W2B5b2u7 justin_cinkelj@jcnuc']
+        allow-pw: false
+    user-data:
+        hostname: mytestvm
+        disable_root: false
+        users:
+            -
+                name: myuser
+                # myuserp password
+                passwd: >-
+                    $6$.igLISmqzw4hTyS4$4zAx6zWl5FnD3s8YSmn/UOvo0QDg6GuHJcmiB7EYwnbDn9SgZxvmyDeWN4WY6LRFDdChExALqyGfiPHmK1w.j/
+                shell: /bin/bash
+                lock_passwd: false
+                primary_group: myuser
+                groups: 'adm, cdrom, sudo, dip, plugdev, netdev, lxd'
+                ssh_authorized_keys: ['ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIE8SNzKoqj89P6Z9kiYEhgbDogY0Y7YXSS68W2B5b2u7 justin_cinkelj@jcnuc']
+        ssh:
+            disable_root: false
+
+    updates: security
+    packages:
+        - qemu-guest-agent
+        - vim
+        - nginx
+    early-commands: []
+    late-commands:
+        # rootp password
+        - sed -i 's|^root:\*:|root:\$6\$2NMUxRBiMjQg.iwJ\$eyTXnMseF.N5a62F6rZnKJVGd72HPW6F.KGcq9oFNz7fvMzV5FOvYPkxf..hGxRChhS9CkICOdWSvV.Ldmq871:|' /target/etc/shadow
+        - poweroff
