@@ -1,0 +1,3 @@
+- name: Create OpenSSH keypair
+  community.crypto.openssh_keypair:
+    path: "{{ demo_ssh_key_path }}"
