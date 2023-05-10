@@ -1,26 +1,13 @@
 ---
 # Run as:
-#
+# ansible-playbook -i examples/vm_snapshot_clone_update/inventory.yml -e @examples/vm_snapshot_clone_update/vars.yml examples/vm_snapshot_clone_update/main.yml
 - name: Create VM
   hosts: localhost # Do I need this??
   connection: local
   gather_facts: false
   vars:
-    # VM to create, install nginx and "deploy" a simple static web page.
-    source_vm_name: demo-snapshot-source
-    # VM snapshot with label source_snapshot_label will be craete from VM source_vm_name.
-    source_snapshot_label: demo-snapshot-label-0
-    # Old snapshot with same label will be removed, and new one created.
-    source_snapshot_force_recreate: True
-    # A VM with name cloned_vm_name will be created from source_snapshot_label.
-    cloned_vm_name: demo-snapshot-clone
-    # SSH key to create and use
-    demo_ssh_key_path: demo_ssh_key
-
-    # image_url: https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
     iso_url: https://releases.ubuntu.com/20.04.4/ubuntu-20.04.4-live-server-amd64.iso
     iso_filename: "{{ iso_url | split('/') | last }}"
-
   tasks:
     - name: Create SSH key
       ansible.builtin.include_tasks: 01_create_ssh_key.yml
@@ -29,9 +16,15 @@
     - name: Create source VM
       ansible.builtin.include_tasks: 03_create_source_vm.yml
 
+- name: Inject data into VM
+  hosts: "{{ source_vm_name }}"
+  tasks:
+    - name: Setup source VM
+      ansible.builtin.include_tasks: 04_setup_source_vm.yml
+
     - meta: end_play
 
-
+# --------------------------------------------------------------
 
     - name: Create vm-focal-fossa snapshot
       scale_computing.hypercore.api:
@@ -41,11 +34,11 @@
           domainUUID: "{{ vm_created.record.0.uuid }}"
           label: snap-1
       register: vm_created_snapshot
-    
+
     - name: Wait for the snapshot
       scale_computing.hypercore.task_wait:
         task_tag: "{{ vm_created_snapshot.record }}"
-    
+
     - name: Clone vm-focal-fossa snapshot into vm-focal-fossa-clone
       scale_computing.hypercore.vm_clone:
         vm_name: vm-focal-fossa-clone
