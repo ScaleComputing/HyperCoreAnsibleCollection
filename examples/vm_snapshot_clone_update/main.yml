@@ -37,8 +37,8 @@
       scale_computing.hypercore.vm_clone:
         vm_name: vm-focal-fossa-clone
         source_vm_name: vm-focal-fossa  # latest snapshot will be cloned
-        # tags:
-        #   - new tag
+        tags:
+          - ansible_enable
       register: vm_cloned
     - ansible.builtin.assert:
         that:
@@ -48,7 +48,7 @@
     - name: Retrieve vm_cloned
       scale_computing.hypercore.vm_info:
         vm_name: vm_cloned
-      register: result # this has no ip, what to add to inventory?
+      register: result
 
     # - name: Upgrade the OS (apt-get dist-upgrade) # on which host? new host needs to be added?
     #   ansible.builtin.apt:
@@ -57,19 +57,3 @@
     # ansible_user                 = "ubuntu",
     # ansible_ssh_private_key_file = "~/.ssh/id_rsa",
     # ansible_python_interpreter   = "/usr/bin/python3",
-
-
-    # Use vm module output, syntax valid until release < 3.0.0
-    - name: Show VM {{ vm_name }} vCPU count - syntax valid until release < 3.0.0
-      ansible.builtin.debug:
-        msg: >-
-          VM {{ vm_name }} has {{ vm_result.record.0.vcpu }} vCPUs -
-          syntax valid until release < 3.0.0
-
-    # Use vm module output, new syntax, valid after release >= 3.0.0
-    - name: Show VM {{ vm_name }} vCPU count - syntax valid after release >= 3.0.0
-      ansible.builtin.debug:
-        msg: >-
-          VM {{ vm_name }} has {{ vm_result.record.vcpu }} vCPUs -
-          syntax valid after release >= 3.0.0
-      when: false  # 3.0.0 is not yet released
