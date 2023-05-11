@@ -2,7 +2,7 @@
 # Run as:
 # ansible-playbook -i examples/vm_snapshot_clone_update/inventory.yml -e @examples/vm_snapshot_clone_update/vars.yml examples/vm_snapshot_clone_update/main.yml
 - name: Create VM
-  hosts: localhost # Do I need this??
+  hosts: localhost
   connection: local
   gather_facts: false
   vars:
@@ -15,45 +15,23 @@
       ansible.builtin.include_tasks: 02_upload_iso.yml
     - name: Create source VM
       ansible.builtin.include_tasks: 03_create_source_vm.yml
+    - name: Create clone from source VM
+      ansible.builtin.include_tasks: 04_clone_from_source.yml
 
+- name: Upgrade OS on cloned vm
+  hosts: "{{ cloned_vm_name }}"
+  # become: true
+  gather_facts: false
+
+  tasks:
+    - name: Upgrade the OS (apt-get dist-upgrade)
+      ansible.builtin.apt:
+        upgrade: dist
+  
 - name: Inject data into VM
-  hosts: "{{ source_vm_name }}"
+  hosts: "{{ cloned_vm_name }}"
   tasks:
     - name: Setup source VM
-      ansible.builtin.include_tasks: 04_setup_source_vm.yml
+      ansible.builtin.include_tasks: 05_setup_source_vm.yml
 
     - meta: end_play
-
-# --------------------------------------------------------------
-
-    - name: Create vm-focal-fossa snapshot
-      scale_computing.hypercore.vm_snapshot:
-        state: present
-        vm_name: "{{ vm_created.record.0.vm_name }}"
-        label: snap-1
-      register: vm_created_snapshot
-
-    - name: Clone vm-focal-fossa snapshot into vm-focal-fossa-clone
-      scale_computing.hypercore.vm_clone:
-        vm_name: vm-focal-fossa-clone
-        source_vm_name: vm-focal-fossa  # latest snapshot will be cloned
-        tags:
-          - ansible_enable
-      register: vm_cloned
-    - ansible.builtin.assert:
-        that:
-          - vm_cloned is changed
-          - vm_cloned.msg == "Virtual machine - vm-focal-fossa - cloning complete to - vm-focal-fossa-clone."
-
-    - name: Retrieve vm_cloned
-      scale_computing.hypercore.vm_info:
-        vm_name: vm_cloned
-      register: result
-
-    # - name: Upgrade the OS (apt-get dist-upgrade) # on which host? new host needs to be added?
-    #   ansible.builtin.apt:
-    #     upgrade: dist
-
-    # ansible_user                 = "ubuntu",
-    # ansible_ssh_private_key_file = "~/.ssh/id_rsa",
-    # ansible_python_interpreter   = "/usr/bin/python3",

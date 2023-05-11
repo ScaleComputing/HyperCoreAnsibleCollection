@@ -1,0 +1,35 @@
+- name: Create vm-focal-fossa snapshot
+  scale_computing.hypercore.vm_snapshot:
+    state: present
+    vm_name: "{{ source_vm_name }}"
+    label: "{{ source_snapshot_label }}"
+  register: vm_created_snapshot
+
+- name: Clone vm-focal-fossa snapshot into vm-focal-fossa-clone
+  scale_computing.hypercore.vm_clone:
+    vm_name: "{{ cloned_vm_name }}"
+    source_vm_name: "{{ source_vm_name }}"  # latest snapshot will be cloned
+    tags:
+      - ansible_enable
+      - ansible_ssh_private_key_file__examples/vm_snapshot_clone_update/"{{ demo_ssh_key_path }}"
+  register: vm_cloned
+- ansible.builtin.assert:
+    that:
+      - vm_cloned is changed
+      - vm_cloned.msg == 'Virtual machine - "{{ source_vm_name }}" - cloning complete to - "{{ cloned_vm_name }}"'.
+
+- name: Power on the VM
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ cloned_vm_name }}"
+    power_state: start
+
+- name: Wait until VM reports its IP address
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ cloned_vm_name }}"
+  register: cloned_vm_info
+  until: cloned_vm_info.records.0.nics.0.ipv4_addresses
+  retries: 60
+  delay: 10
+
+- name: Refresh inventory
+  ansible.builtin.meta: refresh_inventory
