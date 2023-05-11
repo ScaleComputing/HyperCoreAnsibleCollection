@@ -8,12 +8,10 @@
   vars:
     vm_1_snapshot_label_0: ana-snap
     vm_1_snapshot_label: snap-0
-    vm_1: snapshot-test-vm-1 # test-snapshot_attach_disk-ana
-    vm_2: snapshot-test-vm-3 # test-snapshot_attach_disk-ana-2
-    slot_a: 42  # later set to 0
-    slot_b: 43  # later set to 1
-    slot_c: -1  # I've seen this option for the slot in the
-    # documentation for endpoint "rest/v1/VirDomainBlockDevice/{uuid}/clone"
+    vm_1: snapshot-test-vm-1
+    vm_2: snapshot-test-vm-3
+    slot_a: 42
+    slot_b: 43
 
   block:
     - include_tasks: helper_api_vm_snapshot_create.yml
@@ -50,7 +48,7 @@
         vm_name: "{{ vm_2 }}"
         vm_disk_type: virtio_disk
         vm_disk_slot: "{{ slot_a }}"
-        source_snapshot_uuid: |
+        source_snapshot_uuid:
           "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
@@ -73,7 +71,7 @@
         vm_name: "{{ vm_2 }}"
         vm_disk_type: virtio_disk
         vm_disk_slot: "{{ slot_a }}"
-        source_snapshot_uuid: |
+        source_snapshot_uuid:
           "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
@@ -93,7 +91,7 @@
         vm_name: "{{ vm_2 }}"
         vm_disk_type: ide_disk
         vm_disk_slot: "{{ slot_b }}"
-        source_snapshot_uuid: |
+        source_snapshot_uuid:
           "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
@@ -116,7 +114,7 @@
         vm_name: "{{ vm_2 }}"
         vm_disk_type: ide_disk
         vm_disk_slot: "{{ slot_b }}"
-        source_snapshot_uuid: |
+        source_snapshot_uuid:
           "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
@@ -137,7 +135,7 @@
         vm_name: "{{ vm_1 }}"
         vm_disk_type: virtio_disk
         vm_disk_slot: "{{ slot_a }}"
-        source_snapshot_uuid: |
+        source_snapshot_uuid:
           "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
@@ -160,7 +158,7 @@
         vm_name: "{{ vm_1 }}"
         vm_disk_type: virtio_disk
         vm_disk_slot: "{{ slot_a }}"
-        source_snapshot_uuid: |
+        source_snapshot_uuid:
           "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
         source_disk_type: virtio_disk
         source_disk_slot: 1
@@ -171,10 +169,3 @@
         that:
           - result is not changed
     - ansible.builtin.assert: *test-virtio-2
-
-# ---------------------------------------------------------------
-
-# TODO: unit tests
-#   - test with an existent snapshot and non-existent VM
-#   - test with a non-existent snapshot and existent VM
-#   - test with a non-existent snapshot and a non-existent VM

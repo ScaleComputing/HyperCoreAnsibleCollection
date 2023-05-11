@@ -18,7 +18,9 @@
       vars:
         test_vms_number: "{{ number_of_snapshot_testing_vms }}"
 
-    - include_tasks: 02_vm_snapshot_attach_disk.yml
+    - include_tasks: 02_vm_snapshot.yml
+
+    - include_tasks: 03_vm_snapshot_attach_disk.yml
       vars:
         test_vms_number: "{{ number_of_snapshot_testing_vms }}"
   always:

@@ -65,7 +65,7 @@
       scale_computing.hypercore.vm_snapshot_info:
       register: vm_snapshots
     - ansible.builtin.debug:
-        var: vm_snapshots.records[0]
+        var: vm_snapshots.records[0].keys() | sort
     - ansible.builtin.assert: &assert-existing
         that:
           - vm_snapshots is not changed
@@ -81,7 +81,8 @@
             "snapshot_uuid",
             "timestamp",
             "type",
-            "vm"]
+            "vm",
+            "vm_name"]
 
      # ====== Test every parameter one by one =======
     - name: List all VM snapshots with snapshot label "not-unique"
@@ -184,3 +185,10 @@
     - ansible.builtin.debug:
         var: vm_snapshots.records
     - ansible.builtin.assert: *assert-nonexistent
+
+# ------------- Cleanup --------------
+
+    - name: Remove all created VMs for this test
+      include_tasks: helper_api_vm_snapshot_delete_all.yml
+      vars:
+        vms_number: "{{ number_of_snapshot_testing_vms }}"

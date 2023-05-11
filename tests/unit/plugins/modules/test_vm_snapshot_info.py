@@ -15,6 +15,10 @@ from ansible_collections.scale_computing.hypercore.plugins.modules import (
     vm_snapshot_info,
 )
 
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import (
+    VMSnapshot,
+)
+
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
 )
@@ -105,8 +109,8 @@ class TestRun:
             label="snapshot",
             type="USER",
             automated_trigger_timestamp=111,
-            local_retain_until_timestamp=222,
-            remote_retain_until_timestamp=333,
+            local_retain_until_timestamp=VMSnapshot.convert_from_unix_timestamp(222),
+            remote_retain_until_timestamp=VMSnapshot.convert_from_unix_timestamp(333),
             block_count_diff_from_serial_number=444,
             replication=True,
         )

@@ -136,6 +136,10 @@ records:
         name: snapshot-test-vm-1
         snapshot_serial_number: 3
         uuid: 5e50977c-14ce-450c-8a1a-bf5c0afbcf43
+    vm_name:
+      description: name of the source VM
+      type: str
+      sample: snapshot-test-vm-1
 """
 
 

@@ -124,16 +124,6 @@ from ..module_utils.typed_classes import TypedDiff
 from typing import Tuple, Dict, Any, Optional
 
 
-# TODO:
-#  - [x] fix code for mypy, sanity, etc.
-#  - [x] create integration tests for vm_snapshot_attach_disk
-#  - [x] create unit tests for vm_snapshot modules
-#     - [x] check if vm_snapshot_info already has unit tests (if not, add them)
-#     - [x] create unit tests for module_utils/vm_snapshot
-#     - [x] create unit tests for modules/vm_snapshot_attach_disk
-#  - [ ] before attaching disk, make sure that the VM we are attaching to is not running (shut it down)!
-
-
 # ++++++++++++
 # Must be reviewed - not sure if that's how this should work
 # ++++++++++++

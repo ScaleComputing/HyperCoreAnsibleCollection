@@ -71,6 +71,7 @@ class TestVMSnapshot:
 
         self.vm_snapshot = VMSnapshot(
             snapshot_uuid="test",
+            vm_name=self.vm["name"],
             vm=self.vm,
             device_snapshots=self.device_snapshots,
             timestamp=123,
@@ -112,21 +113,29 @@ class TestVMSnapshot:
             replication=self.vm_snapshot.replication,
         )
         self.to_hypercore_dict = dict(
-            snapshot_uuid=self.vm_snapshot.snapshot_uuid,
-            vm=self.vm_snapshot.vm,
+            uuid=self.vm_snapshot.snapshot_uuid,
+            domainUUID=None,
             label=self.vm_snapshot.label,
             type=self.vm_snapshot.type,
+            replication=True,
+            localRetainUntilTimestamp=222,
+            remoteRetainUntilTimestamp=333,
         )
         self.ansible_dict = dict(
             snapshot_uuid=self.vm_snapshot.snapshot_uuid,
+            vm_name=self.vm_snapshot.vm_name,
             vm=self.vm_snapshot.vm,
             device_snapshots=self.vm_snapshot.device_snapshots,
             timestamp=self.vm_snapshot.timestamp,
             label=self.vm_snapshot.label,
             type=self.vm_snapshot.type,
             automated_trigger_timestamp=self.vm_snapshot.automated_trigger_timestamp,
-            local_retain_until_timestamp=self.vm_snapshot.local_retain_until_timestamp,
-            remote_retain_until_timestamp=self.vm_snapshot.remote_retain_until_timestamp,
+            local_retain_until_timestamp=VMSnapshot.convert_from_unix_timestamp(
+                self.vm_snapshot.local_retain_until_timestamp
+            ),
+            remote_retain_until_timestamp=VMSnapshot.convert_from_unix_timestamp(
+                self.vm_snapshot.remote_retain_until_timestamp
+            ),
             block_count_diff_from_serial_number=self.vm_snapshot.block_count_diff_from_serial_number,
             replication=self.vm_snapshot.replication,
         )
@@ -170,17 +179,19 @@ class TestVMSnapshot:
         )
 
     def test_vm_snapshot_to_hypercore(self):
-        assert self.vm_snapshot.to_hypercore() == self.to_hypercore_dict
+        to_hypercore = self.vm_snapshot.to_hypercore()
+        assert to_hypercore == self.to_hypercore_dict
 
     def test_vm_snapshot_from_hypercore_dict_not_empty(self):
         vm_snapshot_from_hypercore = VMSnapshot.from_hypercore(self.from_hypercore_dict)
-        assert self.vm_snapshot == vm_snapshot_from_hypercore
+        assert vm_snapshot_from_hypercore == self.vm_snapshot
 
     def test_vm_snapshot_from_hypercore_dict_empty(self):
         assert VMSnapshot.from_hypercore([]) is None
 
     def test_vm_snapshot_to_ansible(self):
-        assert self.vm_snapshot.to_ansible() == self.ansible_dict
+        to_ansible = self.vm_snapshot.to_ansible()
+        assert to_ansible == self.ansible_dict
 
     def test_vm_snapshot_from_ansible(self):
         vm_snapshot_from_ansible = VMSnapshot.from_ansible(self.ansible_dict)
@@ -231,6 +242,9 @@ class TestVMSnapshot:
             query=query,
             rest_client=rest_client,
         )
+        print(vm_snapshot_from_hypercore)
+        print("\n")
+        print([self.ansible_dict])
         assert vm_snapshot_from_hypercore == [self.ansible_dict]
 
     # =============================

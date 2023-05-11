@@ -45,7 +45,7 @@ class VMSnapshot(PayloadMapper):
         block_count_diff_from_serial_number: Optional[int] = None,
         replication: Optional[bool] = True,
     ):
-        self.snapshot_uuid = snapshot_uuid
+        self.snapshot_uuid = snapshot_uuid if snapshot_uuid is not None else ""
         self.vm = vm if vm is not None else {}
         self.vm_name = vm_name
         self.domain = domain
@@ -90,9 +90,9 @@ class VMSnapshot(PayloadMapper):
         retain_timestamp = cls.calculate_date(ansible_data.get("retain_for"))
         return cls(
             vm_name=ansible_data["vm_name"],
-            snapshot_uuid=ansible_data["snapshot_uuid"],
-            vm=ansible_data["vm"],
-            device_snapshots=ansible_data["device_snapshots"],
+            # snapshot_uuid=ansible_data["snapshot_uuid"],
+            # vm=ansible_data["vm"],
+            # device_snapshots=ansible_data["device_snapshots"],
             label=ansible_data["label"],
             local_retain_until_timestamp=retain_timestamp,
             remote_retain_until_timestamp=retain_timestamp,
@@ -108,6 +108,7 @@ class VMSnapshot(PayloadMapper):
             return None
         return cls(
             snapshot_uuid=hypercore_data["uuid"],
+            vm_name=hypercore_data["domain"]["name"],
             vm={
                 "name": hypercore_data["domain"]["name"],
                 "uuid": hypercore_data["domainUUID"],
@@ -148,6 +149,7 @@ class VMSnapshot(PayloadMapper):
 
     def to_hypercore(self) -> Dict[Any, Any]:
         hypercore_dict = dict(
+            uuid=self.snapshot_uuid,
             domainUUID=self.domain.uuid if self.domain else None,
             label=self.label,
             type=self.type
@@ -168,6 +170,7 @@ class VMSnapshot(PayloadMapper):
     def to_ansible(self) -> TypedVMSnapshotToAnsible:
         return dict(
             snapshot_uuid=self.snapshot_uuid,
+            vm_name=self.vm_name,
             vm=self.vm,
             device_snapshots=self.device_snapshots,
             timestamp=self.timestamp,
@@ -189,22 +192,30 @@ class VMSnapshot(PayloadMapper):
         if not isinstance(other, VMSnapshot):
             return NotImplemented
 
-        vm_sorted_block_devices = [
-            dict(sorted(bd.items(), key=lambda item: item[0]))  # type: ignore
-            for bd in self.vm["block_devices"]
-        ]
-        other_sorted_block_devices = [
-            dict(sorted(bd.items(), key=lambda item: item[0]))  # type: ignore
-            for bd in other.vm["block_devices"]
-        ]
+        check_vm = True  # it will be True if self.vm == None
+        if self.vm != {}:
+            vm_sorted_block_devices = [
+                dict(sorted(bd.items(), key=lambda item: item[0]))  # type: ignore
+                for bd in self.vm["block_devices"]
+            ]
+            other_sorted_block_devices = [
+                dict(sorted(bd.items(), key=lambda item: item[0]))  # type: ignore
+                for bd in other.vm["block_devices"]
+            ]
+            check_vm = all(
+                (
+                    self.vm["name"] == other.vm["name"],
+                    self.vm["uuid"] == other.vm["uuid"],
+                    self.vm["snapshot_serial_number"]
+                    == other.vm["snapshot_serial_number"],
+                    vm_sorted_block_devices == other_sorted_block_devices,
+                )
+            )
 
         return all(
             (
                 self.snapshot_uuid == other.snapshot_uuid,
-                self.vm["name"] == other.vm["name"],
-                self.vm["uuid"] == other.vm["uuid"],
-                self.vm["snapshot_serial_number"] == other.vm["snapshot_serial_number"],
-                vm_sorted_block_devices == other_sorted_block_devices,
+                check_vm,
                 self.device_snapshots == other.device_snapshots,
                 self.timestamp == other.timestamp,
                 self.label == other.label,
@@ -278,14 +289,13 @@ class VMSnapshot(PayloadMapper):
             ]
         if params["label"]:
             new_snaps = [
-                vm_snap
-                for vm_snap in new_snaps
-                if vm_snap["label"] == params["label"]  # type: ignore
+                vm_snap for vm_snap in new_snaps if vm_snap["label"] == params["label"]
             ]
         return new_snaps
 
     def send_create_request(self, rest_client: RestClient) -> TypedTaskTag:
         payload = self.to_hypercore()
+        payload.pop("uuid")  # "uuid" is not allowed
         return rest_client.create_record("/rest/v1/VirDomainSnapshot", payload, False)
 
     @staticmethod

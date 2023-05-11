@@ -233,6 +233,7 @@ class TypedSyslogServerFromAnsible(TypedDict):
 
 class TypedVMSnapshotToAnsible(TypedDict):
     snapshot_uuid: Optional[str]
+    vm_name: Optional[str]
     vm: Optional[dict[Any, Any]]
     device_snapshots: Optional[list[dict[Any, Any]]]
     label: Optional[str]
@@ -248,9 +249,9 @@ class TypedVMSnapshotToAnsible(TypedDict):
 class TypedVMSnapshotFromAnsible(TypedDict):
     vm_name: Optional[str]
     retain_for: Optional[int]
-    snapshot_uuid: Optional[str]
-    vm: Optional[dict[Any, Any]]
-    device_snapshots: Optional[list[dict[Any, Any]]]
+    # snapshot_uuid: Optional[str]
+    # vm: Optional[dict[Any, Any]]
+    # device_snapshots: Optional[list[dict[Any, Any]]]
     snapshot_serial_number: Optional[int]
     label: Optional[str]
     replication: Optional[bool]
