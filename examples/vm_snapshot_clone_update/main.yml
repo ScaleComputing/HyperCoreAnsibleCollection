@@ -27,17 +27,11 @@
 # --------------------------------------------------------------
 
     - name: Create vm-focal-fossa snapshot
-      scale_computing.hypercore.api:
-        action: post
-        endpoint: /rest/v1/VirDomainSnapshot
-        data:
-          domainUUID: "{{ vm_created.record.0.uuid }}"
-          label: snap-1
+      scale_computing.hypercore.vm_snapshot:
+        state: present
+        vm_name: "{{ vm_created.record.0.vm_name }}"
+        label: snap-1
       register: vm_created_snapshot
-
-    - name: Wait for the snapshot
-      scale_computing.hypercore.task_wait:
-        task_tag: "{{ vm_created_snapshot.record }}"
 
     - name: Clone vm-focal-fossa snapshot into vm-focal-fossa-clone
       scale_computing.hypercore.vm_clone:
@@ -51,9 +45,14 @@
           - vm_cloned is changed
           - vm_cloned.msg == "Virtual machine - vm-focal-fossa - cloning complete to - vm-focal-fossa-clone."
 
-    - name: Upgrade the OS (apt-get dist-upgrade) # on which host? new host needs to be added?
-      ansible.builtin.apt:
-        upgrade: dist
+    - name: Retrieve vm_cloned
+      scale_computing.hypercore.vm_info:
+        vm_name: vm_cloned
+      register: result # this has no ip, what to add to inventory?
+
+    # - name: Upgrade the OS (apt-get dist-upgrade) # on which host? new host needs to be added?
+    #   ansible.builtin.apt:
+    #     upgrade: dist
 
     # ansible_user                 = "ubuntu",
     # ansible_ssh_private_key_file = "~/.ssh/id_rsa",
