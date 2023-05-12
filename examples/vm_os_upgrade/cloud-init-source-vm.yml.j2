@@ -28,7 +28,7 @@ autoinstall:
                 lock_passwd: false
                 primary_group: myuser
                 groups: 'adm, cdrom, sudo, dip, plugdev, netdev, lxd'
-                authorized-keys:
+                ssh_authorized_keys:
                   - {% include demo_ssh_key_path + ".pub" %}
         ssh:
             disable_root: false
