@@ -10,6 +10,7 @@ sc_host=data["sc_host"]
 print("export SC_HOST='{}'".format(sc_host))
 print("export SC_USERNAME='{}'".format(data["sc_config"][sc_host]["sc_username"]))
 print("export SC_PASSWORD='{}'".format(data["sc_config"][sc_host]["sc_password"]))
+print("export SC_TIMEOUT='{}'".format(sc_timeout))
 EOF
 )"
 

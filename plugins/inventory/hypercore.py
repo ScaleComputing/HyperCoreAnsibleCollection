@@ -218,19 +218,19 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         super(InventoryModule, self).parse(inventory, loader, path)
         cfg = self.read_config_data(path, os.environ)
 
-        # Try getting variables from env
-        try:
-            host = os.getenv("SC_HOST")
-            username = os.getenv("SC_USERNAME")
-            password = os.getenv("SC_PASSWORD")
-            timeout = os.getenv("SC_TIMEOUT")
-        except KeyError:
+        # get variables from env
+        host = os.getenv("SC_HOST")
+        username = os.getenv("SC_USERNAME")
+        password = os.getenv("SC_PASSWORD")
+        timeout = os.getenv("SC_TIMEOUT")
+        if timeout:
+            timeout = int(timeout)
+        if host is None or username is None or password is None:
             raise errors.ScaleComputingError(
-                "Missing parameters: sc_host, sc_username, sc_password."
+                "Missing one or more parameters: sc_host, sc_username, sc_password."
             )
         client = Client(host, username, password, timeout)
         rest_client = RestClient(client)
-
         vms = rest_client.list_records("/rest/v1/VirDomain")
 
         for vm in vms:
