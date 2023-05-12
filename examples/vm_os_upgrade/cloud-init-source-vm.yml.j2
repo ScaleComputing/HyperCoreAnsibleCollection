@@ -14,6 +14,7 @@ autoinstall:
         install-server: true
         authorized-keys:
           - {% include demo_ssh_key_path + ".pub" %}
+
         allow-pw: false
     user-data:
         hostname: mytestvm
@@ -30,6 +31,7 @@ autoinstall:
                 groups: 'adm, cdrom, sudo, dip, plugdev, netdev, lxd'
                 ssh_authorized_keys:
                   - {% include demo_ssh_key_path + ".pub" %}
+
         ssh:
             disable_root: false
 
