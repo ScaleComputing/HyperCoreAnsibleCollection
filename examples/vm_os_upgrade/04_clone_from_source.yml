@@ -9,14 +9,15 @@
   scale_computing.hypercore.vm_clone:
     vm_name: "{{ cloned_vm_name }}"
     source_vm_name: "{{ source_vm_name }}"  # latest snapshot will be cloned
-    tags:
-      - ansible_enable
-      - ansible_ssh_private_key_file__examples/vm_snapshot_clone_update/"{{ demo_ssh_key_path }}"
+    # tags:
+    #   - ansible_enable
+    #   - ansible_ssh_private_key_file__examples/vm_os_upgrade/{{ demo_ssh_key_path }}
+    #   - ansible_user__myuser
   register: vm_cloned
 - ansible.builtin.assert:
     that:
       - vm_cloned is changed
-      - vm_cloned.msg == 'Virtual machine - "{{ source_vm_name }}" - cloning complete to - "{{ cloned_vm_name }}"'.
+      - vm_cloned.msg == "Virtual machine - {{ source_vm_name }} - cloning complete to - {{ cloned_vm_name }}."
 
 - name: Power on the VM
   scale_computing.hypercore.vm_params:

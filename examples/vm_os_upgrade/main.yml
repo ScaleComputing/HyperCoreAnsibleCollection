@@ -1,6 +1,6 @@
 ---
 # Run as:
-# ansible-playbook -i examples/vm_snapshot_clone_update/inventory.yml -e @examples/vm_snapshot_clone_update/vars.yml examples/vm_snapshot_clone_update/main.yml
+# ansible-playbook -i examples/vm_os_upgrade/inventory.yml -e @examples/vm_os_upgrade/vars.yml examples/vm_os_upgrade/main.yml
 - name: Create VM
   hosts: localhost
   connection: local
