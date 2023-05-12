@@ -15,6 +15,18 @@
       ansible.builtin.include_tasks: 02_upload_iso.yml
     - name: Create source VM
       ansible.builtin.include_tasks: 03_create_source_vm.yml
+
+- name: Inject data into VM
+  hosts: "{{ source_vm_name }}"
+  tasks:
+    - name: Setup source VM
+      ansible.builtin.include_tasks: 05_setup_source_vm.yml
+
+- name: Clone VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
     - name: Create clone from source VM
       ansible.builtin.include_tasks: 04_clone_from_source.yml
 
@@ -22,15 +34,11 @@
   hosts: "{{ cloned_vm_name }}"
   # become: true
   gather_facts: false
-
   tasks:
     - name: Upgrade the OS (apt-get dist-upgrade)
       ansible.builtin.apt:
         upgrade: dist
-  
-- name: Inject data into VM
-  hosts: "{{ cloned_vm_name }}"
-  tasks:
+
     - name: Setup source VM
       ansible.builtin.include_tasks: 05_setup_source_vm.yml
 
