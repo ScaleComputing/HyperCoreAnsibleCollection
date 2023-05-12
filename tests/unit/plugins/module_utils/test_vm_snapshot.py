@@ -49,15 +49,15 @@ class TestVMSnapshot:
             "name": "test-vm",
             "uuid": "vm-uuid",
             "snapshot_serial_number": 1,
-            "block_devices": [
+            "disks": [
                 {
-                    "cache_mode": "WRITETHROUGH",
-                    "capacity": 100,
+                    "cache_mode": "writethrough",
+                    "size": 100,
                     "disable_snapshotting": False,
                     "read_only": False,
                     "slot": 0,
                     "tiering_priority_factor": 8,
-                    "type": "VIRTIO_DISK",
+                    "type": "virtio_disk",
                     "uuid": "block-uuid-1",
                 },
             ],
@@ -116,7 +116,7 @@ class TestVMSnapshot:
             uuid=self.vm_snapshot.snapshot_uuid,
             domainUUID=None,
             label=self.vm_snapshot.label,
-            type=self.vm_snapshot.type,
+            type=self.vm_snapshot.type.upper(),
             replication=True,
             localRetainUntilTimestamp=222,
             remoteRetainUntilTimestamp=333,
@@ -140,7 +140,7 @@ class TestVMSnapshot:
             replication=self.vm_snapshot.replication,
         )
 
-        self.block_device_hypercore = dict(
+        self.disk_hypercore = dict(
             allocation=0,
             uuid="new-block-uuid",
             cacheMode="NONE",
@@ -159,23 +159,12 @@ class TestVMSnapshot:
             virDomainUUID="vm-uuid",
         )
 
-        self.block_device_ansible = dict(
-            allocation=0,
-            block_device_uuid="new-block-uuid",
-            cache_mode="NONE",
-            capacity=100000595968,
-            created_timestamp=0,
-            disable_snapshotting=False,
-            mount_points=[],
-            name="",
-            path="scribe/new-block-uuid",
-            physical=0,
-            read_only=False,
-            share_uuid="",
+        self.disk_ansible = dict(
+            uuid="new-block-uuid",
             slot=21,
-            tiering_priority_factor=8,
-            type="VIRTIO_DISK",
+            type="virtio_disk",
             vm_uuid="vm-uuid",
+            size=100000595968,
         )
 
     def test_vm_snapshot_to_hypercore(self):
@@ -184,6 +173,11 @@ class TestVMSnapshot:
 
     def test_vm_snapshot_from_hypercore_dict_not_empty(self):
         vm_snapshot_from_hypercore = VMSnapshot.from_hypercore(self.from_hypercore_dict)
+
+        print(vm_snapshot_from_hypercore)
+        print("\n")
+        print(self.vm_snapshot)
+
         assert vm_snapshot_from_hypercore == self.vm_snapshot
 
     def test_vm_snapshot_from_hypercore_dict_empty(self):
@@ -251,38 +245,38 @@ class TestVMSnapshot:
     # "filter_snapshots_by_params" function is already being tested with integration tests... should I still make unit tests for it?
     # =============================
 
-    def test_hypercore_block_device_to_ansible(self):
-        hypercore_block_device_to_ansible = (
-            VMSnapshot.hypercore_block_device_to_ansible(self.block_device_hypercore)
+    def test_hypercore_disk_to_ansible(self):
+        hypercore_disk_to_ansible = VMSnapshot.hypercore_disk_to_ansible(
+            self.disk_hypercore
         )
-        assert hypercore_block_device_to_ansible == self.block_device_ansible
+        assert hypercore_disk_to_ansible == self.disk_ansible
 
     def test_get_vm_disk_info_by_uuid(self, rest_client):
-        rest_client.get_record.return_value = dict(**self.block_device_hypercore)
+        rest_client.get_record.return_value = dict(**self.disk_hypercore)
         vm_disk_info_from_hypercore = VMSnapshot.get_vm_disk_info_by_uuid(
-            block_device_uuid="new-block-uuid",
+            disk_uuid="new-block-uuid",
             rest_client=rest_client,
         )
-        assert vm_disk_info_from_hypercore == self.block_device_ansible
+        assert vm_disk_info_from_hypercore == self.disk_ansible
 
     def test_get_vm_disk_info(self, rest_client):
-        rest_client.get_record.return_value = dict(**self.block_device_hypercore)
+        rest_client.get_record.return_value = dict(**self.disk_hypercore)
         vm_disk_info_from_hypercore = VMSnapshot.get_vm_disk_info(
             vm_uuid="new-block-uuid",
             slot=21,
             _type="VIRTIO_DISK",
             rest_client=rest_client,
         )
-        assert vm_disk_info_from_hypercore == self.block_device_ansible
+        assert vm_disk_info_from_hypercore == self.disk_ansible
 
-    def test_get_snapshot_block_device(self):
-        snapshot_block_device = VMSnapshot.get_snapshot_block_device(
+    def test_get_snapshot_disk(self):
+        snapshot_disk = VMSnapshot.get_snapshot_disk(
             vm_snapshot=self.ansible_dict,
             slot=0,
-            _type="VIRTIO_DISK",
+            _type="virtio_disk",
         )
 
-        assert snapshot_block_device == self.ansible_dict["vm"]["block_devices"][0]
+        assert snapshot_disk == self.ansible_dict["vm"]["disks"][0]
 
     def test_get_external_vm_uuid(self, rest_client):
         rest_client.get_record.return_value = dict(

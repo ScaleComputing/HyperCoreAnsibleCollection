@@ -124,14 +124,14 @@ records:
       description: source VM
       type: dict
       sample:
-        block_devices:
-          - cache_mode: WRITETHROUGH
-            capacity: 107374182
+        disks:
+          - cache_mode: writethrough
+            size: 107374182
             disable_snapshotting: false
             read_only: false
             slot: 0
             tiering_priority_factor: 8
-            type: VIRTIO_DISK
+            type: virtio_disk
             uuid: adcfc72f-4578-48b1-a7f8-da4d9ee915ed
         name: snapshot-test-vm-1
         snapshot_serial_number: 3

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 __metaclass__ = type
 
-import re
+from copy import copy
 
 from .rest_client import RestClient
 
@@ -90,9 +90,6 @@ class VMSnapshot(PayloadMapper):
         retain_timestamp = cls.calculate_date(ansible_data.get("retain_for"))
         return cls(
             vm_name=ansible_data["vm_name"],
-            # snapshot_uuid=ansible_data["snapshot_uuid"],
-            # vm=ansible_data["vm"],
-            # device_snapshots=ansible_data["device_snapshots"],
             label=ansible_data["label"],
             local_retain_until_timestamp=retain_timestamp,
             remote_retain_until_timestamp=retain_timestamp,
@@ -115,20 +112,18 @@ class VMSnapshot(PayloadMapper):
                 "snapshot_serial_number": hypercore_data["domain"][
                     "snapshotSerialNumber"
                 ],
-                "block_devices": [
+                "disks": [
                     {
-                        "uuid": block_device["uuid"],
-                        "type": block_device["type"],
-                        "slot": block_device["slot"],
-                        "cache_mode": block_device["cacheMode"],
-                        "capacity": block_device["capacity"],
-                        "disable_snapshotting": block_device["disableSnapshotting"],
-                        "tiering_priority_factor": block_device[
-                            "tieringPriorityFactor"
-                        ],
-                        "read_only": block_device["readOnly"],
+                        "uuid": disk["uuid"],
+                        "type": disk["type"].lower(),
+                        "slot": disk["slot"],
+                        "cache_mode": disk["cacheMode"].lower(),
+                        "size": disk["capacity"],
+                        "disable_snapshotting": disk["disableSnapshotting"],
+                        "tiering_priority_factor": disk["tieringPriorityFactor"],
+                        "read_only": disk["readOnly"],
                     }
-                    for block_device in hypercore_data["domain"]["blockDevs"]
+                    for disk in hypercore_data["domain"]["blockDevs"]
                 ],
             },
             device_snapshots=[
@@ -194,21 +189,22 @@ class VMSnapshot(PayloadMapper):
 
         check_vm = True  # it will be True if self.vm == None
         if self.vm != {}:
-            vm_sorted_block_devices = [
-                dict(sorted(bd.items(), key=lambda item: item[0]))  # type: ignore
-                for bd in self.vm["block_devices"]
+            vm_sorted_disks = [
+                dict(sorted(disk.items(), key=lambda item: item[0]))  # type: ignore
+                for disk in self.vm["disks"]
             ]
-            other_sorted_block_devices = [
-                dict(sorted(bd.items(), key=lambda item: item[0]))  # type: ignore
-                for bd in other.vm["block_devices"]
+            other_sorted_disks = [
+                dict(sorted(disk.items(), key=lambda item: item[0]))  # type: ignore
+                for disk in other.vm["disks"]
             ]
+
             check_vm = all(
                 (
                     self.vm["name"] == other.vm["name"],
                     self.vm["uuid"] == other.vm["uuid"],
                     self.vm["snapshot_serial_number"]
                     == other.vm["snapshot_serial_number"],
-                    vm_sorted_block_devices == other_sorted_block_devices,
+                    vm_sorted_disks == other_sorted_disks,
                 )
             )
 
@@ -264,7 +260,7 @@ class VMSnapshot(PayloadMapper):
             Any, Any
         ],  # params must be a dict with keys: "vm_name", "serial", "label"
         rest_client: RestClient,
-    ) -> List[Any]:
+    ) -> List[TypedVMSnapshotToAnsible]:
         vm_snapshots = cls.get_snapshots_by_query({}, rest_client)
         if not params["vm_name"] and not params["serial"] and not params["label"]:
             return (
@@ -310,37 +306,29 @@ class VMSnapshot(PayloadMapper):
 
     @classmethod
     # Used to rename dict keys of a hypercore object that doesn't have an implemented class
-    def hypercore_block_device_to_ansible(
-        cls, _dict: Optional[Dict[Any, Any]]
+    def hypercore_disk_to_ansible(
+        cls, hypercore_dict: Optional[Dict[Any, Any]]
     ) -> Optional[Dict[Any, Any]]:
-        if _dict is None:
+        if hypercore_dict is None:
             return None
 
-        new_dict = dict()
-        re_pattern_first = re.compile("(.)([A-Z][a-z]+)")
-        re_pattern_second = re.compile("([a-z0-9])([A-Z])")
-
-        for key in _dict.keys():
-            new_key = re.sub(re_pattern_first, r"\1_\2", key)
-            new_key = re.sub(re_pattern_second, r"\1_\2", new_key).lower()
-
-            if new_key == "uuid":
-                new_key = "block_device_uuid"
-            if new_key == "vir_domain_uuid":
-                new_key = "vm_uuid"
-
-            new_dict[new_key] = _dict[key]
-        return new_dict
+        return dict(
+            uuid=hypercore_dict["uuid"],
+            slot=hypercore_dict["slot"],
+            type=hypercore_dict["type"].lower(),
+            vm_uuid=hypercore_dict["virDomainUUID"],
+            size=hypercore_dict["capacity"],
+        )
 
     @classmethod
     def get_vm_disk_info_by_uuid(
-        cls, block_device_uuid: str, rest_client: RestClient
+        cls, disk_uuid: str, rest_client: RestClient
     ) -> Optional[Dict[Any, Any]]:
         record_dict = rest_client.get_record(
             endpoint="/rest/v1/VirDomainBlockDevice",
-            query={"uuid": block_device_uuid},
+            query={"uuid": disk_uuid},
         )
-        return cls.hypercore_block_device_to_ansible(record_dict)
+        return cls.hypercore_disk_to_ansible(record_dict)
 
     @classmethod
     def get_vm_disk_info(
@@ -354,28 +342,28 @@ class VMSnapshot(PayloadMapper):
                 "type": _type,
             },
         )
-        return cls.hypercore_block_device_to_ansible(record_dict)
+        return cls.hypercore_disk_to_ansible(record_dict)
 
     @classmethod
-    def get_snapshot_block_device(
+    def get_snapshot_disk(
         cls,
         vm_snapshot: TypedVMSnapshotToAnsible,
         slot: int,
         _type: str,
     ) -> Any:
-        block_devices = vm_snapshot["vm"]["block_devices"][:]  # type: ignore
+        disks = copy(vm_snapshot["vm"]["disks"])  # type: ignore
 
-        block_devices = [bd for bd in block_devices if bd["slot"] == slot]
+        disks = [d for d in disks if d["slot"] == slot]
 
-        block_devices = [bd for bd in block_devices if bd["type"] == _type]
+        disks = [d for d in disks if d["type"] == _type]
 
-        if len(block_devices) > 1:
+        if len(disks) > 1:
             raise errors.ScaleComputingError(
                 "There are too many device snapshots of the provided filter. There should be only one."
             )
-        if len(block_devices) == 0:
+        if len(disks) == 0:
             return None
-        return block_devices[0]
+        return disks[0]
 
     @classmethod
     # Get VM UUID of a VM which does not have this snapshot

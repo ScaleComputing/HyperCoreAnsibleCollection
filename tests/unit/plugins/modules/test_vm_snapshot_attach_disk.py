@@ -30,21 +30,10 @@ pytestmark = pytest.mark.skipif(
 )
 
 BLOCK_DEVICE = dict(
-    allocation=0,
-    block_device_uuid="new-block-uuid",
-    cache_mode="NONE",
-    capacity=100000595968,
-    created_timestamp=0,
-    disable_snapshotting=False,
-    mount_points=[],
-    name="",
-    path="scribe/new-block-uuid",
-    physical=0,
-    read_only=False,
-    share_uuid="",
+    uuid="new-block-uuid",
+    size=100000595968,
     slot=21,
-    tiering_priority_factor=8,
-    type="IDE_DISK",
+    type="ide_disk",
     vm_uuid="vm-uuid-destination",
 )
 
@@ -71,15 +60,15 @@ class TestAttachDisk:
                 "name": "vm-source",
                 "uuid": "vm-uuid-source",
                 "snapshot_serial_number": 1,
-                "block_devices": [
+                "disks": [
                     {
-                        "cache_mode": "WRITETHROUGH",
-                        "capacity": 100,
+                        "cache_mode": "writethrough",
+                        "size": 100,
                         "disable_snapshotting": False,
                         "read_only": False,
                         "slot": 0,
                         "tiering_priority_factor": 8,
-                        "type": "VIRTIO_DISK",
+                        "type": "virtio_disk",
                         "uuid": "snapshot-block-uuid-1",
                     },
                 ],

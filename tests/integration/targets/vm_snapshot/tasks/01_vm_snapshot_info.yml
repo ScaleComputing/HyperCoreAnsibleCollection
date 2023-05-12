@@ -65,7 +65,7 @@
       scale_computing.hypercore.vm_snapshot_info:
       register: vm_snapshots
     - ansible.builtin.debug:
-        var: vm_snapshots.records[0].keys() | sort
+        var: vm_snapshots.records[0]
     - ansible.builtin.assert: &assert-existing
         that:
           - vm_snapshots is not changed

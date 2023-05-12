@@ -9,7 +9,7 @@
     state: present
     tags:
       - Xlab_snapshot_testing
-    memory: "{{ '4 GB' | human_to_bytes }}"
+    memory: "{{ '512 MB' | human_to_bytes }}"
     vcpu: 2
     attach_guest_tools_iso: false
     power_state: stop

@@ -87,15 +87,15 @@ class TestRun:
                 "name": "vm-name",
                 "uuid": "vm-uuid",
                 "snapshot_serial_number": 1,
-                "block_devices": [
+                "disks": [
                     {
-                        "cache_mode": "WRITETHROUGH",
-                        "capacity": 100,
+                        "cache_mode": "writethrough",
+                        "size": 100,
                         "disable_snapshotting": False,
                         "read_only": False,
                         "slot": 0,
                         "tiering_priority_factor": 8,
-                        "type": "VIRTIO_DISK",
+                        "type": "virtio_disk",
                         "uuid": "block-uuid-1",
                     },
                 ],
@@ -119,18 +119,13 @@ class TestRun:
             0
         ]  # this is safe, since these tests only have one snapshot
 
-        print("RESULT")
-        print(result)
-        print("\nEXPECTED")
-        print(expected)
-
         result_sorted_block_devices = [
             dict(sorted(bd.items(), key=lambda item: item[0]))
-            for bd in result["vm"]["block_devices"]
+            for bd in result["vm"]["disks"]
         ]
         expected_sorted_block_devices = [
             dict(sorted(bd.items(), key=lambda item: item[0]))
-            for bd in expected["vm"]["block_devices"]
+            for bd in expected["vm"]["disks"]
         ]
 
         assert result["snapshot_uuid"] == expected["snapshot_uuid"]

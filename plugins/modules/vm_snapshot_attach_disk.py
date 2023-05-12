@@ -31,14 +31,6 @@ options:
     required: True
   vm_disk_type:
     type: str
-    choices:
-      - ide_disk
-      - scsi_disk
-      - virtio_disk
-      - ide_cdrom
-      - ide_floppy
-      - nvram
-      - vtpm
     description:
       - Type of disk on the VM that we want to attach a VM snapshot disk to.
     required: True
@@ -54,14 +46,6 @@ options:
     required: True
   source_disk_type:
     type: str
-    choices:
-      - ide_disk
-      - scsi_disk
-      - virtio_disk
-      - ide_cdrom
-      - ide_floppy
-      - nvram
-      - vtpm
     description:
       - Specify a disk type from source snapshot.
     required: True
@@ -79,10 +63,10 @@ notes:
 EXAMPLES = r"""
 - name: Attach a disk from a VM Snapshot to a VM
   scale_computing.hypercore.vm_snapshot_attach_disk:
-    vm_name: test-snapshot_attach_disk-ana
-    vm_disk_type: virtio_disk
-    vm_disk_slot: 19
-    source_snapshot_uuid: "116d51cc-ec25-4628-a092-86de42699aac"
+    vm_name: example-vm
+    vm_disk_type: ide_disk
+    vm_disk_slot: 42
+    source_snapshot_uuid: 116d51cc-ec25-4628-a092-86de42699aac
     source_disk_type: virtio_disk
     source_disk_slot: 1
 """
@@ -94,21 +78,10 @@ record:
   returned: success
   type: dict
   sample:
-    allocation: 0
-    block_device_uuid: 5b4b7324-eccf-43c9-925a-6417e02860ff
-    cache_mode: "NONE"
-    capacity: 100000595968
-    created_timestamp: 0
-    disable_snapshotting: false
-    mount_points: []
-    name: ""
-    path: scribe/5b4b7324-eccf-43c9-925a-6417e02860ff
-    physical: 0
-    read_only: false
-    share_uuid: ""
-    slot: 21
-    tiering_priority_factor: 8
-    type: VIRTIO_DISK
+    uuid: 5b4b7324-eccf-43c9-925a-6417e02860ff
+    size: 100000595968
+    slot: 42
+    type: ide_disk
     vm_uuid: e18ec6af-9dd2-41dc-89af-8ce637171524
 """
 
@@ -133,12 +106,12 @@ def attach_disk(
     # =============== SAVE PARAMS VALUES ===============
     # destination
     vm_name = module.params["vm_name"]
-    vm_disk_type = module.params["vm_disk_type"].upper()
+    vm_disk_type = module.params["vm_disk_type"]
     vm_disk_slot = int(module.params["vm_disk_slot"])
 
     # source
     source_snapshot_uuid = module.params["source_snapshot_uuid"]
-    source_disk_type = module.params["source_disk_type"].upper()
+    source_disk_type = module.params["source_disk_type"]
     source_disk_slot = int(
         module.params["source_disk_slot"]
     )  # the higher the index, the newer the disk
@@ -162,21 +135,21 @@ def attach_disk(
     # - check if there is already a disk (vm_disk) with type (vm_type) on slot (vm_slot)
     # - if this slot is already taken, return no change
     #   --> should it be an error that tells the user that the slot is already taken instead?
-    before_block_device = VMSnapshot.get_vm_disk_info(
+    before_disk = VMSnapshot.get_vm_disk_info(
         vm_uuid=vm_uuid,
         slot=vm_disk_slot,
-        _type=vm_disk_type,
+        _type=vm_disk_type.upper(),
         rest_client=rest_client,
     )
-    if before_block_device is not None:
+    if before_disk is not None:
         # changed, after, diff
         return (
             False,
-            before_block_device,
-            dict(before=before_block_device, after=None),
+            before_disk,
+            dict(before=before_disk, after=None),
         )
 
-    source_disk_info = VMSnapshot.get_snapshot_block_device(
+    source_disk_info = VMSnapshot.get_snapshot_disk(
         vm_snapshot, slot=source_disk_slot, _type=source_disk_type
     )
 
@@ -189,9 +162,9 @@ def attach_disk(
         snapUUID=source_snapshot_uuid,
         template=dict(
             virDomainUUID=vm_uuid,  # required
-            type=vm_disk_type,  # required
-            capacity=source_disk_info["capacity"],  # required
-            chacheMode=source_disk_info["cache_mode"],
+            type=vm_disk_type.upper(),  # required
+            capacity=source_disk_info["size"],  # required
+            chacheMode=source_disk_info["cache_mode"].upper(),
             slot=vm_disk_slot,
             disableSnapshotting=source_disk_info["disable_snapshotting"],
             tieringPriorityFactor=source_disk_info["tiering_priority_factor"],
@@ -207,17 +180,17 @@ def attach_disk(
     )
 
     TaskTag.wait_task(rest_client, create_task_tag)
-    created_block_device = VMSnapshot.get_vm_disk_info_by_uuid(
+    created_disk = VMSnapshot.get_vm_disk_info_by_uuid(
         create_task_tag["createdUUID"], rest_client
     )
 
     # return changed, after, diff
     return (
         # if new block device was created, then this should not be None
-        created_block_device is not None,
-        created_block_device,
+        created_disk is not None,
+        created_disk,
         dict(
-            before=None, after=created_block_device
+            before=None, after=created_disk
         ),  # before, we ofcourse, didn't have that new block device, and after we should have it
     )
 
@@ -239,15 +212,6 @@ def main() -> None:
             ),
             vm_disk_type=dict(
                 type="str",
-                choices=[
-                    "ide_disk",
-                    "scsi_disk",
-                    "virtio_disk",
-                    "ide_cdrom",
-                    "ide_floppy",
-                    "nvram",
-                    "vtpm",
-                ],
                 required=True,
             ),
             vm_disk_slot=dict(
@@ -257,15 +221,6 @@ def main() -> None:
             source_snapshot_uuid=dict(type="str", required=True),
             source_disk_type=dict(
                 type="str",
-                choices=[
-                    "ide_disk",
-                    "scsi_disk",
-                    "virtio_disk",
-                    "ide_cdrom",
-                    "ide_floppy",
-                    "nvram",
-                    "vtpm",
-                ],
                 required=True,
             ),
             source_disk_slot=dict(  # see /rest/v1/VirDomainSnapshot -> deviceSnapshots .. list of available snapshotted disks.
