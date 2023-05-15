@@ -10,6 +10,7 @@ __metaclass__ = type
 
 from copy import copy
 
+from ansible.module_utils.basic import AnsibleModule
 from .rest_client import RestClient
 
 from ..module_utils.utils import PayloadMapper
@@ -371,3 +372,38 @@ class VMSnapshot(PayloadMapper):
             return None
 
         return vm_hypercore_dict["uuid"]
+
+    @classmethod
+    # This method is meant to be called before the attaching was done on a destination VM
+    #   - first get vm object before attaching was done
+    #   - then try to normally shut down the vm
+    #       - if this fails, then force shut down the vm
+    def power_off_vm(cls, module: AnsibleModule, rest_client: RestClient) -> None:
+        vm = VM.get_by_name(module.params, rest_client, must_exist=True)
+
+        # Make sure we don't try to shut down an already non-running VM
+        if vm.power_state not in ('stopped', 'crashed'):
+            if not module.params["force_reboot"]:  # force_reboot == False
+                # First try a normal shutdown
+                try:
+                    module.params["force_reboot"] = False  # must be "False" to be able to normally shut down
+                    vm.do_shutdown_steps(module, rest_client)
+
+                # If normal shutdown failed, then try a force shutdown
+                except errors.ScaleComputingError as normal_shutdown_error:
+                    module.params["force_reboot"] = True  # must be "True" to be able to forcibly shut down
+                    vm.vm_shutdown_forced(module, rest_client)
+                    module.params["force_reboot"] = False  # set it back to what it was initially
+            else:
+                vm.vm_shutdown_forced(module, rest_client)
+
+    @classmethod
+    # This method is meant to be called after the attaching was done on a destination VM
+    #   - first get vm object after attaching was done
+    #   - then start that vm
+    def power_up_vm(cls, module: AnsibleModule, rest_client: RestClient) -> None:
+        # If a VM is stopped or crashed, then start it up
+        if module.params["reboot_destination_vm"]:
+            vm = VM.get_by_name(module.params, rest_client, must_exist=True)
+            if vm.power_state in ('stopped', 'crashed'):
+                vm.update_vm_power_state(module, rest_client, "start")

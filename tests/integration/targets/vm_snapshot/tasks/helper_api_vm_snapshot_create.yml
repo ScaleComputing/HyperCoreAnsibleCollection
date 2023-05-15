@@ -12,7 +12,7 @@
     memory: "{{ '512 MB' | human_to_bytes }}"
     vcpu: 2
     attach_guest_tools_iso: false
-    power_state: stop
+    power_state: start
     disks:
       - type: virtio_disk
         disk_slot: 0

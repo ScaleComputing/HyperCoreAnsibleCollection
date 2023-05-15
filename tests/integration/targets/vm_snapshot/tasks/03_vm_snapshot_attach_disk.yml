@@ -11,7 +11,7 @@
     vm_1: snapshot-test-vm-1
     vm_2: snapshot-test-vm-3
     slot_a: 42
-    slot_b: 43
+    slot_b: 0
 
   block:
     - include_tasks: helper_api_vm_snapshot_create.yml

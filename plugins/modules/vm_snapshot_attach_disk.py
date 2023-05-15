@@ -107,10 +107,14 @@ from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm_snapshot import VMSnapshot
+from ..module_utils.vm import VM
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.typed_classes import TypedDiff
 from typing import Tuple, Dict, Any, Optional
 
+
+# A minimum size of an IDE typed disk in HC3 API is 1 GB
+MIN_TYPE_IDE_SIZE = 1000341504  # bytes
 
 # ++++++++++++
 # Must be reviewed - not sure if that's how this should work
@@ -164,9 +168,22 @@ def attach_disk(
             dict(before=before_disk, after=None),
         )
 
+    # Get VM before attach
+    # vm = VM.get_by_name(module.params, rest_client, must_exist=True)  # type: ignore
+
+    # First power off the destination VM
+    VMSnapshot.power_off_vm(module, rest_client)
+
     source_disk_info = VMSnapshot.get_snapshot_disk(
         vm_snapshot, slot=source_disk_slot, _type=source_disk_type
     )
+
+    destination_size = source_disk_info["size"]
+    if "ide" in vm_disk_type:
+        if destination_size < MIN_TYPE_IDE_SIZE:
+            destination_size = MIN_TYPE_IDE_SIZE
+
+    module.log(str(destination_size))
 
     # build a payload according to /rest/v1/VirDomainBlockDevice/{uuid}/clone documentation
     payload = dict(
@@ -178,7 +195,7 @@ def attach_disk(
         template=dict(
             virDomainUUID=vm_uuid,  # required
             type=vm_disk_type.upper(),  # required
-            capacity=source_disk_info["size"],  # required
+            capacity=destination_size, # source_disk_info["size"],  # required
             chacheMode=source_disk_info["cache_mode"].upper(),
             slot=vm_disk_slot,
             disableSnapshotting=source_disk_info["disable_snapshotting"],
@@ -198,6 +215,9 @@ def attach_disk(
     created_disk = VMSnapshot.get_vm_disk_info_by_uuid(
         create_task_tag["createdUUID"], rest_client
     )
+
+    # Restart the previously running VM (destination)
+    VMSnapshot.power_up_vm(module, rest_client)
 
     # return changed, after, diff
     return (
@@ -242,9 +262,35 @@ def main() -> None:
                 type="int",
                 required=True,
             ),
+
+            # Maybe the user will want to keep the destination VM shut down if, for example he has more tasks on
+            # this VM and wants to make it go quicker by keeping the VM shut down
+            #   - keep or remove this parameter?
+            #       - if keep, what could be a better name for it?
+            #           - dont_reboot_destination_vm
+            #           - keep_destination_vm_shutdown
+            #           - keep_destination_vm_off
+            #           - ignore_destination_vm_reboot --> False: reboot, True: no reboot
+            #           - ...?
+            reboot_destination_vm=dict(
+                type="bool",
+                default=True,
+            ),
+
+            # These two parameters must be present in order to use the VM functions from module_utils/vm
+            #   - see:
+            #       - vm_snapshot -> power_off_vm
+            #       - vm_snapshot -> power_up_vm
+            force_reboot=dict(
+                type="bool",
+                default=False,
+            ),
+            shutdown_timeout=dict(  # make this default to 300? (300 --> 5 minutes)
+                type="float",
+                default=30,
+            )
         ),
     )
-
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
