@@ -263,12 +263,9 @@ EXAMPLES = r"""
       - type: nic
         nic_vlan: 0
     cloud_init:
-      user_data: |
-        #cloud-config
-        valid:
-        - yaml: 1
-        - expression: 2
-      meta_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+      user_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+      meta_data: |
+        # Content for cloud-init meta-data (or user-data) can be inline too.
   register: result
 
 - name: Delete the VM

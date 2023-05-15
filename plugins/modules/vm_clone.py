@@ -66,10 +66,7 @@ EXAMPLES = r"""
     cloud_init:
       user_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
       meta_data: |
-        #cloud-config
-        valid:
-          yaml: 3
-          expression: 4
+        # Content for cloud-init meta-data (or user-data) can be inline too.
     tags:
       - test
       - tag

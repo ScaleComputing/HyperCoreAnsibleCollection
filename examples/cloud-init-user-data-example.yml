@@ -1,9 +1,12 @@
 #cloud-config
+# NOTE: The cloud-init user-data MUST begin with be "#cloud-config" string!
+#
 # Tested with Ubuntu 20.04.4 LTS server ISO image
 # https://releases.ubuntu.com/20.04.4/ubuntu-20.04.4-live-server-amd64.iso
-# cp cloud-init-user-data.ubuntu-2004.yml /tmp/user-data
-# echo -n '' > /tmp/meta-data
-# sudo cloud-localds /var/lib/libvirt/boot/cloud-init-min.iso /tmp/user-data /tmp/meta-data
+# To manually test cloud-init ISO image, create one with commands:
+#   cp cloud-init-user-data-example.yml /tmp/user-data
+#   echo -n '' > /tmp/meta-data
+#   sudo cloud-localds /var/lib/libvirt/boot/cloud-init-min.iso /tmp/user-data /tmp/meta-data
 autoinstall:
     version: 1
     locale: en_US

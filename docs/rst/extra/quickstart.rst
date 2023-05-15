@@ -329,12 +329,9 @@ This guide will now demonstrate how to create a Playbook that will create a VM o
           - type: nic
             nic_vlan: 0
         cloud_init:
-          user_data: |
-            #cloud-config
-            valid:
-            - yaml: 1
-            - expression: 2
-          meta_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+          user_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+          meta_data: |
+            # Content for cloud-init meta-data (or user-data) can be inline too.
     register: result
 
 8. After copying and pasting the task into your editor of choice you only need to make a few changes to run the Playbook.
@@ -349,12 +346,9 @@ b. Second, delete the following section entirely:
 .. code-block:: yaml
 
    cloud_init:
-     user_data:
-       #cloud-config
-	  valid:
-      - yaml: 1
-      - expression: 2
-    meta_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+     user_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+     meta_data: |
+       # Content for cloud-init meta-data (or user-data) can be inline too.
 
 c. This portion of the task facilitates passing configuration information to a cloud image for automatic in-guest customization via cloud-init, which is out of the scope of this guide. 
 
