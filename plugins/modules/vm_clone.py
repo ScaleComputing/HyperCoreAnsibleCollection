@@ -110,7 +110,7 @@ def check_snapshot_list(module: AnsibleModule, snapshot_list: list) -> None:
     # More than one snapshot was found, raise error.
     if snapshot_list and len(snapshot_list) > 1:
         raise errors.ScaleComputingError(
-            "More than one snapshot exist with these parameters, please specify source_snapshot_uuid."
+            f"More than one snapshot exists with label - {module.params['source_snapshot_label']}, please use specify source_snapshot_uuid instead."
         )
 
 

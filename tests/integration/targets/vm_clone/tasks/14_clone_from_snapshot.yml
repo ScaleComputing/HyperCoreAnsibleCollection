@@ -115,7 +115,7 @@
   scale_computing.hypercore.vm_clone:
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone
     source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
-    snapshot_label: test1
+    source_snapshot_label: test1
   register: output
 - ansible.builtin.assert:
     that:
@@ -142,7 +142,7 @@
   scale_computing.hypercore.vm_clone:
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-2
     source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
-    snapshot_label: test2
+    source_snapshot_label: test2
   register: output
 - ansible.builtin.assert:
     that:
@@ -164,3 +164,68 @@
       - vm_clone_info.records.0.boot_devices | length == 0
       - vm_clone_info.records.0.vcpu == 3
       - vm_clone_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-clone-2"
+
+# ----------------------------------------------------------------------------------
+# Test cloning from VM with multiple snapshots with the same label
+- name: Create snapshot of source VM - third
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vm_created_info.records.0.uuid }}"
+      label: test2
+      type: USER
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is changed
+
+- name: Wait for the snapshot to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ snapshot_created.record }}"
+
+- name: Get snapshot info - test2 - assert two snapshots exist with the same label
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    label: test2
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 2
+      - snapshot_info.records.0.type == "USER"
+      - snapshot_info.records.0.label == "test2"
+      - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+      - snapshot_info.records.1.type == "USER"
+      - snapshot_info.records.1.label == "test2"
+      - snapshot_info.records.1.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+      - snapshot_info.records.0.snapshot_uuid != snapshot_info.records.1.snapshot_uuid
+
+- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test2 snapshot - test multiple snapshots with same label
+  scale_computing.hypercore.vm_clone:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3
+    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    source_snapshot_uuid: "{{ snapshot_info.records.1.snapshot_uuid }}"
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot-source - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3."
+
+- name: Assert that cloning was successful - same label
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3
+  register: vm_clone_info
+- ansible.builtin.assert:
+    that:
+      - vm_clone_info is succeeded
+      - vm_clone_info is not changed
+      - vm_clone_info.records | length == 1
+      - vm_clone_info.records.0.memory == 511705088
+      - vm_clone_info.records.0.nics | length == 1
+      - vm_clone_info.records.0.disks | length == 2
+      - vm_clone_info.records.0.boot_devices | length == 0
+      - vm_clone_info.records.0.vcpu == 3
+      - vm_clone_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3"
