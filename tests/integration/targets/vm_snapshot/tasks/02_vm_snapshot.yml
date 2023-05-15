@@ -1,0 +1,150 @@
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-snapshot-test
+  scale_computing.hypercore.vm: &delete-XLAB-snapshot-test
+    vm_name: "{{ item }}"
+    state: absent
+  loop:
+    - XLAB-snapshot-test
+
+# ----------------------------------Setup-----------------------------------------------------------------------------
+- name: Create XLAB-snapshot-test
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-snapshot-test
+        tags: Xlab,CI,test,vm_snapshots
+        mem: 511705088
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+            name: jc1-disk-0
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: False
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is succeeded
+      - vm_created is changed
+
+- name: Wait for the VM to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm_created.record }}"
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Create snapshot of VM after create
+  scale_computing.hypercore.vm_snapshot:
+    state: present
+    vm_name: XLAB-snapshot-test
+    label: test-snapshot-integration
+    replication: true
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is changed
+      - snapshot_created.record.vm.name == "XLAB-snapshot-test"
+      - snapshot_created.record.label == "test-snapshot-integration"
+      - snapshot_created.record.replication is true
+
+- name: Get snapshot info after create
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-test
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_created.record == snapshot_info.records.0
+
+# ----------------------------------Idempotence-------------------------------------------------------------------------------------
+- name: Create snapshot of VM - after create - idempotence
+  scale_computing.hypercore.vm_snapshot:
+    state: present
+    vm_name: XLAB-snapshot-test
+    label: test-snapshot-integration
+    replication: true
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is not changed
+      - snapshot_created.record.vm.name == "XLAB-snapshot-test"
+      - snapshot_created.record.label == "test-snapshot-integration"
+      - snapshot_created.record.replication is true
+
+- name: Get snapshot info after create - idempotence
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-test
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_created.record == snapshot_info.records.0
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+- name: Delete snapshot of VM
+  scale_computing.hypercore.vm_snapshot:
+    state: absent
+    vm_name: XLAB-snapshot-test
+    label: test-snapshot-integration
+  register: snapshot_deleted
+- ansible.builtin.assert:
+    that:
+      - snapshot_deleted is succeeded
+      - snapshot_deleted is changed
+      - snapshot_deleted.record == None
+      - snapshot_deleted.diff.before.vm.name == "XLAB-snapshot-test"
+      - snapshot_created.diff.before.label == "test-snapshot-integration"
+      - snapshot_created.diff.before.replication is true
+
+- name: Get snapshot info after delete
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-test
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 0
+
+# ----------------------------------Idempotence-------------------------------------------------------------------------------------
+- name: Delete snapshot of VM - Idempotence
+  scale_computing.hypercore.vm_snapshot:
+    state: absent
+    vm_name: XLAB-snapshot-test
+    label: test-snapshot-integration
+  register: snapshot_deleted
+- ansible.builtin.assert:
+    that:
+      - snapshot_deleted is succeeded
+      - snapshot_deleted is not changed
+      - snapshot_deleted.record == None
+      - snapshot_deleted.diff.before == None
+
+- name: Get snapshot info after delete - Idempotence
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-test
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 0
+
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-snapshot-test
+  scale_computing.hypercore.vm: *delete-XLAB-snapshot-test
+  loop:
+    - XLAB-snapshot-test

@@ -87,6 +87,11 @@ records:
       description: Snapshot serial number of the previous snapshot
       type: int
       sample: 2
+    device_snapshots:
+      description: Snapshots of each VM block device
+      type: list
+      sample:
+        - uuid: adcfc72f-4578-48b1-a7f8-da4d9ee915ed
     label:
       description: User-readable label describing the snapshot
       type: str
@@ -119,9 +124,23 @@ records:
       description: source VM
       type: dict
       sample:
+        disks:
+          - cache_mode: writethrough
+            size: 107374182
+            disable_snapshotting: false
+            disk_slot: 0
+            iso_name: example.iso
+            read_only: false
+            tiering_priority_factor: 8
+            type: virtio_disk
+            uuid: adcfc72f-4578-48b1-a7f8-da4d9ee915ed
         name: snapshot-test-vm-1
         snapshot_serial_number: 3
         uuid: 5e50977c-14ce-450c-8a1a-bf5c0afbcf43
+    vm_name:
+      description: name of the source VM
+      type: str
+      sample: snapshot-test-vm-1
 """
 
 

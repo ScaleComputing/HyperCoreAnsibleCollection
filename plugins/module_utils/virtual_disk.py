@@ -173,3 +173,12 @@ class VirtualDisk(PayloadMapper):
         return rest_client.delete_record(
             f"/rest/v1/VirtualDisk/{self.uuid}", check_mode=False
         )
+
+    def attach_to_vm(
+        self, rest_client: RestClient, payload: dict[Any, Any]
+    ) -> TypedTaskTag:
+        return rest_client.create_record(
+            endpoint=f"/rest/v1/VirtualDisk/{self.uuid}/attach",
+            payload=payload,
+            check_mode=False,
+        )

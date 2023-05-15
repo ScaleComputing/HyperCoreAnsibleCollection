@@ -10,6 +10,7 @@ from __future__ import annotations
 __metaclass__ = type
 
 from typing import TypedDict, Union, Any, Optional
+import datetime
 
 
 # Typed Classes use for Python hints.
@@ -134,6 +135,8 @@ class TypedDiff(TypedDict):
         TypedSyslogServerToAnsible,
         TypedUpdateToAnsible,
         TypedVirtualDiskToAnsible,
+        TypedVMSnapshotToAnsible,
+        TypedDiskToAnsible,
         None,
         dict[None, None],
     ]
@@ -146,6 +149,8 @@ class TypedDiff(TypedDict):
         TypedCertificateToAnsible,
         TypedSyslogServerToAnsible,
         TypedVirtualDiskToAnsible,
+        TypedVMSnapshotToAnsible,
+        TypedDiskToAnsible,
         None,
         dict[None, None],
     ]
@@ -228,20 +233,40 @@ class TypedSyslogServerFromAnsible(TypedDict):
 
 class TypedVMSnapshotToAnsible(TypedDict):
     snapshot_uuid: Optional[str]
+    vm_name: Optional[str]
     vm: Optional[dict[Any, Any]]
+    device_snapshots: Optional[list[dict[Any, Any]]]
     label: Optional[str]
     type: Optional[str]
     timestamp: Optional[int]
     automated_trigger_timestamp: Optional[int]
-    local_retain_until_timestamp: Optional[int]
-    remote_retain_until_timestamp: Optional[int]
+    local_retain_until_timestamp: Optional[datetime.date]
+    remote_retain_until_timestamp: Optional[datetime.date]
     block_count_diff_from_serial_number: Optional[int]
     replication: Optional[bool]
 
 
 class TypedVMSnapshotFromAnsible(TypedDict):
-    snapshot_uuid: Optional[str]
-    vm: Optional[dict[Any, Any]]
+    vm_name: Optional[str]
+    retain_for: Optional[int]
+    # snapshot_uuid: Optional[str]
+    # vm: Optional[dict[Any, Any]]
+    # device_snapshots: Optional[list[dict[Any, Any]]]
     snapshot_serial_number: Optional[int]
     label: Optional[str]
+    replication: Optional[bool]
     type: Optional[str]
+
+
+class TypedDiskToAnsible(TypedDict):
+    uuid: str
+    vm_uuid: str
+    type: str
+    cache_mode: str
+    size: int
+    disk_slot: int
+    iso_name: str
+    disable_snapshotting: bool
+    tiering_priority_factor: int
+    mount_points: list[str]
+    read_only: bool

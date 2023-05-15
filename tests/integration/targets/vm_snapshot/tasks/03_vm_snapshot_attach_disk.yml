@@ -1,0 +1,171 @@
+---
+# ==============================
+# The VM to which we are trying to attach the
+# snapshot disk to MUST NOT be running!
+# ==============================
+- name: Test vm_snapshot_attach_disk
+
+  vars:
+    vm_1_snapshot_label_0: ana-snap
+    vm_1_snapshot_label: snap-0
+    vm_1: snapshot-test-vm-1
+    vm_2: snapshot-test-vm-3
+    slot_a: 42
+    slot_b: 43
+
+  block:
+    - include_tasks: helper_api_vm_snapshot_create.yml
+      vars:
+        vms_number: "{{ test_vms_number }}"
+
+    # --------------------------------------------------------
+
+    # Get snapshots info
+    - name: Get a non-unique snapshot info of VM "{{ vm_1 }}"
+      scale_computing.hypercore.vm_snapshot_info:
+        label: "{{ vm_1_snapshot_label }}"
+        vm_name: "{{ vm_1 }}"
+      register: vm_1_snapshot_info
+    - ansible.builtin.debug:
+        var: vm_1_snapshot_info
+
+    - name: Get info of VM "{{ vm_1 }}"
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_1 }}"
+      register: vm_1_info
+
+    - name: Get info of VM "{{ vm_2 }}"
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_2 }}"
+      register: vm_2_info
+
+    # ++++++++++++ Test attach snapshot disk from one VM to another +++++++++++
+    # --------- Test VIRTIO_DISK to VIRTIO_DISK ---------
+
+    - name: >-
+        Attach "snap-0" from VM "{{ vm_1 }}" to VM "{{ vm_2 }}" - as VIRTIO_DISK
+      scale_computing.hypercore.vm_snapshot_attach_disk:
+        vm_name: "{{ vm_2 }}"
+        vm_disk_type: virtio_disk
+        vm_disk_slot: "{{ slot_a }}"
+        source_snapshot_uuid:
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_disk_type: virtio_disk
+        source_disk_slot: 1
+      register: result
+    - ansible.builtin.debug:
+        var: result
+    - ansible.builtin.assert:
+        that:
+          - result is changed
+    - ansible.builtin.assert: &test-virtio
+        that:
+          - result.record.type == "virtio_disk"
+          - result.record.disk_slot == slot_a
+          - result.record.vm_uuid == vm_2_info.records[0].uuid
+
+    - name: >-
+        IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}"
+        to VM "{{ vm_2 }}" - as VIRTIO_DISK
+      scale_computing.hypercore.vm_snapshot_attach_disk:
+        vm_name: "{{ vm_2 }}"
+        vm_disk_type: virtio_disk
+        vm_disk_slot: "{{ slot_a }}"
+        source_snapshot_uuid:
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_disk_type: virtio_disk
+        source_disk_slot: 1
+      register: result
+    - ansible.builtin.debug:
+        var: result
+    - ansible.builtin.assert:
+        that:
+          - result is not changed
+    - ansible.builtin.assert: *test-virtio
+
+#    # --------- Test VIRTIO_DISK to SOME_OTHER_TYPE_OF_DISK ---------
+    - name: >-
+        Attach "snap-0" from VM "{{ vm_1 }}" to
+        VM "{{ vm_2 }}" - as NOT VIRTIO_DISK
+      scale_computing.hypercore.vm_snapshot_attach_disk:
+        vm_name: "{{ vm_2 }}"
+        vm_disk_type: ide_disk
+        vm_disk_slot: "{{ slot_b }}"
+        source_snapshot_uuid:
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_disk_type: virtio_disk
+        source_disk_slot: 1
+      register: result
+    - ansible.builtin.debug:
+        var: result
+    - ansible.builtin.assert:
+        that:
+          - result is changed
+    - ansible.builtin.assert: &test-not-virtio
+        that:
+          - result.record.type == "ide_disk"
+          - result.record.disk_slot == slot_b
+          - result.record.vm_uuid == vm_2_info.records[0].uuid
+
+    - name: >-
+        IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}"
+        to VM "{{ vm_2 }}" - as NOT VIRTIO_DISK
+      scale_computing.hypercore.vm_snapshot_attach_disk:
+        vm_name: "{{ vm_2 }}"
+        vm_disk_type: ide_disk
+        vm_disk_slot: "{{ slot_b }}"
+        source_snapshot_uuid:
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_disk_type: virtio_disk
+        source_disk_slot: 1
+      register: result
+    - ansible.builtin.debug:
+        var: result
+    - ansible.builtin.assert:
+        that:
+          - result is not changed
+    - ansible.builtin.assert: *test-not-virtio
+
+    # ++++++++++++ Test attach snapshot disk from a VM to itself +++++++++++++
+
+    - name: >-
+        Attach "snap-0" from VM "{{ vm_1 }}"
+        to VM "{{ vm_1 }}"
+      scale_computing.hypercore.vm_snapshot_attach_disk:
+        vm_name: "{{ vm_1 }}"
+        vm_disk_type: virtio_disk
+        vm_disk_slot: "{{ slot_a }}"
+        source_snapshot_uuid:
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_disk_type: virtio_disk
+        source_disk_slot: 1
+      register: result
+    - ansible.builtin.debug:
+        var: result
+    - ansible.builtin.assert:
+        that:
+          - result is changed
+    - ansible.builtin.assert: &test-virtio-2
+        that:
+          - result.record.type == "virtio_disk"
+          - result.record.disk_slot == slot_a
+          - result.record.vm_uuid == vm_1_info.records[0].uuid
+
+    - name: >-
+        IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}"
+        to VM "{{ vm_1 }}"
+      scale_computing.hypercore.vm_snapshot_attach_disk:
+        vm_name: "{{ vm_1 }}"
+        vm_disk_type: virtio_disk
+        vm_disk_slot: "{{ slot_a }}"
+        source_snapshot_uuid:
+          "{{ vm_1_snapshot_info.records[0].snapshot_uuid }}"
+        source_disk_type: virtio_disk
+        source_disk_slot: 1
+      register: result
+    - ansible.builtin.debug:
+        var: result
+    - ansible.builtin.assert:
+        that:
+          - result is not changed
+    - ansible.builtin.assert: *test-virtio-2

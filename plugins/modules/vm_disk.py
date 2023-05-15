@@ -246,7 +246,7 @@ record:
       description: Virtual slot the drive will occupy
       type: int
       sample: 0
-    name:
+    iso_name:
       description: Name of the virtual storage device
       type: str
       sample: jc1-disk-0

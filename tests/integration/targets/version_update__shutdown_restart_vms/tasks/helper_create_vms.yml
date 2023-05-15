@@ -1,0 +1,118 @@
+# ------------------------------------------------------------------------------------------------------------------
+# Cleanup
+#- name: Delete the VM with name {{ vm_name_a }}
+#  scale_computing.hypercore.vm: &delete-vm-a
+#    vm_name: "{{ vm_name_a }}"
+#    state: absent
+#  register: result
+
+# ------------------------------------------------------------------------------------------------------------------
+# Prerequisites
+# integration-test.iso must be already present, we have prepare.yml task
+- name: Get ISO {{ iso_name_with_acpi }} info
+  scale_computing.hypercore.iso_info:
+    name: "{{ iso_name_with_acpi }}"
+  register: uploaded_iso_info
+- ansible.builtin.assert:
+    that:
+      - uploaded_iso_info.records | length == 1
+
+- name: Get ISO {{ iso_name_no_acpi }} info
+  scale_computing.hypercore.iso_info:
+    name: "{{ iso_name_no_acpi }}"
+  register: uploaded_iso_info
+- ansible.builtin.assert:
+    that:
+      - uploaded_iso_info.records | length == 1
+
+# ------------------------------------------------------------------------------------------------------------------
+# Create test VMs
+- name: Create test VM a
+  scale_computing.hypercore.vm:
+    vm_name: "{{ vm_name_a }}"
+    description: "{{ vm_name_a }}"
+    state: present
+    tags:
+      - Xlab
+      - ci_live_migrate__no_a
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: false
+    power_state: start
+    disks:
+      - type: ide_cdrom
+        disk_slot: 0
+        iso_name: "{{ iso_name_with_acpi }}"
+    nics:
+      - vlan: 1
+        type: virtio
+    boot_devices:
+      - type: ide_cdrom
+        disk_slot: 0
+    machine_type: BIOS
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created.record.0.power_state == "started"
+      - vm_created.record.0.boot_devices | length == 1
+      - vm_created.record.0.boot_devices.0.type == "ide_cdrom"
+
+- name: Create test VM b
+  scale_computing.hypercore.vm:
+    vm_name: "{{ vm_name_b }}"
+    description: "{{ vm_name_b }}"
+    state: present
+    tags:
+      - Xlab
+      - ci_live_migrate__no_b
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: false
+    power_state: start
+    disks:
+      - type: ide_cdrom
+        disk_slot: 0
+        iso_name: "{{ iso_name_no_acpi }}"
+    nics:
+      - vlan: 1
+        type: virtio
+    boot_devices:
+      - type: ide_cdrom
+        disk_slot: 0
+    machine_type: BIOS
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created.record.0.power_state == "started"
+      - vm_created.record.0.boot_devices | length == 1
+      - vm_created.record.0.boot_devices.0.type == "ide_cdrom"
+
+- name: Create test VM c
+  scale_computing.hypercore.vm:
+    vm_name: "{{ vm_name_c }}"
+    description: "{{ vm_name_c }}"
+    state: present
+    tags:
+      - Xlab
+      - ci_live_migrate__yes_c
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 2
+    attach_guest_tools_iso: false
+    power_state: start
+    disks:
+      - type: ide_cdrom
+        disk_slot: 0
+        iso_name: "{{ iso_name_with_acpi }}"
+    nics:
+      - vlan: 1
+        type: virtio
+    boot_devices:
+      - type: ide_cdrom
+        disk_slot: 0
+    machine_type: BIOS
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created.record.0.power_state == "started"
+      - vm_created.record.0.boot_devices | length == 1
+      - vm_created.record.0.boot_devices.0.type == "ide_cdrom"
