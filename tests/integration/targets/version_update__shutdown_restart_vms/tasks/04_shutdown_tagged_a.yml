@@ -1,0 +1,108 @@
+# Shutdown running VMs, but only if they are tagged with specific tag/tags.
+
+# ------------------------------------------------------------------------------------------------------------------
+# before shutdown
+- name: Check current power state for test VMs
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name }}"
+  register: vm_info_results
+  loop: "{{ vm_names }}"
+  loop_control:
+    loop_var: vm_name
+
+- name: Show power_state before shutdown
+  ansible.builtin.debug:
+    var: vm_info_results.results | map(attribute='records.0.power_state')
+
+- name: Check VMs were initially running
+  ansible.builtin.assert:
+    that:
+      - vm_info_results.results | map(attribute="records.0.vm_name") == vm_names
+      - vm_info_results.results | map(attribute="records.0.power_state") == ["started", "started", "started"]
+
+# ------------------------------------------------------------------------------------------------------------------
+# do shutdown
+- name: List all VMs
+  scale_computing.hypercore.vm_info:
+  register: vm_info_a
+
+- name: Shutdown running VMs with specific tags
+  ansible.builtin.include_role:
+    name: scale_computing.hypercore.version_update_single_node
+    tasks_from: shutdown_vms.yml
+  vars:
+    scale_computing_hypercore_shutdown_vms: "{{ vm_info_a }}"
+    scale_computing_hypercore_shutdown_tags:
+      - ci_live_migrate__no_a
+
+# ------------------------------------------------------------------------------------------------------------------
+# after shutdown
+# vm_name_a has ACPI, it should shutdown nicely.
+# Check shutdown_vms.yml does not wait.
+- name: Check VM force shutdown was not needed
+  ansible.builtin.assert:
+    that:
+      - version_update_all_vms_stopped is true
+
+- name: List all VMs
+  scale_computing.hypercore.vm_info:
+  register: vm_info_b
+
+- name: Show power_state after shutdown
+  ansible.builtin.debug:
+    var: vm_info_b.records | map(attribute="power_state")
+
+- name: Check current power state for test VMs
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name }}"
+  register: vm_info_results_b
+  loop: "{{ vm_names }}"
+  loop_control:
+    loop_var: vm_name
+
+- name: Show power_state after shutdown - test VMs
+  ansible.builtin.debug:
+    var: vm_info_results_b.results | map(attribute="records.0.power_state")
+
+- name: Check test VMs power state
+  ansible.builtin.assert:
+    that:
+      - vm_info_results_b.results | map(attribute="records.0.vm_name") == vm_names
+      - vm_info_results_b.results | map(attribute="records.0.power_state") == ["stopped", "started", "started"]
+
+# ------------------------------------------------------------------------------------------------------------------
+# do restart
+- name: Restart VMs
+  ansible.builtin.include_role:
+    name: scale_computing.hypercore.version_update_single_node
+    tasks_from: restart_vms.yml
+  vars:
+    scale_computing_hypercore_restart_vms: "{{ vm_info_a }}"
+
+# ------------------------------------------------------------------------------------------------------------------
+# after restart
+- name: List all VMs
+  scale_computing.hypercore.vm_info:
+  register: vm_info_c
+
+- name: Show power_state after restart - all VMs
+  ansible.builtin.debug:
+    var: vm_info_c.records | map(attribute="power_state")
+
+- name: Check current power state for test VMs
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name }}"
+  register: vm_info_results_b
+  loop: "{{ vm_names }}"
+  loop_control:
+    loop_var: vm_name
+
+- name: Show power_state after restart - test VMs
+  ansible.builtin.debug:
+    var: vm_info_results_b.results | map(attribute="records.0.power_state")
+
+- name: Check test VMs are running again
+  ansible.builtin.assert:
+    that:
+      - vm_info_results_b.results | map(attribute="records.0.vm_name") == vm_names
+      - vm_info_results_b.results | map(attribute="records.0.power_state") == ["started", "started", "started"]

@@ -32,9 +32,12 @@
         endpoint: /rest/v1/VirDomainSnapshot
       register: vm_snapshots_api
     - ansible.builtin.set_fact:
-        existing_snapshot_label: "{{ vm_snapshots_api.record[0].label }}"
-        existing_snapshot_vm_name: "{{ vm_snapshots_api.record[0].domain.name }}"
-        existing_snapshot_serial: "{{ vm_snapshots_api.record[0].domain.snapshotSerialNumber }}"
+        existing_snapshot_label: |
+          "{{ vm_snapshots_api.record[0].label }}"
+        existing_snapshot_vm_name: |
+          "{{ vm_snapshots_api.record[0].domain.name }}"
+        existing_snapshot_serial: |
+          "{{ vm_snapshots_api.record[0].domain.snapshotSerialNumber }}"
     - ansible.builtin.debug:
         msg:
           - "{{ existing_snapshot_label }}"
@@ -62,7 +65,7 @@
       scale_computing.hypercore.vm_snapshot_info:
       register: vm_snapshots
     - ansible.builtin.debug:
-        var: vm_snapshots.records
+        var: vm_snapshots.records[0]
     - ansible.builtin.assert: &assert-existing
         that:
           - vm_snapshots is not changed
@@ -70,6 +73,7 @@
           - vm_snapshots.records[0].keys() | sort ==
             ["automated_trigger_timestamp",
             "block_count_diff_from_serial_number",
+            "device_snapshots",
             "label",
             "local_retain_until_timestamp",
             "remote_retain_until_timestamp",
@@ -77,7 +81,8 @@
             "snapshot_uuid",
             "timestamp",
             "type",
-            "vm"]
+            "vm",
+            "vm_name"]
 
      # ====== Test every parameter one by one =======
     - name: List all VM snapshots with snapshot label "not-unique"
@@ -89,7 +94,8 @@
     - ansible.builtin.assert: *assert-existing
     - ansible.builtin.assert:
         that:
-          - vm_snapshots.records | length == 6  # 3 on each of the 2 created testing vms
+          # 3 on each of the 2 created testing vms
+          - vm_snapshots.records | length == 6
           - vm_snapshots.records[0].label == "not-unique"
 
     - name: List all VM snapshots with a nonexistent label
@@ -112,7 +118,8 @@
     - ansible.builtin.assert: *assert-existing
     - ansible.builtin.assert:
         that:
-          - vm_snapshots.records | length == 6  # there are 6 snapshots of vm snapshot-test-vm-1
+          # there are 6 snapshots of vm snapshot-test-vm-1
+          - vm_snapshots.records | length == 6
           - vm_snapshots.records[0].vm.name == "snapshot-test-vm-1"
 
     - name: List all VM snapshots with a nonexistent vm_name
@@ -123,7 +130,9 @@
         var: vm_snapshots.records
     - ansible.builtin.assert: *assert-nonexistent
 
-    - name: List all VM snapshots with serial "3"  # the last snapshot serial of each vm is 3, so there should be 2 snapshots with the serial 3
+    # the last snapshot serial of each vm is 3,
+    # so there should be 2 snapshots with the serial 3
+    - name: List all VM snapshots with serial "3"
       scale_computing.hypercore.vm_snapshot_info:
         serial: 3
       register: vm_snapshots
@@ -132,10 +141,13 @@
     - ansible.builtin.assert: *assert-existing
     - ansible.builtin.assert:
         that:
-          - vm_snapshots.records | length >= 2  # there are 2 or more snapshots with serial "3": snap-0 and not-unique
+          # there are 2 or more snapshots with serial "3": snap-0 and not-unique
+          - vm_snapshots.records | length >= 2
           - vm_snapshots.records[0].vm.snapshot_serial_number == 3
-          - vm1.records.0.uuid in vm_snapshots.records | map(attribute='vm.uuid')
-          - vm2.records.0.uuid in vm_snapshots.records | map(attribute='vm.uuid')
+          - vm1.records.0.uuid in vm_snapshots.records |
+            map(attribute='vm.uuid')
+          - vm2.records.0.uuid in vm_snapshots.records |
+            map(attribute='vm.uuid')
 
     - name: List all VM snapshots with a nonexistent serial
       scale_computing.hypercore.vm_snapshot_info:
@@ -173,3 +185,10 @@
     - ansible.builtin.debug:
         var: vm_snapshots.records
     - ansible.builtin.assert: *assert-nonexistent
+
+# ------------- Cleanup --------------
+
+    - name: Remove all created VMs for this test
+      include_tasks: helper_api_vm_snapshot_delete_all.yml
+      vars:
+        vms_number: "{{ number_of_snapshot_testing_vms }}"

@@ -69,6 +69,7 @@ class TestEnsureAbsent:
             snapshotScheduleUUID="shapshot-id",
             machineType="scale-7.2",
             sourceVirDomainUUID="",
+            snapUUIDs=[],
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -206,6 +207,7 @@ class TestEnsureAbsent:
             snapshotScheduleUUID="snapshot_schedule_uuid",
             machineType="scale-7.2",
             sourceVirDomainUUID="64c9b3a1-3eab-4d16-994f-177bed274f84",
+            snapUUIDs=[],
         )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -384,6 +386,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="snapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="64c9b3a1-3eab-4d16-994f-177bed274f84",
+                snapUUIDs=[],
             ),
             dict(  # vm_after
                 uuid="id",
@@ -407,6 +410,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="snapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="64c9b3a1-3eab-4d16-994f-177bed274f84",
+                snapUUIDs=[],
             ),
         ]
 
@@ -898,6 +902,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="",
+                snapUUIDs=[],
             ),
             dict(
                 uuid="id",
@@ -935,6 +940,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="",
+                snapUUIDs=[],
             ),
         ]
         mocker.patch(
@@ -1157,6 +1163,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="snapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="",
+                snapUUIDs=[],
             ),
             dict(
                 uuid="id",
@@ -1180,6 +1187,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="snapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="",
+                snapUUIDs=[],
             ),
         ]
         mocker.patch(
@@ -1348,6 +1356,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="",
+                snapUUIDs=[],
             ),
             dict(
                 uuid="id",
@@ -1385,6 +1394,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="",
+                snapUUIDs=[],
             ),
         ]
         mocker.patch(
@@ -1609,6 +1619,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="",
+                snapUUIDs=[],
             ),
             dict(
                 uuid="id",
@@ -1646,6 +1657,7 @@ class TestEnsurePresent:
                 snapshotScheduleUUID="shapshot-id",
                 machineType="scale-7.2",
                 sourceVirDomainUUID="",
+                snapUUIDs=[],
             ),
         ]
         mocker.patch(

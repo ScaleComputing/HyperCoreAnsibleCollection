@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - Added snapshot cloning to vm_clone.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/219)

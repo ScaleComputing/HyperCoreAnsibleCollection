@@ -19,6 +19,7 @@ from ..module_utils.typed_classes import (
     TypedOidcToAnsible,
     TypedCertificateToAnsible,
     TypedVirtualDiskToAnsible,
+    TypedVMSnapshotToAnsible,
 )
 
 
@@ -137,6 +138,7 @@ def is_changed(
         TypedOidcToAnsible,
         TypedRegistrationToAnsible,
         TypedVirtualDiskToAnsible,
+        TypedVMSnapshotToAnsible,
         None,
     ],
     after: Union[
@@ -144,6 +146,7 @@ def is_changed(
         TypedOidcToAnsible,
         TypedRegistrationToAnsible,
         TypedVirtualDiskToAnsible,
+        TypedVMSnapshotToAnsible,
         None,
     ],
 ) -> bool:

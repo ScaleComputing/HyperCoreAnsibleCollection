@@ -15,13 +15,3 @@
     action: get
     endpoint: /rest/v1/VirDomainSnapshot
   register: vm_snapshots_api
-
-# I don't think this task is currently necessary, since we don't have scheduled snapshots yet and all
-# created snapshots are deleted automatically along with their vms.
-# -----------
-#- name: Remove all testing snapshots
-#  scale_computing.hypercore.api:
-#    action: delete
-#    endpoint: /rest/v1/VirDomainSnapshot/{{ item.uuid }}
-#  when: item.domain.name == "snapshot-test-vm-1" or item.domain.name == "snapshot-test-vm-2"
-#  loop: "{{ vm_snapshots_api.record }}"

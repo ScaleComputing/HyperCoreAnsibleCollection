@@ -1,0 +1,42 @@
+---
+# Test the role version_update, tasks shutdown_vms.yml and restart_vms.yml
+# VM tags:
+#   ci_live_migrate__no_a - has ACPI shutdown
+#   ci_live_migrate__no_b - no ACPI shutdown
+#   ci_live_migrate__yes_c - has ACPI shutdown
+# Test VMs are not removed. They are left present, hopefully this will speedup testing.
+
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    # cluster_update_config: "{{ sc_config[sc_host].version_update }}"
+    iso_name_with_acpi: "Porteus-XFCE-v5.0-x86_64.iso"
+    iso_name_no_acpi: "integration-test.iso"
+    vm_name_a: "ci-version-update-shutdown-a"
+    vm_name_b: "ci-version-update-shutdown-b"
+    vm_name_c: "ci-version-update-shutdown-c"
+    vm_names:
+      - "{{ vm_name_a }}"
+      - "{{ vm_name_b }}"
+      - "{{ vm_name_c }}"
+    scale_computing_hypercore_shutdown_wait_time: 30
+
+  block:
+    - name: Check vm_shutdown_restart_allow_string value
+      ansible.builtin.assert:
+        that:
+          - sc_config[sc_host].version_update.vm_shutdown_restart_allow_string == "allow-vm-shutdown-restart-test"
+
+    - include_tasks: helper_create_vms.yml
+    - include_tasks: 01_shutdown_all.yml
+    - include_tasks: 02_shutdown_none.yml
+    - include_tasks: 03_shutdown_some.yml
+    - include_tasks: 04_shutdown_tagged_a.yml
+      vars:
+        # Porteus VM needs about 20 sec to shut down.
+        # Use longer wait time, we want to check VM did shut down, without exceeding the wait time.
+        scale_computing_hypercore_shutdown_wait_time: 300
+    - include_tasks: 05_shutdown_tagged_bc.yml

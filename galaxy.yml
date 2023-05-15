@@ -1,7 +1,7 @@
 ---
 namespace: scale_computing
 name: hypercore
-version: 1.1.0
+version: 1.3.0-dev0
 readme: README.md
 authors:
   - XLAB Steampunk <steampunk@xlab.si>
@@ -14,7 +14,7 @@ tags:
   - virtualization
 dependencies: {}
 repository: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
-documentation: https://scalecomputing.github.io/HyperCoreAnsibleCollection-docs
+documentation: https://scalecomputing.github.io/HyperCoreAnsibleCollection
 homepage: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
 issues: https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues
 build_ignore:
@@ -27,6 +27,7 @@ build_ignore:
   - docs.requirements
   - sanity.requirements
   - test.requirements
+  - mypy.requirements
   - Makefile
   # files used during local testing/building
   - ansible.cfg

@@ -1,0 +1,81 @@
+---
+# Example invocation:
+# ansible-playbook -e '{"vm_shutdown_tags": ["gpu-passthrough", "usb-passthrough"]}' examples/shutdown_restart_tagged_vms.yml
+- name: Shut down and start back HyperCore VMs with specific tags
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_shutdown_tags:
+      - gpu-passthrough
+      - usb-passthrough
+
+  tasks:
+    # ------------------------------------------------------
+    - name: Store initial/desired VMs state
+      scale_computing.hypercore.vm_info:
+      register: vm_desired_state
+
+    # ------------------------------------------------------
+    - name: List tagged VMs power-state before shutdown
+      block: &list-tagged-vms
+        - name: List all VMs
+          scale_computing.hypercore.vm_info:
+          register: vm_info_result
+
+        - name: Find VMs with matching tag
+          ansible.builtin.shell: |
+            #!/usr/bin/env python
+            import json
+            import sys
+            data_str = sys.stdin.read()
+            data = json.loads(data_str)
+            all_vms = data["all_vms"]
+            vm_shutdown_tags = data["vm_shutdown_tags"]
+            tagged_vms = []
+            for vm in all_vms:
+                for tag in vm["tags"]:
+                    if tag in vm_shutdown_tags:
+                        tagged_vms.append(vm)
+                        break
+            print(json.dumps(tagged_vms))
+          args:
+            # /usr/bin/python3 - fedora
+            # /usr/local/bin/python - python:3.10-slim-buster docker image
+            executable: python3
+            stdin: "{{ stdin_data | to_json }}"
+          vars:
+            stdin_data:
+              all_vms: "{{ vm_info_result.records }}"
+              vm_shutdown_tags: "{{ vm_shutdown_tags }}"
+          changed_when: false
+          register: tagged_vms_result
+
+        - name: Show tagged VMs
+          ansible.builtin.debug:
+            msg: |
+              vm_names={{ tagged_vms_result.stdout | from_json | map(attribute='vm_name') }}
+              power_state={{ tagged_vms_result.stdout | from_json | map(attribute='power_state') }}
+
+    # ------------------------------------------------------
+    - name: Shutdown running VMs with specific tags
+      ansible.builtin.include_role:
+        name: scale_computing.hypercore.version_update_single_node
+        tasks_from: shutdown_vms
+      vars:
+        scale_computing_hypercore_shutdown_vms: "{{ vm_desired_state }}"
+        scale_computing_hypercore_shutdown_tags: "{{ vm_shutdown_tags }}"
+
+    - name: List tagged VMs power-state after shutdown
+      block: *list-tagged-vms
+
+    # ------------------------------------------------------
+    - name: Start back VMs with specific tags
+      ansible.builtin.include_role:
+        name: scale_computing.hypercore.version_update_single_node
+        tasks_from: restart_vms.yml
+      vars:
+        scale_computing_hypercore_restart_vms: "{{ vm_desired_state }}"
+
+    - name: List tagged VMs power-state after restart
+      block: *list-tagged-vms
