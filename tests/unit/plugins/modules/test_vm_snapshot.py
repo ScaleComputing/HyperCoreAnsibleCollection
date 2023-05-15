@@ -293,6 +293,11 @@ class TestEnsurePresent:
         result = vm_snapshot.ensure_present(
             module, rest_client, vm_object, snapshot_list
         )
+
+        print(result)
+        print("\n")
+        print(expected_result)
+
         assert isinstance(result, tuple)
         assert result == expected_result
 

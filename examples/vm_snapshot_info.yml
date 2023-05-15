@@ -1,0 +1,38 @@
+---
+- name: Show available snapshots by a desired filter
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_name: demo-vm
+    serial: 123
+    label: snapshot-label
+
+  tasks:
+    - name: List all VM snapshots on HyperCore API
+      scale_computing.hypercore.vm_snapshot_info:
+      register: vm_snapshot
+
+    - name: List all VM snapshots on HyperCore API with label="{{ label }}"
+      scale_computing.hypercore.vm_snapshot_info:
+        label: "{{ label }}"
+      register: vm_snapshot
+
+    - name: List all VM snapshots on HyperCore API with vm_name="{{ vm_name }}"
+      scale_computing.hypercore.vm_snapshot_info:
+        vm_name: "{{ vm_name }}"
+      register: vm_snapshot
+
+    - name: List all VM snapshots on HyperCore API with serial="{{ serial }}"
+      scale_computing.hypercore.vm_snapshot_info:
+        serial: "{{ serial }}"
+      register: vm_snapshot
+
+    - name: >-
+        List all VM snapshots on HyperCore API with
+        label="{{ label }}", vm_name="{{ vm_name }}", serial="{{ serial }}"
+      scale_computing.hypercore.vm_snapshot_info:
+        label: "{{ label }}"
+        vm_name: "{{ vm_name }}"
+        serial: "{{ serial }}"
+      register: vm_snapshot
