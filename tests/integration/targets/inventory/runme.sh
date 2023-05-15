@@ -7,7 +7,9 @@ import yaml
 with open("$vars_file") as fd:
     data = yaml.safe_load(fd)
 sc_host=data["sc_host"]
+sc_timeout=data["sc_timeout"]
 print("export SC_HOST='{}'".format(sc_host))
+print("export SC_TIMEOUT='{}'".format(sc_timeout))
 print("export SC_USERNAME='{}'".format(data["sc_config"][sc_host]["sc_username"]))
 print("export SC_PASSWORD='{}'".format(data["sc_config"][sc_host]["sc_password"]))
 EOF
@@ -36,12 +38,15 @@ function cleanup {
 trap 'cleanup "$@"' EXIT
 
 
-ansible-playbook -e "@$vars_file" cleanup.yml
-ansible-playbook -e "@$vars_file" prepare.yml
+ansible-playbook cleanup.yml
+ansible-playbook prepare.yml
 
-ansible-playbook -i localhost, -i hypercore_inventory_ansible_enable.yml -e "@$vars_file" run_ansible_enable_tests.yml
-ansible-playbook -i localhost, -i hypercore_inventory_ansible_disable.yml -e "@$vars_file" run_ansible_disable_tests.yml
-ansible-playbook -i localhost, -i hypercore_inventory_ansible_both_true.yml -e "@$vars_file" run_ansible_both_true_tests.yml
-ansible-playbook -i localhost, -i hypercore_inventory_ansible_both_false.yml -e "@$vars_file" run_ansible_both_false_tests.yml
+ansible-playbook -i localhost, -i hypercore_inventory_ansible_enable.yml run_ansible_enable_tests.yml
+ansible-playbook -i localhost, -i hypercore_inventory_ansible_disable.yml run_ansible_disable_tests.yml
+ansible-playbook -i localhost, -i hypercore_inventory_ansible_both_true.yml run_ansible_both_true_tests.yml
 
-ansible-playbook -e "@$vars_file" cleanup.yml
+unset SC_TIMEOUT  # do one test without SC_TIMEOUT
+
+ansible-playbook -i localhost, -i hypercore_inventory_ansible_both_false.yml run_ansible_both_false_tests.yml
+
+ansible-playbook cleanup.yml
