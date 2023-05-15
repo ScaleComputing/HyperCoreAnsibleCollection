@@ -2,12 +2,6 @@
 - name: Run HyperCore inventory ansible_enable tests
   hosts: localhost
   gather_facts: False
-  environment:
-    SC_HOST: "{{ sc_host }}"
-    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
-    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
-    SC_TIMEOUT: "{{ sc_timeout }}"
-    
 
   tasks:
     - block:
