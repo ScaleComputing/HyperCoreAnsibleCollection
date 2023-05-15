@@ -15,11 +15,11 @@
       register: snapshot_results
 
     - name: Create filtered_snapshots list
-      set_fact:
+      ansible.builtin.set_fact:
         filtered_snapshots: []
 
     - name: Loop through snapshots and add snapshots with use_label and type 'USER' to filtered_snapshots
-      set_fact:
+      ansible.builtin.set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [item] }}"
       when: item.label == use_label and item.type == 'USER'
       loop: "{{ snapshot_results.records }}"
@@ -45,11 +45,11 @@
       register: snapshot_results
 
     - name: Create filtered_snapshots list - second time
-      set_fact:
+      ansible.builtin.set_fact:
         filtered_snapshots: []
 
     - name: Loop through snapshots and add snapshots with use_label and type 'USER' to filtered_snapshots - second time
-      set_fact:
+      ansible.builtin.set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [item] }}"
       when: item.label == use_label and item.type == 'USER'
       loop: "{{ snapshot_results.records }}"

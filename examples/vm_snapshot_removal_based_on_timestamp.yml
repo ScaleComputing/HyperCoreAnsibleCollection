@@ -16,7 +16,7 @@
       register: snapshot_results
 
     - name: Convert date to unix timestamp 'epoch'
-      set_fact:
+      ansible.builtin.set_fact:
         epoch_timestamp: "{{ (use_date | to_datetime).strftime('%s') }}"
 
     - name: Show epoch_timestamp
@@ -24,11 +24,11 @@
         var: epoch_timestamp
 
     - name: Create filtered_snapshots list
-      set_fact:
+      ansible.builtin.set_fact:
         filtered_snapshots: []
 
     - name: Loop through snapshots and add snapshots that are older than 'use_date'
-      set_fact:
+      ansible.builtin.set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [item] }}"
       when: item.timestamp < epoch_timestamp | int
       loop: "{{ snapshot_results.records }}"
@@ -50,11 +50,11 @@
       loop: "{{ snapshot_results.records }}"
 
     - name: Create filtered_snapshots list - second time
-      set_fact:
+      ansible.builtin.set_fact:
         filtered_snapshots: []
 
     - name: Loop through snapshots and add snapshots that are older than 'use_date' - second time
-      set_fact:
+      ansible.builtin.set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [item] }}"
       when: item.timestamp < epoch_timestamp | int
       loop: "{{ snapshot_results.records }}"
