@@ -208,7 +208,7 @@ def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Optional[TypedDiskToAnsible], TypedDiff]:
     vm = VM.get_by_name(module.params, rest_client)
-    slot_available, disk = is_slot_available(module, vm) # type: ignore
+    slot_available, disk = is_slot_available(module, vm)  # type: ignore
     if not slot_available:
         return (
             False,
