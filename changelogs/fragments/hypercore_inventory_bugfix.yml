@@ -1,3 +1,4 @@
 ---
 bugfixes:
-  - This fix now converts value read from SC_TIMEOUT to int, thus resolving inventory parse error when SC_TIMEOUT was defined. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/231)
+  - Convert SC_TIMEOUT environ variable to float, thus resolving inventory parse error when SC_TIMEOUT was defined.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/231)
