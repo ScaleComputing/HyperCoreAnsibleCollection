@@ -167,6 +167,16 @@
 
 # ----------------------------------------------------------------------------------
 # Test cloning from VM with multiple snapshots with the same label
+- name: Alter source VM - number of VCPU
+  scale_computing.hypercore.vm_params: # Using params instead of API ... too much work with URL
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    vcpu: 2
+  register: updated_vm
+- ansible.builtin.assert:
+    that:
+      - updated_vm is changed
+      - updated_vm is succeeded
+
 - name: Create snapshot of source VM - third
   scale_computing.hypercore.api:
     action: post
@@ -203,7 +213,16 @@
       - snapshot_info.records.1.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
       - snapshot_info.records.0.snapshot_uuid != snapshot_info.records.1.snapshot_uuid
 
-- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test2 snapshot - test multiple snapshots with same label
+# This task should fail, since there are multiple snapshots with the same label, source_snapshot_uuid should be used instead
+- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test2 snapshot - test multiple snapshots with same label - use snapshot_label - must fail
+  scale_computing.hypercore.vm_clone:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3
+    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    source_snapshot_label: test2
+  register: output
+  failed_when: output is not failed
+
+- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test2 snapshot - test multiple snapshots with same label - use snapshot_uuid
   scale_computing.hypercore.vm_clone:
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3
     source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
@@ -227,5 +246,5 @@
       - vm_clone_info.records.0.nics | length == 1
       - vm_clone_info.records.0.disks | length == 2
       - vm_clone_info.records.0.boot_devices | length == 0
-      - vm_clone_info.records.0.vcpu == 3
+      - vm_clone_info.records.0.vcpu == 2
       - vm_clone_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3"
