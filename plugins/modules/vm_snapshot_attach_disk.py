@@ -77,12 +77,27 @@ record:
     - Newly attached disk from a VM snapshot to a VM.
   returned: success
   type: dict
-  sample:
-    uuid: 5b4b7324-eccf-43c9-925a-6417e02860ff
-    size: 100000595968
-    slot: 42
-    type: ide_disk
-    vm_uuid: e18ec6af-9dd2-41dc-89af-8ce637171524
+  contains:
+    uuid:
+      description: Disk unique identifier.
+      type: str
+      sample: 5b4b7324-eccf-43c9-925a-6417e02860ff
+    size:
+      description: Total capacity, in bytes.
+      type: int
+      sample: 100000595968
+    disk_slot:
+      description: Disk slot.
+      type: int
+      sample: 42
+    type:
+      description: Disk type.
+      type: str
+      sample: ide_disk
+    vm_uuid:
+      description: VM unique identifier.
+      type: str
+      sample: e18ec6af-9dd2-41dc-89af-8ce637171524
 """
 
 
