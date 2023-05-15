@@ -20,7 +20,7 @@
 
     - name: Loop through snapshots and add snapshots with use_label and type 'USER' to filtered_snapshots
       set_fact:
-        filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
+        filtered_snapshots: "{{ filtered_snapshots + [item] }}"
       when: item.label == use_label and item.type == 'USER'
       loop: "{{ snapshot_results.records }}"
       no_log: true
@@ -50,7 +50,7 @@
 
     - name: Loop through snapshots and add snapshots with use_label and type 'USER' to filtered_snapshots - second time
       set_fact:
-        filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
+        filtered_snapshots: "{{ filtered_snapshots + [item] }}"
       when: item.label == use_label and item.type == 'USER'
       loop: "{{ snapshot_results.records }}"
       no_log: true
