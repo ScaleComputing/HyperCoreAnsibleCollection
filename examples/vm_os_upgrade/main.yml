@@ -20,7 +20,7 @@
   hosts: "{{ source_vm_name }}"
   tasks:
     - name: Setup source VM
-      ansible.builtin.include_tasks: 05_setup_source_vm.yml
+      ansible.builtin.include_tasks: 04_setup_source_vm.yml
 
 - name: Clone VM
   hosts: localhost
@@ -28,18 +28,17 @@
   gather_facts: false
   tasks:
     - name: Create clone from source VM
-      ansible.builtin.include_tasks: 04_clone_from_source.yml
+      ansible.builtin.include_tasks: 05_clone_from_source.yml
 
-- name: Upgrade OS on cloned vm
+- name: Upgrade OS on cloned vm as a root
   hosts: "{{ cloned_vm_name }}"
-  # become: true
   gather_facts: false
   tasks:
     - name: Upgrade the OS (apt-get dist-upgrade)
       ansible.builtin.apt:
         upgrade: dist
 
-    - name: Setup source VM
-      ansible.builtin.include_tasks: 05_setup_source_vm.yml
+    - name: Setup cloned VM
+      ansible.builtin.include_tasks: 06_setup_cloned_vm.yml
 
     - meta: end_play
