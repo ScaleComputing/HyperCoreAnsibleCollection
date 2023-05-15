@@ -99,12 +99,9 @@ EXAMPLES = r"""
       password: pass
       file_name: my_file.xml
     cloud_init:
-      user_data: |
-        #cloud-config
-        valid:
-        - yaml: 1
-        - expression: 2
-      meta_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+      user_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+      meta_data: |
+        # Content for cloud-init meta-data (or user-data) can be inline too.
   register: output
 
 - name: import VM from URI
@@ -122,12 +119,9 @@ EXAMPLES = r"""
       path: 'http://some-address-where-file-is-located'
       file_name: actual_file_name.xml
     cloud_init:
-      user_data: |
-        #cloud-config
-        valid:
-        - yaml: 1
-        - expression: 2
-      meta_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+      user_data: "{{ lookup('file', 'cloud-init-user-data-example.yml') }}"
+      meta_data: |
+        # Content for cloud-init meta-data (or user-data) can be inline too.
   register: output
 """
 
