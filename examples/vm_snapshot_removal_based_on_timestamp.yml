@@ -30,7 +30,7 @@
     - name: Loop through snapshots and add snapshots that are older than 'use_date'
       set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
-      when: "{{ item.timestamp  < epoch_timestamp | int }}"
+      when: item.timestamp  < epoch_timestamp | int
       loop: "{{ snapshot_results.records }}"
       no_log: true
 
@@ -46,7 +46,7 @@
         vm_name: "{{ item.vm.name }}"
         uuid: "{{ item.snapshot_uuid }}"
         state: absent
-      when: "{{ item.timestamp < epoch_timestamp | int }}"
+      when: item.timestamp < epoch_timestamp | int
       loop: "{{ snapshot_results.records }}"
 
     - name: Create filtered_snapshots list - second time
@@ -56,7 +56,7 @@
     - name: Loop through snapshots and add snapshots that are older than 'use_date' - second time
       set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
-      when: "{{ item.timestamp  < epoch_timestamp | int }}"
+      when: item.timestamp  < epoch_timestamp | int
       loop: "{{ snapshot_results.records }}"
       no_log: true
 
