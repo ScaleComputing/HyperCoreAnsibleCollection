@@ -224,7 +224,12 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         password = os.getenv("SC_PASSWORD")
         timeout = os.getenv("SC_TIMEOUT")
         if timeout:
-            timeout = int(timeout)
+            try:
+                timeout = float(timeout)
+            except ValueError:  # "could not convert string to float"
+                raise errors.ScaleComputingError(
+                    f'Environ variable "SC_TIMEOUT" has invalid value {timeout}. The value cannot be converted to number'
+                )
         if host is None or username is None or password is None:
             raise errors.ScaleComputingError(
                 "Missing one or more parameters: sc_host, sc_username, sc_password."
