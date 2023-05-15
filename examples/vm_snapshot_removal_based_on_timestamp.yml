@@ -3,10 +3,6 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  environment:
-    SC_HOST: "https://10.5.11.50"
-    SC_USERNAME: "xlab"
-    SC_PASSWORD: "xlab2022"
   vars:
     # Format: 'YYYY-MM-DD hh:mm:ss'
     # All snapshots older than this date will be deleted.
