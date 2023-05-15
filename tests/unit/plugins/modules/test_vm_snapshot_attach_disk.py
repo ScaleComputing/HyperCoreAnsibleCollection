@@ -32,7 +32,7 @@ pytestmark = pytest.mark.skipif(
 BLOCK_DEVICE = dict(
     uuid="new-block-uuid",
     size=100000595968,
-    slot=21,
+    disk_slot=21,
     type="ide_disk",
     vm_uuid="vm-uuid-destination",
 )
@@ -66,7 +66,8 @@ class TestAttachDisk:
                         "size": 100,
                         "disable_snapshotting": False,
                         "read_only": False,
-                        "slot": 0,
+                        "disk_slot": 0,
+                        "iso_name": "test-iso.iso",
                         "tiering_priority_factor": 8,
                         "type": "virtio_disk",
                         "uuid": "snapshot-block-uuid-1",

@@ -55,7 +55,8 @@ class TestVMSnapshot:
                     "size": 100,
                     "disable_snapshotting": False,
                     "read_only": False,
-                    "slot": 0,
+                    "disk_slot": 0,
+                    "iso_name": "test-iso.iso",
                     "tiering_priority_factor": 8,
                     "type": "virtio_disk",
                     "uuid": "block-uuid-1",
@@ -96,6 +97,7 @@ class TestVMSnapshot:
                         "disableSnapshotting": False,
                         "readOnly": False,
                         "slot": 0,
+                        "name": "test-iso.iso",
                         "tieringPriorityFactor": 8,
                         "type": "VIRTIO_DISK",
                         "uuid": "block-uuid-1",
@@ -161,7 +163,7 @@ class TestVMSnapshot:
 
         self.disk_ansible = dict(
             uuid="new-block-uuid",
-            slot=21,
+            disk_slot=21,
             type="virtio_disk",
             vm_uuid="vm-uuid",
             size=100000595968,

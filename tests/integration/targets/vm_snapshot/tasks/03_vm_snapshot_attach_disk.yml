@@ -61,7 +61,7 @@
     - ansible.builtin.assert: &test-virtio
         that:
           - result.record.type == "virtio_disk"
-          - result.record.slot == slot_a
+          - result.record.disk_slot == slot_a
           - result.record.vm_uuid == vm_2_info.records[0].uuid
 
     - name: >-
@@ -104,7 +104,7 @@
     - ansible.builtin.assert: &test-not-virtio
         that:
           - result.record.type == "ide_disk"
-          - result.record.slot == slot_b
+          - result.record.disk_slot == slot_b
           - result.record.vm_uuid == vm_2_info.records[0].uuid
 
     - name: >-
@@ -148,7 +148,7 @@
     - ansible.builtin.assert: &test-virtio-2
         that:
           - result.record.type == "virtio_disk"
-          - result.record.slot == slot_a
+          - result.record.disk_slot == slot_a
           - result.record.vm_uuid == vm_1_info.records[0].uuid
 
     - name: >-

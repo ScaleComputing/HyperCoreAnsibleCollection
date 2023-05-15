@@ -116,7 +116,8 @@ class VMSnapshot(PayloadMapper):
                     {
                         "uuid": disk["uuid"],
                         "type": disk["type"].lower(),
-                        "slot": disk["slot"],
+                        "disk_slot": disk["slot"],
+                        "iso_name": disk["name"],
                         "cache_mode": disk["cacheMode"].lower(),
                         "size": disk["capacity"],
                         "disable_snapshotting": disk["disableSnapshotting"],
@@ -187,16 +188,10 @@ class VMSnapshot(PayloadMapper):
         if not isinstance(other, VMSnapshot):
             return NotImplemented
 
-        check_vm = True  # it will be True if self.vm == None
+        check_vm = True  # it will stay True if self.vm == {}
         if self.vm != {}:
-            vm_sorted_disks = [
-                dict(sorted(disk.items(), key=lambda item: item[0]))  # type: ignore
-                for disk in self.vm["disks"]
-            ]
-            other_sorted_disks = [
-                dict(sorted(disk.items(), key=lambda item: item[0]))  # type: ignore
-                for disk in other.vm["disks"]
-            ]
+            vm_sorted_disks = sorted(self.vm["disks"], key=lambda disk: disk["iso_name"])  # type: ignore
+            other_sorted_disks = sorted(self.vm["disks"], key=lambda disk: disk["iso_name"])  # type: ignore
 
             check_vm = all(
                 (
@@ -314,7 +309,7 @@ class VMSnapshot(PayloadMapper):
 
         return dict(
             uuid=hypercore_dict["uuid"],
-            slot=hypercore_dict["slot"],
+            disk_slot=hypercore_dict["slot"],
             type=hypercore_dict["type"].lower(),
             vm_uuid=hypercore_dict["virDomainUUID"],
             size=hypercore_dict["capacity"],
@@ -353,7 +348,7 @@ class VMSnapshot(PayloadMapper):
     ) -> Any:
         disks = copy(vm_snapshot["vm"]["disks"])  # type: ignore
 
-        disks = [d for d in disks if d["slot"] == slot]
+        disks = [d for d in disks if d["disk_slot"] == slot]
 
         disks = [d for d in disks if d["type"] == _type]
 
