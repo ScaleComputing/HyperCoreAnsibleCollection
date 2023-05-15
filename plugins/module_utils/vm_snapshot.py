@@ -191,7 +191,7 @@ class VMSnapshot(PayloadMapper):
         check_vm = True  # it will stay True if self.vm == {}
         if self.vm != {}:
             vm_sorted_disks = sorted(self.vm["disks"], key=lambda disk: disk["iso_name"])  # type: ignore
-            other_sorted_disks = sorted(self.vm["disks"], key=lambda disk: disk["iso_name"])  # type: ignore
+            other_sorted_disks = sorted(other.vm["disks"], key=lambda disk: disk["iso_name"])  # type: ignore
 
             check_vm = all(
                 (
