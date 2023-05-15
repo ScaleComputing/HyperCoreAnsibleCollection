@@ -12,4 +12,5 @@
     - include_tasks: 11_clone_stopped_cloudinit.yml
     - include_tasks: 12_clone_running.yml
     - include_tasks: 13_clone_stopped_preserve_mac.yml
+    - include_tasks: 14_clone_from_snapshot.yml
     - include_tasks: 01_cleanup.yml

@@ -1,0 +1,250 @@
+- name: Get source VM info
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+  register: vm_created_info
+- ansible.builtin.assert:
+    that:
+      - vm_created_info is succeeded
+      - vm_created_info is not changed
+      - vm_created_info.records | length == 1
+
+- name: Create snapshot of source VM - first
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vm_created_info.records.0.uuid }}"
+      label: test1
+      type: USER
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is changed
+
+- name: Wait for the snapshot to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ snapshot_created.record }}"
+
+- name: Get snapshot info - test1
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    label: test1
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 1
+      - snapshot_info.records.0.type == "USER"
+      - snapshot_info.records.0.label == "test1"
+      - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+
+# ----------------------------------------------------------------------------------
+- name: Alter source VM - number of VCPU
+  scale_computing.hypercore.vm_params: # Using params instead of API ... too much work with URL
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    vcpu: 3
+  register: updated_vm
+- ansible.builtin.assert:
+    that:
+      - updated_vm is changed
+      - updated_vm is succeeded
+
+- name: Alter source VM - number of disks # Using params instead of API ... too much work with URL
+  scale_computing.hypercore.vm_disk:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    items:
+      - disk_slot: 1
+        type: virtio_disk
+        size: "{{ '5 GB' | human_to_bytes }}"
+    state: present
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result is succeeded
+      - result is changed
+
+- name: Assert source VM was changed
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+  register: vm_created_info
+- ansible.builtin.assert:
+    that:
+      - vm_created_info is succeeded
+      - vm_created_info is not changed
+      - vm_created_info.records | length == 1
+      - vm_created_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+      - vm_created_info.records.0.vcpu == 3
+      - vm_created_info.records.0.disks | length == 2
+
+- name: Create snapshot of source VM - second
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vm_created_info.records.0.uuid }}"
+      label: test2
+      type: USER
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is changed
+
+- name: Wait for the snapshot to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ snapshot_created.record }}"
+
+- name: Get snapshot info - test2
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    label: test2
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 1
+      - snapshot_info.records.0.type == "USER"
+      - snapshot_info.records.0.label == "test2"
+      - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+
+# ----------------------------------------------------------------------------------
+- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test1 snapshot
+  scale_computing.hypercore.vm_clone:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone
+    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    source_snapshot_label: test1
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot-source - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone."
+
+- name: Assert that cloning was successful
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone
+  register: vm_clone_info
+- ansible.builtin.assert:
+    that:
+      - vm_clone_info is succeeded
+      - vm_clone_info is not changed
+      - vm_clone_info.records | length == 1
+      - vm_clone_info.records.0.memory == 511705088
+      - vm_clone_info.records.0.nics | length == 1
+      - vm_clone_info.records.0.disks | length == 1
+      - vm_clone_info.records.0.boot_devices | length == 0
+      - vm_clone_info.records.0.vcpu == 2
+      - vm_clone_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-clone"
+
+- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test2 snapshot
+  scale_computing.hypercore.vm_clone:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-2
+    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    source_snapshot_label: test2
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot-source - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone-2."
+
+- name: Assert that cloning was successful and clones differ
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-2
+  register: vm_clone_info
+- ansible.builtin.assert:
+    that:
+      - vm_clone_info is succeeded
+      - vm_clone_info is not changed
+      - vm_clone_info.records | length == 1
+      - vm_clone_info.records.0.memory == 511705088
+      - vm_clone_info.records.0.nics | length == 1
+      - vm_clone_info.records.0.disks | length == 2
+      - vm_clone_info.records.0.boot_devices | length == 0
+      - vm_clone_info.records.0.vcpu == 3
+      - vm_clone_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-clone-2"
+
+# ----------------------------------------------------------------------------------
+# Test cloning from VM with multiple snapshots with the same label
+- name: Alter source VM - number of VCPU
+  scale_computing.hypercore.vm_params: # Using params instead of API ... too much work with URL
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    vcpu: 2
+  register: updated_vm
+- ansible.builtin.assert:
+    that:
+      - updated_vm is changed
+      - updated_vm is succeeded
+
+- name: Create snapshot of source VM - third
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vm_created_info.records.0.uuid }}"
+      label: test2
+      type: USER
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is changed
+
+- name: Wait for the snapshot to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ snapshot_created.record }}"
+
+- name: Get snapshot info - test2 - assert two snapshots exist with the same label
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    label: test2
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 2
+      - snapshot_info.records.0.type == "USER"
+      - snapshot_info.records.0.label == "test2"
+      - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+      - snapshot_info.records.1.type == "USER"
+      - snapshot_info.records.1.label == "test2"
+      - snapshot_info.records.1.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+      - snapshot_info.records.0.snapshot_uuid != snapshot_info.records.1.snapshot_uuid
+
+# This task should fail, since there are multiple snapshots with the same label, source_snapshot_uuid should be used instead
+- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test2 snapshot - test multiple snapshots with same label - use snapshot_label - must fail
+  scale_computing.hypercore.vm_clone:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3
+    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    source_snapshot_label: test2
+  register: output
+  failed_when: output is not failed
+
+- name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test2 snapshot - test multiple snapshots with same label - use snapshot_uuid
+  scale_computing.hypercore.vm_clone:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3
+    source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    source_snapshot_uuid: "{{ snapshot_info.records.1.snapshot_uuid }}"
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot-source - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3."
+
+- name: Assert that cloning was successful - same label
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3
+  register: vm_clone_info
+- ansible.builtin.assert:
+    that:
+      - vm_clone_info is succeeded
+      - vm_clone_info is not changed
+      - vm_clone_info.records | length == 1
+      - vm_clone_info.records.0.memory == 511705088
+      - vm_clone_info.records.0.nics | length == 1
+      - vm_clone_info.records.0.disks | length == 2
+      - vm_clone_info.records.0.boot_devices | length == 0
+      - vm_clone_info.records.0.vcpu == 2
+      - vm_clone_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3"

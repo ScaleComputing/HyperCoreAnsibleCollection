@@ -282,6 +282,7 @@ class VMSnapshot(PayloadMapper):
             new_snaps = [
                 vm_snap for vm_snap in new_snaps if vm_snap["label"] == params["label"]
             ]
+
         return new_snaps
 
     def send_create_request(self, rest_client: RestClient) -> TypedTaskTag:

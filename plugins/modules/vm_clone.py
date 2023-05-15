@@ -46,6 +46,14 @@ options:
     type: bool
     default: false
     version_added: 1.3.0
+  source_snapshot_label:
+    description: Allows cloning VM from a specific snapshot using snapshot label.
+    type: str
+    version_added: 1.3.0
+  source_snapshot_uuid:
+    description: Allows cloning VM from a specific snapshot using snapshot uuid.
+    type: str
+    version_added: 1.3.0
 notes:
   - C(check_mode) is not supported.
 """
@@ -82,19 +90,78 @@ from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
+from ..module_utils.vm_snapshot import VMSnapshot as Snapshot
 from ..module_utils.task_tag import TaskTag
 
 
+# Check snapshot list, raise error if necessary.
+def check_snapshot_list(module: AnsibleModule, snapshot_list: list) -> None:
+    # No snapshot was found, raise error.
+    if not snapshot_list or not snapshot_list[0].get("snapshot_uuid"):
+        if module.params["source_snapshot_label"]:
+            raise errors.ScaleComputingError(
+                f"Snapshot with label - {module.params['source_snapshot_label']} - not found."
+            )
+        else:
+            raise errors.ScaleComputingError(
+                f"Snapshot with uuid - {module.params['source_snapshot_uuid']} - not found."
+            )
+
+    # More than one snapshot was found, raise error.
+    if snapshot_list and len(snapshot_list) > 1:
+        raise errors.ScaleComputingError(
+            f"More than one snapshot exists with label - {module.params['source_snapshot_label']}, please use specify source_snapshot_uuid instead."
+        )
+
+
+def get_snapshot(
+    module: AnsibleModule, rest_client: RestClient, virtual_machine_obj: VM
+) -> AnsibleModule:
+    snapshot_list = []
+    # Get snapshot from uuid.
+    if module.params["source_snapshot_uuid"]:
+        snapshot_list = Snapshot.get_snapshots_by_query(
+            dict(
+                uuid=module.params["source_snapshot_uuid"],
+                domainUUID=virtual_machine_obj.uuid,
+            ),
+            rest_client,
+        )
+    # Get snapshot from label.
+    elif module.params["source_snapshot_label"]:
+        snapshot_list = Snapshot.get_snapshots_by_query(
+            dict(
+                label=module.params["source_snapshot_label"],
+                domainUUID=virtual_machine_obj.uuid,
+            ),
+            rest_client,
+        )
+    # Check list, raise error if necessary
+    check_snapshot_list(module, snapshot_list)
+    # Snapshot should be unique at this point
+    # Create new key in module.params "hypercore_snapshot_uuid"
+    # This key is used in payload function later on.
+    module.params["hypercore_snapshot_uuid"] = snapshot_list[0]["snapshot_uuid"]
+    return module
+
+
 def run(module, rest_client):
-    # Check if clone_vm already exists
+    # Check if clone with target name already exists.
     if VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client):
         return (
             False,
             f"Virtual machine {module.params['vm_name']} already exists.",
         )
+
+    # Get Source VM, fail if not found.
     virtual_machine_obj = VM.get_or_fail(
         query={"name": module.params["source_vm_name"]}, rest_client=rest_client
     )[0]
+
+    if module.params["source_snapshot_label"] or module.params["source_snapshot_uuid"]:
+        module = get_snapshot(module, rest_client, virtual_machine_obj)
+
+    # Clone and wait for task to finish.
     task = virtual_machine_obj.clone_vm(rest_client, module.params)
     TaskTag.wait_task(rest_client, task)
     task_status = TaskTag.get_task_status(rest_client, task)
@@ -137,7 +204,14 @@ def main():
                 default=False,
                 required=False,
             ),
+            source_snapshot_label=dict(
+                type="str",
+            ),
+            source_snapshot_uuid=dict(
+                type="str",
+            ),
         ),
+        mutually_exclusive=[("source_snapshot_label", "source_snapshot_uuid")],
     )
 
     try:

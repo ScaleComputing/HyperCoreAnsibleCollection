@@ -5,13 +5,16 @@
 
 
 from __future__ import absolute_import, division, print_function
+from __future__ import annotations
 
 __metaclass__ = type
 
 import base64
 from time import sleep, time
+from typing import Dict, Any, Optional
 
 from ..module_utils.errors import DeviceNotUnique
+from ..module_utils.rest_client import RestClient
 from ..module_utils.nic import Nic, NicType
 from ..module_utils.disk import Disk
 from ..module_utils.node import Node
@@ -185,7 +188,7 @@ class VM(PayloadMapper):
         )
 
     @classmethod
-    def from_hypercore(cls, vm_dict, rest_client):
+    def from_hypercore(cls, vm_dict, rest_client) -> Optional[VM]:
         # In case we call RestClient.get_record and there is no results
         if vm_dict is None:
             return None
@@ -312,7 +315,7 @@ class VM(PayloadMapper):
         source_nics,
         source_snapshot_uuid,
     ):
-        data = {"template": {}}
+        data = dict(template=dict())
         if source_snapshot_uuid:
             data["snapUUID"] = source_snapshot_uuid
         if clone_name:
@@ -365,8 +368,12 @@ class VM(PayloadMapper):
 
     @classmethod
     def get_by_name(
-        cls, ansible_dict, rest_client, must_exist=False, name_field="vm_name"
-    ):
+        cls,
+        ansible_dict: Dict[Any, Any],
+        rest_client: RestClient,
+        must_exist: bool = False,
+        name_field: str = "vm_name",
+    ) -> Optional[VM]:
         """
         With given dict from playbook, finds the existing vm by name from the HyperCore api and constructs object VM if
         the record exists. If there is no record with such name, None is returned.
@@ -582,7 +589,7 @@ class VM(PayloadMapper):
             # We omit snapUUID from clone API payload, and HC3 will
             # first automatically create a snaphost,
             # then clone the snapshot into a new VM.
-            source_snapshot_uuid = ""
+            source_snapshot_uuid = ansible_dict.get("hypercore_snapshot_uuid")
         data = VM.create_clone_vm_payload(
             ansible_dict["vm_name"],
             ansible_dict["tags"],

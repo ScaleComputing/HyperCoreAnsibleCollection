@@ -1474,6 +1474,7 @@ class TestVMClone:
             "vm_name": "XLAB-test-vm-clone",
             "tags": None,
             "preserve_mac_address": False,
+            "snapshot_label": None,
         }
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
