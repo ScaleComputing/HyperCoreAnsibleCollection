@@ -4,13 +4,14 @@
   connection: local
   gather_facts: false
   environment:
-    SC_HOST: "your_host"
-    SC_USERNAME: "your_username"
-    SC_PASSWORD: "your_password"
+    SC_HOST: "https://10.5.11.50"
+    SC_USERNAME: "xlab"
+    SC_PASSWORD: "xlab2022"
   vars:
     # Format: 'YYYY-MM-DD hh:mm:ss'
     # All snapshots older than this date will be deleted.
-    use_date: '2023-05-03 12:52:00'
+    # use_date timezone should match the Scale cluster timezone
+    use_date: '1999-05-03 12:52:00'
 
   tasks:
   # ------------------------------------------------------
@@ -33,7 +34,7 @@
     - name: Loop through snapshots and add snapshots that are older than 'use_date'
       set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
-      when: "{{ item.timestamp  > epoch_timestamp | int }}"
+      when: "{{ item.timestamp  < epoch_timestamp | int }}"
       loop: "{{ snapshot_results.records }}"
       no_log: true
 
@@ -47,9 +48,9 @@
     - name: Loop through list of snapshots and delete all older than the 'use_date'
       scale_computing.hypercore.vm_snapshot:
         vm_name: "{{ item.vm.name }}"
-        label: "{{ item.label }}"
+        uuid: "{{ item.snapshot_uuid }}"
         state: absent
-      when: "{{ item.timestamp > epoch_timestamp | int }}"
+      when: "{{ item.timestamp < epoch_timestamp | int }}"
       loop: "{{ snapshot_results.records }}"
 
     - name: Create filtered_snapshots list - second time
@@ -59,7 +60,7 @@
     - name: Loop through snapshots and add snapshots that are older than 'use_date' - second time
       set_fact:
         filtered_snapshots: "{{ filtered_snapshots + [ item ] }}"
-      when: "{{ item.timestamp  > epoch_timestamp | int }}"
+      when: "{{ item.timestamp  < epoch_timestamp | int }}"
       loop: "{{ snapshot_results.records }}"
       no_log: true
 
