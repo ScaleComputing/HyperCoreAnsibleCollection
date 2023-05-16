@@ -161,6 +161,9 @@
     - ansible.builtin.assert: *test-not-virtio
 
     # ++++++++++++ Test attach snapshot disk from a VM to itself +++++++++++++
+    # This does change vm_1 (snapshot-test-vm-1), because of this whole 03_vm_snapshot_attach_disk.yml
+    # requires snapshot-test-vm-1 to be deleted and recreated each time.
+    # Refactor test if you do not like this.
 
     - name: >-
         Attach "snap-0" from VM "{{ vm_1 }}"
