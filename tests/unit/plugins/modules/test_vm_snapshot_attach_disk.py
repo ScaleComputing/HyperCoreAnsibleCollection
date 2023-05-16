@@ -155,10 +155,10 @@ class TestAttachDisk:
     @pytest.mark.parametrize(
         ("destination_vm_disk_info", "expected_return"),
         [
-            (None, (True, BLOCK_DEVICE, dict(before=None, after=BLOCK_DEVICE))),
+            (None, (True, BLOCK_DEVICE, dict(before=None, after=BLOCK_DEVICE), True)),
             (
                 BLOCK_DEVICE,
-                (False, BLOCK_DEVICE, dict(before=BLOCK_DEVICE, after=None)),
+                (False, BLOCK_DEVICE, dict(before=BLOCK_DEVICE, after=None), False),
             ),
         ],
     )
@@ -222,7 +222,7 @@ class TestAttachDisk:
             check_mode=False,
         )
 
-        changed, record, diff = vm_snapshot_attach_disk.attach_disk(module, rest_client)
+        changed, record, diff, vm_rebooted = vm_snapshot_attach_disk.attach_disk(module, rest_client)
 
         if destination_vm_disk_info is None:
             rest_client.create_record.assert_any_call(**called_with_dict)
@@ -235,15 +235,16 @@ class TestAttachDisk:
         assert changed == expected_return[0]
         assert record == expected_return[1]
         assert diff == expected_return[2]
+        assert vm_rebooted == expected_return[3]
 
 
 class TestMain:
-    def test_fail(self, run_main):
-        success, result = run_main(vm_snapshot_attach_disk)
+    def test_fail(self, run_main_with_reboot):
+        success, result = run_main_with_reboot(vm_snapshot_attach_disk)
 
         assert success is False
         assert "missing required arguments" in result["msg"]
 
-    def test_params(self, run_main):
-        success, result = run_main(vm_snapshot_attach_disk, PARAMS)
+    def test_params(self, run_main_with_reboot):
+        success, result = run_main_with_reboot(vm_snapshot_attach_disk, PARAMS)
         assert success is True
