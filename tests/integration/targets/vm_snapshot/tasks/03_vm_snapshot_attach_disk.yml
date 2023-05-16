@@ -83,6 +83,7 @@
     - ansible.builtin.assert:
         that:
           - result is changed
+          - result.vm_rebooted is false
     - include_tasks: helper_check_vm_state.yml
       vars:
         vm_name: "{{ vm_2 }}"
@@ -117,6 +118,7 @@
     - ansible.builtin.assert:
         that:
           - result is not changed
+          - result.vm_rebooted is false
     - include_tasks: helper_check_vm_state.yml
       vars:
         vm_name: "{{ vm_2 }}"
@@ -146,6 +148,7 @@
     - ansible.builtin.assert:
         that:
           - result is changed
+          - result.vm_rebooted is true
     - include_tasks: helper_check_vm_state.yml
       vars:
         vm_name: "{{ vm_2 }}"
@@ -174,6 +177,7 @@
     - ansible.builtin.assert:
         that:
           - result is not changed
+          - result.vm_rebooted is false
     - include_tasks: helper_check_vm_state.yml
       vars:
         vm_name: "{{ vm_2 }}"
@@ -203,6 +207,7 @@
     - ansible.builtin.assert:
         that:
           - result is changed
+          - result.vm_rebooted is true
     - include_tasks: helper_check_vm_state.yml
       vars:
         vm_name: "{{ vm_1 }}"
@@ -235,6 +240,7 @@
     - ansible.builtin.assert:
         that:
           - result is not changed
+          - result.vm_rebooted is false
     - ansible.builtin.assert: *test-virtio-2
 
 # ---------- Cleanup ------------
