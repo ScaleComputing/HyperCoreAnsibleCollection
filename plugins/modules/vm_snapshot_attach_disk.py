@@ -101,6 +101,12 @@ record:
       description: VM unique identifier.
       type: str
       sample: e18ec6af-9dd2-41dc-89af-8ce637171524
+vm_rebooted:
+  description:
+    - Info if reboot of the VM was performed.
+  returned: success
+  type: bool
+  sample: true
 """
 
 
@@ -118,7 +124,7 @@ from typing import Tuple, Dict, Any, Optional
 
 def attach_disk(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff]:
+) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff, bool]:
     # =============== SAVE PARAMS VALUES ===============
     # destination
     vm_name = module.params["vm_name"]
@@ -162,11 +168,12 @@ def attach_disk(
         rest_client=rest_client,
     )
     if before_disk is not None:
-        # changed, after, diff
+        # changed, after, diff, vm_rebooted
         return (
             False,
             before_disk,
             dict(before=before_disk, after=None),
+            False,  # destination vm wasn't rebooted up to this point
         )
 
     # First power off the destination VM
@@ -218,12 +225,13 @@ def attach_disk(
         dict(
             before=None, after=created_disk
         ),  # before, we ofcourse, didn't have that new block device, and after we should have it
+        vm_object.reboot,
     )
 
 
 def run(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff]:
+) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff, bool]:
     return attach_disk(module, rest_client)
 
 
@@ -267,8 +275,8 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
-        changed, record, diff = run(module, rest_client)
-        module.exit_json(changed=changed, record=record, diff=diff)
+        changed, record, diff, reboot = run(module, rest_client)
+        module.exit_json(changed=changed, record=record, diff=diff, vm_rebooted=reboot)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 
