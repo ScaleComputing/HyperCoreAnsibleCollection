@@ -4,7 +4,7 @@
 # ++++++++++++++++++++++++++++++
 - name: Create test VMs
   scale_computing.hypercore.vm:
-    vm_name: "snapshot-test-vm-{{ item }}{{ label | default('') }}"
+    vm_name: "snapshot-test-vm-{{ item }}"
     description: Snapshot testing
     state: present
     tags:
@@ -12,14 +12,14 @@
     memory: "{{ '512 MB' | human_to_bytes }}"
     vcpu: 2
     attach_guest_tools_iso: false
-    power_state: "{{ vm_init_state | default('start') }}"
+    power_state: start
     disks:
       - type: virtio_disk
         disk_slot: 0
-        size: "{{ '1.1 GB' | human_to_bytes }}"
+        size: "{{ '0.1 GB' | human_to_bytes }}"
       - type: virtio_disk
         disk_slot: 1
-        size: "{{ '1.2 GB' | human_to_bytes }}"
+        size: "{{ '0.2 GB' | human_to_bytes }}"
     nics:
       - vlan: 1
         type: RTL8139
@@ -43,63 +43,61 @@
 
 # ----------- Create/POST USER SNAPSHOTS -------------
 
-- block:
-  - name: Create 3 snapshots with "unique" label for "snapshot-test-vm-1"
-    scale_computing.hypercore.api:
-      action: post
-      endpoint: /rest/v1/VirDomainSnapshot
-      data:
-        domainUUID: "{{ vms_created.results.0.record.0.uuid }}"
-        label: "snap-{{ item }}"
-    with_sequence: start=0 end=2
-    register: unique_labeled_snapshots
+- name: Create 3 snapshots with "unique" label for "snapshot-test-vm-1"
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vms_created.results.0.record.0.uuid }}"
+      label: "snap-{{ item }}"
+  with_sequence: start=0 end=2
+  register: unique_labeled_snapshots
 
-  - name: Show created snapshots with "unique" label on "snapshot-test-vm-1"
-    ansible.builtin.debug:
-      var: unique_labeled_snapshots
+- name: Show created snapshots with "unique" label on "snapshot-test-vm-1"
+  ansible.builtin.debug:
+    var: unique_labeled_snapshots
 
-  - name: Create 3 snapshots with "unique" label for "snapshot-test-vm-2"
-    scale_computing.hypercore.api:
-      action: post
-      endpoint: /rest/v1/VirDomainSnapshot
-      data:
-        domainUUID: "{{ vms_created.results.1.record.0.uuid }}"
-        label: "snap-{{ item }}"
-    with_sequence: start=0 end=2
-    register: unique_labeled_snapshots
+- name: Create 3 snapshots with "unique" label for "snapshot-test-vm-2"
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vms_created.results.1.record.0.uuid }}"
+      label: "snap-{{ item }}"
+  with_sequence: start=0 end=2
+  register: unique_labeled_snapshots
 
-  - name: Show created snapshots with "unique" label on "snapshot-test-vm-2"
-    ansible.builtin.debug:
-      var: unique_labeled_snapshots
+- name: Show created snapshots with "unique" label on "snapshot-test-vm-2"
+  ansible.builtin.debug:
+    var: unique_labeled_snapshots
 
-  - name: Create 3 snapshots with "non-unique" label for "snapshot-test-vm-1"
-    scale_computing.hypercore.api:
-      action: post
-      endpoint: /rest/v1/VirDomainSnapshot
-      data:
-        domainUUID: "{{ vms_created.results.0.record.0.uuid }}"
-        label: "not-unique"
-    with_sequence: start=0 end=2
-    register: non_unique_labeled_snapshots
+- name: Create 3 snapshots with "non-unique" label for "snapshot-test-vm-1"
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vms_created.results.0.record.0.uuid }}"
+      label: "not-unique"
+  with_sequence: start=0 end=2
+  register: non_unique_labeled_snapshots
 
-  - name: Show created snapshots with "non-unique" label on "snapshot-test-vm-1"
-    ansible.builtin.debug:
-      var: non_unique_labeled_snapshots
+- name: Show created snapshots with "non-unique" label on "snapshot-test-vm-1"
+  ansible.builtin.debug:
+    var: non_unique_labeled_snapshots
 
-  - name: Create 3 snapshots with "non-unique" label for "snapshot-test-vm-2"
-    scale_computing.hypercore.api:
-      action: post
-      endpoint: /rest/v1/VirDomainSnapshot
-      data:
-        domainUUID: "{{ vms_created.results.1.record.0.uuid }}"
-        label: "not-unique"
-    with_sequence: start=0 end=2
-    register: non_unique_labeled_snapshots
+- name: Create 3 snapshots with "non-unique" label for "snapshot-test-vm-2"
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vms_created.results.1.record.0.uuid }}"
+      label: "not-unique"
+  with_sequence: start=0 end=2
+  register: non_unique_labeled_snapshots
 
-  - name: Show created snapshots with "non-unique" label on "snapshot-test-vm-2"
-    ansible.builtin.debug:
-      var: non_unique_labeled_snapshots
-  when: label is undefined
+- name: Show created snapshots with "non-unique" label on "snapshot-test-vm-2"
+  ansible.builtin.debug:
+    var: non_unique_labeled_snapshots
 
 # These snapshot serials are always the same, everytime they are freshly created
 # ++++++++++++++++++++++++++
