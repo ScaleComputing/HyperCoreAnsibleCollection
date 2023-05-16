@@ -119,6 +119,7 @@
         source_disk_type: virtio_disk
         source_disk_slot: 1
         force_reboot: "{{ force_reboot }}"
+        shutdown_timeout: 10  # For faster testing. VM has no OS, so it cannot react to ACPI shutdown.
       register: result
     - ansible.builtin.debug:
         var: result
