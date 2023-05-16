@@ -6,7 +6,7 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   vars:
-    number_of_snapshot_testing_vms: 3
+    number_of_snapshot_testing_vms: 2
     non_unique_snapshot_label: not_unique
     # unique snapshot labels are strings like:
     # snap-x, where x is an iterative number
@@ -14,6 +14,11 @@
     #    greater than 0, is a newer snapshot
 
   block:
+    - name: Create VMs
+      include_tasks: helper_api_vm_snapshot_create.yml
+      vars:
+        vms_number: "{{ number_of_snapshot_testing_vms }}"
+
     - include_tasks: 01_vm_snapshot_info.yml
       vars:
         test_vms_number: "{{ number_of_snapshot_testing_vms }}"

@@ -20,12 +20,6 @@
         - snap-2
         - not-unique
   block:
-    - include_tasks: helper_api_vm_snapshot_create.yml
-      vars:
-        vms_number: "{{ test_vms_number }}"
-
-    # --------------------------------------------------------
-
     - name: List all VM snapshots - API
       scale_computing.hypercore.api:
         action: get
@@ -185,10 +179,3 @@
     - ansible.builtin.debug:
         var: vm_snapshots.records
     - ansible.builtin.assert: *assert-nonexistent
-
-# ------------- Cleanup --------------
-
-    - name: Remove all created VMs for this test
-      include_tasks: helper_api_vm_snapshot_delete_all.yml
-      vars:
-        vms_number: "{{ number_of_snapshot_testing_vms }}"

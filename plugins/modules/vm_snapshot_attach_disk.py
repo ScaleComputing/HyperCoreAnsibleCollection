@@ -21,6 +21,7 @@ description:
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
+  - scale_computing.hypercore.force_reboot
 seealso:
   - module: scale_computing.hypercore.vm_snapshot_info
 options:
@@ -38,6 +39,8 @@ options:
     type: int
     description:
       - Specify a disk slot from a vm to identify destination disk.
+      - Note that this MUST be a next free slot or an already used slot for the given disk_type.
+        Otherwise VM might not boot.
     required: True
   source_snapshot_uuid:
     type: str
@@ -56,7 +59,7 @@ options:
     required: True
 notes:
   - C(check_mode) is not supported
-  - The VM to which the user is trying to attach the snapshot disk, B(must not) be running.
+  - The VM will be rebooted if it is running.
 """
 
 
@@ -107,14 +110,12 @@ from ..module_utils import errors, arguments
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm_snapshot import VMSnapshot
+from ..module_utils.vm import VM
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.typed_classes import TypedDiff
 from typing import Tuple, Dict, Any, Optional
 
 
-# ++++++++++++
-# Must be reviewed - not sure if that's how this should work
-# ++++++++++++
 def attach_disk(
     module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff]:
@@ -130,6 +131,11 @@ def attach_disk(
     source_disk_slot = int(
         module.params["source_disk_slot"]
     )  # the higher the index, the newer the disk
+
+    # Get destination VM object
+    vm_object = VM.get_by_name(module.params, rest_client, must_exist=True)
+    if vm_object is None:
+        raise errors.ScaleComputingError("VM named '" + vm_name + "' doesn't exist.")
 
     # =============== IMPLEMENTATION ===================
     vm_snapshot_hypercore = VMSnapshot.get_snapshot_by_uuid(
@@ -149,7 +155,6 @@ def attach_disk(
     # Check if slot already taken
     # - check if there is already a disk (vm_disk) with type (vm_type) on slot (vm_slot)
     # - if this slot is already taken, return no change
-    #   --> should it be an error that tells the user that the slot is already taken instead?
     before_disk = VMSnapshot.get_vm_disk_info(
         vm_uuid=vm_uuid,
         slot=vm_disk_slot,
@@ -163,6 +168,9 @@ def attach_disk(
             before_disk,
             dict(before=before_disk, after=None),
         )
+
+    # First power off the destination VM
+    vm_object.do_shutdown_steps(module, rest_client)  # type: ignore
 
     source_disk_info = VMSnapshot.get_snapshot_disk(
         vm_snapshot, slot=source_disk_slot, _type=source_disk_type
@@ -198,6 +206,9 @@ def attach_disk(
     created_disk = VMSnapshot.get_vm_disk_info_by_uuid(
         create_task_tag["createdUUID"], rest_client
     )
+
+    # Restart the previously running VM (destination)
+    vm_object.vm_power_up(module, rest_client)  # type: ignore
 
     # return changed, after, diff
     return (
@@ -242,9 +253,17 @@ def main() -> None:
                 type="int",
                 required=True,
             ),
+            # These two parameters must be present in order to use the VM functions from module_utils/vm
+            force_reboot=dict(
+                type="bool",
+                default=False,
+            ),
+            shutdown_timeout=dict(
+                type="float",
+                default=300,
+            ),
         ),
     )
-
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)

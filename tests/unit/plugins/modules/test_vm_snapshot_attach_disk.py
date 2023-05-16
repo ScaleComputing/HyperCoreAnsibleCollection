@@ -13,6 +13,7 @@ from unittest import mock
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import (
+    VM,
     VMSnapshot,
 )
 
@@ -49,6 +50,8 @@ PARAMS = dict(
     source_snapshot_uuid="snapshot-uuid",
     source_disk_type="virtio_disk",
     source_disk_slot=0,
+    force_reboot=True,
+    shutdown_timeout=10,
 )
 
 
@@ -89,6 +92,64 @@ class TestAttachDisk:
             replication=True,
         )
 
+        self.destination_vm_object = VM(
+            attach_guest_tools_iso=False,
+            boot_devices=[],
+            description="desc",
+            disks=[],
+            memory=42,
+            name="vm-destination",
+            nics=[],
+            vcpu=2,
+            operating_system=None,
+            power_state="stopped",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
+            uuid="id",
+            node_uuid="node_id",
+            node_affinity={
+                "strict_affinity": False,
+                "preferred_node": dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                ),
+                "backup_node": dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                ),
+            },
+            snapshot_schedule="",
+            machine_type="BIOS",
+        )
+
+        self.vm_destination_hypercore_dict = dict(
+            uuid="id",
+            nodeUUID="node_id",
+            name="vm-destination",
+            tags="XLAB-test-tag1,XLAB-test-tag2",
+            description="desc",
+            mem=42,
+            state="RUNNING",
+            numVCPU=2,
+            netDevs=[],
+            blockDevs=[],
+            bootDevices=[],
+            attachGuestToolsISO=False,
+            operatingSystem=None,
+            affinityStrategy={
+                "strictAffinity": False,
+                "preferredNodeUUID": "",
+                "backupNodeUUID": "",
+            },
+            snapshotScheduleUUID="snapshot_schedule_id",
+            machineType="scale-7.2",
+            sourceVirDomainUUID="64c9b3a1-3eab-4d16-994f-177bed274f84",
+            snapUUIDs=[],
+        )
+
         self.magic = mock.MagicMock()
 
     @pytest.mark.parametrize(
@@ -117,6 +178,13 @@ class TestAttachDisk:
             "createdUUID": "new-block-uuid",
         }
 
+        # Mock the destination VM object
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.from_hypercore"
+        ).return_value = self.destination_vm_object
+        rest_client.get_record.return_value = self.vm_destination_hypercore_dict
+
+        # -------- Test attaching --------
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot.VMSnapshot.get_snapshot_by_uuid"
         ).return_value = self.vm_snapshot
@@ -157,9 +225,12 @@ class TestAttachDisk:
         changed, record, diff = vm_snapshot_attach_disk.attach_disk(module, rest_client)
 
         if destination_vm_disk_info is None:
-            rest_client.create_record.assert_called_once_with(**called_with_dict)
+            rest_client.create_record.assert_any_call(**called_with_dict)
         else:
-            rest_client.create_record.assert_not_called()
+            assert (
+                mock.call(**called_with_dict)
+                not in rest_client.create_record.mock_calls
+            )
 
         assert changed == expected_return[0]
         assert record == expected_return[1]
