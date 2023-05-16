@@ -7,8 +7,9 @@
     vm_2_label: "-attach"
     vm_2: "snapshot-test-vm-1{{ vm_2_label }}"
 
-    slot_a: 42
-    slot_b: 0
+    # We must use next free slot on bus if we want VM to be bootable!
+    slot_a: 3  # virtio_disk
+    slot_b: 0  # ide_disk
 
     force_reboot: true  # allow forced vm shutdown
 

@@ -39,6 +39,8 @@ options:
     type: int
     description:
       - Specify a disk slot from a vm to identify destination disk.
+      - Note that this MUST be a next free slot or an already used slot for the given disk_type.
+        Otherwise VM might not boot.
     required: True
   source_snapshot_uuid:
     type: str
