@@ -9,3 +9,7 @@ source_snapshot_force_recreate: true
 cloned_vm_name: demo-snapshot-clone
 # SSH key to create and use
 demo_ssh_key_path: demo_ssh_key
+# url from which an ISO image of operating system will be downloaded
+iso_url: https://releases.ubuntu.com/20.04.4/ubuntu-20.04.4-live-server-amd64.iso
+# ISO filename used to identifiy downloaded ISO image and upload it to HyperCore
+iso_filename: "{{ iso_url | split('/') | last }}"

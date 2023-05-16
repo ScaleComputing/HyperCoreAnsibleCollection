@@ -5,9 +5,7 @@
   hosts: localhost
   connection: local
   gather_facts: false
-  vars:
-    iso_url: https://releases.ubuntu.com/20.04.4/ubuntu-20.04.4-live-server-amd64.iso
-    iso_filename: "{{ iso_url | split('/') | last }}"
+
   tasks:
     - name: Create SSH key
       ansible.builtin.include_tasks: 01_create_ssh_key.yml
