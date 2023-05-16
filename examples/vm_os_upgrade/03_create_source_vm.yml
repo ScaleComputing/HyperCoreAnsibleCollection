@@ -2,7 +2,7 @@
   scale_computing.hypercore.vm:
     vm_name: "{{ source_vm_name }}"
     state: absent
-  when: False
+  when: false
 
 - name: List VM "{{ source_vm_name }}"
   scale_computing.hypercore.vm_info:
