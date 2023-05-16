@@ -59,6 +59,7 @@ options:
     required: True
 notes:
   - C(check_mode) is not supported
+  - The VM will be rebooted if it is running.
 """
 
 
