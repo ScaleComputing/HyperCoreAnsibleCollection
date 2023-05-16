@@ -14,6 +14,12 @@
 
     force_reboot: true  # allow forced vm shutdown
 
+    # disk size gets rounded by HC3:
+    #   0.1 GB to 107374182 B
+    #   0.2 GB to 214958080 B
+    size_0_1_GB: 107374182
+    size_0_2_GB: 214958080
+
   block:
     - name: Create a stopped VM "{{ vm_2 }}"
       scale_computing.hypercore.vm:
@@ -90,8 +96,11 @@
         expected_state: stopped
     - ansible.builtin.assert: &test-virtio
         that:
-          - result.record.type == "virtio_disk"
+          - "result.record.keys() | sort == ['disk_slot', 'size', 'type', 'uuid', 'vm_uuid']"
           - result.record.disk_slot == slot_a
+          - result.record.size == size_0_2_GB
+          - result.record.type == "virtio_disk"
+          - result.record.uuid | length == 36
           - result.record.vm_uuid == vm_2_info.records[0].uuid
 
     - name: Start VM "{{ vm_2 }}"
@@ -155,8 +164,11 @@
         expected_state: started
     - ansible.builtin.assert: &test-not-virtio
         that:
-          - result.record.type == "ide_disk"
+          - "result.record.keys() | sort == ['disk_slot', 'size', 'type', 'uuid', 'vm_uuid']"
           - result.record.disk_slot == slot_b
+          - result.record.size == size_0_2_GB
+          - result.record.type == "ide_disk"
+          - result.record.uuid | length == 36
           - result.record.vm_uuid == vm_2_info.records[0].uuid
 
     - name: >-
@@ -214,8 +226,11 @@
         expected_state: started
     - ansible.builtin.assert: &test-virtio-2
         that:
-          - result.record.type == "virtio_disk"
+          - "result.record.keys() | sort == ['disk_slot', 'size', 'type', 'uuid', 'vm_uuid']"
           - result.record.disk_slot == slot_vm_1_virtio
+          - result.record.size == size_0_2_GB
+          - result.record.type == "virtio_disk"
+          - result.record.uuid | length == 36
           - result.record.vm_uuid == vm_1_info.records[0].uuid
 
     - name: >-
