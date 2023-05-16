@@ -114,9 +114,6 @@ from ..module_utils.typed_classes import TypedDiff
 from typing import Tuple, Dict, Any, Optional
 
 
-# ++++++++++++
-# Must be reviewed - not sure if that's how this should work
-# ++++++++++++
 def attach_disk(
     module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff]:
