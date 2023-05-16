@@ -9,7 +9,7 @@ You need to install ansible, the `scale_computing.hypercore` collection,
 and export required environment variables (`SC_HOST` etc.) to define target HyperCore cluster.
 Details are in [DEVELOPMENT.md](../DEVELOPMENT.md), section "Prepare development environment".
 
-Some examples use additional ansible collection.
+Some examples use additional ansible collections.
 Please install them:
 
 ```shell
