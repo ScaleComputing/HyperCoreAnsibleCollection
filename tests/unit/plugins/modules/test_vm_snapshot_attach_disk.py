@@ -222,7 +222,9 @@ class TestAttachDisk:
             check_mode=False,
         )
 
-        changed, record, diff, vm_rebooted = vm_snapshot_attach_disk.attach_disk(module, rest_client)
+        changed, record, diff, vm_rebooted = vm_snapshot_attach_disk.attach_disk(
+            module, rest_client
+        )
 
         if destination_vm_disk_info is None:
             rest_client.create_record.assert_any_call(**called_with_dict)
