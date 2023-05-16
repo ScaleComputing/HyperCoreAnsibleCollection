@@ -1,0 +1,10 @@
+---
+- name: Get VM "{{ vm_name }}" info
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name }}"
+  register: vm_info
+
+- name: Is VM "{{ vm_name }}" power_state == "{{ expected_state }}" ?
+  ansible.builtin.assert:
+    that:
+      - vm_info.records[0].power_state == expected_state
