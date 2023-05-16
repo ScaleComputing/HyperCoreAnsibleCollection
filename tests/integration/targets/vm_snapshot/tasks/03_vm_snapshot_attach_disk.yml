@@ -102,6 +102,13 @@
           - result.record.type == "virtio_disk"
           - result.record.uuid | length == 36
           - result.record.vm_uuid == vm_2_info.records[0].uuid
+          # Test returned record is consistent with data from vm_info
+          - vm_info.records[0].disks | length == 3
+          - vm_info.records[0].disks[2].disk_slot  == slot_a
+          - vm_info.records[0].disks[2].size  == size_0_2_GB
+          - vm_info.records[0].disks[2].type  == "virtio_disk"
+          - vm_info.records[0].disks[2].uuid == result.record.uuid
+          - vm_info.records[0].disks[2].vm_uuid == vm_2_info.records[0].uuid
 
     - name: Start VM "{{ vm_2 }}"
       scale_computing.hypercore.vm_params:
@@ -170,6 +177,17 @@
           - result.record.type == "ide_disk"
           - result.record.uuid | length == 36
           - result.record.vm_uuid == vm_2_info.records[0].uuid
+          - vm_info.records[0].disks | length == 4
+          - vm_info.records[0].disks[2].disk_slot  == slot_a
+          - vm_info.records[0].disks[2].size  == size_0_2_GB
+          - vm_info.records[0].disks[2].type  == "virtio_disk"
+          # - vm_info.records[0].disks[2].uuid == result.record.uuid
+          - vm_info.records[0].disks[2].vm_uuid == vm_2_info.records[0].uuid
+          - vm_info.records[0].disks[3].disk_slot  == slot_b
+          - vm_info.records[0].disks[3].size  == size_0_2_GB
+          - vm_info.records[0].disks[3].type  == "ide_disk"
+          - vm_info.records[0].disks[3].uuid == result.record.uuid
+          - vm_info.records[0].disks[3].vm_uuid == vm_2_info.records[0].uuid
 
     - name: >-
         IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}"
@@ -232,6 +250,13 @@
           - result.record.type == "virtio_disk"
           - result.record.uuid | length == 36
           - result.record.vm_uuid == vm_1_info.records[0].uuid
+          - vm_info.records[0].disks | length == 3
+          - vm_info.records[0].disks[2].disk_slot  == slot_vm_1_virtio
+          - vm_info.records[0].disks[2].size  == size_0_2_GB
+          - vm_info.records[0].disks[2].type  == "virtio_disk"
+          - vm_info.records[0].disks[2].uuid == result.record.uuid
+          - vm_info.records[0].disks[2].vm_uuid == vm_1_info.records[0].uuid
+
 
     - name: >-
         IDEMPOTENCE - Attach "snap-0" from VM "{{ vm_1 }}"
