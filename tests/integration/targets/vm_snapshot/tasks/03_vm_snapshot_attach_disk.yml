@@ -16,11 +16,30 @@
 
   block:
     - name: Create a stopped VM "{{ vm_2 }}"
-      include_tasks: helper_api_vm_snapshot_create.yml
-      vars:
-        vms_number: 1
-        label: "{{ vm_2_label }}"
-        vm_init_state: stop
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_2 }}"
+        description: Snapshot testing
+        state: present
+        tags:
+          - Xlab_snapshot_testing
+        memory: "{{ '512 MB' | human_to_bytes }}"
+        vcpu: 2
+        attach_guest_tools_iso: false
+        power_state: stop
+        disks:
+          - type: virtio_disk
+            disk_slot: 0
+            size: "{{ '10.1 GB' | human_to_bytes }}"
+          - type: virtio_disk
+            disk_slot: 1
+            size: "{{ '10.2 GB' | human_to_bytes }}"
+        nics: []
+        boot_devices:
+          - type: virtio_disk
+            disk_slot: 0
+          - type: ide_cdrom
+            disk_slot: 0
+        machine_type: BIOS
 
     # --------------------------------------------------------
 
