@@ -57,7 +57,6 @@ options:
     required: True
 notes:
   - C(check_mode) is not supported
-  - The VM to which the user is trying to attach the snapshot disk, B(must not) be running.
 """
 
 

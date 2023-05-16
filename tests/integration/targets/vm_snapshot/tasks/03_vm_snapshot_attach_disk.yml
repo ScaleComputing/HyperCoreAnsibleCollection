@@ -1,8 +1,4 @@
 ---
-# ==============================
-# The VM to which we are trying to attach the
-# snapshot disk to MUST NOT be running!
-# ==============================
 - name: Test vm_snapshot_attach_disk
 
   vars:
