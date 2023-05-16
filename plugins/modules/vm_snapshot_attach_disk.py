@@ -215,14 +215,7 @@ def attach_disk(
     )
 
     # Restart the previously running VM (destination)
-    vm_state_before = vm_object.power_state
     vm_object.vm_power_up(module, rest_client)  # type: ignore
-    vm_state_after = vm_object.power_state
-
-    # This is True if the destination VM was indeed rebooted
-    vm_destination_reboot = \
-        (vm_state_before != vm_state_after) and \
-        vm_state_before in ("stop", "stopped", "shutdown")
 
     # return changed, after, diff
     return (
@@ -232,7 +225,7 @@ def attach_disk(
         dict(
             before=None, after=created_disk
         ),  # before, we ofcourse, didn't have that new block device, and after we should have it
-        vm_destination_reboot,
+        vm_object.reboot,
     )
 
 
