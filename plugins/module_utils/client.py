@@ -12,6 +12,7 @@ import json
 import ssl
 from typing import Any, Optional, Union
 from io import BufferedReader
+import enum
 
 from ansible.module_utils.urls import Request
 
@@ -27,6 +28,11 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.six.moves.urllib.parse import urlencode, quote
 
 DEFAULT_HEADERS = dict(Accept="application/json")
+
+
+class AuthMethod(str, enum.Enum):
+    local = "local"
+    oidc = "oidc"
 
 
 class Response:
@@ -64,6 +70,7 @@ class Client:
         username: str,
         password: str,
         timeout: float,
+        auth_method: str,
     ):
         if not (host or "").startswith(("https://", "http://")):
             raise ScaleComputingError(
@@ -75,6 +82,7 @@ class Client:
         self.username = username
         self.password = password
         self.timeout = timeout
+        self.auth_method = auth_method
 
         self._auth_header: Optional[dict[str, bytes]] = None
         self._client = Request()
@@ -86,6 +94,7 @@ class Client:
             cluster_instance["username"],
             cluster_instance["password"],
             cluster_instance["timeout"],
+            cluster_instance["auth_method"],
         )
 
     @property
@@ -102,6 +111,7 @@ class Client:
             "Accept": "application/json",
             "Content-type": "application/json",
         }
+        use_oidc = self.auth_method == AuthMethod.oidc.value
         resp = self._request(
             "POST",
             f"{self.host}/rest/v1/login",
@@ -109,6 +119,7 @@ class Client:
                 dict(
                     username=self.username,
                     password=self.password,
+                    useOIDC=use_oidc,
                 )
             ),
             headers=headers,
