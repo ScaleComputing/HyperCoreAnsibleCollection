@@ -55,6 +55,10 @@ sc_config:
       shared_secret_default: "{{ oidc_client_secret }}"
       config_url_default: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
       scopes: "openid+profile"
+      # Users that can login when config_url_default is configured as OIDC provider
+      users:
+        - username: "{{ oidc_users_0_username }}"
+          password: "{{ oidc_users_0_password }}"
       client_id_test: ci-client-id
       shared_secret_test: ci-client-secret
       config_url_test: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
