@@ -13,7 +13,7 @@ import ssl
 from typing import Any, Optional, Union
 from io import BufferedReader
 
-from ansible.module_utils.urls import Request, basic_auth_header
+from ansible.module_utils.urls import Request
 
 from .errors import (
     AuthError,
@@ -98,7 +98,23 @@ class Client:
         return self._login_username_password()
 
     def _login_username_password(self) -> dict[str, bytes]:
-        return dict(Authorization=basic_auth_header(self.username, self.password))
+        headers = {
+            "Accept": "application/json",
+            "Content-type": "application/json",
+        }
+        resp = self._request(
+            "POST",
+            f"{self.host}/rest/v1/login",
+            data=json.dumps(
+                dict(
+                    username=self.username,
+                    password=self.password,
+                )
+            ),
+            headers=headers,
+            timeout=self.timeout,
+        )
+        return dict(Cookie=f"sessionID={resp.json['sessionID']}")
 
     def _request(
         self,
@@ -108,9 +124,8 @@ class Client:
         headers: Optional[dict[Any, Any]] = None,
         timeout: Optional[float] = None,
     ) -> Response:
-        if (
-            timeout is None
-        ):  # If timeout from request is not specifically provided, take it from the Client.
+        if timeout is None:
+            # If timeout from request is not specifically provided, take it from the Client.
             timeout = self.timeout
         try:
             raw_resp = self._client.open(
