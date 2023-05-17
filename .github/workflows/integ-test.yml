@@ -146,8 +146,8 @@ jobs:
     needs:
       - examples-matrix
       # run examples after integ - they will both try to modify say syslog_server etc
-      - integ
-    if: "always() && (needs.examples-matrix.outputs.job_status=='success')"
+      # - integ
+    # if: "always() && (needs.examples-matrix.outputs.job_status=='success')"
     runs-on: [ self-hosted2 ]
     container: quay.io/justinc1_github/scale_ci_integ:3
     env:
@@ -162,6 +162,8 @@ jobs:
         ansible: [ 2.13.0 ]
         example_name: ${{ fromJson(needs.examples-matrix.outputs.matrix) }}
     steps:
+      - name: Print examples-run time
+        run: echo $(date + "%T")
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -238,26 +240,27 @@ jobs:
           - sc_host: https://10.5.11.201
             test_name: support_tunnel
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=2.13.0
-      # We have ansible.cfg "for testing" in git repo
-      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
-      # But it does affect ansible-galaxy and ansible-test commands.
-      - run: ansible-galaxy collection install community.crypto
-      - run: ansible-galaxy collection list
-      # ${{ env.WORKDIR }} cannot be used
-      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
-        with:
-          sc_host: ${{ matrix.sc_host }}
-          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
-          working_directory: ${{ env.WORKDIR }}
-      - run: ansible-test integration --local ${{ matrix.test_name }}
-
+      - name: Print integ time
+        run: echo $(date + "%T") && exit 1
+#      - name: Checkout
+#        uses: actions/checkout@v3
+#        with:
+#          path: ${{ env.WORKDIR }}
+#      - run: pip install ansible-core~=2.13.0
+#      # We have ansible.cfg "for testing" in git repo
+#      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+#      # But it does affect ansible-galaxy and ansible-test commands.
+#      - run: ansible-galaxy collection install community.crypto
+#      - run: ansible-galaxy collection list
+#      # ${{ env.WORKDIR }} cannot be used
+#      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+#        with:
+#          sc_host: ${{ matrix.sc_host }}
+#          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+#          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+#          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+#          working_directory: ${{ env.WORKDIR }}
+#      - run: ansible-test integration --local ${{ matrix.test_name }}
 
   replica_cleanup:
     needs:
