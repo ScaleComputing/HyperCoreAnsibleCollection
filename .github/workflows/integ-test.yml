@@ -195,7 +195,7 @@ jobs:
         with:
           path: ${{ env.WORKDIR }}
       - name: Print integ time
-        run: echo "Integ time -> $(date +%T)" && exit 0
+        run: echo "Integ time -> $(date +%T)" && exit 1
 #      - run: pip install ansible-core~=2.13.0
 #      # We have ansible.cfg "for testing" in git repo
 #      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
