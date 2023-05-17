@@ -194,23 +194,21 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - name: Print integ time
-        run: echo "Integ time -> $(date +%T)" && exit 1
-#      - run: pip install ansible-core~=2.13.0
-#      # We have ansible.cfg "for testing" in git repo
-#      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
-#      # But it does affect ansible-galaxy and ansible-test commands.
-#      - run: ansible-galaxy collection install community.crypto
-#      - run: ansible-galaxy collection list
-#      # ${{ env.WORKDIR }} cannot be used
-#      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
-#        with:
-#          sc_host: ${{ matrix.sc_host }}
-#          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-#          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-#          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
-#          working_directory: ${{ env.WORKDIR }}
-#      - run: ansible-test integration --local ${{ matrix.test_name }}
+      - run: pip install ansible-core~=2.13.0
+      # We have ansible.cfg "for testing" in git repo
+      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+      # But it does affect ansible-galaxy and ansible-test commands.
+      - run: ansible-galaxy collection install community.crypto
+      - run: ansible-galaxy collection list
+      # ${{ env.WORKDIR }} cannot be used
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          sc_host: ${{ matrix.sc_host }}
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          working_directory: ${{ env.WORKDIR }}
+      - run: ansible-test integration --local ${{ matrix.test_name }}
 
   examples-run:
     needs:
@@ -236,31 +234,29 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - name: Print examples-run time
-        run: echo "Integ time -> $(date +%T)"
-#      - run: pip install ansible-core~=${{ matrix.ansible }}
-#      - run: ansible-galaxy collection install community.crypto community.general
-#      - run: ansible-galaxy collection list
-#
-#      # ${{ env.WORKDIR }} cannot be used
-#      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
-#        with:
-#          sc_host: https://10.5.11.201
-#          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-#          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-#          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
-#          working_directory: ${{ env.WORKDIR }}
-#      - run: |
-#          pwd
-#          ls -al tests/integration/integration_config.yml
-#          head tests/integration/integration_config.yml
-#
-#      - run: |
-#          eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
-#          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_username')
-#          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_password')
-#          eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
-#          ansible-playbook -i localhost, -e hypercore_example_check_mode=true examples/${{ matrix.example_name }}
+      - run: pip install ansible-core~=${{ matrix.ansible }}
+      - run: ansible-galaxy collection install community.crypto community.general
+      - run: ansible-galaxy collection list
+
+      # ${{ env.WORKDIR }} cannot be used
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          sc_host: https://10.5.11.201
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          working_directory: ${{ env.WORKDIR }}
+      - run: |
+          pwd
+          ls -al tests/integration/integration_config.yml
+          head tests/integration/integration_config.yml
+
+      - run: |
+          eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
+          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_username')
+          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_password')
+          eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
+          ansible-playbook -i localhost, -e hypercore_example_check_mode=true examples/${{ matrix.example_name }}
 
   replica_cleanup:
     needs:

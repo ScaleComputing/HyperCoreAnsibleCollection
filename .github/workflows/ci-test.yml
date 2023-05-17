@@ -21,9 +21,8 @@ jobs:
       - run: echo GITHUB_WORKSPACE=$GITHUB_WORKSPACE
       - run: echo WORKDIR=$WORKDIR
       - run: echo PWD=$PWD
-      - run: echo "MYPY job" && exit 0
-#      - name: Run mypy
-#        run: mypy -p plugins
+      - name: Run mypy
+        run: mypy -p plugins
 
   docs:
     runs-on: [ubuntu-latest]
@@ -40,12 +39,11 @@ jobs:
       - run: make docs
         env:
           ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
-      - run: echo "DOCS job" && exit 0
-#      - run: ls -al docs/build/html
-#      - uses: actions/upload-artifact@v3
-#        with:
-#          name: docs-html
-#          path: work-dir/ansible_collections/scale_computing/hypercore/docs/build/html
+      - run: ls -al docs/build/html
+      - uses: actions/upload-artifact@v3
+        with:
+          name: docs-html
+          path: work-dir/ansible_collections/scale_computing/hypercore/docs/build/html
 
   sanity-test:
     runs-on: [ubuntu-latest]
@@ -58,19 +56,18 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: echo "SANITY-TEST job" && exit 0
-#        # Same as "make sanity"
-#        # TODO reuse Makefile
-#      - run: black -t py38 --check --diff --color plugins tests/unit
-#      - run: ansible-lint
-#      - run: flake8 --exclude tests/output/
-#      - run: ansible-test sanity --local --python 3.10
-#      # Running `ansible-lint` will look at examples as being arbitrary yaml files.
-#      # It will complain about missing space after hash in "#xy" comment.
-#      # Running `ansible-lint examples/*` will interpret files as ansible playbooks.
-#      # Here we need also installed collections used in examples.
-#      - run: ansible-galaxy collection install community.crypto
-#      - run: ansible-lint examples/*
+        # Same as "make sanity"
+        # TODO reuse Makefile
+      - run: black -t py38 --check --diff --color plugins tests/unit
+      - run: ansible-lint
+      - run: flake8 --exclude tests/output/
+      - run: ansible-test sanity --local --python 3.10
+      # Running `ansible-lint` will look at examples as being arbitrary yaml files.
+      # It will complain about missing space after hash in "#xy" comment.
+      # Running `ansible-lint examples/*` will interpret files as ansible playbooks.
+      # Here we need also installed collections used in examples.
+      - run: ansible-galaxy collection install community.crypto
+      - run: ansible-lint examples/*
 
   units-test:
     runs-on: [ubuntu-latest]
@@ -83,9 +80,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: echo "UNITS-TEST job" && exit 0
-#        # Same as "make units"
-#        # TODO reuse Makefile
-#      - run: ansible-test units --local --python 3.10 --coverage
-#      - run: ansible-test coverage html --requirements
-#      - run: ansible-test coverage report --omit 'tests/*' --show-missing
+        # Same as "make units"
+        # TODO reuse Makefile
+      - run: ansible-test units --local --python 3.10 --coverage
+      - run: ansible-test coverage html --requirements
+      - run: ansible-test coverage report --omit 'tests/*' --show-missing
