@@ -15,6 +15,19 @@
       - vm_cloned is changed
       - vm_cloned.msg == "Virtual machine - {{ source_vm_name }} - cloning complete to - {{ cloned_vm_name }}."
 
+- name: Get info about VM {{ cloned_vm_name }}
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ cloned_vm_name }}"
+  register: cloned_vm_info
+
+- name: Select a different VLAN
+  scale_computing.hypercore.vm_nic:
+    vm_name: "{{ cloned_vm_name }}"
+    items:
+      - vlan: "{{ cloned_vm_info.records[0].nics[0].vlan }}"
+        vlan_new: 0
+    state: set
+
 - name: Power on cloned VM
   scale_computing.hypercore.vm_params:
     vm_name: "{{ cloned_vm_name }}"

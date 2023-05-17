@@ -5,7 +5,6 @@
   hosts: localhost
   connection: local
   gather_facts: false
-
   tasks:
     - name: Create SSH key
       ansible.builtin.include_tasks: 01_create_ssh_key.yml
@@ -28,15 +27,66 @@
     - name: Create clone from source VM
       ansible.builtin.include_tasks: 05_clone_from_source.yml
 
-- name: Upgrade OS on cloned vm as a root
+- name: Upgrade all the packages and kernel before upgrading the distribution version
   hosts: "{{ cloned_vm_name }}"
-  gather_facts: false
+  gather_facts: true
   tasks:
-    - name: Upgrade the OS (apt-get dist-upgrade)
+    - name: Distribution version
+      ansible.builtin.debug: msg="{{ ansible_distribution_version}}"
+    - name: Upgrade all the packages and kernel before upgrading the distribution version (apt-get dist-upgrade)
       ansible.builtin.apt:
         upgrade: dist
 
-    - name: Setup cloned VM
-      ansible.builtin.include_tasks: 06_setup_cloned_vm.yml
+- name: Reboot VM
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Reboot VM after dist-upgrade, since some of them require reboot
+      scale_computing.hypercore.vm_params:
+        vm_name: "{{ cloned_vm_name }}"
+        power_state: reboot
+    - name: Wait until cloned VM reports its IP address
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ cloned_vm_name }}"
+      register: cloned_vm_info
+      until: cloned_vm_info.records.0.nics.0.ipv4_addresses
+      retries: 60
+      delay: 10
 
+- name: Upgrade distribution version
+  hosts: "{{ cloned_vm_name }}"
+  gather_facts: true
+  tasks:
+    - name: Upgrade distribution version
+      ansible.builtin.shell: do-release-upgrade -f DistUpgradeViewNonInteractive
+
+- name: Reboot VM
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Reboot VM after distribution version upgrade
+      scale_computing.hypercore.vm_params:
+        vm_name: "{{ cloned_vm_name }}"
+        power_state: reboot
+    - name: Wait until cloned VM reports its IP address
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ cloned_vm_name }}"
+      register: cloned_vm_info
+      until: cloned_vm_info.records.0.nics.0.ipv4_addresses
+      retries: 60
+      delay: 10
+
+- name: Check distribution version and upload index.html
+  hosts: "{{ cloned_vm_name }}"
+  gather_facts: true
+  tasks:
+    - name: New Distribution version
+      ansible.builtin.debug: msg="{{ ansible_distribution_version}}"
+    - name: Check index.html is served to external host
+      ansible.builtin.uri:
+        url: "http://{{ ansible_default_ipv4.address }}"
+        return_content: true
+      delegate_to: localhost
+      register: url_data
+      failed_when: "'test-html-for-scale-computing-demo' not in url_data.content"
     - meta: end_play
