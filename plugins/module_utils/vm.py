@@ -53,7 +53,7 @@ FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     start="START",
     shutdown="SHUTDOWN",
     stop="STOP",
-    rebot="REBOOT",
+    reboot="REBOOT",
     reset="RESET",
     started="START",
 )
