@@ -84,7 +84,7 @@ class Client:
         self.timeout = timeout
         self.auth_method = auth_method
 
-        self._auth_header: Optional[dict[str, bytes]] = None
+        self._auth_header: Optional[dict[str, str]] = None
         self._client = Request()
 
     @classmethod
@@ -98,15 +98,15 @@ class Client:
         )
 
     @property
-    def auth_header(self) -> dict[str, bytes]:
+    def auth_header(self) -> dict[str, str]:
         if not self._auth_header:
             self._auth_header = self._login()
         return self._auth_header
 
-    def _login(self) -> dict[str, bytes]:
+    def _login(self) -> dict[str, str]:
         return self._login_username_password()
 
-    def _login_username_password(self) -> dict[str, bytes]:
+    def _login_username_password(self) -> dict[str, str]:
         headers = {
             "Accept": "application/json",
             "Content-type": "application/json",

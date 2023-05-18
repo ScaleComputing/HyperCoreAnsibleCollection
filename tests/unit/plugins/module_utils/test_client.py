@@ -95,7 +95,7 @@ class TestClientAuthHeader:
         resp_mock = mocker.MagicMock()
         resp_mock.status = 200  # Used when testing on Python 3
         resp_mock.read.return_value = (
-            '{"sessionID":"7e3a2a70-7130-41c4-9402-fc0953cc1d7b"}'
+            '{"sessionID":"7e3a2a70-7130-41c4-9402-fc0953cc1d7b"}'.encode("utf-8")
         )
 
         request_mock = mocker.patch.object(client, "Request").return_value
