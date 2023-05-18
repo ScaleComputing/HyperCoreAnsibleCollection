@@ -17,9 +17,11 @@ but this is not granted.
 
 This collection requires Python 3.8 or greater.
 
-## HyperCore cluster API version compatibility
+## HyperCore cluster version compatibility
 
-This collection has been tested against HyperCore cluster API version v9.1.14.208456.
+This collection has been tested against following HyperCore cluster versions:
+- v9.1.14.208456
+- v9.2.13.211102
 
 ## Included content
 
