@@ -32,3 +32,10 @@
   python: "3.10"
 - ansible: "stable-2.14"
   python: "3.11"
+
+- ansible: "stable-2.15"
+  python: "3.9"
+- ansible: "stable-2.15"
+  python: "3.10"
+- ansible: "stable-2.15"
+  python: "3.11"

@@ -1,7 +1,7 @@
 # Usage: build new image locally, push it to gcr, use it in CI. and
 
 # we use 'pip install name~=1.2.0' to install latest 1.2.x release
-ARG ANSIBLE_CORE_VERSION=2.13.0
+ARG ANSIBLE_CORE_VERSION=2.15.0
 
 # =======================================================================
 FROM python:3.10-slim-buster

@@ -11,7 +11,7 @@ set -eux
 # Where to push images
 DOCKER_REGISTRY_REPO=quay.io/justinc1_github/scale_ci_integ
 # Tag to push
-DOCKER_IMAGE_TAG=3
+DOCKER_IMAGE_TAG=7
 
 DOCKER_CACHE="${DOCKER_CACHE:-n}"
 if [ "$DOCKER_CACHE" == "n" ]
