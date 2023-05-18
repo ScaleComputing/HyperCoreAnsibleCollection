@@ -155,11 +155,9 @@ def get_snapshot(
 ) -> List[TypedVMSnapshotToAnsible]:
     # Get snapshot by uuid first if parameter exists.
     if module.params["uuid"]:
-        snapshot_list = [
-            VMSnapshot.get_snapshot_by_uuid(  # type: ignore
-                module.params["uuid"], rest_client, must_exist=True
-            ).to_ansible()
-        ]
+        snapshot_list = VMSnapshot.get_snapshots_by_query(
+            dict(uuid=module.params["uuid"], domainUUID=vm_object.uuid), rest_client
+        )
     # Otherwise get by label
     else:
         snapshot_list = VMSnapshot.get_snapshots_by_query(
