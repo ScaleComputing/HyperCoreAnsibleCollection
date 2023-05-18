@@ -1,0 +1,60 @@
+---
+- name: Example - delete all snapshots with label "TEST" and type "USER".
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # This variable is used to filter and delete snapshots.
+    # All snapshots with 'use_label' will be DELETED.
+    use_label: 'TEST'
+
+  tasks:
+  # ------------------------------------------------------
+    - name: List all snapshots
+      scale_computing.hypercore.vm_snapshot_info:
+      register: snapshot_results
+
+    - name: Create filtered_snapshots list
+      ansible.builtin.set_fact:
+        filtered_snapshots: []
+
+    - name: Loop through snapshots and add snapshots with use_label and type 'USER' to filtered_snapshots
+      ansible.builtin.set_fact:
+        filtered_snapshots: "{{ filtered_snapshots + [item] }}"
+      when: item.label == use_label and item.type == 'USER'
+      loop: "{{ snapshot_results.records }}"
+      no_log: true
+
+    - name: Show only snapshots with use_label and type "USER"
+      ansible.builtin.debug:
+        var: filtered_snapshots
+
+    # We could reuse "filtered_snapshots" here instead of "snapshot_results" and avoid the "when" statement.
+    # But leaving it as is for example purposes.
+    # Since this is the only mandatory task of the playbook, can be copy-pasted and reused as standalone task.
+    - name: Loop through list of snapshots delete if label is use_label and type is 'USER'
+      scale_computing.hypercore.vm_snapshot:
+        vm_name: "{{ item.vm.name }}"
+        uuid: "{{ item.snapshot_uuid }}"
+        state: absent
+      when: item.label == use_label and item.type == 'USER'
+      loop: "{{ snapshot_results.records }}"
+
+    - name: List all snapshots - second time
+      scale_computing.hypercore.vm_snapshot_info:
+      register: snapshot_results
+
+    - name: Create filtered_snapshots list - second time
+      ansible.builtin.set_fact:
+        filtered_snapshots: []
+
+    - name: Loop through snapshots and add snapshots with use_label and type 'USER' to filtered_snapshots - second time
+      ansible.builtin.set_fact:
+        filtered_snapshots: "{{ filtered_snapshots + [item] }}"
+      when: item.label == use_label and item.type == 'USER'
+      loop: "{{ snapshot_results.records }}"
+      no_log: true
+
+    - name: Show only snapshots with use_label and type 'USER' - second time
+      ansible.builtin.debug:
+        var: filtered_snapshots

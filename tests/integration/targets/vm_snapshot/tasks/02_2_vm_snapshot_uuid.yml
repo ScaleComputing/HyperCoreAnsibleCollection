@@ -1,0 +1,329 @@
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-snapshot-uuid-test
+  scale_computing.hypercore.vm: &delete-XLAB-snapshot-test
+    vm_name: "{{ item }}"
+    state: absent
+  loop:
+    - XLAB-snapshot-uuid-test
+    - XLAB-snapshot-uuid-test-2
+
+# ----------------------------------Setup-----------------------------------------------------------------------------
+- name: Create XLAB-snapshot-uuid-test
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-snapshot-uuid-test
+        tags: Xlab,CI,test,vm_snapshots
+        mem: 511705088
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+            name: jc1-disk-0
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: False
+  register: vm_created
+- ansible.builtin.assert:
+    that:
+      - vm_created is succeeded
+      - vm_created is changed
+
+- name: Wait for the VM to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm_created.record }}"
+
+- name: Create XLAB-snapshot-uuid-test-2
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomain
+    data:
+      dom:
+        name: XLAB-snapshot-uuid-test-2
+        tags: Xlab,CI,test,vm_snapshots
+        mem: 511705088
+        numVCPU: 2
+        blockDevs:
+          - type: VIRTIO_DISK
+            capacity: 8100100100
+            name: jc1-disk-0
+        netDevs:
+          - type: RTL8139
+            vlan: 0
+            connected: true
+      options:
+        attachGuestToolsISO: False
+  register: vm_created_2
+- ansible.builtin.assert:
+    that:
+      - vm_created_2 is succeeded
+      - vm_created_2 is changed
+
+- name: Wait for the VM-2 to be created
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ vm_created_2.record }}"
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+# Test module input parameters with present (mutually exclusive uuid and label)
+- name: Create snapshot of VM after create using label and uuid - must fail
+  scale_computing.hypercore.vm_snapshot:
+    state: present
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+    uuid: some-uuid
+    replication: true
+  register: snapshot_created
+  failed_when: snapshot_created is not failed
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is not changed
+      - snapshot_created.msg == "parameters are mutually exclusive: label|uuid"
+
+- name: Create snapshot of VM after create using uuid - must fail
+  scale_computing.hypercore.vm_snapshot:
+    state: present
+    vm_name: XLAB-snapshot-uuid-test
+    uuid: some-uuid
+    replication: true
+  register: snapshot_created
+  failed_when: snapshot_created is not failed
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is not changed
+      - snapshot_created.msg == "state is present but all of the following are missing: label"
+
+- name: Create snapshot of VM after create - this time succeed
+  scale_computing.hypercore.vm_snapshot:
+    state: present
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+    replication: true
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is changed
+      - snapshot_created.record.vm.name == "XLAB-snapshot-uuid-test"
+      - snapshot_created.record.label == "test-snapshot-integration"
+      - snapshot_created.record.replication is true
+
+- name: Create snapshot of VM after create - this time succeed - idempotence
+  scale_computing.hypercore.vm_snapshot:
+    state: present
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+    replication: true
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is not changed
+      - snapshot_created.record.vm.name == "XLAB-snapshot-uuid-test"
+      - snapshot_created.record.label == "test-snapshot-integration"
+      - snapshot_created.record.replication is true
+
+- name: Get snapshot info after create - assert it was created once
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 1
+      - snapshot_created.record == snapshot_info.records.0
+
+- name: Create snapshot of VM-2 after create
+  scale_computing.hypercore.vm_snapshot:
+    state: present
+    vm_name: XLAB-snapshot-uuid-test-2
+    label: test-snapshot-integration
+    replication: true
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is changed
+      - snapshot_created.record.vm.name == "XLAB-snapshot-uuid-test-2"
+      - snapshot_created.record.label == "test-snapshot-integration"
+      - snapshot_created.record.replication is true
+
+- name: Create snapshot of VM-2 after create - idempotence
+  scale_computing.hypercore.vm_snapshot:
+    state: present
+    vm_name: XLAB-snapshot-uuid-test-2
+    label: test-snapshot-integration
+    replication: true
+  register: snapshot_created
+- ansible.builtin.assert:
+    that:
+      - snapshot_created is succeeded
+      - snapshot_created is not changed
+      - snapshot_created.record.vm.name == "XLAB-snapshot-uuid-test-2"
+      - snapshot_created.record.label == "test-snapshot-integration"
+      - snapshot_created.record.replication is true
+
+- name: Get snapshot info after create - assert it was created once
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-uuid-test-2
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 1
+      - snapshot_created.record == snapshot_info.records.0
+
+# We can have multiple snapshots with same label.
+# vm_snapshot module has constraints but API does not.
+- name: Create another snapshot with label 'test-snapshot-integration' with API
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/VirDomainSnapshot
+    data:
+      domainUUID: "{{ vm_created.record.createdUUID }}"
+      label: test-snapshot-integration
+      type: USER
+  register: snapshot_created_api
+- ansible.builtin.assert:
+    that:
+      - snapshot_created_api is succeeded
+      - snapshot_created_api is changed
+
+- name: Wait for the snapshot to crate
+  scale_computing.hypercore.task_wait:
+    task_tag: "{{ snapshot_created_api.record }}"
+
+- name: Get snapshot info after API create - assert there are two snapshot with same label
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 2
+
+#------------------------------- Test vm_snapshot with absent when snapshots have the same label -------------------------------
+- name: Get snapshot info from VM-2
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-uuid-test-2
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 1
+
+# Here we try to delete snapshot that doesn't belong to the specified VM
+- name: Delete snapshot from VM-2 using VM-1 - Must be not changed
+  scale_computing.hypercore.vm_snapshot:
+    state: absent
+    vm_name: XLAB-snapshot-uuid-test
+    uuid: "{{ snapshot_info.records.0.snapshot_uuid }}"
+  register: snapshot_deleted
+  failed_when: snapshot_deleted is changed
+- ansible.builtin.assert:
+    that:
+      - snapshot_deleted is succeeded
+      - snapshot_deleted is not changed
+
+- name: Assert that snapshot was NOT deleted
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-uuid-test-2
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 1
+
+# Here we pass both label and uuid, but they are mutually exclusive.
+- name: Delete snapshot of VM when both label and uuid are passed - must fail
+  scale_computing.hypercore.vm_snapshot:
+    state: absent
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+    uuid: some-uuid
+  register: snapshot_deleted
+  failed_when: snapshot_deleted is not failed
+- ansible.builtin.assert:
+    that:
+      - snapshot_deleted is succeeded
+      - snapshot_deleted is not changed
+      - snapshot_deleted.msg == "parameters are mutually exclusive: label|uuid"
+
+# Here we pass only label as parameter.
+- name: Delete snapshot of VM when labels are the same, using label as parameter - must fail
+  scale_computing.hypercore.vm_snapshot:
+    state: absent
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+  register: snapshot_deleted
+  failed_when: snapshot_deleted is not failed
+- ansible.builtin.assert:
+    that:
+      - snapshot_deleted is succeeded
+      - snapshot_deleted is not changed
+      - snapshot_deleted.msg == "Virtual machine - XLAB-snapshot-uuid-test - has more than one snapshot with label - test-snapshot-integration, specify uuid instead."
+
+- name: Delete snapshot of VM with uuid
+  scale_computing.hypercore.vm_snapshot:
+    state: absent
+    vm_name: XLAB-snapshot-uuid-test
+    uuid: "{{ snapshot_created_api.record.createdUUID }}"
+  register: snapshot_deleted
+- ansible.builtin.assert:
+    that:
+      - snapshot_deleted is succeeded
+      - snapshot_deleted is changed
+
+- name: Get snapshot info after delete - assert delete happened
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 1
+      - snapshot_info.records.0.snapshot_uuid != snapshot_created_api.record.createdUUID
+
+- name: Delete snapshot of VM with label
+  scale_computing.hypercore.vm_snapshot:
+    state: absent
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+  register: snapshot_deleted
+- ansible.builtin.assert:
+    that:
+      - snapshot_deleted is succeeded
+      - snapshot_deleted is changed
+
+- name: Get snapshot info after second delete - assert delete happened
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-uuid-test
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 0
+
+- name: Delete XLAB-snapshot-test
+  scale_computing.hypercore.vm: *delete-XLAB-snapshot-test
+  loop:
+    - XLAB-snapshot-uuid-test
+    - XLAB-snapshot-uuid-test-2

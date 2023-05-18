@@ -226,8 +226,7 @@ class VMSnapshot(PayloadMapper):
         cls, snapshot_uuid: str, rest_client: RestClient, must_exist: bool = False
     ) -> Optional[VMSnapshot]:
         hypercore_dict = rest_client.get_record(
-            endpoint="/rest/v1/VirDomainSnapshot",
-            query={"uuid": snapshot_uuid},
+            endpoint=f"/rest/v1/VirDomainSnapshot/{snapshot_uuid}",
             must_exist=must_exist,
         )
         vm_snapshot = cls.from_hypercore(hypercore_dict)

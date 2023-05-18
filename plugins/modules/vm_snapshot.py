@@ -28,7 +28,6 @@ options:
     description: source VM name.
   label:
     type: str
-    required: true
     description:
       - Snapshot label, used as identificator in combination with vm_name.
       - Must be unique for a specific VM.
@@ -49,6 +48,12 @@ options:
     choices: [ present, absent]
     type: str
     required: True
+  uuid:
+    type: str
+    description:
+      - Snapshot uuid, used as identificator.
+      - Can be used instead of label.
+      - Must be unique.
 """
 
 
@@ -145,6 +150,29 @@ from ..module_utils.vm_snapshot import VMSnapshot
 from ..module_utils.vm import VM
 
 
+def get_snapshot(
+    module: AnsibleModule, rest_client: RestClient, vm_object: VM
+) -> List[TypedVMSnapshotToAnsible]:
+    # Get snapshot by uuid first if parameter exists.
+    if module.params["uuid"]:
+        snapshot_list = VMSnapshot.get_snapshots_by_query(
+            dict(uuid=module.params["uuid"], domainUUID=vm_object.uuid), rest_client
+        )
+    # Otherwise get by label
+    else:
+        snapshot_list = VMSnapshot.get_snapshots_by_query(
+            dict(label=module.params["label"], domainUUID=vm_object.uuid), rest_client
+        )
+
+    # Snapshot should be unique by this point.
+    if len(snapshot_list) > 1:
+        raise errors.ScaleComputingError(
+            f"Virtual machine - {module.params['vm_name']} - has more than one snapshot with label - {module.params['label']}, specify uuid instead."
+        )
+
+    return snapshot_list
+
+
 def ensure_present(
     module: AnsibleModule,
     rest_client: RestClient,
@@ -203,15 +231,7 @@ def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Optional[TypedVMSnapshotToAnsible], TypedDiff]:
     vm_object: VM = VM.get_by_name(module.params, rest_client, must_exist=True)  # type: ignore
-    snapshot_list = VMSnapshot.get_snapshots_by_query(
-        dict(label=module.params["label"], domainUUID=vm_object.uuid), rest_client
-    )
-
-    # VM should only have one snapshot with a specific label, we use vm_name and label as snapshot identificator.
-    if len(snapshot_list) > 1:
-        raise errors.ScaleComputingError(
-            f"Virtual machine - {module.params['vm_name']} - has more than one snapshot with label - {module.params['label']}."
-        )
+    snapshot_list = get_snapshot(module, rest_client, vm_object)
 
     if module.params["state"] == State.present:
         return ensure_present(module, rest_client, vm_object, snapshot_list)
@@ -237,7 +257,6 @@ def main() -> None:
             ),
             label=dict(
                 type="str",
-                required=True,
             ),
             retain_for=dict(
                 type="int",
@@ -246,7 +265,15 @@ def main() -> None:
                 type="bool",
                 default=True,
             ),
+            uuid=dict(
+                type="str",
+            ),
         ),
+        mutually_exclusive=[("label", "uuid")],
+        required_if=[
+            ("state", "absent", ("label", "uuid"), True),
+            ("state", "present", ["label"]),
+        ],
     )
 
     try:

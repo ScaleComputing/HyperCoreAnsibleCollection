@@ -156,7 +156,7 @@ class TestRun:
             ),
         ],
     )
-    def test_run_virtual_disk(
+    def test_run_vm_snapshot(
         self,
         create_module,
         rest_client,
@@ -176,6 +176,7 @@ class TestRun:
                 retain_for=30,
                 replication=True,
                 state=state,
+                uuid=None,
             )
         )
 
