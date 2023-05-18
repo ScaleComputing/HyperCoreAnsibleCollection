@@ -5,11 +5,12 @@ env:
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
   WORKDIR: work-dir/ansible_collections/scale_computing/hypercore
+  LANG: C.UTF-8
 jobs:
   mypy:
     name: Type checks (mypy)
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:3
+    container: quay.io/justinc1_github/scale_ci_integ:7
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -26,7 +27,7 @@ jobs:
 
   docs:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:3
+    container: quay.io/justinc1_github/scale_ci_integ:7
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -47,7 +48,7 @@ jobs:
 
   sanity-test:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:3
+    container: quay.io/justinc1_github/scale_ci_integ:7
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -59,19 +60,16 @@ jobs:
         # Same as "make sanity"
         # TODO reuse Makefile
       - run: black -t py38 --check --diff --color plugins tests/unit
-      - run: ansible-lint
       - run: flake8 --exclude tests/output/
       - run: ansible-test sanity --local --python 3.10
-      # Running `ansible-lint` will look at examples as being arbitrary yaml files.
-      # It will complain about missing space after hash in "#xy" comment.
-      # Running `ansible-lint examples/*` will interpret files as ansible playbooks.
-      # Here we need also installed collections used in examples.
+      # We need to install collections used in examples,
+      # ansible-lint knows those files are playbooks.
       - run: ansible-galaxy collection install community.crypto
-      - run: ansible-lint examples/*
+      - run: ansible-lint
 
   units-test:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:3
+    container: quay.io/justinc1_github/scale_ci_integ:7
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
