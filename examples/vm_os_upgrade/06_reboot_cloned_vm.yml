@@ -1,0 +1,16 @@
+- name: Shutdown VM
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ cloned_vm_name }}"
+    power_state: reboot
+
+- name: Pause for 30 seconds, so that VM looses the IP
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: Wait until VM reports its IP address
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ cloned_vm_name }}"
+  register: cloned_vm_info
+  until: cloned_vm_info.records.0.nics.0.ipv4_addresses
+  retries: 60
+  delay: 10

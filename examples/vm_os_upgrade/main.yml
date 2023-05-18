@@ -37,21 +37,12 @@
       ansible.builtin.apt:
         upgrade: dist
 
-- name: Reboot VM
+- name: Reboot cloned VM
   hosts: localhost
   connection: local
   tasks:
-    - name: Reboot VM after dist-upgrade, since some of them require reboot
-      scale_computing.hypercore.vm_params:
-        vm_name: "{{ cloned_vm_name }}"
-        power_state: reboot
-    - name: Wait until cloned VM reports its IP address
-      scale_computing.hypercore.vm_info:
-        vm_name: "{{ cloned_vm_name }}"
-      register: cloned_vm_info
-      until: cloned_vm_info.records.0.nics.0.ipv4_addresses
-      retries: 60
-      delay: 10
+    - name: Reboot VM
+      ansible.builtin.include_tasks: 06_reboot_cloned_vm.yml
 
 - name: Upgrade distribution version
   hosts: "{{ cloned_vm_name }}"
@@ -60,23 +51,14 @@
     - name: Upgrade distribution version
       ansible.builtin.shell: do-release-upgrade -f DistUpgradeViewNonInteractive
 
-- name: Reboot VM
+- name: Reboot cloned VM
   hosts: localhost
   connection: local
   tasks:
-    - name: Reboot VM after distribution version upgrade
-      scale_computing.hypercore.vm_params:
-        vm_name: "{{ cloned_vm_name }}"
-        power_state: reboot
-    - name: Wait until cloned VM reports its IP address
-      scale_computing.hypercore.vm_info:
-        vm_name: "{{ cloned_vm_name }}"
-      register: cloned_vm_info
-      until: cloned_vm_info.records.0.nics.0.ipv4_addresses
-      retries: 60
-      delay: 10
+    - name: Reboot VM
+      ansible.builtin.include_tasks: 06_reboot_cloned_vm.yml
 
-- name: Check distribution version and upload index.html
+- name: Check distribution version and index.html
   hosts: "{{ cloned_vm_name }}"
   gather_facts: true
   tasks:
@@ -89,4 +71,3 @@
       delegate_to: localhost
       register: url_data
       failed_when: "'test-html-for-scale-computing-demo' not in url_data.content"
-    - meta: end_play
