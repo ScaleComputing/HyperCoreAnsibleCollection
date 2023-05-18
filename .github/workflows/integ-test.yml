@@ -221,8 +221,12 @@ jobs:
             test_name: support_tunnel
           - sc_host: https://10.5.11.50
             test_name: vm_clone__replicated
+          # test oidc login
           - sc_host: https://10.5.11.50
             test_name: utils_login
+          # test inventory plugin with oidc login
+          - sc_host: https://10.5.11.50
+            test_name: inventory
         exclude:
           # The VSNS were not configured with remote replication cluster.
           - sc_host: https://10.5.11.200
