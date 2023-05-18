@@ -237,6 +237,17 @@
       - snapshot_deleted is succeeded
       - snapshot_deleted is not changed
 
+- name: Assert that snapshot was NOT deleted
+  scale_computing.hypercore.vm_snapshot_info:
+    vm_name: XLAB-snapshot-uuid-test-2
+    label: test-snapshot-integration
+  register: snapshot_info
+- ansible.builtin.assert:
+    that:
+      - snapshot_info is succeeded
+      - snapshot_info is not changed
+      - snapshot_info.records | length == 1
+
 # Here we pass both label and uuid, but they are mutually exclusive.
 - name: Delete snapshot of VM when both label and uuid are passed - must fail
   scale_computing.hypercore.vm_snapshot:
