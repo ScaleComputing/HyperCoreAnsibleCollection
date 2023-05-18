@@ -142,6 +142,54 @@ jobs:
           )" >> $GITHUB_OUTPUT
     if: "${{ github.event.inputs || github.event.schedule }}"
 
+  examples-run:
+    needs:
+      - examples-matrix
+      # run examples after integ - they will both try to modify say syslog_server etc
+      - integ
+    if: "always() && (needs.examples-matrix.result=='success')"
+    runs-on: [ self-hosted2 ]
+    container: quay.io/justinc1_github/scale_ci_integ:3
+    env:
+      ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
+      DEBIAN_FRONTEND: noninteractive
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible: [ 2.13.0 ]
+        example_name: ${{ fromJson(needs.examples-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: pip install ansible-core~=${{ matrix.ansible }}
+      - run: ansible-galaxy collection install community.crypto community.general
+      - run: ansible-galaxy collection list
+
+      # ${{ env.WORKDIR }} cannot be used
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          sc_host: https://10.5.11.201
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          working_directory: ${{ env.WORKDIR }}
+      - run: |
+          pwd
+          ls -al tests/integration/integration_config.yml
+          head tests/integration/integration_config.yml
+
+      - run: |
+          eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
+          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_username')
+          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_password')
+          eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
+          ansible-playbook -i localhost, -e hypercore_example_check_mode=true examples/${{ matrix.example_name }}
+
   integ:
     needs:
       - integ-matrix
@@ -210,53 +258,6 @@ jobs:
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-test integration --local ${{ matrix.test_name }}
 
-  examples-run:
-    needs:
-      - examples-matrix
-      # run examples after integ - they will both try to modify say syslog_server etc
-      - integ
-    if: "always() && (needs.examples-matrix.result=='success')"
-    runs-on: [ self-hosted2 ]
-    container: quay.io/justinc1_github/scale_ci_integ:3
-    env:
-      ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
-      DEBIAN_FRONTEND: noninteractive
-    defaults:
-      run:
-        working-directory: ${{ env.WORKDIR }}
-    strategy:
-      fail-fast: false
-      matrix:
-        ansible: [ 2.13.0 ]
-        example_name: ${{ fromJson(needs.examples-matrix.outputs.matrix) }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=${{ matrix.ansible }}
-      - run: ansible-galaxy collection install community.crypto community.general
-      - run: ansible-galaxy collection list
-
-      # ${{ env.WORKDIR }} cannot be used
-      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
-        with:
-          sc_host: https://10.5.11.201
-          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
-          working_directory: ${{ env.WORKDIR }}
-      - run: |
-          pwd
-          ls -al tests/integration/integration_config.yml
-          head tests/integration/integration_config.yml
-
-      - run: |
-          eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
-          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_username')
-          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_password')
-          eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
-          ansible-playbook -i localhost, -e hypercore_example_check_mode=true examples/${{ matrix.example_name }}
 
   replica_cleanup:
     needs:
