@@ -147,7 +147,7 @@ jobs:
       - examples-matrix
       # run examples after integ - they will both try to modify say syslog_server etc
       - integ
-    if: "always() && (needs.examples-matrix.outputs.job_status=='success')"
+    if: "always() && (needs.examples-matrix.result=='success')"
     runs-on: [ self-hosted2 ]
     container: quay.io/justinc1_github/scale_ci_integ:3
     env:
