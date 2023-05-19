@@ -19,6 +19,7 @@ options:
       - There has to be cloud-config comment present at the beginning of cloud_init file or raw yaml.
     required: false
     type: dict
+    default: {}
     suboptions:
       user_data:
         description:

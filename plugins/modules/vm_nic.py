@@ -37,6 +37,7 @@ options:
     description:
       - List of network interfaces.
     type: list
+    default: []
     elements: dict
     suboptions:
       vlan:
