@@ -22,8 +22,8 @@ class TestMain:
         params = dict(
             cluster_instance=dict(
                 host="https://0.0.0.0",
-                username=None,
-                password=None,
+                username="myuser",
+                password="mypass",
             ),
             icos_version="9.2.11.210763",
         )
@@ -36,8 +36,8 @@ class TestMain:
         params = dict(
             cluster_instance=dict(
                 host="https://0.0.0.0",
-                username=None,
-                password=None,
+                username="myuser",
+                password="mypass",
             ),
         )
 

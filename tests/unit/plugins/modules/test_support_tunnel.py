@@ -22,8 +22,8 @@ class TestMain:
         params = dict(
             cluster_instance=dict(
                 host="https://0.0.0.0",
-                username=None,
-                password=None,
+                username="myuser",
+                password="mypass",
             ),
             state="present",
             code=4422,
@@ -36,8 +36,8 @@ class TestMain:
         params = dict(
             cluster_instance=dict(
                 host="https://0.0.0.0",
-                username=None,
-                password=None,
+                username="myuser",
+                password="mypass",
             ),
             state="absent",
         )
@@ -49,8 +49,8 @@ class TestMain:
         params = dict(
             cluster_instance=dict(
                 host="https://0.0.0.0",
-                username=None,
-                password=None,
+                username="myuser",
+                password="mypass",
             ),
             state="present",
         )

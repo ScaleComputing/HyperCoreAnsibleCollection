@@ -22,8 +22,8 @@ class TestMain:
         params = dict(
             cluster_instance=dict(
                 host="https://0.0.0.0",
-                username=None,
-                password=None,
+                username="myuser",
+                password="mypass",
             ),
             name_new="updated_name",
         )
@@ -42,8 +42,8 @@ class TestMain:
         params = dict(
             cluster_instance=dict(
                 host="https://0.0.0.0",
-                username=None,
-                password=None,
+                username="myuser",
+                password="mypass",
             ),
         )
 
