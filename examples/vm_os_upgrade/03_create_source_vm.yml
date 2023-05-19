@@ -33,7 +33,7 @@
             iso_name: "{{ iso_filename }}"
         nics:
           - type: virtio
-            vlan: 0
+            vlan: "{{ source_vm_vlan }}"
         boot_devices:
           - type: virtio_disk
             disk_slot: 0

@@ -5,8 +5,14 @@ source_vm_name: demo-snapshot-source
 source_snapshot_label: demo-snapshot-label-0
 # Old snapshot with same label will be removed, and new one created.
 source_snapshot_force_recreate: true
+# A VLAN for 1st NIC of source VM.
+source_vm_vlan: 0
 # A VM with name cloned_vm_name will be created from source_snapshot_label.
 cloned_vm_name: demo-snapshot-clone
+# A VLAN for 1st NIC of cloned VM.
+# Using a different VLAN/subnet will allow keeping the same static IP on both VMs.
+# For simplicity, example uses same VLAN 0 for both source and cloned VM.
+cloned_vm_vlan: 0
 # SSH key to create and use
 demo_ssh_key_path: demo_ssh_key
 # url from which an ISO image of operating system will be downloaded
