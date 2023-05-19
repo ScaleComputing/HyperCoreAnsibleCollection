@@ -97,7 +97,7 @@ options:
     description:
       - List of disks we want to create.
       - Required if I(state=present).
-    default: []
+    # default: None
     suboptions:
       disk_slot:
         type: int
@@ -135,7 +135,7 @@ options:
       - Required if I(state=present).
     type: list
     elements: dict
-    default: []
+    # default: None
     suboptions:
       vlan:
         type: int
