@@ -57,6 +57,29 @@ sc_config:
     ...
 ```
 
+## CI jobs for integration tests
+
+Github CI jobs require some infrastructure:
+- Dedicated github runner(s), with access to test HyperCore cluster(s).
+  - We test against multiple HyperCore versions (9.1, 9.2 etc.).
+- Test HyperCore clusters
+  - Currently, a single physical HyperCore cluster is used (https://10.5.11.50).
+  - It runs two VSNS VMs (virtual single node systems) - for versions 9.1 (https://10.5.11.200) and 9.2 (https://10.5.11.201).
+  - Each VSNS VM was prepared manually (how - ask Dave), VM was shutdown and we use it as base VM image.
+    Base VM was cloned to obtain final VSNS VM.
+- A docker image for CI jobs, with needed tools preinstalled (ansible-core, jq, and other utilities).
+  - File [build.sh](ci-infra/docker-image/build.sh) is used to build and push docker image.
+  - Docker image is built manually, on local workstation.
+  - Only authenticated users can publish new image - docker-login is required before `docker push`.
+  - Anyone can download built image. Do not include sensitive data into the image.
+- Configured github secrets.
+  - In many cases, password is stored in github secrets, but corresponding username is not
+
+Some tests need additional infrastructure
+- SMB server for testing VM import/export
+- NTP server for testing NTP configuration
+- OIDC client and test username/password to test OIDC login.
+
 # Development
 
 Included `Makefile` contains shortcuts for common development tasks,
