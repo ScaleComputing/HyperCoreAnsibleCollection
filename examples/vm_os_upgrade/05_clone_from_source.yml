@@ -8,7 +8,8 @@
 - name: Clone source VM
   scale_computing.hypercore.vm_clone:
     vm_name: "{{ cloned_vm_name }}"
-    source_vm_name: "{{ source_vm_name }}"  # latest snapshot will be cloned
+    source_vm_name: "{{ source_vm_name }}"
+    source_snapshot_label: "{{ source_snapshot_label }}"
   register: vm_cloned
 - ansible.builtin.assert:
     that:
