@@ -3,6 +3,6 @@
     vm_name: "{{ cloned_vm_name }}"
     power_state: reboot
 
-- name: Pause for 20 seconds, so that VM becomes reachable
+- name: Pause for 20 seconds, so that VM becomes reachable via SSH
   ansible.builtin.pause:
     seconds: 20
