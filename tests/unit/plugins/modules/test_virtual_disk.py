@@ -175,7 +175,7 @@ class TestMain:
                 ),
             ),
             (
-                None,
+                "",
                 "c:/location/foobar.qcow2",
                 "present",
                 (
@@ -188,7 +188,7 @@ class TestMain:
                 ),
             ),
             (
-                None,
+                "",
                 None,
                 "present",
                 (
@@ -343,7 +343,7 @@ class TestMain:
                 ),
             ),
             (
-                None,
+                "",
                 "c:/location/foobar.qcow2",
                 "absent",
                 (
@@ -356,7 +356,7 @@ class TestMain:
                 ),
             ),
             (
-                None,
+                "",
                 None,
                 "absent",
                 (
@@ -374,8 +374,8 @@ class TestMain:
         self,
         run_main,
         mocker,
-        file_location_test,
         file_name_test,
+        file_location_test,
         state_test,
         expected_result,
     ) -> None:
@@ -383,8 +383,8 @@ class TestMain:
             cluster_instance=dict(
                 host="https://my.host.name", username="user", password="pass"
             ),
-            name=file_location_test,
-            source=file_name_test,
+            name=file_name_test,
+            source=file_location_test,
             state=state_test,
         )
         mocker.patch(
