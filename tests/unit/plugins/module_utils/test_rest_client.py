@@ -37,7 +37,7 @@ class TestTableListRecords:
 
         records = t.list_records("my_table")
 
-        assert ["result"] == records
+        assert [{"result": []}] == records
         client.get.assert_called_once_with(path="my_table", timeout=None)
 
     def test_non_empty_response(self, client):
@@ -48,7 +48,7 @@ class TestTableListRecords:
 
         records = t.list_records("my_table")
 
-        assert records == ["result"]
+        assert records == [{"result": [{"a": 3, "b": "sys_id"}]}]
 
     def test_query_passing(self, client):
         client.get.return_value = Response(
