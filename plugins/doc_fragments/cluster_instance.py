@@ -50,13 +50,11 @@ options:
       auth_method:
         description:
           - Select login method.
-          - If not set, the value of the C(SC_AUTH_METHOD) environment
+            If not set, the value of the C(SC_AUTH_METHOD) environment
             variable will be used.
           - Value I(local) - username/password is verified by the HyperCore server (the local users).
           - Value I(oidc) - username/password is verified by the configured OIDC provider.
         default: local
-        choices:
-          - local
-          - oidc
+        choices: [local, oidc]
         type: str
 """
