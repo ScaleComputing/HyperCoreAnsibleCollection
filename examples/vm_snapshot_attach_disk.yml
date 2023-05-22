@@ -6,8 +6,10 @@
   vars:
     vm_name: demo-vm
     vm_disk_type: ide_disk
+    vm_disk_slot: 20
     source_snapshot_uuid: 116d51cc-ec25-4628-a092-86de42699aac
     source_disk_type: virtio_disk
+    source_disk_slot: 1
 
   tasks:
     - name: Attach a disk from a VM Snapshot to a VM
@@ -15,9 +17,9 @@
         # destination VM
         vm_name: "{{ vm_name }}"
         vm_disk_type: "{{ vm_disk_type }}"
-        vm_disk_slot: 42
+        vm_disk_slot: "{{ vm_disk_slot }}"
 
         # source snapshot disk
         source_snapshot_uuid: "{{ source_snapshot_uuid }}"
         source_disk_type: "{{ source_disk_type }}"
-        source_disk_slot: 1
+        source_disk_slot: "{{ source_disk_slot }}"
