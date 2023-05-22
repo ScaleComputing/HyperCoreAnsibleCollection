@@ -12,8 +12,9 @@ import json
 import ssl
 from typing import Any, Optional, Union
 from io import BufferedReader
+import enum
 
-from ansible.module_utils.urls import Request, basic_auth_header
+from ansible.module_utils.urls import Request
 
 from .errors import (
     AuthError,
@@ -27,6 +28,11 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.six.moves.urllib.parse import urlencode, quote
 
 DEFAULT_HEADERS = dict(Accept="application/json")
+
+
+class AuthMethod(str, enum.Enum):
+    local = "local"
+    oidc = "oidc"
 
 
 class Response:
@@ -64,6 +70,7 @@ class Client:
         username: str,
         password: str,
         timeout: float,
+        auth_method: str,
     ):
         if not (host or "").startswith(("https://", "http://")):
             raise ScaleComputingError(
@@ -75,8 +82,9 @@ class Client:
         self.username = username
         self.password = password
         self.timeout = timeout
+        self.auth_method = auth_method
 
-        self._auth_header: Optional[dict[str, bytes]] = None
+        self._auth_header: Optional[dict[str, str]] = None
         self._client = Request()
 
     @classmethod
@@ -86,19 +94,38 @@ class Client:
             cluster_instance["username"],
             cluster_instance["password"],
             cluster_instance["timeout"],
+            cluster_instance["auth_method"],
         )
 
     @property
-    def auth_header(self) -> dict[str, bytes]:
+    def auth_header(self) -> dict[str, str]:
         if not self._auth_header:
             self._auth_header = self._login()
         return self._auth_header
 
-    def _login(self) -> dict[str, bytes]:
+    def _login(self) -> dict[str, str]:
         return self._login_username_password()
 
-    def _login_username_password(self) -> dict[str, bytes]:
-        return dict(Authorization=basic_auth_header(self.username, self.password))
+    def _login_username_password(self) -> dict[str, str]:
+        headers = {
+            "Accept": "application/json",
+            "Content-type": "application/json",
+        }
+        use_oidc = self.auth_method == AuthMethod.oidc.value
+        resp = self._request(
+            "POST",
+            f"{self.host}/rest/v1/login",
+            data=json.dumps(
+                dict(
+                    username=self.username,
+                    password=self.password,
+                    useOIDC=use_oidc,
+                )
+            ),
+            headers=headers,
+            timeout=self.timeout,
+        )
+        return dict(Cookie=f"sessionID={resp.json['sessionID']}")
 
     def _request(
         self,
@@ -108,9 +135,8 @@ class Client:
         headers: Optional[dict[Any, Any]] = None,
         timeout: Optional[float] = None,
     ) -> Response:
-        if (
-            timeout is None
-        ):  # If timeout from request is not specifically provided, take it from the Client.
+        if timeout is None:
+            # If timeout from request is not specifically provided, take it from the Client.
             timeout = self.timeout
         try:
             raw_resp = self._client.open(

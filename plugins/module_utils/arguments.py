@@ -10,6 +10,7 @@ __metaclass__ = type
 
 from ansible.module_utils.basic import env_fallback
 from typing import Any
+from ..module_utils.client import AuthMethod
 
 # TODO - env from /etc/environment is loaded
 # But when env is set in bash session, env seems to be lost on ssh connection to localhost.
@@ -41,6 +42,12 @@ SHARED_SPECS = dict(
                 type="float",
                 required=False,
                 fallback=(env_fallback, ["SC_TIMEOUT"]),
+            ),
+            auth_method=dict(
+                type="str",
+                default=AuthMethod.local,
+                choices=[am.value for am in AuthMethod],
+                fallback=(env_fallback, ["SC_AUTH_METHOD"]),
             ),
         ),
         required_together=[("username", "password")],

@@ -14,6 +14,7 @@ on:
       # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
       # git_issues - slow, do not run on each push. TODO - run them only once a day
       # oidc_config - during reconfiguration API returns 500/502 errors for other requests
+      # utils_login - it uses OIDC user to login
       # smtp - email_alert test requires a configured SMTP
       # role_cluster_config - role cluster_config reconfigures DNS, SMTP, OIDC. And it is slow.
       # version_update_single_node - role would change version, VSNS system cannot be updated.
@@ -23,7 +24,7 @@ on:
           List integration tests to exclude.
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
-        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$"
+        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$"
       examples_tests_include:
         type: string
         description: |-
@@ -32,7 +33,7 @@ on:
         default: "iso_info"
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
-  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$"
+  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$"
   EXAMPLES_TESTS_INCLUDE_SCHEDULE: "*"
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
@@ -73,6 +74,7 @@ jobs:
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-playbook tests/integration/prepare/prepare_iso.yml
       - run: ansible-playbook tests/integration/prepare/prepare_vm.yml
@@ -177,6 +179,7 @@ jobs:
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
       - run: |
           pwd
@@ -220,6 +223,12 @@ jobs:
             test_name: support_tunnel
           - sc_host: https://10.5.11.50
             test_name: vm_clone__replicated
+          # test oidc login
+          - sc_host: https://10.5.11.50
+            test_name: utils_login
+          # test inventory plugin with oidc login
+          - sc_host: https://10.5.11.50
+            test_name: inventory
         exclude:
           # The VSNS were not configured with remote replication cluster.
           - sc_host: https://10.5.11.200
@@ -255,6 +264,7 @@ jobs:
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-test integration --local ${{ matrix.test_name }}
 
@@ -282,6 +292,7 @@ jobs:
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-galaxy collection install community.general
       - run: ansible-playbook tests/integration/cleanup/ci_replica_cleanup.yml
@@ -306,6 +317,7 @@ jobs:
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
       - run: |
           cd tests/integration/cleanup && ./smb_cleanup.sh \

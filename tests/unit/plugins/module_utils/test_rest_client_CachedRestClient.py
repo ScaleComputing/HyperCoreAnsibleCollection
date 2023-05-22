@@ -50,7 +50,7 @@ class TestCachedRestClient:
             query1, query0 = query0, query1
             expected_data1, expected_data0 = expected_data0, expected_data1
 
-        client_obj = client.Client("https://thehost", "user", "pass", None)
+        client_obj = client.Client("https://thehost", "user", "pass", None, "local")
         cached_client = rest_client.CachedRestClient(client=client_obj)
         client_mock = mocker.patch.object(cached_client.client, "get")
         client_mock.return_value = client.Response(200, data, "")
@@ -88,7 +88,7 @@ class TestCachedRestClient:
             else:
                 return client.Response(200, data1, "")
 
-        client_obj = client.Client("https://thehost", "user", "pass", None)
+        client_obj = client.Client("https://thehost", "user", "pass", None, "local")
         cached_client = rest_client.CachedRestClient(client=client_obj)
         client_mock = mocker.patch.object(cached_client.client, "get")
         client_mock.side_effect = mockup_client_get
@@ -118,7 +118,7 @@ class TestCachedRestClient:
         endpoint = "vms"
         data = "[]"
 
-        client_obj = client.Client("https://thehost", "user", "pass", None)
+        client_obj = client.Client("https://thehost", "user", "pass", None, "local")
         cached_client = rest_client.CachedRestClient(client=client_obj)
         client_mock = mocker.patch.object(cached_client.client, "get")
         client_mock.return_value = client.Response(200, data, "")

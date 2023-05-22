@@ -21,6 +21,7 @@ class TypedClusterInstance(TypedDict):
     username: str
     password: str
     timeout: float
+    auth_method: str
 
 
 # Registration to ansible return dict.

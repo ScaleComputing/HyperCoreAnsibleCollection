@@ -19,6 +19,9 @@ inputs:
   oidc_client_secret:
     description: 'oidc_client_secret'
     required: true
+  oidc_users_0_password:
+    description: 'oidc_users_0_password'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -35,6 +38,8 @@ runs:
         smb_share: /cidata
         oidc_client_id: d2298ec0-0596-49d2-9554-840a2fe20603
         oidc_client_secret: ${{ inputs.oidc_client_secret }}
+        oidc_users_0_username: xlabciuser@scalemsdnscalecomputing.onmicrosoft.com
+        oidc_users_0_password: ${{ inputs.oidc_users_0_password }}
         EOF
         cat integ_config_vars.yml | jinja2 --strict tests/integration/integration_config.yml.j2 > tests/integration/integration_config.yml
         echo "sc_host: ${{ inputs.sc_host }}" >> tests/integration/integration_config.yml
