@@ -13,6 +13,7 @@ import uuid
 
 from ..module_utils.errors import InvalidUuidFormatError
 from typing import Union, Any
+from copy import copy
 from ..module_utils.typed_classes import (
     TypedTaskTag,
     TypedRegistrationToAnsible,
@@ -129,7 +130,10 @@ def is_superset(superset, candidate):
 
 
 def filter_results(results, filter_data) -> list[Any]:
-    return [element for element in results if is_superset(element, filter_data)]
+    results_tmp = copy(results)
+    if type(results) is not list:
+        results_tmp = [results_tmp]
+    return [element for element in results_tmp if is_superset(element, filter_data)]
 
 
 def is_changed(

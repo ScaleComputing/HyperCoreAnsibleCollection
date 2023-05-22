@@ -90,7 +90,16 @@ class TestIsSuperset:
 
 
 class TestFilterResults:
-    def test_filter_results(self):
-        assert utils.filter_results(
-            [dict(a=1), dict(b=1), dict(a=1, b=2)], dict(a=1)
-        ) == [dict(a=1), dict(a=1, b=2)]
+    @pytest.mark.parametrize(
+        ("results", "filter_data", "expected"),
+        [
+            (
+                [dict(a=1), dict(b=1), dict(a=1, b=2)],
+                dict(a=1),
+                [dict(a=1), dict(a=1, b=2)],
+            ),
+            (dict(a=1), None, [dict(a=1)]),
+        ],
+    )
+    def test_filter_results(self, results, filter_data, expected):
+        assert utils.filter_results(results, filter_data) == expected
