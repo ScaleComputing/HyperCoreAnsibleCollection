@@ -277,8 +277,11 @@ def put_record(module, rest_client):
 
 
 def get_records(module, rest_client):
-    records = rest_client.list_records(
-        query=module.params["data"],
+    # records = rest_client.list_records(
+    #     query=module.params["data"],
+    #     endpoint=module.params["endpoint"],
+    # )
+    records = rest_client.list_records_raw(
         endpoint=module.params["endpoint"],
     )
     return False, records

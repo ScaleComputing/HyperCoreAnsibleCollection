@@ -42,6 +42,19 @@ class RestClient:
             raise errors.ScaleTimeoutError(e)
         return utils.filter_results(records, query)
 
+    def list_records_raw(
+        self,
+        endpoint: str,
+        timeout: Optional[float] = None,
+    ) -> Any:
+        """Results are obtained so that first off, all records are obtained and
+        then filtered manually"""
+        try:
+            records = self.client.get(path=endpoint, timeout=timeout).json
+        except TimeoutError as e:
+            raise errors.ScaleTimeoutError(e)
+        return records
+
     def get_record(
         self,
         endpoint: str,

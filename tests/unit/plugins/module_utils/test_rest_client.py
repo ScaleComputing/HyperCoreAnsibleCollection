@@ -37,7 +37,7 @@ class TestTableListRecords:
 
         records = t.list_records("my_table")
 
-        assert [{"result": []}] == records
+        assert ["result"] == records
         client.get.assert_called_once_with(path="my_table", timeout=None)
 
     def test_non_empty_response(self, client):
@@ -48,7 +48,7 @@ class TestTableListRecords:
 
         records = t.list_records("my_table")
 
-        assert records == [{"result": [{"a": 3, "b": "sys_id"}]}]
+        assert records == ["result"]
 
     def test_query_passing(self, client):
         client.get.return_value = Response(
@@ -57,6 +57,42 @@ class TestTableListRecords:
         t = rest_client.RestClient(client)
 
         t.list_records("my_table", dict(a="b"))
+
+        client.get.assert_called_once_with(
+            path="my_table",
+            timeout=None,
+        )
+
+
+class TestTableListRecordsRaw:
+    def test_empty_response(self, client):
+        client.get.return_value = Response(
+            200, '{"result": []}', {"X-Total-Count": "0"}
+        )
+        t = rest_client.RestClient(client)
+
+        records = t.list_records_raw("my_table")
+
+        assert {"result": []} == records
+        client.get.assert_called_once_with(path="my_table", timeout=None)
+
+    def test_non_empty_response(self, client):
+        client.get.return_value = Response(
+            200, '{"result": [{"a": 3, "b": "sys_id"}]}', {"X-Total-Count": "1"}
+        )
+        t = rest_client.RestClient(client)
+
+        records = t.list_records_raw("my_table")
+
+        assert records == {"result": [{"a": 3, "b": "sys_id"}]}
+
+    def test_query_passing(self, client):
+        client.get.return_value = Response(
+            200, '{"result": []}', {"X-Total-Count": "0"}
+        )
+        t = rest_client.RestClient(client)
+
+        t.list_records_raw("my_table")
 
         client.get.assert_called_once_with(
             path="my_table",
