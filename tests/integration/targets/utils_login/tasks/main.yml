@@ -22,7 +22,8 @@
       ansible.builtin.assert:
         that:
           - ping_result is not changed
-          - ping_result.record.0 == "status"
+          - ping_result.record.status is defined
+          - ping_result.record.status == "Active"
 
 # ===================================================================
 # local user, from cluster_instance variable
