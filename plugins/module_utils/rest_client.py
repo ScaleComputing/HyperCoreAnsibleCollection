@@ -47,8 +47,10 @@ class RestClient:
         endpoint: str,
         timeout: Optional[float] = None,
     ) -> Any:
-        """Results are obtained so that first off, all records are obtained and
-        then filtered manually"""
+        """
+        Returns all records. No filtering is done.
+        Returned type is same as type returned by HyperCore API.
+        """
         try:
             records = self.client.get(path=endpoint, timeout=timeout).json
         except TimeoutError as e:
