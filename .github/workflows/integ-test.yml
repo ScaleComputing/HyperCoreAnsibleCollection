@@ -34,6 +34,15 @@ on:
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
   INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$"
+  INTEG_TESTS_TO_RUN_SEQUENTIALLY:
+    - dns_config
+    - cluster_shutdown
+    - version_update
+    - oidc_config
+    - smtp
+    - role_cluster_config
+    - role_version_update_single_node
+    - utils_login
   EXAMPLES_TESTS_INCLUDE_SCHEDULE: "*"
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
@@ -98,6 +107,7 @@ jobs:
       # When running with workflow-dispatch, user is required to put some non-empty string into integ_tests_include.
       - run: echo 'INTEG_TESTS_INCLUDE=${{ github.event.inputs.integ_tests_include || env.INTEG_TESTS_INCLUDE_SCHEDULE }}' >> $GITHUB_ENV
       - run: echo 'INTEG_TESTS_EXCLUDE=${{ github.event.inputs.integ_tests_exclude || env.INTEG_TESTS_EXCLUDE_SCHEDULE }}' >> $GITHUB_ENV
+#      - run: echo 'INTEG_TESTS_TO_RUN_SEQUENTIALLY=${{ github.event.inputs.integ_tests_to_run_sequentially || env.INTEG_TESTS_TO_RUN_SEQUENTIALLY }}' >> $GITHUB_ENV
 
       - id: set-matrix
         shell: bash
@@ -268,6 +278,49 @@ jobs:
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-test integration --local ${{ matrix.test_name }}
 
+  integ-sequetially:
+    needs:
+      - integ
+    runs-on: [ self-hosted2 ]
+    container: quay.io/justinc1_github/scale_ci_integ:3
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # ansible: [2.13.0]
+        # python: [3.11]
+        # test_name: [user_info]
+        test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
+        sc_host:
+          - https://10.5.11.200
+          - https://10.5.11.201
+        include:
+          - sc_host: https://10.5.11.50
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: pip install ansible-core~=2.13.0
+      # We have ansible.cfg "for testing" in git repo
+      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+      # But it does affect ansible-galaxy and ansible-test commands.
+      - run: ansible-galaxy collection install community.crypto
+      - run: ansible-galaxy collection list
+      # ${{ env.WORKDIR }} cannot be used
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          sc_host: ${{ matrix.sc_host }}
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
+          working_directory: ${{ env.WORKDIR }}
+      - run: ansible-test integration --local ${{ env.INTEG_TESTS_TO_RUN_SEQUENTIALLY }}
 
   replica_cleanup:
     needs:
