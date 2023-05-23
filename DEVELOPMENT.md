@@ -18,6 +18,7 @@ cd hypercore
 
 # Install community.general collection, since we like to have stdout_callback=community.general.yaml in ansible.cfg
 ansible-galaxy collection install community.general
+ansible-galaxy collection install community.general community.crypto
 # Optional, if you want to run "ansible-test --venv ..."
 # pip install -r test.requirements -r sanity.requirements
 ```
