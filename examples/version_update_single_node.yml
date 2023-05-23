@@ -7,7 +7,7 @@
   check_mode: true
 
   vars:
-    desired_version: 9.1.24.211326
+    desired_version: 9.2.17.211525
 
   tasks:
     - name: Show desired_version
