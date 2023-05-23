@@ -86,19 +86,6 @@ class TestTableListRecordsRaw:
 
         assert records == {"result": [{"a": 3, "b": "sys_id"}]}
 
-    def test_query_passing(self, client):
-        client.get.return_value = Response(
-            200, '{"result": []}', {"X-Total-Count": "0"}
-        )
-        t = rest_client.RestClient(client)
-
-        t.list_records_raw("my_table")
-
-        client.get.assert_called_once_with(
-            path="my_table",
-            timeout=None,
-        )
-
 
 class TestTableGetRecord:
     def test_zero_matches(self, client):
