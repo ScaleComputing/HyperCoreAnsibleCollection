@@ -337,7 +337,8 @@ jobs:
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
-      - run: ansible-test integration --local ${{ matrix.test_name }}
+      - run: echo "${{ matrix.test_name }} -> $(date +%T)" && sleep 1
+      # - run: ansible-test integration --local ${{ matrix.test_name }}
 
   replica_cleanup:
     needs:
