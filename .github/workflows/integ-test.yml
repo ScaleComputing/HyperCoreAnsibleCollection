@@ -261,22 +261,23 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=2.13.0
-      # We have ansible.cfg "for testing" in git repo
-      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
-      # But it does affect ansible-galaxy and ansible-test commands.
-      - run: ansible-galaxy collection install community.crypto
-      - run: ansible-galaxy collection list
-      # ${{ env.WORKDIR }} cannot be used
-      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
-        with:
-          sc_host: ${{ matrix.sc_host }}
-          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
-          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
-          working_directory: ${{ env.WORKDIR }}
-      - run: echo ${{ matrix.test_name }} && exit 0
+      - name: Print integ-test time
+        run: echo ${{ matrix.test_name }} && exit 0
+#      - run: pip install ansible-core~=2.13.0
+#      # We have ansible.cfg "for testing" in git repo
+#      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+#      # But it does affect ansible-galaxy and ansible-test commands.
+#      - run: ansible-galaxy collection install community.crypto
+#      - run: ansible-galaxy collection list
+#      # ${{ env.WORKDIR }} cannot be used
+#      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+#        with:
+#          sc_host: ${{ matrix.sc_host }}
+#          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+#          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+#          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+#          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
+#          working_directory: ${{ env.WORKDIR }}
 #      - run: ansible-test integration --local ${{ matrix.test_name }}
 
   integ-sequetially:
@@ -323,23 +324,24 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=2.13.0
-      # We have ansible.cfg "for testing" in git repo
-      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
-      # But it does affect ansible-galaxy and ansible-test commands.
-      - run: ansible-galaxy collection install community.crypto
-      - run: ansible-galaxy collection list
-      # ${{ env.WORKDIR }} cannot be used
-      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
-        with:
-          sc_host: ${{ matrix.sc_host }}
-          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
-          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
-          working_directory: ${{ env.WORKDIR }}
-      - run: echo "${{ matrix.test_name }} -> $(date +%T)" && sleep 1 && exit 0
-      # - run: ansible-test integration --local ${{ matrix.test_name }}
+      - name: Running integ tests sequentially
+        run: echo "SEQ integ test here -> $(date +%T)" && exit 0
+#      - run: pip install ansible-core~=2.13.0
+#      # We have ansible.cfg "for testing" in git repo
+#      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+#      # But it does affect ansible-galaxy and ansible-test commands.
+#      - run: ansible-galaxy collection install community.crypto
+#      - run: ansible-galaxy collection list
+#      # ${{ env.WORKDIR }} cannot be used
+#      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+#        with:
+#          sc_host: ${{ matrix.sc_host }}
+#          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+#          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+#          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+#          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
+#          working_directory: ${{ env.WORKDIR }}
+#      - run: ansible-test integration --local ${{ matrix.test_name }}
 
   replica_cleanup:
     needs:
