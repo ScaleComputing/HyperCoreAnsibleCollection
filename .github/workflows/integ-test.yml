@@ -282,6 +282,7 @@ jobs:
 
   integ-sequetially:
     needs:
+      - integ-matrix
       - integ
     runs-on: [ self-hosted2 ]
     container: quay.io/justinc1_github/scale_ci_integ:3
