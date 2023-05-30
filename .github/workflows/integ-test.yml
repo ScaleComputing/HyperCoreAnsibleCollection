@@ -346,6 +346,7 @@ jobs:
   replica_cleanup:
     needs:
       - integ
+      - integ-sequentially
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:3
     env:
@@ -374,6 +375,7 @@ jobs:
   smb_cleanup:
     needs:
       - integ
+      - integ-sequentially
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:3
     defaults:
