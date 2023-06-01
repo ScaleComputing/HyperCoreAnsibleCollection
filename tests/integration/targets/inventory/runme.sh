@@ -54,26 +54,21 @@ export SC_AUTH_METHOD=local
 ansible-playbook -i localhost, -i hypercore_inventory_ansible_both_false.yml run_ansible_both_false_tests.yml
 
 # test with OIDC user
-if [[ "$SC_HOST" == "https://10.5.11.50" ]]
-then
-    # We can do this only if OIDC login is configured.
-    echo "Testing inventory plugin with OIDC user."
-    eval "$(cat <<EOF | python
-    import yaml
-    with open("$vars_file") as fd:
-        data = yaml.safe_load(fd)
-    sc_host=data["sc_host"]
-    sc_timeout=data["sc_timeout"]
-    print("export SC_HOST='{}'".format(sc_host))
-    print("export SC_TIMEOUT='{}'".format(sc_timeout))
-    print("export SC_USERNAME='{}'".format(data["sc_config"][sc_host]["oidc"]["users"][0]["username"]))
-    print("export SC_PASSWORD='{}'".format(data["sc_config"][sc_host]["oidc"]["users"][0]["password"]))
-    print("export SC_AUTH_METHOD=oidc")
+# We can do this only if OIDC login is configured.
+echo "Testing inventory plugin with OIDC user."
+eval "$(cat <<EOF | python
+import yaml
+with open("$vars_file") as fd:
+    data = yaml.safe_load(fd)
+sc_host=data["sc_host"]
+sc_timeout=data["sc_timeout"]
+print("export SC_HOST='{}'".format(sc_host))
+print("export SC_TIMEOUT='{}'".format(sc_timeout))
+print("export SC_USERNAME='{}'".format(data["sc_config"][sc_host]["oidc"]["users"][0]["username"]))
+print("export SC_PASSWORD='{}'".format(data["sc_config"][sc_host]["oidc"]["users"][0]["password"]))
+print("export SC_AUTH_METHOD=oidc")
 EOF
-    )"
-    ansible-playbook -i localhost, -i hypercore_inventory_ansible_both_false.yml run_ansible_both_false_tests.yml
-else
-    echo "OIDC is not configured on host $SC_HOST, inventory plugin was not tested with OIDC user."
-fi
+)"
+ansible-playbook -i localhost, -i hypercore_inventory_ansible_both_false.yml run_ansible_both_false_tests.yml
 
 ansible-playbook cleanup.yml

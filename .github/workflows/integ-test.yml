@@ -24,7 +24,7 @@ on:
           List integration tests to exclude.
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
-        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$"
+        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
       examples_tests_include:
         type: string
         description: |-
@@ -33,7 +33,7 @@ on:
         default: "iso_info"
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
-  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$"
+  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
   EXAMPLES_TESTS_INCLUDE_SCHEDULE: "*"
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
@@ -98,6 +98,7 @@ jobs:
       # When running with workflow-dispatch, user is required to put some non-empty string into integ_tests_include.
       - run: echo 'INTEG_TESTS_INCLUDE=${{ github.event.inputs.integ_tests_include || env.INTEG_TESTS_INCLUDE_SCHEDULE }}' >> $GITHUB_ENV
       - run: echo 'INTEG_TESTS_EXCLUDE=${{ github.event.inputs.integ_tests_exclude || env.INTEG_TESTS_EXCLUDE_SCHEDULE }}' >> $GITHUB_ENV
+#      - run: echo 'INTEG_TESTS_TO_RUN_SEQUENTIALLY=${{ github.event.inputs.integ_tests_to_run_sequentially || env.INTEG_TESTS_TO_RUN_SEQUENTIALLY }}' >> $GITHUB_ENV
 
       - id: set-matrix
         shell: bash
@@ -149,6 +150,7 @@ jobs:
       - examples-matrix
       # run examples after integ - they will both try to modify say syslog_server etc
       - integ
+      - integ-seq
     if: "always() && (needs.examples-matrix.result=='success')"
     runs-on: [ self-hosted2 ]
     container: quay.io/justinc1_github/scale_ci_integ:3
@@ -223,12 +225,6 @@ jobs:
             test_name: support_tunnel
           - sc_host: https://10.5.11.50
             test_name: vm_clone__replicated
-          # test oidc login
-          - sc_host: https://10.5.11.50
-            test_name: utils_login
-          # test inventory plugin with oidc login
-          - sc_host: https://10.5.11.50
-            test_name: inventory
         exclude:
           # The VSNS were not configured with remote replication cluster.
           - sc_host: https://10.5.11.200
@@ -268,10 +264,74 @@ jobs:
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-test integration --local ${{ matrix.test_name }}
 
+  integ-seq:
+    needs:
+      - integ-matrix
+      - integ
+    if: "always() && (needs.integ-matrix.result=='success')"
+    runs-on: [ self-hosted2 ]
+    container: quay.io/justinc1_github/scale_ci_integ:3
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
+    strategy:
+      fail-fast: false
+      # The max number of concurent jobs
+      max-parallel: 1
+      matrix:
+        # "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
+        # Some tests can be tested on VSNS - those are run on VSNS.
+        # Some cannot, those are run on test cluster 10.5.11.50.
+        test_name:
+          - dns_config
+          # - cluster_shutdown
+          # - version_update
+          - oidc_config
+          - smtp
+          - role_cluster_config
+          # - role_version_update_single_node
+          # after oidc_config configures OIDC login, the utils_login can be tested too
+          - utils_login
+          - certificate
+        sc_host:
+          - https://10.5.11.200
+          - https://10.5.11.201
+        exclude:
+          # role cluster_config can be used with HC3 9.1, but you need to omit cluster_name setting.
+          # CI job role_cluster_config does try to set cluster_name, so it would fail.
+          - sc_host: https://10.5.11.200
+            test_name: role_cluster_config
+        # include:  # change later to use env.INTEG_TESTS_TO_RUN_SEQUENTIALLY
+        #   - sc_host: https://10.5.11.50
+        #     test_name: dns_config
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: pip install ansible-core~=2.13.0
+      # We have ansible.cfg "for testing" in git repo
+      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+      # But it does affect ansible-galaxy and ansible-test commands.
+      - run: ansible-galaxy collection install community.crypto
+      - run: ansible-galaxy collection list
+      # ${{ env.WORKDIR }} cannot be used
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          sc_host: ${{ matrix.sc_host }}
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
+          working_directory: ${{ env.WORKDIR }}
+      - run: ansible-test integration --local ${{ matrix.test_name }}
 
   replica_cleanup:
     needs:
       - integ
+      - integ-seq
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:3
     env:
@@ -300,6 +360,7 @@ jobs:
   smb_cleanup:
     needs:
       - integ
+      - integ-seq
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:3
     defaults:
