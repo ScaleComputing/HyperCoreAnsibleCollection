@@ -286,30 +286,26 @@ jobs:
       # The max number of concurent jobs
       max-parallel: 1
       matrix:
-        # ansible: [2.13.0]
-        # python: [3.11]
-        # test_name: [user_info]
-        test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
+        # "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
+        # Some tests can be tested on VSNS - those are run on VSNS.
+        # Some cannot, those are run on test cluster 10.5.11.50.
+        test_name:
+          - dns-config
+          # - cluster_shutdown
+          # - version_update
+          - oidc_config
+          - smtp
+          - role_cluster_config
+          # - role_version_update_single_node
+          # after oidc_config configures OIDC login, the utils_login can be tested too
+          - utils_login
+          - certificate
         sc_host:
           - https://10.5.11.200
           - https://10.5.11.201
-        include:  # change later to use env.INTEG_TESTS_TO_RUN_SEQUENTIALLY
-          - sc_host: https://10.5.11.50
-            test_name: dns_config
-          - sc_host: https://10.5.11.50
-            test_name: cluster_shutdown
-          - sc_host: https://10.5.11.50
-            test_name: version_update
-          - sc_host: https://10.5.11.50
-            test_name: oidc_config
-          - sc_host: https://10.5.11.50
-            test_name: smtp
-          - sc_host: https://10.5.11.50
-            test_name: role_cluster_config
-          - sc_host: https://10.5.11.50
-            test_name: role_version_update_single_node
-          - sc_host: https://10.5.11.50
-            test_name: utils_login
+        # include:  # change later to use env.INTEG_TESTS_TO_RUN_SEQUENTIALLY
+        #   - sc_host: https://10.5.11.50
+        #     test_name: dns_config
     steps:
       - name: Checkout
         uses: actions/checkout@v3
