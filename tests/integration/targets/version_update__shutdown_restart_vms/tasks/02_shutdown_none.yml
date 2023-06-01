@@ -38,7 +38,7 @@
     name: scale_computing.hypercore.version_update_single_node
     tasks_from: shutdown_vms.yml
   vars:
-    scale_computing_hypercore_shutdown_vms: "{{ vm_info_a }}"
+    version_update_single_node_shutdown_vms: "{{ vm_info_a }}"
 
 
 # ------------------------------------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@
     name: scale_computing.hypercore.version_update_single_node
     tasks_from: restart_vms.yml
   vars:
-    scale_computing_hypercore_restart_vms: "{{ vm_info_a }}"
+    version_update_single_node_restart_vms: "{{ vm_info_a }}"
 
 # ------------------------------------------------------------------------------------------------------------------
 # after restart

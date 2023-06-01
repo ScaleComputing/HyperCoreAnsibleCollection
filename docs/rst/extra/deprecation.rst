@@ -57,6 +57,17 @@ For ``scale_computing.hypercore.iso`` module:
       ansible.builtin.debug:
         msg: The uploaded_iso size={{ uploaded_iso.record.size }}
 
+Release 1.3.0
+=============
+
+Role parameters were renamed to start with ``role_name_`` prefix.
+For example, role `scale_computing.hypercore.version_update_single_node <../collections/scale_computing/hypercore/version_update_single_node_role.html>`_:
+
+* ``scale_computing_hypercore_desired_version`` name was used before.
+* ``version_update_single_node_desired_version`` name is used now.
+
+Old names are still valid, but will be removed in future release 3.0.0.
+
 Release 3.0.0 (not yet released)
 ================================
 

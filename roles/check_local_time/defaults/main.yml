@@ -1,0 +1,4 @@
+---
+# renamed variables - if new name is not present, use deprecated name as default value
+check_local_time_time_zone: "{{ time_zone | default(omit) }}"
+check_local_time_time_interval: "{{ time_interval | default(omit) }}"

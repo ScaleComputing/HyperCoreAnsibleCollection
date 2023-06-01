@@ -5,15 +5,29 @@ argument_specs:
     description:
       - Check if local time meets the required time interval
     options:
-      time_zone:
+      check_local_time_time_zone: &check_local_time_time_zone
         description:
           - Time zone for which to calculate if local time meets the required time interval
           - Must be provided in a form 'Europe/Amsterdam'
         required: true
         type: str
-      time_interval:
+      check_local_time_time_interval: &check_local_time_time_interval
         description:
           - Time interval in which local time must be located
           - Must be provided in a form '22:00-6:15' or '7:30-12:36'
         required: true
         type: str
+      # -------------
+      # Renamed/deprecated vars
+      time_zone:
+        <<: *check_local_time_time_zone
+        description:
+          - DEPRECATED, will be removed in release 3.0.0.
+          - Please use I(check_local_time_time_zone) instead.
+        required: false
+      time_interval:
+        <<: *check_local_time_time_interval
+        description:
+          - DEPRECATED, will be removed in release 3.0.0.
+          - Please use I(check_local_time_time_interval) instead.
+        required: false

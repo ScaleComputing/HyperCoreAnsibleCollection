@@ -5,7 +5,7 @@ argument_specs:
     description:
       - Role cluster_config can be used to fully configure a new HyperCore server, or partially reconfigure an existing HyperCore server.
     options:
-      scale_computing_hypercore_cluster_config:
+      cluster_config_configuration: &cluster_config_configuration
         description:
           - A dict describing a full or partial cluster configuration.
           - Partial configuration will be used if some of the keys in `scale_computing_hypercore_cluster_config` are omitted.
@@ -167,3 +167,9 @@ argument_specs:
                 choices:
                   - udp
                   - tcp
+      scale_computing_hypercore_cluster_config:
+        <<: *cluster_config_configuration
+        description:
+          - DEPRECATED, will be removed in release 3.0.0.
+          - Please use I(cluster_config_configuration) instead.
+        required: false

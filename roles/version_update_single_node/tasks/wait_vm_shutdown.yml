@@ -7,8 +7,8 @@
         power_state: shutdown
       when:
         - single_vm.power_state == 'started'
-        - (scale_computing_hypercore_shutdown_tags == []) or (scale_computing_hypercore_shutdown_tags | intersect(single_vm.tags))
-      loop: "{{ scale_computing_hypercore_shutdown_vms.records }}"
+        - (version_update_single_node_shutdown_tags == []) or (version_update_single_node_shutdown_tags | intersect(single_vm.tags))
+      loop: "{{ version_update_single_node_shutdown_vms.records }}"
       loop_control:
         loop_var: single_vm
       register: version_update_single_node_vm_shutdown_result
@@ -46,14 +46,14 @@
       ansible.builtin.set_fact:
         version_update_single_node_all_vms_stopped: true
 
-    # We wait for VMs to shutdown, but only if they are included in the scale_computing_hypercore_shutdown_vms list.
+    # We wait for VMs to shutdown, but only if they are included in the version_update_single_node_shutdown_vms list.
     - name: Reset version_update_single_node_all_vms_stopped if any VM is still running
       ansible.builtin.set_fact:
         version_update_single_node_all_vms_stopped: false
       when:
         - (version_update_single_node_vms.records | selectattr("vm_name", "equalto", item.vm_name) | list).0.power_state not in ['stopped', 'crashed']
-        - (scale_computing_hypercore_shutdown_tags == []) or (scale_computing_hypercore_shutdown_tags | intersect(item.tags))
-      loop: "{{ scale_computing_hypercore_shutdown_vms.records }}"
+        - (version_update_single_node_shutdown_tags == []) or (version_update_single_node_shutdown_tags | intersect(item.tags))
+      loop: "{{ version_update_single_node_shutdown_vms.records }}"
       register: version_update_single_node_vm_shutdown_result
 
     - name: Are all VMs stopped?

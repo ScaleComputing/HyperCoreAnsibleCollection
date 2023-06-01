@@ -7,72 +7,72 @@
 
 - name: Set cluster name
   scale_computing.hypercore.cluster_name:
-    name_new: "{{ scale_computing_hypercore_cluster_config.name }}"
-  when: scale_computing_hypercore_cluster_config.name | default(False)
+    name_new: "{{ cluster_config_configuration.name }}"
+  when: cluster_config_configuration.name | default(False)
 
 - name: Set registration data
   scale_computing.hypercore.registration:
-    company_name: "{{ scale_computing_hypercore_cluster_config.registration.company_name }}"
-    contact: "{{ scale_computing_hypercore_cluster_config.registration.contact }}"
-    phone: "{{ scale_computing_hypercore_cluster_config.registration.phone }}"
-    email: "{{ scale_computing_hypercore_cluster_config.registration.email }}"
+    company_name: "{{ cluster_config_configuration.registration.company_name }}"
+    contact: "{{ cluster_config_configuration.registration.contact }}"
+    phone: "{{ cluster_config_configuration.registration.phone }}"
+    email: "{{ cluster_config_configuration.registration.email }}"
     state: present
-  when: scale_computing_hypercore_cluster_config.registration | default(False)
+  when: cluster_config_configuration.registration | default(False)
 
 - name: Set DNS servers configuration
   scale_computing.hypercore.dns_config:
-    dns_servers: "{{ scale_computing_hypercore_cluster_config.dns.server_ips | default(omit) }}"
+    dns_servers: "{{ cluster_config_configuration.dns.server_ips | default(omit) }}"
     state: set
   when:
-    - scale_computing_hypercore_cluster_config.dns | default(False)
-    - '"server_ips" in scale_computing_hypercore_cluster_config.dns'
-    - scale_computing_hypercore_cluster_config.dns.server_ips is not none
+    - cluster_config_configuration.dns | default(False)
+    - '"server_ips" in cluster_config_configuration.dns'
+    - cluster_config_configuration.dns.server_ips is not none
 
 - name: Set DNS search_domains configuration
   scale_computing.hypercore.dns_config:
-    dns_servers: "{{ scale_computing_hypercore_cluster_config.dns.server_ips | default(omit) }}"
-    search_domains: "{{ scale_computing_hypercore_cluster_config.dns.search_domains | default(omit) }}"
+    dns_servers: "{{ cluster_config_configuration.dns.server_ips | default(omit) }}"
+    search_domains: "{{ cluster_config_configuration.dns.search_domains | default(omit) }}"
     state: set
   when:
-    - scale_computing_hypercore_cluster_config.dns | default(False)
-    - '"search_domains" in scale_computing_hypercore_cluster_config.dns'
-    - scale_computing_hypercore_cluster_config.dns.search_domains is not none
+    - cluster_config_configuration.dns | default(False)
+    - '"search_domains" in cluster_config_configuration.dns'
+    - cluster_config_configuration.dns.search_domains is not none
 
 - name: Set OIDC configuration
   scale_computing.hypercore.oidc_config:
-    client_id: "{{ scale_computing_hypercore_cluster_config.oidc.client_id }}"
-    shared_secret: "{{ scale_computing_hypercore_cluster_config.oidc.shared_secret | default(omit) }}"
-    certificate: "{{ scale_computing_hypercore_cluster_config.oidc.certificate | default(omit) }}"
-    config_url: "{{ scale_computing_hypercore_cluster_config.oidc.config_url }}"
-    scopes: "{{ scale_computing_hypercore_cluster_config.oidc.scopes }}"
-  when: scale_computing_hypercore_cluster_config.oidc | default(False)
+    client_id: "{{ cluster_config_configuration.oidc.client_id }}"
+    shared_secret: "{{ cluster_config_configuration.oidc.shared_secret | default(omit) }}"
+    certificate: "{{ cluster_config_configuration.oidc.certificate | default(omit) }}"
+    config_url: "{{ cluster_config_configuration.oidc.config_url }}"
+    scopes: "{{ cluster_config_configuration.oidc.scopes }}"
+  when: cluster_config_configuration.oidc | default(False)
 
 - name: Set time server
   scale_computing.hypercore.time_server:
-    source: "{{ scale_computing_hypercore_cluster_config.time_server }}"
-  when: scale_computing_hypercore_cluster_config.time_server | default(False)
+    source: "{{ cluster_config_configuration.time_server }}"
+  when: cluster_config_configuration.time_server | default(False)
 
 - name: Set time zone
   scale_computing.hypercore.time_zone:
-    zone: "{{ scale_computing_hypercore_cluster_config.time_zone }}"
-  when: scale_computing_hypercore_cluster_config.time_zone | default(False)
+    zone: "{{ cluster_config_configuration.time_zone }}"
+  when: cluster_config_configuration.time_zone | default(False)
 
 - name: Set SMTP configuration
   scale_computing.hypercore.smtp:
-    server: "{{ scale_computing_hypercore_cluster_config.smtp.server }}"
-    port: "{{ scale_computing_hypercore_cluster_config.smtp.port }}"
-    use_ssl: "{{ scale_computing_hypercore_cluster_config.smtp.use_ssl | default(omit) }}"
-    auth_user: "{{ scale_computing_hypercore_cluster_config.smtp.auth_user | default(omit) }}"
-    auth_password: "{{ scale_computing_hypercore_cluster_config.smtp.auth_password | default(omit) }}"
-    from_address: "{{ scale_computing_hypercore_cluster_config.smtp.from_address | default(omit) }}"
-  when: scale_computing_hypercore_cluster_config.smtp | default(False)
+    server: "{{ cluster_config_configuration.smtp.server }}"
+    port: "{{ cluster_config_configuration.smtp.port }}"
+    use_ssl: "{{ cluster_config_configuration.smtp.use_ssl | default(omit) }}"
+    auth_user: "{{ cluster_config_configuration.smtp.auth_user | default(omit) }}"
+    auth_password: "{{ cluster_config_configuration.smtp.auth_password | default(omit) }}"
+    from_address: "{{ cluster_config_configuration.smtp.from_address | default(omit) }}"
+  when: cluster_config_configuration.smtp | default(False)
 
 - name: Reconfigure email alert recipients
   when:
-    - '"email_alerts" in scale_computing_hypercore_cluster_config'
+    - '"email_alerts" in cluster_config_configuration'
     - |
-      scale_computing_hypercore_cluster_config.email_alerts or
-      scale_computing_hypercore_cluster_config.email_alerts == []
+      cluster_config_configuration.email_alerts or
+      cluster_config_configuration.email_alerts == []
   block:
     - name: Get old email alert recipients
       scale_computing.hypercore.email_alert_info:
@@ -85,22 +85,22 @@
       loop: "{{ cluster_config_email_alert_info_result.records }}"
       loop_control:
         loop_var: email_alert_recipient
-      when: email_alert_recipient.email not in scale_computing_hypercore_cluster_config.email_alerts
+      when: email_alert_recipient.email not in cluster_config_configuration.email_alerts
 
     - name: Set new email alerts
       scale_computing.hypercore.email_alert:
         email: "{{ email_address }}"
         state: present
-      loop: "{{ scale_computing_hypercore_cluster_config.email_alerts or [] }}"
+      loop: "{{ cluster_config_configuration.email_alerts or [] }}"
       loop_control:
         loop_var: email_address
 
 - name: Reconfigure syslog servers
   when:
-    - '"syslog_servers" in scale_computing_hypercore_cluster_config'
+    - '"syslog_servers" in cluster_config_configuration'
     - |
-      scale_computing_hypercore_cluster_config.syslog_servers or
-      scale_computing_hypercore_cluster_config.syslog_servers == []
+      cluster_config_configuration.syslog_servers or
+      cluster_config_configuration.syslog_servers == []
   block:
     - name: Get old syslog servers
       scale_computing.hypercore.syslog_server_info:
@@ -113,7 +113,7 @@
       loop: "{{ cluster_config_syslog_server_info_result.records }}"
       loop_control:
         loop_var: syslog_server
-      when: syslog_server.host not in (scale_computing_hypercore_cluster_config.syslog_servers | map(attribute='host') | list)
+      when: syslog_server.host not in (cluster_config_configuration.syslog_servers | map(attribute='host') | list)
 
     - name: Set new syslog servers
       scale_computing.hypercore.syslog_server:
@@ -121,6 +121,6 @@
         port: "{{ syslog_server.port | default(omit) }}"
         protocol: "{{ syslog_server.protocol | default(omit) }}"
         state: present
-      loop: "{{ scale_computing_hypercore_cluster_config.syslog_servers or [] }}"
+      loop: "{{ cluster_config_configuration.syslog_servers or [] }}"
       loop_control:
         loop_var: syslog_server

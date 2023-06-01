@@ -81,8 +81,8 @@
       ansible.builtin.include_role:
         name: scale_computing.hypercore.check_local_time
       vars:
-        time_zone: "{{ test_timezone }}" # ansible_date_time.tz returns CEST which is not a valid tz for env var TZ
-        time_interval: "{{ local_time.hour_m1 }}:00-{{ local_time.hour_p1 }}:59"
+        check_local_time_time_zone: "{{ test_timezone }}" # ansible_date_time.tz returns CEST which is not a valid tz for env var TZ
+        check_local_time_time_interval: "{{ local_time.hour_m1 }}:00-{{ local_time.hour_p1 }}:59"
 
     - name: Check check_local_time_msg for passed case
       ansible.builtin.assert:
@@ -98,8 +98,8 @@
         apply:
           ignore_errors: True
       vars:
-        time_zone: "{{ test_timezone }}"
-        time_interval: "{{ local_time.hour_m1 }}:00-{{ local_time.hour_m1 }}:01"
+        check_local_time_time_zone: "{{ test_timezone }}"
+        check_local_time_time_interval: "{{ local_time.hour_m1 }}:00-{{ local_time.hour_m1 }}:01"
 
     - name: Check check_local_time_msg for failed case
       ansible.builtin.assert:
