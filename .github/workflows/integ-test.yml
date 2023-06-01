@@ -291,7 +291,7 @@ jobs:
         # Some tests can be tested on VSNS - those are run on VSNS.
         # Some cannot, those are run on test cluster 10.5.11.50.
         test_name:
-          - dns-config
+          - dns_config
           # - cluster_shutdown
           # - version_update
           - oidc_config
