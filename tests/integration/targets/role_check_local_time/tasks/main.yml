@@ -84,12 +84,12 @@
         time_zone: "{{ test_timezone }}" # ansible_date_time.tz returns CEST which is not a valid tz for env var TZ
         time_interval: "{{ local_time.hour_m1 }}:00-{{ local_time.hour_p1 }}:59"
 
-    - name: Check local_time_msg for passed case
+    - name: Check check_local_time_msg for passed case
       ansible.builtin.assert:
         that:
           - >-
             'Local time for time zone {{ test_timezone }} is in required time interval
-            {{ local_time.hour_m1 }}:00-{{ local_time.hour_p1 }}:59' in local_time_msg
+            {{ local_time.hour_m1 }}:00-{{ local_time.hour_p1 }}:59' in check_local_time_msg
 
     # ------------------------------------------------------------------------------
     - name: Check that local time doesn't meet required time interval
@@ -101,9 +101,9 @@
         time_zone: "{{ test_timezone }}"
         time_interval: "{{ local_time.hour_m1 }}:00-{{ local_time.hour_m1 }}:01"
 
-    - name: Check local_time_msg for failed case
+    - name: Check check_local_time_msg for failed case
       ansible.builtin.assert:
         that:
           - >-
             'Local time for time zone {{ test_timezone }} is not in required time interval
-            {{ local_time.hour_m1 }}:00-{{ local_time.hour_m1 }}:01' in local_time_msg
+            {{ local_time.hour_m1 }}:00-{{ local_time.hour_m1 }}:01' in check_local_time_msg

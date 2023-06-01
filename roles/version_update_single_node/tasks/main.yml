@@ -1,62 +1,67 @@
 ---
 - name: Check if there is already an update in progress
   scale_computing.hypercore.version_update_status_info:
-  register: update_status_before_update
+  register: version_update_single_node_update_status_before_update
 
 - name: Current update status
   ansible.builtin.debug:
-    var: update_status_before_update
+    var: version_update_single_node_update_status_before_update
 
 - name: Get cluster info
   scale_computing.hypercore.cluster_info:
-  register: cluster_info
+  register: version_update_single_node_cluster_info
 
 - name: Show cluster info
   ansible.builtin.debug:
-    var: cluster_info
+    var: version_update_single_node_cluster_info
 
 - name: Get node info
   scale_computing.hypercore.node_info:
-  register: node_info
+  register: version_update_single_node_node_info
 
 - name: Show node info
   ansible.builtin.debug:
-    var: node_info
+    var: version_update_single_node_node_info
 
 - name: Check if single-node system - fail if not
   ansible.builtin.fail:
     msg: >-
       The role should be used only with single node systems.
-      This system does have {{ node_info.records | length }} nodes.
-  when: node_info.records | length > 1
+      This system does have {{ version_update_single_node_node_info.records | length }} nodes.
+  when: version_update_single_node_node_info.records | length > 1
 
 # ===================================================================
 
 - name: Update
+  when:
+    - version_update_single_node_cluster_info.record.icos_version != scale_computing_hypercore_desired_version
+    - >-
+      version_update_single_node_update_status_before_update.record == None or
+      version_update_single_node_update_status_before_update.record.update_status != "IN PROGRESS"
   block:
     - name: Get available updates
       scale_computing.hypercore.version_update_info:
-      register: available_updates
+      register: version_update_single_node_available_updates
 
     - name: Show available updates
       ansible.builtin.debug:
-        var: available_updates
+        var: version_update_single_node_available_updates
 
     - name: Check if desired update is available - fail if not available
       ansible.builtin.fail:
         msg: >-
           Requested update {{ scale_computing_hypercore_desired_version }} is not
-          in available_updates {{ available_updates.records | map(attribute='uuid') | list }}
-      when: not scale_computing_hypercore_desired_version in (available_updates.records | map(attribute='uuid') | list)
+          in version_update_single_node_available_updates {{ version_update_single_node_available_updates.records | map(attribute='uuid') | list }}
+      when: not scale_computing_hypercore_desired_version in (version_update_single_node_available_updates.records | map(attribute='uuid') | list)
 
     - name: Get all available running VMs
       scale_computing.hypercore.vm_info:
-      register: vm_info
+      register: version_update_single_node_vm_info
 
     - name: Shutdown all running VMs
-      include_tasks: shutdown_vms.yml
+      ansible.builtin.include_tasks: shutdown_vms.yml
       vars:
-        scale_computing_hypercore_shutdown_vms: "{{ vm_info }}"
+        scale_computing_hypercore_shutdown_vms: "{{ version_update_single_node_vm_info }}"
       when: scale_computing_hypercore_shutdown_vms.records != []
 
     # ----------------- UPDATE --------------------
@@ -64,29 +69,24 @@
     - name: Update single-node system
       scale_computing.hypercore.version_update:
         icos_version: "{{ scale_computing_hypercore_desired_version }}"
-      register: update_result
+      register: version_update_single_node_update_result
 
     - name: Check update status
-      include_tasks: update_status_check.yml
+      ansible.builtin.include_tasks: update_status_check.yml
 
     - name: Show update result
       ansible.builtin.debug:
-        var: update_result
+        var: version_update_single_node_update_result
 
     # ---------------------------------------------
 
     - name: Restart previously running VMs
-      include_tasks: restart_vms.yml
+      ansible.builtin.include_tasks: restart_vms.yml
       vars:
-        scale_computing_hypercore_restart_vms: "{{ vm_info }}"
+        scale_computing_hypercore_restart_vms: "{{ version_update_single_node_vm_info }}"
       when: scale_computing_hypercore_restart_vms.records != []
 
     - name: Check if updating to desired version failed
       ansible.builtin.fail:
         msg: Update to version "{{ scale_computing_hypercore_desired_version }}" failed.
-      when: update_result.record.uuid != scale_computing_hypercore_desired_version
-  when:
-    - cluster_info.record.icos_version != scale_computing_hypercore_desired_version
-    - >-
-      update_status_before_update.record == None or
-      update_status_before_update.record.update_status != "IN PROGRESS"
+      when: version_update_single_node_update_result.record.uuid != scale_computing_hypercore_desired_version

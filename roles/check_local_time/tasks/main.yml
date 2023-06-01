@@ -3,15 +3,16 @@
   ansible.builtin.script:
     executable: "{{ ansible_python_interpreter | default(ansible_playbook_python) }}"
     cmd: check_local_time.py "{{ time_zone }}" "{{ time_interval }}"
-  register: local_time_output
+  register: check_local_time_output
 
 - name: Assert that local time is in time interval
   ansible.builtin.assert:
     fail_msg: "Local time for time zone {{ time_zone }} is not in required time interval {{ time_interval }}"
     success_msg: "Local time for time zone {{ time_zone }} is in required time interval {{ time_interval }}"
     that:
-      - local_time_output.stdout_lines[0] == "True"
-  register: result
+      - check_local_time_output.stdout_lines[0] == "True"
+  register: check_local_time_result
 
 - name: Set fact to use in tests
-  ansible.builtin.set_fact: local_time_msg="{{ result.msg }}"
+  ansible.builtin.set_fact:
+    check_local_time_msg: "{{ check_local_time_result.msg }}"
