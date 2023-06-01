@@ -13,7 +13,8 @@
 - ansible.builtin.assert:
     that:
       - ping_result is not changed
-      - ping_result.record.0 == "status"
+      - ping_result.record.status is defined
+      - ping_result.record.status == "Active"
 
 - name: Get HC3 Node
   scale_computing.hypercore.api:

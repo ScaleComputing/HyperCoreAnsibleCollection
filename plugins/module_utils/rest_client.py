@@ -42,6 +42,21 @@ class RestClient:
             raise errors.ScaleTimeoutError(e)
         return utils.filter_results(records, query)
 
+    def list_records_raw(
+        self,
+        endpoint: str,
+        timeout: Optional[float] = None,
+    ) -> Any:
+        """
+        Returns all records. No filtering is done.
+        Returned type is same as type returned by HyperCore API.
+        """
+        try:
+            records = self.client.get(path=endpoint, timeout=timeout).json
+        except TimeoutError as e:
+            raise errors.ScaleTimeoutError(e)
+        return records
+
     def get_record(
         self,
         endpoint: str,

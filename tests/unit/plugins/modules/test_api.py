@@ -23,7 +23,13 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestGetMethod:
-    def test_get_method_record_present(self, create_module, rest_client):
+    @pytest.mark.parametrize(
+        ("list_records_raw_return"),
+        [([dict(name="record1"), dict(name="record2")]), (dict(name="record1"))],
+    )
+    def test_get_method_record_present(
+        self, create_module, rest_client, list_records_raw_return
+    ):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -37,20 +43,16 @@ class TestGetMethod:
             )
         )
 
-        rest_client.list_records.return_value = [
-            dict(name="record1"),
-            dict(name="record2"),
-        ]
+        rest_client.list_records_raw.return_value = list_records_raw_return
 
         result = api.get_records(module, rest_client)
 
-        rest_client.list_records.assert_called_once()
-        rest_client.list_records.assert_called_with(
+        rest_client.list_records_raw.assert_called_once()
+        rest_client.list_records_raw.assert_called_with(
             endpoint="/rest/v1/VirDomain/id",
-            query={},
         )
 
-        assert result == (False, [dict(name="record1"), dict(name="record2")])
+        assert result == (False, list_records_raw_return)
 
     def test_get_method_record_absent(self, create_module, rest_client):
         module = create_module(
@@ -66,14 +68,13 @@ class TestGetMethod:
             )
         )
 
-        rest_client.list_records.return_value = []
+        rest_client.list_records_raw.return_value = []
 
         result = api.get_records(module, rest_client)
 
-        rest_client.list_records.assert_called_once()
-        rest_client.list_records.assert_called_with(
+        rest_client.list_records_raw.assert_called_once()
+        rest_client.list_records_raw.assert_called_with(
             endpoint="/rest/v1/VirDomain",
-            query={},
         )
 
         assert result == (False, [])
