@@ -304,6 +304,11 @@ jobs:
         sc_host:
           - https://10.5.11.200
           - https://10.5.11.201
+        exclude:
+          # role cluster_config can be used with HC3 9.1, but you need to omit cluster_name setting.
+          # CI job role_cluster_config does try to set cluster_name, so it would fail.
+          - sc_host: https://10.5.11.200
+            test_name: role_cluster_config
         # include:  # change later to use env.INTEG_TESTS_TO_RUN_SEQUENTIALLY
         #   - sc_host: https://10.5.11.50
         #     test_name: dns_config
