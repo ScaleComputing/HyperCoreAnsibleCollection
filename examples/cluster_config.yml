@@ -50,4 +50,4 @@
       ansible.builtin.include_role:
         name: scale_computing.hypercore.cluster_config
       vars:
-        scale_computing_hypercore_cluster_config: "{{ cluster_configuration }}"
+        cluster_config_configuration: "{{ cluster_configuration }}"

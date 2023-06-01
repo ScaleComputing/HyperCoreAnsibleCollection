@@ -22,7 +22,7 @@
       - "{{ vm_name_a }}"
       - "{{ vm_name_b }}"
       - "{{ vm_name_c }}"
-    scale_computing_hypercore_shutdown_wait_time: 30
+    version_update_single_node_shutdown_wait_time: 30
 
   block:
     - name: Check vm_shutdown_restart_allow_string value
@@ -38,5 +38,5 @@
       vars:
         # Porteus VM needs about 20 sec to shut down.
         # Use longer wait time, we want to check VM did shut down, without exceeding the wait time.
-        scale_computing_hypercore_shutdown_wait_time: 300
+        version_update_single_node_shutdown_wait_time: 300
     - include_tasks: 05_shutdown_tagged_bc.yml

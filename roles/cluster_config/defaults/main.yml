@@ -1,0 +1,3 @@
+---
+# Deprecated scale_computing_hypercore_cluster_config is still used if cluster_config_configuration is not defined
+cluster_config_configuration: "{{ scale_computing_hypercore_cluster_config | default(omit) }}"

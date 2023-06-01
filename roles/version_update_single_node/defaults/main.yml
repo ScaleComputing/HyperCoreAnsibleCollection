@@ -1,3 +1,6 @@
 ---
-scale_computing_hypercore_shutdown_wait_time: 300
-scale_computing_hypercore_shutdown_tags: []
+version_update_single_node_shutdown_wait_time: "{{ scale_computing_hypercore_shutdown_wait_time | default(300) }}"
+version_update_single_node_shutdown_tags: "{{ scale_computing_hypercore_shutdown_tags | default([]) }}"
+# renamed variables - if new name is not present, use deprecated name as default value
+version_update_single_node_shutdown_vms: "{{ scale_computing_hypercore_shutdown_vms | default(omit) }}"
+version_update_single_node_restart_vms: "{{ scale_computing_hypercore_restart_vms | default(omit) }}"

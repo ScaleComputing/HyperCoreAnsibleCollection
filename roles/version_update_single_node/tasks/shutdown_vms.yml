@@ -3,7 +3,7 @@
   ansible.builtin.debug:
     msg: "{{ item.vm_name }}"
   when: item.power_state == 'started'
-  loop: "{{ scale_computing_hypercore_shutdown_vms.records }}"
+  loop: "{{ version_update_single_node_shutdown_vms.records }}"
   register: version_update_single_node_running_vms
 
 - name: Set fact version_update_single_node_all_vms_stopped to initial false
@@ -13,7 +13,7 @@
 # Wait up to 300 sec (30*10)
 - name: Wait until VMs shutdown
   ansible.builtin.include_tasks: wait_vm_shutdown.yml
-  loop: "{{ range(0, (scale_computing_hypercore_shutdown_wait_time / 10.0) | round(0, 'ceil') | int) | list }}"
+  loop: "{{ range(0, (version_update_single_node_shutdown_wait_time / 10.0) | round(0, 'ceil') | int) | list }}"
   when: not version_update_single_node_all_vms_stopped
 
 - name: Force shutdown the remaining running VMs
@@ -22,7 +22,7 @@
     power_state: stop
   when:
     - item.item.power_state == 'started'
-    - (scale_computing_hypercore_shutdown_tags == []) or (scale_computing_hypercore_shutdown_tags | intersect(item.item.tags))
+    - (version_update_single_node_shutdown_tags == []) or (version_update_single_node_shutdown_tags | intersect(item.item.tags))
   loop: "{{ version_update_single_node_vm_shutdown_result.results }}"
   register: version_update_single_node_vm_stop_result
 

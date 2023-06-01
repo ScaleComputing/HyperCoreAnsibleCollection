@@ -28,11 +28,11 @@
       ansible.builtin.include_role:
         name: scale_computing.hypercore.check_local_time
       vars:
-        time_zone: "{{ time_zone_info.record.zone }}"
-        time_interval: 22:00-6:00
+        check_local_time_time_zone: "{{ time_zone_info.record.zone }}"
+        check_local_time_time_interval: 22:00-6:00
 
     - name: Update HyperCore single-node system to a desired version
       ansible.builtin.include_role:
         name: scale_computing.hypercore.version_update_single_node
       vars:
-        scale_computing_hypercore_desired_version: "{{ desired_version }}"
+        version_update_single_node_desired_version: "{{ desired_version }}"

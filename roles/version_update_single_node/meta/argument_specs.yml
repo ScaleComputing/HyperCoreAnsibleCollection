@@ -9,7 +9,7 @@ argument_specs:
           upgrade cluster,
           start back VMs that were running before upgrade.
     options:
-      scale_computing_hypercore_desired_version:
+      version_update_single_node_desired_version: &version_update_single_node_desired_version
         description:
           - The desired HyperCore version we wish to update to.
           - If already on desired version, the updates will not be applied.
@@ -17,12 +17,26 @@ argument_specs:
           - If multi-node system was detected, no update will be applied.
         required: true
         type: str
-      scale_computing_hypercore_shutdown_wait_time: &scale_computing_hypercore_shutdown_wait_time
+      version_update_single_node_shutdown_wait_time: &version_update_single_node_shutdown_wait_time
         description:
           - How much time (in seconds) VMs have to gracefully shutdown.
           - After wait time expires a force shutdown is issued. Force shutdown can corrupt VM disk data.
         default: 300
         type: int
+      # -------------
+      # Renamed/deprecated vars
+      scale_computing_hypercore_desired_version:
+        <<: *version_update_single_node_desired_version
+        description:
+          - DEPRECATED, will be removed in release 3.0.0.
+          - Please use I(version_update_single_node_desired_version) instead.
+        required: false
+      scale_computing_hypercore_shutdown_wait_time: &scale_computing_hypercore_shutdown_wait_time
+        <<: *version_update_single_node_shutdown_wait_time
+        description:
+          - DEPRECATED, will be removed in release 3.0.0.
+          - Please use I(version_update_single_node_shutdown_wait_time) instead.
+        required: false
 
   shutdown_vms:
     short_description: Shutdown running VMs before upgrade
@@ -31,13 +45,13 @@ argument_specs:
       - Input is a list of VMs, as returned by M(scale_computing.hypercore.vm_info) module.
         The VMs listed as `running` in the list are then shutdown.
     options:
-      scale_computing_hypercore_shutdown_wait_time: *scale_computing_hypercore_shutdown_wait_time
-      scale_computing_hypercore_shutdown_vms:
+      version_update_single_node_shutdown_wait_time: *version_update_single_node_shutdown_wait_time
+      version_update_single_node_shutdown_vms: &version_update_single_node_shutdown_vms
         description:
           - VM list as returned by M(scale_computing.hypercore.vm_info) module.
         required: true
         type: dict
-      scale_computing_hypercore_shutdown_tags:
+      version_update_single_node_shutdown_tags: &version_update_single_node_shutdown_tags
         description:
           - VM will be shutdown only if it has assigned (at least one) tag from this list.
           - If tag list is empty, than every running VM from the VM list is shutdown.
@@ -45,6 +59,21 @@ argument_specs:
         type: list
         elements: str
         default: []
+      # -------------
+      # Renamed/deprecated vars
+      scale_computing_hypercore_shutdown_wait_time: *scale_computing_hypercore_shutdown_wait_time
+      scale_computing_hypercore_shutdown_vms:
+        <<: *version_update_single_node_shutdown_vms
+        description:
+          - DEPRECATED, will be removed in release 3.0.0.
+          - Please use I(version_update_single_node_shutdown_vms) instead.
+        required: false
+      scale_computing_hypercore_shutdown_tags:
+        <<: *version_update_single_node_shutdown_tags
+        description:
+          - DEPRECATED, will be removed in release 3.0.0.
+          - Please use I(version_update_single_node_shutdown_tags) instead.
+        required: false
 
   restart_vms:
     short_description: Start VMs that were running before upgrade
@@ -53,8 +82,16 @@ argument_specs:
       - Input is a list of VMs, as returned by M(scale_computing.hypercore.vm_info) module.
         The VMs listed as `running` in the list are then started.
     options:
-      scale_computing_hypercore_restart_vms:
+      version_update_single_node_restart_vms: &version_update_single_node_restart_vms
         description:
           - VM list as returned by M(scale_computing.hypercore.vm_info) module.
         required: true
         type: dict
+      # -------------
+      # Renamed/deprecated vars
+      scale_computing_hypercore_restart_vms:
+        <<: *version_update_single_node_restart_vms
+        description:
+          - DEPRECATED, will be removed in release 3.0.0.
+          - Please use I(version_update_single_node_restart_vms) instead.
+        required: false
