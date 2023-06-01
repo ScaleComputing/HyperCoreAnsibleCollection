@@ -24,7 +24,7 @@ on:
           List integration tests to exclude.
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
-        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$"
+        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
       examples_tests_include:
         type: string
         description: |-
@@ -33,7 +33,7 @@ on:
         default: "iso_info"
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
-  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$"
+  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
   EXAMPLES_TESTS_INCLUDE_SCHEDULE: "*"
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
