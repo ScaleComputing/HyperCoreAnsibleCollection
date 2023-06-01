@@ -76,13 +76,13 @@
   block:
     - name: Get old email alert recipients
       scale_computing.hypercore.email_alert_info:
-      register: email_alert_info_result
+      register: cluster_config_email_alert_info_result
 
     - name: Remove old email alerts
       scale_computing.hypercore.email_alert:
         email: "{{ email_alert_recipient.email }}"
         state: absent
-      loop: "{{ email_alert_info_result.records }}"
+      loop: "{{ cluster_config_email_alert_info_result.records }}"
       loop_control:
         loop_var: email_alert_recipient
       when: email_alert_recipient.email not in scale_computing_hypercore_cluster_config.email_alerts
@@ -104,13 +104,13 @@
   block:
     - name: Get old syslog servers
       scale_computing.hypercore.syslog_server_info:
-      register: syslog_server_info_result
+      register: cluster_config_syslog_server_info_result
 
     - name: Remove old syslog servers
       scale_computing.hypercore.syslog_server:
         host: "{{ syslog_server.host }}"
         state: absent
-      loop: "{{ syslog_server_info_result.records }}"
+      loop: "{{ cluster_config_syslog_server_info_result.records }}"
       loop_control:
         loop_var: syslog_server
       when: syslog_server.host not in (scale_computing_hypercore_cluster_config.syslog_servers | map(attribute='host') | list)

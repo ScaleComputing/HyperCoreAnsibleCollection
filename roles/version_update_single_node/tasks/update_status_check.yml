@@ -1,18 +1,22 @@
 ---
 - name: Check update status on HC3
   block:
-    - name: Increment retry_count
+    - name: Increment version_update_single_node_retry_count
       ansible.builtin.set_fact:
-        retry_count: "{{ 0 if retry_count is undefined else retry_count | int + 1 }}"
+        version_update_single_node_retry_count: >-
+          "{{
+          0 if version_update_single_node_retry_count is undefined
+          else version_update_single_node_retry_count | int + 1
+          }}"
 
     - name: Check update status - will report FAILED-RETRYING until update COMPLETE/TERMINATED
       scale_computing.hypercore.version_update_status_info:
-      register: update_status
+      register: version_update_single_node_update_status
       until: >-
-        update_status.record != None and
+        version_update_single_node_update_status.record != None and
         (
-          update_status.record.update_status == "COMPLETE" or
-          update_status.record.update_status == "TERMINATING"
+          version_update_single_node_update_status.record.update_status == "COMPLETE" or
+          version_update_single_node_update_status.record.update_status == "TERMINATING"
         )
       retries: 100
       delay: 30
@@ -22,10 +26,11 @@
     - name: Fail if retries reached 20
       ansible.builtin.fail:
         msg: Maximum retries of grouped tasks reached
-      when: retry_count | int == 20
+      when: version_update_single_node_retry_count | int == 20
 
     - name: Log
       ansible.builtin.debug:
         msg: Update status check failed due to server down / restart - retrying
 
-    - include_tasks: update_status_check.yml # Recursion
+    - name: Check update status again
+      ansible.builtin.include_tasks: update_status_check.yml # Recursion
