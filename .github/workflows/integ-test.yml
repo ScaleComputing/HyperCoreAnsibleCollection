@@ -274,6 +274,7 @@ jobs:
     needs:
       - integ-matrix
       - integ
+    if: "always() && (needs.integ-matrix.result=='success')"
     runs-on: [ self-hosted2 ]
     container: quay.io/justinc1_github/scale_ci_integ:3
     env:
