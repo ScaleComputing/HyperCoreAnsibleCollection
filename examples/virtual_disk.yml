@@ -11,13 +11,13 @@
 
   tasks:
     # ------------------------------------------------------
-    - name: Download Virtual Disk {{ image_filename }} from URL
+    - name: Download Virtual Disk from URL - {{ image_filename }}
       ansible.builtin.get_url: # TODO: what if file doesn't download completely?
         url: "{{ image_url }}"
         dest: /tmp/{{ image_filename }}
-        mode: 0644
+        mode: "0644"
 
-    - name: (Optionally) remove existing Virtual Disk {{ image_filename }} from HyperCore
+    - name: (Optionally) remove existing Virtual Disk from HyperCore - {{ image_filename }}
       when: image_remove_old | bool
       scale_computing.hypercore.virtual_disk:
         name: "{{ item }}"
@@ -27,7 +27,7 @@
         - "{{ image_filename }}"
 
     # ------------------------------------------------------
-    - name: Upload Virtual Disk {{ image_filename }} to HyperCore
+    - name: Upload Virtual Disk to HyperCore - {{ image_filename }}
       scale_computing.hypercore.virtual_disk:
         source: /tmp/{{ image_filename }}
         name: "{{ image_filename }}"

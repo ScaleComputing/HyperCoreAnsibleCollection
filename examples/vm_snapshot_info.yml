@@ -5,17 +5,17 @@
   gather_facts: false
   vars:
     vm_name: demo-vm
-    serial: 123
-    label: snapshot-label
+    snapshot_serial: 123
+    snapshot_label: snapshot-label
 
   tasks:
     - name: List all VM snapshots on HyperCore API
       scale_computing.hypercore.vm_snapshot_info:
       register: vm_snapshot
 
-    - name: List all VM snapshots on HyperCore API with label="{{ label }}"
+    - name: List all VM snapshots on HyperCore API with label="{{ snapshot_label }}"
       scale_computing.hypercore.vm_snapshot_info:
-        label: "{{ label }}"
+        label: "{{ snapshot_label }}"
       register: vm_snapshot
 
     - name: List all VM snapshots on HyperCore API with vm_name="{{ vm_name }}"
@@ -23,16 +23,16 @@
         vm_name: "{{ vm_name }}"
       register: vm_snapshot
 
-    - name: List all VM snapshots on HyperCore API with serial="{{ serial }}"
+    - name: List all VM snapshots on HyperCore API with serial="{{ snapshot_serial }}"
       scale_computing.hypercore.vm_snapshot_info:
-        serial: "{{ serial }}"
+        serial: "{{ snapshot_serial }}"
       register: vm_snapshot
 
     - name: >-
         List all VM snapshots on HyperCore API with
-        label="{{ label }}", vm_name="{{ vm_name }}", serial="{{ serial }}"
+        [vm_name, label, serial]={{ [vm_name, snapshot_label, snapshot_serial] }}
       scale_computing.hypercore.vm_snapshot_info:
-        label: "{{ label }}"
         vm_name: "{{ vm_name }}"
-        serial: "{{ serial }}"
+        label: "{{ snapshot_label }}"
+        serial: "{{ snapshot_serial }}"
       register: vm_snapshot

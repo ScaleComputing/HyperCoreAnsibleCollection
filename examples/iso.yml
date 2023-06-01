@@ -10,13 +10,13 @@
 
   tasks:
     # ------------------------------------------------------
-    - name: Download ISO {{ iso_filename }} from URL
+    - name: Download ISO from URL - {{ iso_filename }}
       ansible.builtin.get_url:
         url: "{{ iso_url }}"
         dest: /tmp/{{ iso_filename }}
-        mode: 0644
+        mode: "0644"
 
-    - name: (Optionally) remove existing ISO {{ iso_filename }} from HyperCore
+    - name: (Optionally) remove existing ISO from HyperCore - {{ iso_filename }}
       scale_computing.hypercore.iso:
         name: "{{ iso_filename }}"
         source: /tmp/{{ iso_filename }}
@@ -24,7 +24,7 @@
       when: iso_remove_old_image
 
     # ------------------------------------------------------
-    - name: Upload ISO {{ iso_filename }} to HyperCore
+    - name: Upload ISO to HyperCore - {{ iso_filename }}
       scale_computing.hypercore.iso:
         name: "{{ iso_filename }}"
         source: /tmp/{{ iso_filename }}
@@ -32,7 +32,7 @@
       register: uploaded_iso
 
     # Use iso module output, old syntax, valid until release < 3.0.0
-    - name: Show upload result for ISO {{ iso_filename }} - deprecated syntax
+    - name: Show upload result for ISO - deprecated syntax - {{ iso_filename }}
       ansible.builtin.debug:
         msg: The uploaded_iso size={{ uploaded_iso.results.0.size }} - deprecated syntax
 
@@ -47,6 +47,6 @@
         name: "{{ iso_filename }}"
       register: iso_results
 
-    - name: Show info about {{ iso_filename }} ISO
+    - name: Show info about ISO {{ iso_filename }}
       ansible.builtin.debug:
         var: iso_results.records[0]

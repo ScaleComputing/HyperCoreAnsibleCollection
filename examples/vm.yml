@@ -24,19 +24,19 @@
         operating_system: os_other
       register: vm_result
 
-    - name: Show the info about {{ vm_name }} VM
+    - name: Show the info about VM {{ vm_name }}
       ansible.builtin.debug:
         var: vm_result
 
     # Use vm module output, syntax valid until release < 3.0.0
-    - name: Show VM {{ vm_name }} vCPU count - syntax valid until release < 3.0.0
+    - name: Show VM vCPU count - syntax valid until release < 3.0.0
       ansible.builtin.debug:
         msg: >-
           VM {{ vm_name }} has {{ vm_result.record.0.vcpu }} vCPUs -
           syntax valid until release < 3.0.0
 
     # Use vm module output, new syntax, valid after release >= 3.0.0
-    - name: Show VM {{ vm_name }} vCPU count - syntax valid after release >= 3.0.0
+    - name: Show VM vCPU count - syntax valid after release >= 3.0.0
       ansible.builtin.debug:
         msg: >-
           VM {{ vm_name }} has {{ vm_result.record.vcpu }} vCPUs -

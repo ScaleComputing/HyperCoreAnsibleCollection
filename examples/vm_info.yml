@@ -12,6 +12,6 @@
         vm_name: "{{ vm_name }}"
       register: vm_info_result
 
-    - name: Show the info about {{ vm_name }} VM
+    - name: Show the info about VM {{ vm_name }}
       ansible.builtin.debug:
         var: vm_info_result

@@ -12,6 +12,6 @@
         vm_name: "{{ vm_name }}"
       register: replication_info_result
 
-    - name: Show the replication info status of {{ vm_name }} VM
+    - name: Show the replication info status of VM {{ vm_name }}
       ansible.builtin.debug:
         var: replication_info_result
