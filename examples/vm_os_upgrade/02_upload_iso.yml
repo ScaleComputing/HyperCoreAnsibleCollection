@@ -1,10 +1,10 @@
-- name: Download ISO {{ iso_filename }} from URL
+- name: Download ISO from URL - {{ iso_filename }}
   ansible.builtin.get_url:
     url: "{{ iso_url }}"
     dest: /tmp/{{ iso_filename }}
-    mode: 0644
+    mode: "0644"
 
-- name: Upload ISO {{ iso_filename }} to HyperCore
+- name: Upload ISO to HyperCore - {{ iso_filename }}
   scale_computing.hypercore.iso:
     name: "{{ iso_filename }}"
     source: /tmp/{{ iso_filename }}

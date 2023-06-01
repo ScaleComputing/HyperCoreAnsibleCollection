@@ -29,7 +29,7 @@
           - virtual_disk_info_result.records | length == 1
 
     # ------------------------------------------------------
-    - name: Attach virtual disk {{ virtual_disk_name }} to VM {{ vm_name }} {{ vm_disk_type }}:{{ vm_disk_slot }}
+    - name: Attach virtual disk to VM - {{ vm_name + ", " + virtual_disk_name + " " + vm_disk_type + ":" + vm_disk_slot }}
       scale_computing.hypercore.virtual_disk_attach:
         name: "{{ virtual_disk_name }}"
         vm_name: "{{ vm_name }}"

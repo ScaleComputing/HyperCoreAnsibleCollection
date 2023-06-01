@@ -9,7 +9,7 @@
     vlan_b: 11
 
   tasks:
-    - name: Configure VM {{ vm_name }} with 2 NICs, VLANs {{ vlan_a }} and {{ vlan_b }}
+    - name: Configure VM with 2 NICs - {{ "VM=" + vm_name + ", VLANs=[" + (vlan_a | string) + ", " + (vlan_b | string) + "]" }}
       scale_computing.hypercore.vm_nic:
         vm_name: "{{ vm_name }}"
         items:
@@ -18,10 +18,10 @@
         state: set
       register: vm_nic_result
 
-    - name: Show the VM {{ vm_name }} new NIC state
+    - name: Show the VM new NIC state - {{ vm_name }}
       ansible.builtin.debug:
         var: vm_nic_result
 
-    - name: Show VM {{ vm_name }} new NIC VLANs
+    - name: Show VM new NIC VLANs - {{ vm_name }}
       ansible.builtin.debug:
         msg: The configured VLANs are {{ vm_nic_result.records | map(attribute="vlan") }}
