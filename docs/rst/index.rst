@@ -46,4 +46,7 @@ All other parameters hold the information related to the resource that we are op
 
    collections/environment_variables
 
-Tested on HyperCore API version v9.1.14.208456.
+This collection has been tested against following HyperCore cluster versions:
+
+ * v9.1.14.208456
+ * v9.2.13.211102
