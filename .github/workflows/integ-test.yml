@@ -38,6 +38,7 @@ env:
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
   WORKDIR: work-dir/ansible_collections/scale_computing/hypercore
+  LANG: C.UTF-8
 # Run only one workflow for specific branch.
 concurrency:
   group: ${{ github.ref_name }}
