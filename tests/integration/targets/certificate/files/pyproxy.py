@@ -174,10 +174,11 @@ def tcp_proxy_one_conn(s, dst, connection_count):
 
 
 def inject_ssl_eof_error(connection_count):
-    # We want to let 2 connections pass,
-    # 3rd - SSL EOF error,
-    # then pass
-    if connection_count in [2]:
+    # We want to let N connections pass normally,
+    # and (N+1)-th to fail with  SSL EOF error,
+    # then again pass normally.
+    nn = 3
+    if connection_count == nn:
         return True
     return False
 

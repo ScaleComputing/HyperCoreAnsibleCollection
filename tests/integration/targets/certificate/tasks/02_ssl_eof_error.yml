@@ -38,7 +38,7 @@
     # get and run pyproxy.py
     - name: get pyproxy.py
       ansible.builtin.copy:
-        # branch ssl-eof-error, commit 7df232733f4cf6deb24d886321ceb4812a114ca4, 2023.03.16
+        # branch ssl-eof-error, commit 00e0b1b2be41c9a09f76aa517969abc61705793e, 2023.06.12
         # url: https://raw.githubusercontent.com/justinc1/pyproxy/ssl-eof-error/code/pyproxy.py
         # The file was committed into the collection.
         src: files/pyproxy.py
