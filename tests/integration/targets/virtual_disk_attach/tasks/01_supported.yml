@@ -111,6 +111,9 @@
       - disk.record.vm_uuid == vm.record.0.uuid 
       - not disk.diff.before
       - disk.diff.after == disk.record
+- name: Store UUID of created virtio disk
+  ansible.builtin.set_fact:
+    disk_uuid_virtio: "{{ disk.record.uuid }}"
 
 - name: Assert that disk is attached to XLAB-attach-virtual-disk
   scale_computing.hypercore.vm_info:
@@ -158,6 +161,7 @@
       - disk.diff.after == disk.record
       - disk.diff.before == disk.record
       - vm.records.0.disks | length == 1
+      - disk_uuid_virtio == disk.record.uuid
 
 - name: Attach virtual disk with only type and slot defined (test default values)
   scale_computing.hypercore.virtual_disk_attach:
