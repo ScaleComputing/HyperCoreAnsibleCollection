@@ -13,7 +13,7 @@ module: virtual_disk_info
 
 author:
   - Justin Cinkelj (@justinc1)
-short_description: List DNS configuration on HyperCore API
+short_description: List virtual disks on HyperCore API
 description:
   - Use this module to list virtual disk on a HyperCore server.
 version_added: 1.2.0
