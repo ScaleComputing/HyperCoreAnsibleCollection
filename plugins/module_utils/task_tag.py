@@ -9,6 +9,7 @@ from __future__ import annotations
 
 __metaclass__ = type
 
+import json
 from time import sleep
 
 from ..module_utils import errors
@@ -46,9 +47,9 @@ class TaskTag:
                 "ERROR",
                 "UNINITIALIZED",
             ):  # TaskTag has finished unsucessfully or was never initialized, both are errors.
-                raise errors.ScaleComputingError(
-                    "There was a problem during this task execution."
-                )
+                msg = "There was a problem during this task execution."
+                msg += f" Task details: {json.dumps(task_status)}"
+                raise errors.ScaleComputingError(msg)
             if task_status.get("state", "") not in (
                 "RUNNING",
                 "QUEUED",
