@@ -1,0 +1,24 @@
+---
+# This is a part of the vm module; testing vm disk remove
+# disk remove might require VM to be shutdown, or maybe VM can remain running.
+# Module should shutdown VM only if it is allowed to shutdown (force_reboot=True) and
+# if disk cannot be removed without shutdown.
+
+# Test with IDE disk, remove fails much faster compared to virtio disk (2 vs 60 sec).
+# See also https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues/249
+
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+     vm_name_a: "vm--remove-disk--a"
+     vm_names_all:
+       - "{{ vm_name_a }}"
+     shutdown_timeout: 30
+
+  block:
+    - include_tasks: 01_remove_disk_stopped.yml
+    - include_tasks: 02_remove_disk_running.yml
+    - include_tasks: 03_remove_disk_running_with_reboot.yml
