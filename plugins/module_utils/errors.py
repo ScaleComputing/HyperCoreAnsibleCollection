@@ -7,7 +7,8 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from typing import Union
+import json
+from typing import Union, Dict, Any
 from ansible.module_utils.urls import Request
 
 
@@ -111,3 +112,14 @@ class ScaleTimeoutError(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
         self.message = f"Request timed out: {data}."
         super(ScaleTimeoutError, self).__init__(self.message)
+
+
+class TaskTagError(ScaleComputingError):
+    def __init__(self, task_status: Dict[Any, Any]):
+        # task_status is dict returned by GET /rest/v1/TaskTag
+        message = "There was a problem during this task execution."
+        message += f" Task details: {json.dumps(task_status)}"
+        self.message = message
+        self.task_status_state = task_status["state"]
+        self.task_status = task_status
+        super().__init__(self.message)

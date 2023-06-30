@@ -1091,6 +1091,10 @@ class ManageVMDisks:
                 ):
                     to_delete = False
             if to_delete:
+                # HyperCore is sometimes able to delete disk on running VM,
+                # but sometimes we need to shutdown VM to remove disk.
+                # It is hard to know in advance if shutdown is required.
+                # We try to remove disk without shutdown, if delete fails, we shutdown VM and try again.
                 if existing_disk.needs_reboot("delete"):
                     vm.do_shutdown_steps(module, rest_client)
                 task_tag = rest_client.delete_record(
@@ -1099,9 +1103,50 @@ class ManageVMDisks:
                     ),
                     module.check_mode,
                 )
-                TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+                try:
+                    TaskTag.wait_task(rest_client, task_tag, module.check_mode)
+                except errors.TaskTagError as ex:
+                    # Delete failed, maybe because VM was running and disk was in use.
+                    # If VM is running, shutdown VM and retry delete.
+                    if ex.task_status_state != "ERROR":
+                        raise
+                    if not cls._disk_remove_failed_because_vm_running(ex.task_status):
+                        raise
+                    vm_fresh_data = rest_client.get_record(
+                        f"/rest/v1/VirDomain/{vm.uuid}", must_exist=True
+                    )
+                    if vm_fresh_data["state"] != "RUNNING":
+                        raise
+                    # shutdown and retry remove
+                    vm.do_shutdown_steps(module, rest_client)
+                    task_tag = rest_client.delete_record(
+                        "{0}/{1}".format(
+                            "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
+                        ),
+                        module.check_mode,
+                    )
+                    TaskTag.wait_task(rest_client, task_tag, module.check_mode)
                 changed = True
         return changed
+
+    @staticmethod
+    def _disk_remove_failed_because_vm_running(task_status: Dict):
+        # Look at task_tag dict returned by HyperCore to decide if disk remove failed
+        # because VM is running, and VM shutdown will allow us to remove the disk.
+        # What we search for in formattedMessage is HyperCore version dependent:
+        #   9.2.17 - "Unable to delete block device from VM '%@': Still in use"
+        #   9.1.14 - "Virt Exception, code: 84, domain 10: Operation not supported: This type of disk cannot be hot unplugged"
+
+        if (
+            task_status["formattedMessage"]
+            == "Unable to delete block device from VM '%@': Still in use"
+        ):
+            return True
+        if task_status["formattedMessage"].endswith(
+            "Operation not supported: This type of disk cannot be hot unplugged"
+        ):
+            return True
+        return False
 
     @staticmethod
     def _force_remove_all_disks(module, rest_client, vm, disks_before):
