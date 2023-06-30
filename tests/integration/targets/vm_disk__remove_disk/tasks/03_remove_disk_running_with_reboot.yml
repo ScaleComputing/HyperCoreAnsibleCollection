@@ -1,0 +1,96 @@
+---
+# ------------------------------------------------------------------------------------------------------------------
+# Cleanup
+
+- name: Delete the VMs, if they exist from before
+  scale_computing.hypercore.vm:
+    vm_name: "{{ item }}"
+    state: absent
+  loop: "{{ vm_names_all }}"
+
+# ------------------------------------------------------------------------------------------------------------------
+# Prepare
+# Create VM a
+- name: Create the VM {{ vm_name_a }}
+  scale_computing.hypercore.vm:
+    vm_name: "{{ vm_name_a }}"
+    state: present
+    description: VM remove disk CI test
+    tags:
+      - Xlab
+    memory: "{{ '512 MB' | human_to_bytes }}"
+    vcpu: 1
+    attach_guest_tools_iso: false
+    power_state: start
+    nics: []
+    boot_devices: []
+    disks:
+      - type: ide_disk
+        disk_slot: 0
+        size: "{{ '10 GB' | human_to_bytes }}"
+      - type: ide_disk
+        disk_slot: 1
+        size: "{{ '11 GB' | human_to_bytes }}"
+  register: vm_result
+- name: Get info about VM {{ vm_name_a }}
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name_a }}"
+  register: vm_info_a_initial_result
+- ansible.builtin.assert:
+    that:
+      - vm_result is changed
+      - vm_result.record.0.description == "VM remove disk CI test"
+      - vm_result.record.0.vm_name == "{{ vm_name_a }}"
+      - vm_result.record.0.disks | length == 2
+      - vm_result.vm_rebooted == False
+      - vm_info_a_initial_result.records.0.description == "VM remove disk CI test"
+      - vm_info_a_initial_result.records.0.vm_name == "{{ vm_name_a }}"
+      - vm_info_a_initial_result.records.0.power_state == "started"
+      - vm_info_a_initial_result.records.0.disks | length == 2
+
+# ------------------------------------------------------------------------------------------------------------------
+# Remove disk from running VM
+# Shutdown is allowed, and needed.
+- name: Remove disk from running VM with reboot
+  block: &remove_disk_from_vm
+    - name: Remove disk from running VM {{ vm_name_a }}
+      scale_computing.hypercore.vm_disk:
+        vm_name: "{{ vm_name_a }}"
+        state: set
+        items:
+          # remove 1st disk, keep 2nd disk
+          - type: ide_disk
+            disk_slot: 1
+            size: "{{ '11 GB' | human_to_bytes }}"
+        force_reboot: True
+        shutdown_timeout: "{{ shutdown_timeout }}"
+      register: vm_disk_result
+    - name: Get info about VM {{ vm_name_a }}
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name_a }}"
+      register: vm_info_a_result
+    - ansible.builtin.assert:
+        that:
+          - vm_disk_result is succeeded
+          - vm_info_a_result.records.0.power_state == "started"
+          - vm_info_a_result.records.0.disks | length == 1
+          - vm_info_a_result.records.0.disks.0.uuid == vm_info_a_initial_result.records.0.disks.1.uuid
+- ansible.builtin.assert:
+    that:
+      - vm_disk_result is changed
+      - vm_disk_result.vm_rebooted == True
+
+- name: Remove disk from running VM with reboot - idempotence
+  block:
+    *remove_disk_from_vm
+- ansible.builtin.assert:
+    that:
+      - vm_disk_result is not changed
+      - vm_disk_result.vm_rebooted == False
+
+# ----------------------------------Cleanup--------------------------------------------------------------------------------
+- name: Delete the VMs
+  scale_computing.hypercore.vm:
+    vm_name: "{{ item }}"
+    state: absent
+  loop: "{{ vm_names_all }}"
