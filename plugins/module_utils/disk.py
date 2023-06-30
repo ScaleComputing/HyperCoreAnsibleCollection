@@ -198,9 +198,10 @@ class Disk(PayloadMapper):
         # Delete and change type.
         if desired_disk and action == "update" and self.type != desired_disk.type:
             return True
-        if (
-            action == "delete" and self.type == "ide_cdrom"
-        ):  # ide_cdrom can never be deleted when VM is running.
+        if action == "delete" and self.type == "ide_cdrom":
+            # ide_cdrom can never be deleted when VM is running.
+            # Also other disks types cannot be deleted when VM is running
+            # if HyperCore thinks disk is being "used".
             return True
         return False
 

@@ -15,21 +15,28 @@ author:
   - Tjaž Eržen (@tjazsch)
 short_description: Manage VM's disks
 description:
-  Use this module to add, delete or set disks to the VM.
-  The module can also remove all disks from a VM,
-  attach and/or detach ISO image to the VM by ISO's name,
-  detach ISO image from the VM by disk's disk slot,
-  or update the existing disks (disk size etc.).
+  - Use this module to add, delete or set disks to the VM.
+    The module can also remove all disks from a VM,
+    attach and/or detach ISO image to the VM by ISO's name,
+    detach ISO image from the VM by disk's disk slot,
+    or update the existing disks (disk size etc.).
 
-  For a given VM, a particular disk is selected by combination of (I(type), I(disk_slot)).
-  I(disk_slot) means slot on bus (IDE, virtio or SCSI bus).
+  - For a given VM, a particular disk is selected by combination of (I(type), I(disk_slot)).
+    I(disk_slot) means slot on bus (IDE, virtio or SCSI bus).
 
-  Changing disk I(type) can change its I(disk_slot).
-  For example, VM has one IDE CD-ROM and one virtio_disk.
-  The disk will have C(type=virtio_disk) and C(disk_slot=0),
-  and CD-ROM will have C(type=ide_cdrom) and C(disk_slot=0).
-  Changing disk I(type) to C(ide_disk) will as place disk on IDE bus,
-  after the CD-ROM, and disk will get C(disk_slot=1).
+  - Changing disk I(type) can change its I(disk_slot).
+    For example, VM has one IDE CD-ROM and one virtio_disk.
+    The disk will have C(type=virtio_disk) and C(disk_slot=0),
+    and CD-ROM will have C(type=ide_cdrom) and C(disk_slot=0).
+    Changing disk I(type) to C(ide_disk) will as place disk on IDE bus,
+    after the CD-ROM, and disk will get C(disk_slot=1).
+
+  - Module tries to remove disks from a running VM.
+    If disk cannot be removed from running VM,
+    then VM will be shutdown, disk will be removed, and VM is started back.
+  - VM has C(shutdown_timeout) time to respond to shutdown request.
+    If VM is not shutoff within I(shutdown_timeout),
+    then a force shutdown will be issued if C(force_reboot=True).
 
 version_added: 1.0.0
 extends_documentation_fragment:

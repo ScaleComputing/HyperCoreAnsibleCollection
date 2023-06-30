@@ -18,6 +18,13 @@ short_description: Create, update or delete a VM.
 description:
   - Use this module to create, update or delete a VM. When creating or
     updating a VM, setting the disks, network nics and boot order is possible.
+
+  - Module tries to remove disks from a running VM.
+    If disk cannot be removed from running VM,
+    then VM will be shutdown, disk will be removed, and VM is started back.
+  - VM has C(shutdown_timeout) time to respond to shutdown request.
+    If VM is not shutoff within I(shutdown_timeout),
+    then a force shutdown will be issued if C(force_reboot=True).
 version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
