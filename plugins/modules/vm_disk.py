@@ -332,6 +332,7 @@ def ensure_absent(module, rest_client):
         )
         TaskTag.wait_task(rest_client, task_tag, module.check_mode)
         changed = True
+    vm_before.vm_power_up(module, rest_client)
     vm_after, disks_after = ManageVMDisks.get_vm_by_name(module, rest_client)
     return (
         changed,
@@ -344,15 +345,12 @@ def ensure_absent(module, rest_client):
 def run(module, rest_client):
     # ensure_absent is located in modules/vm_disk.py, since it's only used here
     # ensure_present_or_set is located in module_utils/vm.py, since it's also used in module vm.
-    vm, disks = ManageVMDisks.get_vm_by_name(module, rest_client)
     if module.params["state"] == "absent":
         changed, records, diff, reboot = ensure_absent(module, rest_client)
     else:
         changed, records, diff, reboot = ManageVMDisks.ensure_present_or_set(
             module, rest_client, MODULE_PATH
         )
-    if vm:
-        vm.vm_power_up(module, rest_client)
     return changed, records, diff, reboot
 
 

@@ -1250,6 +1250,7 @@ class ManageVMDisks:
             changed = cls._delete_not_used_disks(
                 module, rest_client, vm_before, changed, disk_key
             )
+        vm_before.vm_power_up(module, rest_client)
         if called_from_vm_disk:
             vm_after, disks_after = cls.get_vm_by_name(module, rest_client)
             return (
