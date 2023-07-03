@@ -32,6 +32,15 @@ export SC_USERNAME=admin
 export SC_PASSWORD=admin_pass
 ```
 
+## Debugging
+
+Requests sent to and responses received from HyperCore can be written to a file for debugging.
+Environ variable `SC_DEBUG_LOG_TRAFFIC=1` should be set, and `q` python library needs to be installed.
+The output is written to file `/tmp/q` on Ansible controller.
+
+Note that `/tmp/q` will contain login passwords, HTTP session cookies and other sensitive data.
+It should not be shared around.
+
 # Integration tests configuration
 
 For integration tests we need to configure access to test cluster.

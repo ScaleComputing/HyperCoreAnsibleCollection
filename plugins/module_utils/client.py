@@ -9,6 +9,7 @@ from __future__ import annotations
 __metaclass__ = type
 
 import json
+import os
 import ssl
 from typing import Any, Optional, Union
 from io import BufferedReader
@@ -28,6 +29,20 @@ from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
 from ansible.module_utils.six.moves.urllib.parse import urlencode, quote
 
 DEFAULT_HEADERS = dict(Accept="application/json")
+
+
+def _str_to_bool(s: str) -> bool:
+    return s.lower() not in ["", "0", "false", "f", "no", "n"]
+
+
+SC_DEBUG_LOG_TRAFFIC = _str_to_bool(os.environ.get("SC_DEBUG_LOG_TRAFFIC", "0"))
+if SC_DEBUG_LOG_TRAFFIC:
+    try:
+        import q as q_log  # type: ignore
+    except ImportError:
+        # a do-nothing replacement
+        def q_log(*args, **kwargs):  # type: ignore
+            pass
 
 
 class AuthMethod(str, enum.Enum):
@@ -128,6 +143,47 @@ class Client:
         return dict(Cookie=f"sessionID={resp.json['sessionID']}")
 
     def _request(
+        self,
+        method: str,
+        path: str,
+        data: Optional[Union[dict[Any, Any], bytes, str, BufferedReader]] = None,
+        headers: Optional[dict[Any, Any]] = None,
+        timeout: Optional[float] = None,
+    ) -> Response:
+        # _request() with debug logging
+        try:
+            if SC_DEBUG_LOG_TRAFFIC:
+                effective_timeout = timeout
+                if timeout is None:
+                    # If timeout from request is not specifically provided, take it from the Client.
+                    effective_timeout = self.timeout
+                request_in = dict(
+                    method=method,
+                    path=path,
+                    data=data,
+                    headers=headers,
+                    timeout=effective_timeout,
+                )
+            resp = self._request_no_log(method, path, data, headers, timeout)
+            if SC_DEBUG_LOG_TRAFFIC:
+                request_out = dict(
+                    status=resp.status,
+                    data=resp.data,
+                    headers=resp.headers,
+                )
+                q_log(request_in, request_out)
+            return resp
+        except Exception as ex:
+            if SC_DEBUG_LOG_TRAFFIC:
+                request_out = dict(
+                    status=resp.status,
+                    data=resp.data,
+                    headers=resp.headers,
+                )
+                q_log(request_in, exception=ex)
+            raise
+
+    def _request_no_log(
         self,
         method: str,
         path: str,
