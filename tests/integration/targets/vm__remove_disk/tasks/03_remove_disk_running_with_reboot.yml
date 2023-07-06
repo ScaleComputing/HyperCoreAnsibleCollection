@@ -30,10 +30,10 @@
   scale_computing.hypercore.vm:
     <<: *vm_a_definition
     disks:
-      - type: ide_disk
+      - type: "{{ disk_type }}"
         disk_slot: 0
         size: "{{ '10 GB' | human_to_bytes }}"
-      - type: ide_disk
+      - type: "{{ disk_type }}"
         disk_slot: 1
         size: "{{ '11 GB' | human_to_bytes }}"
   register: vm_result
@@ -47,6 +47,8 @@
       - vm_result.record.0.description == "VM remove disk CI test"
       - vm_result.record.0.vm_name == "{{ vm_name_a }}"
       - vm_result.record.0.disks | length == 2
+      - vm_result.record.0.disks.0.type  == disk_type
+      - vm_result.record.0.disks.1.type  == disk_type
       - vm_result.vm_rebooted == False
       - vm_info_a_initial_result.records.0.description == "VM remove disk CI test"
       - vm_info_a_initial_result.records.0.vm_name == "{{ vm_name_a }}"
@@ -55,7 +57,9 @@
 
 # ------------------------------------------------------------------------------------------------------------------
 # Remove disk from running VM
-# Shutdown is allowed, and needed.
+# Force shutdown is allowed, and for disk_type:
+#  - ide_disk: force shutdown is needed to remove disk.
+#  - virtio_disk: in some HC3 versions disk can be removed from a running VM.
 - name: Remove disk from running VM with reboot
   block: &remove_disk_from_vm
     - name: Remove disk from running VM {{ vm_name_a }}
@@ -63,7 +67,7 @@
         <<: *vm_a_definition
         disks:
           # remove 1st disk, keep 2nd disk
-          - type: ide_disk
+          - type: "{{ disk_type }}"
             disk_slot: 1
             size: "{{ '11 GB' | human_to_bytes }}"
         force_reboot: True
@@ -78,11 +82,12 @@
           - vm_result is succeeded
           - vm_info_a_result.records.0.power_state == "started"
           - vm_info_a_result.records.0.disks  | length == 1
+          - vm_info_a_result.records.0.disks.0.type  == disk_type
           - vm_info_a_result.records.0.disks.0.uuid == vm_info_a_initial_result.records.0.disks.1.uuid
 - ansible.builtin.assert:
     that:
       - vm_result is changed
-      - vm_result.vm_rebooted == True
+      - vm_result.vm_rebooted == expected_vm_reboot
 
 - name: Remove disk from running VM with reboot - idempotence
   block:

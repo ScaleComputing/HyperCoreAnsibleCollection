@@ -22,3 +22,19 @@
     - include_tasks: 01_remove_disk_stopped.yml
     - include_tasks: 02_remove_disk_running.yml
     - include_tasks: 03_remove_disk_running_with_reboot.yml
+      vars:
+        disk_type: ide_disk
+        expected_vm_reboot: True
+    - name: Get HyperCore version
+      scale_computing.hypercore.cluster_info:
+      register: cluster_info
+    - include_tasks: 03_remove_disk_running_with_reboot.yml
+      vars:
+        disk_type: virtio_disk
+        # HyperCore 9.1.14 could remove disk from running VM
+        # HyperCore 9.2.13, 9.2.17 could not remove disk from running VM
+        expected_vm_reboot: "{{ cluster_info.record.icos_version.startswith('9.2') }}"
+    - include_tasks: 03_remove_disk_running_with_reboot.yml
+      vars:
+        disk_type: scsi_disk
+        expected_vm_reboot: False
