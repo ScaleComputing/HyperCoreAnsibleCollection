@@ -26,7 +26,7 @@
   scale_computing.hypercore.task_wait:
     task_tag: "{{ snapshot_created.record }}"
 
-- name: Get snapshot info - test1
+- name: Get snapshot info - test1 first
   scale_computing.hypercore.vm_snapshot_info:
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     label: test1
@@ -39,9 +39,12 @@
       - snapshot_info.records.0.type == "USER"
       - snapshot_info.records.0.label == "test1"
       - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+      - snapshot_info.records.0.block_count_diff_from_serial_number == 0
+      - snapshot_info.records.0.vm.snapshot_serial_number == 1
+      - snapshot_info.records.0.vm.disks | length == 1
 
 # ----------------------------------------------------------------------------------
-- name: Alter source VM - number of VCPU
+- name: Alter source VM - number of VCPU to 3
   scale_computing.hypercore.vm_params: # Using params instead of API ... too much work with URL
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     vcpu: 3
@@ -51,7 +54,7 @@
       - updated_vm is changed
       - updated_vm is succeeded
 
-- name: Alter source VM - number of disks # Using params instead of API ... too much work with URL
+- name: Alter source VM - number of disks - 2nd disk  # Using params instead of API ... too much work with URL
   scale_computing.hypercore.vm_disk:
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     items:
@@ -78,7 +81,7 @@
       - vm_created_info.records.0.vcpu == 3
       - vm_created_info.records.0.disks | length == 2
 
-- name: Create snapshot of source VM - second
+- name: Create snapshot of source VM - test2 second
   scale_computing.hypercore.api:
     action: post
     endpoint: /rest/v1/VirDomainSnapshot
@@ -96,7 +99,7 @@
   scale_computing.hypercore.task_wait:
     task_tag: "{{ snapshot_created.record }}"
 
-- name: Get snapshot info - test2
+- name: Get snapshot info - test2 second
   scale_computing.hypercore.vm_snapshot_info:
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     label: test2
@@ -109,6 +112,9 @@
       - snapshot_info.records.0.type == "USER"
       - snapshot_info.records.0.label == "test2"
       - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+      - snapshot_info.records.0.block_count_diff_from_serial_number == 1
+      - snapshot_info.records.0.vm.snapshot_serial_number == 2
+      - snapshot_info.records.0.vm.disks | length == 2
 
 # ----------------------------------------------------------------------------------
 - name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test1 snapshot
@@ -167,17 +173,31 @@
 
 # ----------------------------------------------------------------------------------
 # Test cloning from VM with multiple snapshots with the same label
-- name: Alter source VM - number of VCPU
+- name: Alter source VM - number of VCPU to 4
   scale_computing.hypercore.vm_params: # Using params instead of API ... too much work with URL
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
-    vcpu: 2
+    vcpu: 4
   register: updated_vm
 - ansible.builtin.assert:
     that:
       - updated_vm is changed
       - updated_vm is succeeded
 
-- name: Create snapshot of source VM - third
+- name: Alter source VM - number of disks - 3rd disk  # Using params instead of API ... too much work with URL
+  scale_computing.hypercore.vm_disk:
+    vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
+    items:
+      - disk_slot: 2
+        type: virtio_disk
+        size: "{{ '6 GB' | human_to_bytes }}"
+    state: present
+  register: result
+- ansible.builtin.assert:
+    that:
+      - result is succeeded
+      - result is changed
+
+- name: Create snapshot of source VM - test2 third
   scale_computing.hypercore.api:
     action: post
     endpoint: /rest/v1/VirDomainSnapshot
@@ -200,18 +220,29 @@
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
     label: test2
   register: snapshot_info
+- name: Sort unsorted snapshot_info
+  ansible.builtin.set_fact:
+    snapshot_info_records_sorted: "{{ snapshot_info.records | sort(attribute='timestamp') }}"
 - ansible.builtin.assert:
     that:
       - snapshot_info is succeeded
       - snapshot_info is not changed
       - snapshot_info.records | length == 2
-      - snapshot_info.records.0.type == "USER"
-      - snapshot_info.records.0.label == "test2"
-      - snapshot_info.records.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
-      - snapshot_info.records.1.type == "USER"
-      - snapshot_info.records.1.label == "test2"
-      - snapshot_info.records.1.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
-      - snapshot_info.records.0.snapshot_uuid != snapshot_info.records.1.snapshot_uuid
+      - snapshot_info_records_sorted.0.type == "USER"
+      - snapshot_info_records_sorted.0.label == "test2"
+      - snapshot_info_records_sorted.0.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+      - snapshot_info_records_sorted.0.block_count_diff_from_serial_number == 1
+      - snapshot_info_records_sorted.0.vm.snapshot_serial_number == 2
+      - snapshot_info_records_sorted.0.vm.disks | length == 2
+      - snapshot_info_records_sorted.1.type == "USER"
+      - snapshot_info_records_sorted.1.label == "test2"
+      - snapshot_info_records_sorted.1.vm.name == "XLAB-vm_clone_CI-test-clone-from-snapshot-source"
+      - snapshot_info_records_sorted.1.block_count_diff_from_serial_number == 2
+      - snapshot_info_records_sorted.1.vm.snapshot_serial_number == 3
+      - snapshot_info_records_sorted.1.vm.disks | length == 3
+      - snapshot_info_records_sorted.0.snapshot_uuid != snapshot_info_records_sorted.1.snapshot_uuid
+      # snapshot_info snapshot_info_records_sorted is sorted from oldest to latest
+      - snapshot_info_records_sorted.0.timestamp < snapshot_info_records_sorted.1.timestamp
 
 # This task should fail, since there are multiple snapshots with the same label, source_snapshot_uuid should be used instead
 - name: Clone XLAB-vm_clone_CI-test-clone-from-snapshot-source using test2 snapshot - test multiple snapshots with same label - use snapshot_label - must fail
@@ -226,7 +257,7 @@
   scale_computing.hypercore.vm_clone:
     vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3
     source_vm_name: XLAB-vm_clone_CI-test-clone-from-snapshot-source
-    source_snapshot_uuid: "{{ snapshot_info.records.1.snapshot_uuid }}"
+    source_snapshot_uuid: "{{ snapshot_info_records_sorted.1.snapshot_uuid }}"
   register: output
 - ansible.builtin.assert:
     that:
@@ -244,7 +275,7 @@
       - vm_clone_info.records | length == 1
       - vm_clone_info.records.0.memory == 511705088
       - vm_clone_info.records.0.nics | length == 1
-      - vm_clone_info.records.0.disks | length == 2
+      - vm_clone_info.records.0.disks | length == 3
       - vm_clone_info.records.0.boot_devices | length == 0
-      - vm_clone_info.records.0.vcpu == 2
+      - vm_clone_info.records.0.vcpu == 4
       - vm_clone_info.records.0.vm_name == "XLAB-vm_clone_CI-test-clone-from-snapshot-clone-3"
