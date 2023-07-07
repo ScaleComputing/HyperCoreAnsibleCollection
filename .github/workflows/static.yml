@@ -24,7 +24,7 @@ concurrency:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
-    container: quay.io/justinc1_github/scale_ci_integ:7
+    container: quay.io/justinc1_github/scale_ci_integ:8
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -45,7 +45,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: 'docs/build/html'
+          path: "docs/build/html"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
