@@ -5,6 +5,34 @@ Scale_Computing.Hypercore Release Notes
 .. contents:: Topics
 
 
+v1.3.0
+======
+
+Major Changes
+-------------
+
+- Added a role for checking if local time is within required time interval. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/167)
+- Added a role for updating single-node systems. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/136)
+- Added version_update, version_update_info and version_update_status_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/135)
+- Added virtual_disk module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/153)
+- Added virtual_disk_attach module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/212)
+- Added vm_snapshot module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/217)
+- Added vm_snapshot_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/166)
+
+Minor Changes
+-------------
+
+- Added option select to version_update_info module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/189)
+- Added preserve_mac_address option to vm_clone module. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/187)
+- Added snapshot cloning to vm_clone. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/219)
+- Extend vm and vm_info modules output with replication_source_vm_uuid field. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/185)
+
+Bugfixes
+--------
+
+- Convert SC_TIMEOUT environ variable to float, thus resolving inventory parse error when SC_TIMEOUT was defined. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/231)
+- This fix now handles case if no update_status.json exists yet. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/174)
+
 v1.2.0
 ======
 
