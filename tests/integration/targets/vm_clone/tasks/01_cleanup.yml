@@ -24,12 +24,10 @@
     task_tag: "{{ set_to_run_task.record }}"
   when: set_to_run_task.record | default("")
 
-- name: Delete XLAB-vm_clone-CI_test
+- name: Delete VM XLAB-vm_clone-xyz
   scale_computing.hypercore.vm:
     vm_name: "{{ item }}"
     state: absent
-    memory: 536870912
-    vcpu: 2
   loop:
     - XLAB-vm_clone-CI_test
     - XLAB-vm_clone-CI_test-running
