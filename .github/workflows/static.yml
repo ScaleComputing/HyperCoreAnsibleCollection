@@ -2,10 +2,6 @@
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the specified branch
-  push:
-    branches: ["gh-pages"]
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   # To allow triggering from other workflows e.g. the release workflow
