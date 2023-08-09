@@ -9,7 +9,16 @@
           else version_update_single_node_retry_count | int + 1
           }}"
 
-    # We might be able to remove this task
+    # Do not remove this magic delay.
+    # Likely sometimes we query for update status before HyperCore actually started the update.
+    # Then we get back something like "update completed", but this refers to some older update.
+    # More testing needed before we can replace this with something smarter.
+    # What could be smarter:
+    # - look at version_update_status_info.build_id,
+    #   wait until it is equal to version/build_id we are updating to.
+    # - remember version_update_status_info might return some bogus data if HyperCore was never updated.
+    # Why:
+    # - testing this role even in dry-run mode will take at least 20*60 sec. One lunch per test.
     - name: Pause before checking update status - checks will report FAILED-RETRYING until update COMPLETE/TERMINATED
       ansible.builtin.wait_for:
         timeout: 60
