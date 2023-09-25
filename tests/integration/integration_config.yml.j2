@@ -185,3 +185,37 @@ sc_config:
         replication_factor: 1
       cluster_name:
         is_writable: True
+
+  https://10.5.11.202:
+    <<: *base_cfg
+    sc_username: admin
+    sc_password: admin
+    sc_replication_dest_host: ""
+    sc_replication_dest_cluster_name: ""
+    sc_replication_dest_username: ""
+    sc_replication_dest_password: ""
+    cluster:
+      name: VSNS202
+    support_tunnel:
+      open: true
+      code: "4425"
+    smtp:
+      <<: *base_smtp
+      from_address: VSNS202@scalecomputing.com
+    version_update:
+      magic_allow_string: "oh-no-no"
+      vm_shutdown_restart_allow_string: "allow-vm-shutdown-restart-test"
+    syslog_server:
+      host: 10.5.11.222
+    features:
+      version_update:
+        current_version: "9.3.1.212486"
+        next_version: ""
+        latest_version: ""
+        can_be_applied: False
+        old_update_status_present: False
+      virtual_disk:
+        is_supported: True
+        replication_factor: 1
+      cluster_name:
+        is_writable: True
