@@ -339,9 +339,7 @@ jobs:
       - run: ansible-test integration --local ${{ matrix.test_name }}
 
   replica_cleanup:
-    needs:
-      - integ
-      - integ-seq
+    needs: []
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:8
     env:
