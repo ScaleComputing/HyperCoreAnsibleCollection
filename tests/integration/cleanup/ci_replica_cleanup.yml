@@ -4,8 +4,9 @@
 - name: Find VM replicas on replication-destination cluster
   hosts: localhost
   connection: local
-  gather_facts: false
+  gather_facts: true
   vars:
+    min_replica_age: 2 * 24*60*60
     replication_dest_cluster:
       host: "{{ sc_config[sc_host].sc_replication_dest_host }}"
       username: "{{ sc_config[sc_host].sc_replication_dest_username }}"
@@ -41,13 +42,15 @@
     # ==================================================================
     # destination cluster
     - name: Get info about all VMs
-      scale_computing.hypercore.vm_info:
+      scale_computing.hypercore.api:
         cluster_instance: "{{ replication_dest_cluster }}"
-      register: vm_info_result
+        action: get
+        endpoint: /rest/v1/VirDomain
+      register: vm_api_info_result
 
     - name: Show VM count before
       ansible.builtin.debug:
-        msg: count={{ vm_info_result.records | count }}
+        msg: count={{ vm_api_info_result.record | count }}
 
     - name: Find VMs with tag=Xlab and tag=CI
       ansible.builtin.set_fact:
@@ -55,10 +58,10 @@
 
     - name: Find VMs with tag=Xlab and tag=CI
       ansible.builtin.set_fact:
-        remove_vms: "{{ remove_vms + ([{'uuid': vm.uuid, 'vm_name': vm.vm_name}] if ('Xlab' in vm.tags  and 'CI' in vm.tags) else [])  }}"
-      loop: "{{ vm_info_result.records }}"
+        remove_vms: "{{ remove_vms + ([{'uuid': vmapi.uuid, 'vm_name': vmapi.name}] if ('Xlab' in (vmapi.tags | split(',')) and (ansible_date_time.epoch_int | int - vmapi.latestTaskTag.modified | int) > min_replica_age | int) else []) }}"
+      loop: "{{ vm_api_info_result.record }}"
       loop_control:
-        loop_var: vm
+        loop_var: vmapi
 
     - name: Show VM UUIDs to be removes
       ansible.builtin.debug:
