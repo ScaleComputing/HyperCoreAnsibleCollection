@@ -173,14 +173,9 @@ class Client:
                 )
                 q_log(request_in, request_out)
             return resp
-        except Exception as ex:
+        except Exception as exception:
             if SC_DEBUG_LOG_TRAFFIC:
-                request_out = dict(
-                    status=resp.status,
-                    data=resp.data,
-                    headers=resp.headers,
-                )
-                q_log(request_in, exception=ex)
+                q_log(request_in, exception)
             raise
 
     def _request_no_log(
