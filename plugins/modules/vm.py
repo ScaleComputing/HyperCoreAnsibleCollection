@@ -224,8 +224,12 @@ options:
       - Scale I(Hardware) version.
       - Required if creating a new VM.
       - Only relevant when creating the VM. This property cannot be modified.
+      - HyperCore needs to support requested machine_type.
+        BIOS and UEFI - available since 9.1.
+        vTPM+UEFI - available since 9.2.
+        vTPM+UEFI-compatible - available since 9.3.
     type: str
-    choices: [ BIOS, UEFI, vTPM+UEFI ]
+    choices: [ BIOS, UEFI, vTPM+UEFI, vTPM+UEFI-compatible ]
     version_added: 1.1.0
 notes:
   - The C(record) return value will be changed from list (containing a single item) to dict.
@@ -399,8 +403,10 @@ from ..module_utils.vm import (
     ManageVMParams,
     ManageVMDisks,
     ManageVMNics,
+    VmMachineType,
 )
 from ..module_utils.task_tag import TaskTag
+from ..module_utils.hypercore_version import HyperCoreVersion
 
 MODULE_PATH = "scale_computing.hypercore.vm"
 
@@ -502,6 +508,19 @@ def ensure_absent(module, rest_client):
         output = vm.to_ansible()
         return True, [output], dict(before=output, after=None), reboot
     return False, [], dict(), reboot
+
+
+def check_params(module, rest_client):
+    # Check if used machine_type is available in this HC3 version.
+    ansible_machine_type = module.params.get("machine_type")
+    if ansible_machine_type:
+        hcversion = HyperCoreVersion(rest_client)
+        hypercore_machine_type = VmMachineType.from_ansible_to_hypercore(
+            ansible_machine_type, hcversion
+        )
+        if not hypercore_machine_type:
+            msg = f"machine_type={ansible_machine_type} is not supported on HyperCore version {hcversion.version}."
+            module.fail_json(msg=msg)
 
 
 def main():
@@ -656,7 +675,10 @@ def main():
             snapshot_schedule=dict(
                 type="str",
             ),
-            machine_type=dict(type="str", choices=["BIOS", "UEFI", "vTPM+UEFI"]),
+            machine_type=dict(
+                type="str",
+                choices=["BIOS", "UEFI", "vTPM+UEFI", "vTPM+UEFI-compatible"],
+            ),
         ),
         required_if=[
             (
@@ -686,6 +708,7 @@ def main():
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
+        check_params(module, rest_client)
         changed, record, diff, reboot = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff, vm_rebooted=reboot)
     except errors.ScaleComputingError as e:

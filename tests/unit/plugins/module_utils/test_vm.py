@@ -150,7 +150,7 @@ class TestVM:
         vm_from_hypercore = VM.from_hypercore(vm_dict, rest_client)
         assert vm == vm_from_hypercore
 
-    def test_vm_to_hypercore(self):
+    def test_vm_to_hypercore(self, hcversion):
         vm = VM(
             uuid=None,  # No uuid when creating object from ansible
             name="VM-name",
@@ -166,7 +166,7 @@ class TestVM:
             operating_system="os_windows_server_2012",
         )
 
-        assert vm.to_hypercore() == dict(
+        assert vm.to_hypercore(hcversion) == dict(
             name="VM-name",
             description="desc",
             mem=42,
@@ -561,7 +561,7 @@ class TestVM:
         with pytest.raises(errors.ScaleComputingError, match="Disk"):
             vm.get_specific_disk(disk_query)
 
-    def test_get_or_fail_when_get(self, rest_client, mocker):
+    def test_get_or_fail_when_get(self, rest_client, hcversion, mocker):
         rest_client.list_records.return_value = [
             {
                 "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
@@ -597,10 +597,10 @@ class TestVM:
         hypercore_dict = rest_client.list_records.return_value[0]
         actual = VM.from_hypercore(
             vm_dict=hypercore_dict, rest_client=rest_client
-        ).to_hypercore()
+        ).to_hypercore(hcversion)
         results = VM.get_or_fail(
             query={"name": "XLAB_test_vm"}, rest_client=rest_client
-        )[0].to_hypercore()
+        )[0].to_hypercore(hcversion)
         assert results == actual
 
     def test_get_or_fail_when_fail(self, rest_client):
@@ -611,7 +611,7 @@ class TestVM:
         ):
             VM.get_or_fail(query={"name": "XLAB-test-vm"}, rest_client=rest_client)
 
-    def test_post_vm_payload_cloud_init_absent(self, rest_client):
+    def test_post_vm_payload_cloud_init_absent_v92(self, rest_client):
         vm = VM(
             uuid=None,
             name="VM-name",
@@ -627,6 +627,10 @@ class TestVM:
             operating_system=None,
             machine_type="BIOS",
         )
+
+        rest_client.get_record.side_effect = [
+            dict(icosVersion="9.2.0.12345"),
+        ]
 
         post_vm_payload = vm.post_vm_payload(rest_client, {})
 
@@ -645,7 +649,7 @@ class TestVM:
             "options": {"attachGuestToolsISO": False},
         }
 
-    def test_post_vm_payload_cloud_init_present(self, rest_client):
+    def test_post_vm_payload_cloud_init_present_v92(self, rest_client):
         vm = VM(
             uuid=None,
             name="VM-name",
@@ -670,6 +674,10 @@ class TestVM:
             machine_type="BIOS",
         )
 
+        rest_client.get_record.side_effect = [
+            dict(icosVersion="9.2.0.12345"),
+        ]
+
         post_vm_payload = vm.post_vm_payload(rest_client, ansible_dict)
 
         assert post_vm_payload == {
@@ -689,6 +697,58 @@ class TestVM:
                 "tags": "XLAB-test-tag1,XLAB-test-tag2",
             },
             "options": {"attachGuestToolsISO": False},
+        }
+
+    def test_post_vm_payload_cloud_init_present_v93(self, rest_client):
+        vm = VM(
+            uuid=None,
+            name="VM-name",
+            tags=["XLAB-test-tag1", "XLAB-test-tag2"],
+            description="desc",
+            memory=42,
+            power_state="started",
+            vcpu=2,
+            nics=[],
+            disks=[],
+            boot_devices=[],
+            attach_guest_tools_iso=False,
+            operating_system=None,
+            machine_type="BIOS",
+        )
+
+        ansible_dict = dict(
+            cloud_init=dict(
+                user_data="cloud_init-user-data",
+                meta_data="cloud_init-meta-data",
+            ),
+            machine_type="BIOS",
+        )
+
+        rest_client.get_record.side_effect = [
+            dict(icosVersion="9.3.0.12345"),
+        ]
+
+        post_vm_payload = vm.post_vm_payload(rest_client, ansible_dict)
+
+        assert post_vm_payload == {
+            "dom": {
+                "blockDevs": [],
+                "bootDevices": [],
+                "cloudInitData": {
+                    "metaData": "Y2xvdWRfaW5pdC1tZXRhLWRhdGE=",
+                    "userData": "Y2xvdWRfaW5pdC11c2VyLWRhdGE=",
+                },
+                "description": "desc",
+                "mem": 42,
+                "name": "VM-name",
+                "netDevs": [],
+                "numVCPU": 2,
+                "tags": "XLAB-test-tag1,XLAB-test-tag2",
+            },
+            "options": {
+                "attachGuestToolsISO": False,
+                "machineTypeKeyword": "bios",
+            },
         }
 
     def test_post_vm_payload_set_disks(self, rest_client):
