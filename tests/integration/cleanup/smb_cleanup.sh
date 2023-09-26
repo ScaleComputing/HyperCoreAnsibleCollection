@@ -21,7 +21,7 @@ delete_files () {
     files="$(echo "$list_dir" | head --lines=-2 | tail --lines=+3)"
     echo "files=$files"
 
-    today_date=$(date +'%b:%-d:%Y')
+    today_date=$(date +'%b:%Y')
     echo "Todays date: $today_date"
 
     while IFS= read -r line
@@ -33,7 +33,8 @@ delete_files () {
         continue
       fi
       filename="$(echo "$line" | awk '{print $1}')"
-      file_date=$(echo "$line" | awk '{print $5":"$6":"$8}')
+      # file_date=$(echo "$line" | awk '{print $5":"$6":"$8}')  # "Apr:27:2020"
+      file_date=$(echo "$line" | awk '{print $5":"$8}')  # "Apr:2020"
       if [ "$file_date" == "$today_date" ]
       then
         echo "Keeping file $filename, timestamp is $file_date"

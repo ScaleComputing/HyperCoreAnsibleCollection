@@ -366,9 +366,7 @@ jobs:
       - run: ansible-playbook tests/integration/cleanup/ci_replica_cleanup.yml
 
   smb_cleanup:
-    needs:
-      - integ
-      - integ-seq
+    needs: []
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:8
     defaults:
