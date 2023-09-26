@@ -33,6 +33,7 @@ from ..module_utils.utils import (
 from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
 from ..module_utils.snapshot_schedule import SnapshotSchedule
+from ..module_utils.hypercore_version import HyperCoreVersion
 
 # FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE and FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE are mappings for how
 # states are stored in python/ansible and how are they stored in hypercore
@@ -57,17 +58,6 @@ FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
     reset="RESET",
     started="START",
 )
-
-
-FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE = {
-    "UEFI": "scale-8.10",
-    "BIOS": "scale-7.2",
-    "vTPM+UEFI": "scale-uefi-tpm-9.2",
-}
-
-FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE = {
-    v: k for k, v in FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE.items()
-}
 
 
 VM_PAYLOAD_KEYS = [
@@ -107,6 +97,86 @@ REBOOT_LOOKUP = dict(
     power_state=False,
     snapshot_schedule=False,
 )
+
+
+class VmMachineType:
+    # In table below is left side output from 'sc vmmachinetypes show' command,
+    # on most recent HyperCore version.
+    _map_hypercore_to_ansible = {
+        "scale-bios-9.3": "BIOS",
+        "scale-7.2": "BIOS",  # ?
+        "scale-5.4": "BIOS",  # ?
+        "scale-8.10": "UEFI",
+        "scale-uefi-9.3": "UEFI",
+        "scale-uefi-tpm-compatible-9.3": "vTPM+UEFI-compatible",
+        "scale-bios-lsi-9.2": "BIOS",  # ?
+        "scale-uefi-tpm-9.3": "vTPM+UEFI",
+        "scale-6.4": "BIOS",  # ?
+        "scale-uefi-tpm-9.2": "vTPM+UEFI",
+    }
+
+    # Check in GUI what exactly is sent for selected VM machine type
+    # when creating a new VM.
+    # On 9.1.14.208456
+    _map_ansible_to_hypercore_91 = {
+        "BIOS": "scale-7.2",
+        "UEFI": "scale-8.10",
+    }
+    # On 9.2.13.211102
+    _map_ansible_to_hypercore_92 = {
+        "BIOS": "scale-7.2",
+        "UEFI": "scale-8.10",
+        "vTPM+UEFI": "scale-uefi-tpm-9.2",
+    }
+    # On 9.3.1.212486 (pre-release)
+    _map_ansible_to_hypercore_93 = {
+        "BIOS": "scale-bios-9.3",
+        "UEFI": "scale-uefi-9.3",
+        "vTPM+UEFI": "scale-uefi-tpm-9.3",
+        "vTPM+UEFI-compatible": "scale-uefi-tpm-compatible-9.3",
+    }
+    # HyperCore machineTypeKeyword can be: "bios" "uefi" "tpm" "tpm-compatible"
+    _map_ansible_to_hypercore_machine_type_keyword = {
+        "BIOS": "bios",
+        "UEFI": "uefi",
+        "vTPM+UEFI": "tpm",
+        "vTPM+UEFI-compatible": "tpm-compatible",
+    }
+
+    @classmethod
+    def from_ansible_to_hypercore(
+        cls, ansible_machine_type: str, hcversion: HyperCoreVersion
+    ) -> str:
+        # Empty string is returned if ansible_machine_type cannot bve used with give HyperCore version.
+        if not ansible_machine_type:
+            return ""
+        if hcversion.verify(">=9.3.0"):
+            map_ansible_to_hypercore = cls._map_ansible_to_hypercore_93
+        elif hcversion.verify(">=9.2.0"):
+            map_ansible_to_hypercore = cls._map_ansible_to_hypercore_92
+        else:
+            # hcversion >=9.1.0, might work with earlier version too
+            map_ansible_to_hypercore = cls._map_ansible_to_hypercore_91
+        return map_ansible_to_hypercore.get(ansible_machine_type, "")
+
+    @classmethod
+    def from_hypercore_to_ansible(cls, vm_dict: dict) -> str:
+        # We receive whole vm_dict as returned by HC3,
+        # and use machineTypeKeyword if present.
+        if "machineTypeKeyword" in vm_dict:
+            _map_hypercore_machine_type_keyword_to_ansible = {
+                cls._map_ansible_to_hypercore_machine_type_keyword[k]: k
+                for k in cls._map_ansible_to_hypercore_machine_type_keyword
+            }
+            # "machineTypeKeyword" is available in HyperCore 9.3 or later
+            return _map_hypercore_machine_type_keyword_to_ansible.get(
+                vm_dict["machineTypeKeyword"], ""
+            )
+        return cls._map_hypercore_to_ansible.get(vm_dict["machineType"], "")
+
+    @classmethod
+    def from_ansible_to_hypercore_machine_type_keyword(cls, ansible_machine_type: str):
+        return cls._map_ansible_to_hypercore_machine_type_keyword[ansible_machine_type]
 
 
 class VM(PayloadMapper):
@@ -225,14 +295,7 @@ class VM(PayloadMapper):
         snapshot_schedule = SnapshotSchedule.get_snapshot_schedule(
             query={"uuid": vm_dict["snapshotScheduleUUID"]}, rest_client=rest_client
         )
-        try:
-            machine_type = FROM_HYPERCORE_TO_ANSIBLE_MACHINE_TYPE[
-                vm_dict["machineType"]
-            ]
-        except KeyError:
-            raise errors.ScaleComputingError(
-                f"Virtual machine: {vm_dict['name']} has an invalid Machine type: {vm_dict['machineType']}."
-            )
+        machine_type = VmMachineType.from_hypercore_to_ansible(vm_dict)
         return cls(
             uuid=vm_dict["uuid"],  # No uuid when creating object from ansible
             node_uuid=vm_dict["nodeUUID"],  # Needed in vm_node_affinity
@@ -424,7 +487,7 @@ class VM(PayloadMapper):
             timeout=None,
         )
 
-    def to_hypercore(self):
+    def to_hypercore(self, hcversion: HyperCoreVersion):
         vm_dict = dict(
             name=self.name,
             description=self.description,
@@ -444,10 +507,12 @@ class VM(PayloadMapper):
             vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE.get(
                 self.power_state, "unknown-power-state-sorry"
             )
-        if self.machine_type:
-            vm_dict["machineType"] = FROM_ANSIBLE_TO_HYPERCORE_MACHINE_TYPE[
-                self.machine_type
-            ]
+
+        if self.machine_type and hcversion.verify("<9.3.0"):
+            vm_dict["machineType"] = VmMachineType.from_ansible_to_hypercore(
+                self.machine_type, hcversion
+            )
+
         return vm_dict
 
     def to_ansible(self):
@@ -510,7 +575,8 @@ class VM(PayloadMapper):
         # The rest of the keys from VM_PAYLOAD_KEYS will get set properly automatically
         # Cloud init will be obtained through ansible_dict - If method will be reused outside of vm module,
         # cloud_init should be one of the ansible_dict's keys.
-        payload = self.to_hypercore()
+        hcversion = HyperCoreVersion(rest_client)
+        payload = self.to_hypercore(hcversion)
         VM._post_vm_payload_set_disks(payload, rest_client)
         payload["netDevs"] = [
             filter_dict(nic, *nic.keys()) for nic in payload["netDevs"]
@@ -521,6 +587,14 @@ class VM(PayloadMapper):
         if cloud_init_payload is not None:
             dom["cloudInitData"] = cloud_init_payload
         options = dict(attachGuestToolsISO=payload["attachGuestToolsISO"])
+        if hcversion.verify(">=9.3.0"):
+            machine_type_keyword = (
+                VmMachineType.from_ansible_to_hypercore_machine_type_keyword(
+                    self.machine_type
+                )
+            )
+            if machine_type_keyword:
+                options.update(dict(machineTypeKeyword=machine_type_keyword))
         return dict(dom=dom, options=options)
 
     @staticmethod

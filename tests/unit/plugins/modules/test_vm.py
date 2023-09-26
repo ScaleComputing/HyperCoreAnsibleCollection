@@ -1110,7 +1110,7 @@ class TestEnsurePresent:
             True,
         )
 
-    def test_ensure_present_create_vm_no_boot_devices_power_state_is_shutdown(
+    def test_ensure_present_create_vm_no_boot_devices_power_state_is_shutdown_v92(
         self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
@@ -1141,6 +1141,7 @@ class TestEnsurePresent:
 
         rest_client.get_record.side_effect = [
             None,
+            dict(icosVersion="9.2.0.12345"),
             dict(
                 uuid="id",
                 nodeUUID="",
@@ -1275,7 +1276,173 @@ class TestEnsurePresent:
             False,
         )
 
-    def test_ensure_present_create_vm_boot_devices_set_power_state_is_shutdown(
+    def test_ensure_present_create_vm_no_boot_devices_power_state_is_shutdown_v93(
+        self, create_module, rest_client, task_wait, mocker
+    ):
+        module = create_module(
+            params=dict(
+                cluster_instance=dict(
+                    host="https://0.0.0.0",
+                    username="admin",
+                    password="admin",
+                ),
+                vm_name="VM-name-unique",
+                description="desc",
+                memory=42,
+                vcpu=2,
+                power_state="shutdown",
+                state="present",
+                tags="",
+                disks=[],
+                nics=[],
+                boot_devices=[],
+                attach_guest_tools_iso=None,
+                cloud_init=dict(
+                    user_data=None,
+                    meta_data=None,
+                ),
+                machine_type="BIOS",
+            ),
+        )
+
+        rest_client.get_record.side_effect = [
+            None,
+            dict(icosVersion="9.3.0.12345"),
+            dict(
+                uuid="id",
+                nodeUUID="",
+                name="VM-name-unique",
+                tags="XLAB-test-tag1,XLAB-test-tag2",
+                description="desc",
+                mem=42,
+                state="SHUTDOWN",
+                numVCPU=2,
+                netDevs=[],
+                blockDevs=[],
+                bootDevices=[],
+                attachGuestToolsISO=False,
+                operatingSystem=None,
+                affinityStrategy={
+                    "strictAffinity": False,
+                    "preferredNodeUUID": "",
+                    "backupNodeUUID": "",
+                },
+                snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
+                sourceVirDomainUUID="",
+                snapUUIDs=[],
+            ),
+            dict(
+                uuid="id",
+                nodeUUID="",
+                name="VM-name-unique",
+                tags="XLAB-test-tag1,XLAB-test-tag2",
+                description="desc",
+                mem=42,
+                state="SHUTDOWN",
+                numVCPU=2,
+                netDevs=[],
+                blockDevs=[],
+                bootDevices=[],
+                attachGuestToolsISO=False,
+                operatingSystem=None,
+                affinityStrategy={
+                    "strictAffinity": False,
+                    "preferredNodeUUID": "",
+                    "backupNodeUUID": "",
+                },
+                snapshotScheduleUUID="snapshot-id",
+                machineType="scale-7.2",
+                sourceVirDomainUUID="",
+                snapUUIDs=[],
+            ),
+        ]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
+        ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
+        rest_client.create_record.return_value = {
+            "taskTag": 123,
+            "createdUUID": "",
+        }
+        result = vm.ensure_present(module, rest_client)
+        assert result == (
+            True,
+            [
+                {
+                    "attach_guest_tools_iso": False,
+                    "boot_devices": [],
+                    "description": "desc",
+                    "disks": [],
+                    "machine_type": "BIOS",
+                    "memory": 42,
+                    "nics": [],
+                    "node_affinity": {
+                        "backup_node": {
+                            "backplane_ip": "",
+                            "lan_ip": "",
+                            "node_uuid": "",
+                            "peer_id": None,
+                        },
+                        "preferred_node": {
+                            "backplane_ip": "",
+                            "lan_ip": "",
+                            "node_uuid": "",
+                            "peer_id": None,
+                        },
+                        "strict_affinity": False,
+                    },
+                    "operating_system": None,
+                    "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
+                    "snapshot_schedule": "",
+                    "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
+                    "uuid": "id",
+                    "vcpu": 2,
+                    "vm_name": "VM-name-unique",
+                }
+            ],
+            {
+                "after": {
+                    "attach_guest_tools_iso": False,
+                    "boot_devices": [],
+                    "description": "desc",
+                    "disks": [],
+                    "machine_type": "BIOS",
+                    "memory": 42,
+                    "nics": [],
+                    "node_affinity": {
+                        "backup_node": {
+                            "backplane_ip": "",
+                            "lan_ip": "",
+                            "node_uuid": "",
+                            "peer_id": None,
+                        },
+                        "preferred_node": {
+                            "backplane_ip": "",
+                            "lan_ip": "",
+                            "node_uuid": "",
+                            "peer_id": None,
+                        },
+                        "strict_affinity": False,
+                    },
+                    "operating_system": None,
+                    "power_state": "shutdown",
+                    "replication_source_vm_uuid": "",
+                    "snapshot_schedule": "",
+                    "tags": ["XLAB-test-tag1", "XLAB-test-tag2"],
+                    "uuid": "id",
+                    "vcpu": 2,
+                    "vm_name": "VM-name-unique",
+                },
+                "before": None,
+            },
+            False,
+        )
+
+    def test_ensure_present_create_vm_boot_devices_set_power_state_is_shutdown_v92(
         self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
@@ -1320,6 +1487,7 @@ class TestEnsurePresent:
 
         rest_client.get_record.side_effect = [
             None,
+            dict(icosVersion="9.2.0.12345"),
             dict(
                 uuid="id",
                 nodeUUID="",
@@ -1546,7 +1714,7 @@ class TestEnsurePresent:
             False,
         )
 
-    def test_ensure_present_no_boot_devices_set_power_state_is_not_shutdown(
+    def test_ensure_present_no_boot_devices_set_power_state_is_not_shutdown_v92(
         self, create_module, rest_client, task_wait, mocker
     ):
         module = create_module(
@@ -1583,6 +1751,7 @@ class TestEnsurePresent:
 
         rest_client.get_record.side_effect = [
             None,
+            dict(icosVersion="9.2.0.12345"),
             dict(
                 uuid="id",
                 nodeUUID="",

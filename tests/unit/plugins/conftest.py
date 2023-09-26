@@ -31,6 +31,10 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag
     TaskTag,
 )
 
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import (
+    HyperCoreVersion,
+)
+
 
 @pytest.fixture
 def client(mocker):
@@ -193,3 +197,10 @@ def run_main_info(mocker):
         basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
     )
     return runner
+
+
+@pytest.fixture
+def hcversion(mocker, version_str="9.2.0.112233"):
+    hcv = HyperCoreVersion(rest_client=None)  # type: ignore
+    hcv._version = version_str
+    return hcv
