@@ -1,0 +1,164 @@
+---
+# Bug:
+# Task 1 - create VM with 0 disks, 0 NICs.
+# Task 2 - add 1 disk, 1 NIC, make both bootable. Bug - only NIC was added to boot devices.
+# Task 3 - same as task 2, nothing should change.
+
+- name: Test boot order
+  environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    ssvm_name: boot-order
+  block:
+
+# ------------------------------------------------------------------------------------------------------------------
+# Cleanup
+    - name: Delete the VM with name ci-boot-order
+#      when: 0
+      scale_computing.hypercore.vm: &delete-vm
+        vm_name: ci-boot-order
+        state: absent
+      register: result
+
+# ------------------------------------------------------------------------------------------------------------------
+# Create VM with 0 disk, 0 NICs
+    - name: Create VM without disks and NICs
+#      when: 0
+      scale_computing.hypercore.vm: # &vm_create
+        vm_name: ci-boot-order
+        description: ci-boot-order
+        state: present
+        tags:
+          - Xlab
+        memory: "{{ '512 MB' | human_to_bytes }}"
+        vcpu: 1
+        attach_guest_tools_iso: false
+        power_state: stop
+        disks: []
+        nics: []
+        boot_devices: []
+        machine_type: BIOS
+        # VM will need to be shutdown if NIC needs to be removed.
+        # It does not respond to ACPI shutdown, so we do allow force shutdown
+#        force_reboot: true
+#        shutdown_timeout: 1
+      register: vm_result
+
+    - &vm_info
+      name: Info about VM
+      scale_computing.hypercore.vm_info:
+        vm_name: ci-boot-order
+      register: vm_info_result
+
+    - ansible.builtin.assert:
+        that:
+          - vm_result is succeeded
+          - vm_result is changed
+          - vm_result.record.0.description == "ci-boot-order"
+          - vm_result.record.0.memory == 536870912
+          - vm_result.record.0.tags == ["Xlab"]
+          - vm_result.record.0.vcpu == 1
+          - vm_result.record.0.vm_name == "ci-boot-order"
+          - vm_result.record.0.disks | length == 0
+          - vm_result.record.0.nics | length == 0
+          - vm_result.record.0.boot_devices | length == 0
+          - vm_result.record.0.power_state == "stopped"
+    - ansible.builtin.assert:
+        that:
+          - vm_info_result is succeeded
+          - vm_info_result is not changed
+          - vm_info_result.records.0.description == "ci-boot-order"
+          - vm_info_result.records.0.memory == 536870912
+          - vm_info_result.records.0.tags == ["Xlab"]
+          - vm_info_result.records.0.vcpu == 1
+          - vm_info_result.records.0.vm_name == "ci-boot-order"
+          - vm_info_result.records.0.disks | length == 0
+          - vm_info_result.records.0.nics | length == 0
+          - vm_info_result.records.0.boot_devices | length == 0
+          - vm_info_result.records.0.power_state == "stopped"
+
+# ------------------------------------------------------------------------------------------------------------------
+# Add disks, NICs and set boot_devices
+    - &vm_set_boot_devices
+      name: Add disks, NICs and set boot_devices
+      scale_computing.hypercore.vm:
+        vm_name: ci-boot-order
+        state: present
+        memory: "{{ '512 MB' | human_to_bytes }}"
+        vcpu: 1
+        disks:
+          - type: virtio_disk
+            disk_slot: 0
+            size: "{{ '10 GB' | human_to_bytes }}"
+        nics:
+          - vlan: 1
+            type: RTL8139
+        boot_devices:
+          - type: virtio_disk
+            disk_slot: 0
+          - type: nic
+            nic_vlan: 1
+#        # VM will need to be shutdown if NIC needs to be removed.
+#        # It does not respond to ACPI shutdown, so we do allow force shutdown
+#        force_reboot: true
+#        shutdown_timeout: 1
+      register: vm_result
+
+    - *vm_info
+
+    - &assert_vm_result
+      ansible.builtin.assert:
+        that:
+          - vm_result is succeeded
+          - vm_result is changed
+          - vm_result.record.0.description == "ci-boot-order"
+          - vm_result.record.0.memory == 536870912
+          - vm_result.record.0.tags == ["Xlab"]
+          - vm_result.record.0.vcpu == 1
+          - vm_result.record.0.vm_name == "ci-boot-order"
+          - vm_result.record.0.disks | length == 1
+          - vm_result.record.0.nics | length == 1
+          - vm_result.record.0.nics.0.vlan == 1
+          - vm_result.record.0.nics.0.type == "RTL8139"
+          - vm_result.record.0.disks.0.type == "virtio_disk"
+          - vm_result.record.0.disks.0.disk_slot == 0
+          - vm_result.record.0.boot_devices | length == 2
+          - vm_result.record.0.boot_devices.0.type == "virtio_disk"
+          - vm_result.record.0.boot_devices.1.type == "RTL8139"
+          - vm_result.record.0.boot_devices.0.disk_slot == 0
+          - vm_result.record.0.boot_devices.1.vlan == 1
+          - vm_result.record.0.power_state == "stopped"
+
+    - &assert_vm_info_result
+      ansible.builtin.assert:
+        that:
+          - vm_info_result is succeeded
+          - vm_info_result is not changed
+          - vm_info_result.records.0.description == "ci-boot-order"
+          - vm_info_result.records.0.memory == 536870912
+          - vm_info_result.records.0.tags == ["Xlab"]
+          - vm_info_result.records.0.vcpu == 1
+          - vm_info_result.records.0.vm_name == "ci-boot-order"
+          - vm_info_result.records.0.disks | length == 1
+          - vm_info_result.records.0.nics | length == 1
+          - vm_info_result.records.0.nics.0.vlan == 1
+          - vm_info_result.records.0.nics.0.type == "RTL8139"
+          - vm_info_result.records.0.disks.0.type == "virtio_disk"
+          - vm_info_result.records.0.disks.0.disk_slot == 0
+          - vm_info_result.records.0.boot_devices | length == 2
+          - vm_info_result.records.0.boot_devices.0.type == "virtio_disk"
+          - vm_info_result.records.0.boot_devices.2.type == "RTL8139"
+          - vm_info_result.records.0.boot_devices.0.disk_slot == 0
+          - vm_info_result.records.0.boot_devices.2.vlan == 1
+          - vm_info_result.records.0.power_state == "stopped"
+
+# ------------------------------------------------------------------------------------------------------------------
+# Add disks, NICs and set boot_devices - idempotence
+    - <<: *vm_set_boot_devices
+      name: Add disks, NICs and set boot_devices (idempotence)
+    - *vm_info
+    - *assert_vm_result
+    - *assert_vm_info_result
