@@ -64,6 +64,7 @@
       power_state: stop
       snapshot_schedule: "{{ snapshot_schedule.record[0].name }}"
       force_reboot: True
+      shutdown_timeout: 10
     register: output
   - ansible.builtin.assert:
       that:
