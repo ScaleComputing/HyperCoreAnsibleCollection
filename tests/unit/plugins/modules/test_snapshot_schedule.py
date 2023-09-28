@@ -43,7 +43,7 @@ class TestEnsureAbsent:
             name="SnapshotSchedule-test-name",
             rrules=[],
         )
-        rest_client.delete_record.return_value = None
+        rest_client.delete_record.return_value = dict(taskTag="", createdUUID="")
         result = snapshot_schedule.ensure_absent(module, rest_client)
         assert result == (
             True,
