@@ -89,6 +89,7 @@ record:
 from ansible.module_utils.basic import AnsibleModule
 from typing import Tuple, Optional
 import os
+import time
 
 from ..module_utils.typed_classes import (
     TypedVirtualDiskToAnsible,
@@ -166,6 +167,14 @@ def ensure_absent(
     else:
         before = virtual_disk_obj.to_ansible()
         task = virtual_disk_obj.send_delete_request(rest_client)
+        if task["taskTag"] == "":
+            # HyperCore does not return taskTag for deleted virtual disk,
+            # we get back "{'createdUUID': '', 'taskTag': ''}".
+            # CI jobs managed to issue GET before disk was relly deleted -
+            # see https://github.com/ScaleComputing/HyperCoreAnsibleCollection/actions/runs/6334360083/job/17229898281#step:8:173
+            # CI runner is on same physical host as tested VSNS hypercore - small latency.
+            # 1 sec delay is just a guess; I was not able to reproduce if hypercore was on same LAN.
+            time.sleep(1)
         after = wait_task_and_get_updated(rest_client, module, task, must_exist=False)
         return is_changed(before, after), after, dict(before=before, after=after)
 
