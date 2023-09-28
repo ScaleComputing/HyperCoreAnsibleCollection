@@ -1,0 +1,88 @@
+---
+# This is a part of the vm module.
+# The main vm test was divided into smaller tests for sake of synchronous testing.
+
+# HC3 9.3 added machine_type_keyword
+# There was a corner case when omitted machine_type was not correctly handled.
+- name: Test VM create with minimum parameters
+  environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    vm_name: "vm-min-params"
+
+  block:
+# ----------------------------------Cleanup--------------------------------------------------------------------------------
+    - &delete-vm
+      name: Delete the minimal params VM if it exists from before
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        state: absent
+      register: vm_deleted
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+    - &create-vm
+      name: Create the VM using minimal params
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        state: present
+        memory: "{{ '512 MB' | human_to_bytes }}"
+        vcpu: 2
+        disks: []
+        nics: []
+        boot_devices: []
+      register: vm_created
+    - ansible.builtin.assert:
+        that:
+          - vm_created is succeeded
+          - vm_created is changed
+    - &test-create-vm
+      ansible.builtin.assert:
+        that:
+          - vm_created.record.0.description == ""
+          - vm_created.record.0.memory == 536870912
+          - vm_created.record.0.tags == [""]
+          - vm_created.record.0.vcpu == 2
+          - vm_created.record.0.vm_name == "{{ vm_name }}"
+          - vm_created.record.0.disks | length == 0
+          - vm_created.record.0.nics | length == 0
+          - vm_created.record.0.boot_devices | length == 0
+          - vm_created.record.0.power_state == "started"
+          - vm_created.record.0.machine_type == "BIOS"
+
+    - &vm-info
+      name: Retrieve info about minimal params VM
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name }}"
+      register: vm_created
+    - &test-vm-info
+      ansible.builtin.assert:
+        that:
+          - vm_created.records.0.description == ""
+          - vm_created.records.0.memory == 536870912
+          - vm_created.records.0.tags == [""]
+          - vm_created.records.0.vcpu == 2
+          - vm_created.records.0.vm_name == "{{ vm_name }}"
+          - vm_created.records.0.disks | length == 0
+          - vm_created.records.0.nics | length == 0
+          - vm_created.records.0.boot_devices | length == 0
+          - vm_created.records.0.power_state == "started"
+          - vm_created.records.0.machine_type == "BIOS"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+    - name: Create the VM using minimal params - Idempotence
+      <<: *create-vm
+    - ansible.builtin.assert:
+        that:
+          - vm_created is succeeded
+          - vm_created is not changed
+    - *test-create-vm
+    - name: Retrieve info about minimal params VM - Idempotence
+      <<: *vm-info
+    - *test-vm-info
+
+# ----------------------------------Cleanup--------------------------------------------------------------------------------
+    - name: Delete the minimal params VM
+      <<: *delete-vm

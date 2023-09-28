@@ -588,12 +588,12 @@ class VM(PayloadMapper):
             dom["cloudInitData"] = cloud_init_payload
         options = dict(attachGuestToolsISO=payload["attachGuestToolsISO"])
         if hcversion.verify(">=9.3.0"):
-            machine_type_keyword = (
-                VmMachineType.from_ansible_to_hypercore_machine_type_keyword(
-                    self.machine_type
+            if self.machine_type:
+                machine_type_keyword = (
+                    VmMachineType.from_ansible_to_hypercore_machine_type_keyword(
+                        self.machine_type
+                    )
                 )
-            )
-            if machine_type_keyword:
                 options.update(dict(machineTypeKeyword=machine_type_keyword))
         return dict(dom=dom, options=options)
 
