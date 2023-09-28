@@ -32,8 +32,8 @@
       vars:
         disk_type: virtio_disk
         # HyperCore 9.1.14 could remove disk from running VM
-        # HyperCore 9.2.13, 9.2.17 could not remove disk from running VM
-        expected_vm_reboot: "{{ cluster_info.record.icos_version.startswith('9.2') }}"
+        # HyperCore 9.2.13, 9.2.17, 9.3.1 could not remove disk from running VM
+        expected_vm_reboot: "{{ cluster_info.record.icos_version is version('9.2', '>=') }}"
     - include_tasks: 03_remove_disk_running_with_reboot.yml
       vars:
         disk_type: scsi_disk
