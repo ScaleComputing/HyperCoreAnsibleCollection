@@ -128,11 +128,13 @@ record:
 """
 
 from ansible.module_utils.basic import AnsibleModule
+import time
 
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.snapshot_schedule import SnapshotSchedule
+from ..module_utils.task_tag import TaskTag
 
 
 def ensure_present(module, rest_client):
@@ -160,11 +162,12 @@ def ensure_present(module, rest_client):
     else:
         before = None
         new_snapshot_schedule = SnapshotSchedule.from_ansible(module.params)
-        rest_client.create_record(
+        task = rest_client.create_record(
             "/rest/v1/VirDomainSnapshotSchedule",
             new_snapshot_schedule.create_post_payload(),
             module.check_mode,
         )
+        TaskTag.wait_task(rest_client, task)
         changed = True
     after = SnapshotSchedule.get_by_name(module.params, rest_client).to_ansible()
     return changed, [after], dict(before=before, after=after)
@@ -174,12 +177,14 @@ def ensure_absent(module, rest_client):
     snapshot_schedule = SnapshotSchedule.get_by_name(module.params, rest_client)
     if snapshot_schedule:
         # No task tag is returned with DELETE on "/rest/v1/VirDomainSnapshotSchedule/{uuid}"
-        rest_client.delete_record(
+        task = rest_client.delete_record(
             "{0}/{1}".format(
                 "/rest/v1/VirDomainSnapshotSchedule", snapshot_schedule.uuid
             ),
             module.check_mode,
         )
+        if task["taskTag"] == "":
+            time.sleep(1)
         output = snapshot_schedule.to_ansible()
         return True, [output], dict(before=output, after=None)
     return False, [], dict()
