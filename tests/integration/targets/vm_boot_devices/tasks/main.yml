@@ -32,22 +32,9 @@
       scale_computing.hypercore.iso_info:
         name: "integration-test.iso"
       register: uploaded_iso_info
-
-    - name: Create a text file
-      command: touch integration.txt
-      when: uploaded_iso_info.records | length == 0
-
-    - name: Create an ISO file
-      command: genisoimage -output integration.iso integration.txt
-      when: uploaded_iso_info.records | length == 0
-
-    - name: Upload ISO image integration-test.iso to HyperCore API
-      scale_computing.hypercore.iso:
-        name: "integration-test.iso"
-        source: "integration.iso"
-        state: present
-      when: uploaded_iso_info.records | length == 0
-      register: result
+    - ansible.builtin.assert:
+        that:
+          - uploaded_iso_info.records | length == 1
 
     - name: Set a couple of disks
       scale_computing.hypercore.vm_disk:

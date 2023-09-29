@@ -14,6 +14,7 @@
       username: "{{ sc_config[sc_host].sc_username }}"
       password: "{{ sc_config[sc_host].sc_password }}"
       timeout: "{{ sc_timeout }}"
+    expected_iso_size: 356352
   vars_files:
     - ../integration_config.yml
 
@@ -22,30 +23,53 @@
     ansible.builtin.debug:
       msg: SC_HOST={{ lookup('ansible.builtin.env', 'SC_HOST') }} sc_host={{ sc_host }}
 
-  - name: Delete the ISO image (if it may exist)
-    scale_computing.hypercore.iso:
+  - name: Get integration-test.iso and integration-test-disk.iso info
+    scale_computing.hypercore.iso_info:
       cluster_instance: "{{ cluster_instance }}"
       name: "{{ item }}"
-      state: absent
+    register: iso_info_all
     loop:
-        - integration-test.iso
-        - integration-test-disk.iso
+      - integration-test.iso
+      - integration-test-disk.iso
 
-  - name: Create a text file
-    command: touch integration.txt
+  - name: Show existing ISO size
+    debug:
+      msg: |
+        name={{ iso_info_all.results.0.item }} size={{ iso_info_all.results.0.records.0.size | default(omit) }}
+        name={{ iso_info_all.results.1.item }} size={{ iso_info_all.results.1.records.0.size | default(omit) }}
 
-  - name: Create an ISO file
-    command: genisoimage -output integration.iso integration.txt
+  - name: Recreate ISOs if needed
+    when: |
+      not (
+        ((iso_info_all.results.1.records.0.size | default(0)) == expected_iso_size)
+        and
+        ((iso_info_all.results.0.records.0.size | default(0)) == expected_iso_size)
+      )
+    block:
+      - name: Delete the ISO image (if it may exist)
+        scale_computing.hypercore.iso:
+          cluster_instance: "{{ cluster_instance }}"
+          name: "{{ item }}"
+          state: absent
+        loop:
+          - integration-test.iso
+          - integration-test-disk.iso
 
-  - name: Upload ISO image integration-test.iso to HyperCore API
-    scale_computing.hypercore.iso:
-      cluster_instance: "{{ cluster_instance }}"
-      name: "{{ item }}"
-      source: "integration.iso"
-      state: present
-    loop:
-        - integration-test.iso
-        - integration-test-disk.iso
+      - name: Create a text file
+        command: touch integration.txt
+
+      - name: Create an ISO file
+        command: genisoimage -output integration.iso integration.txt
+
+      - name: Upload ISO image integration-test.iso to HyperCore API
+        scale_computing.hypercore.iso:
+          cluster_instance: "{{ cluster_instance }}"
+          name: "{{ item }}"
+          source: "integration.iso"
+          state: present
+        loop:
+            - integration-test.iso
+            - integration-test-disk.iso
 
   - name: Get integration-test.iso info
     scale_computing.hypercore.iso_info:
@@ -57,6 +81,7 @@
         - uploaded_iso_info.records | length > 0
         - uploaded_iso_info.records.0.name == "integration-test.iso"
         - uploaded_iso_info.records.0.ready_for_insert is true
+        - uploaded_iso_info.records.0.size == expected_iso_size
 
   - name: Get integration-test-disk.iso info
     scale_computing.hypercore.iso_info:
@@ -68,6 +93,7 @@
         - uploaded_iso_info.records | length > 0
         - uploaded_iso_info.records.0.name == "integration-test-disk.iso"
         - uploaded_iso_info.records.0.ready_for_insert is true
+        - uploaded_iso_info.records.0.size == expected_iso_size
 
   # =========================================================================================
   # prepare other ISO images we use.
@@ -99,7 +125,7 @@
           state: present
         when: uploaded_iso_info.records == []
 
-      - name: Get integration-test-disk.iso info
+      - name: Get {{ iso_filename }} info
         scale_computing.hypercore.iso_info:
           cluster_instance: "{{ cluster_instance }}"
           name: "{{ iso_filename }}"
