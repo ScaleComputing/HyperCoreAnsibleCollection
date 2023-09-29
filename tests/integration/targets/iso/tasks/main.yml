@@ -23,33 +23,33 @@
 
     - name: Delete the ISO image (if it may exist)
       scale_computing.hypercore.iso: &iso-delete
-        name: "TinyCore-iso-integration.iso"
+        name: "ci-upload-iso-integration.iso"
         state: absent
       register: result
 
     - name: Create a text file
-      command: touch integration.txt
+      command: touch ci-upload-iso-integration.txt
 
     - name: Create an ISO file
-      command: genisoimage -output integration.iso integration.txt
+      command: genisoimage -output ci-upload-iso-integration.iso ci-upload-iso-integration.txt
 
-    - name: Upload ISO image TinyCore-iso-integration.iso to HyperCore API
+    - name: Upload ISO image ci-upload-iso-integration.iso to HyperCore API
       scale_computing.hypercore.iso: &iso-upload
-        name: "TinyCore-iso-integration.iso"
-        source: "integration.iso"
+        name: "ci-upload-iso-integration.iso"
+        source: "ci-upload-iso-integration.iso"
         state: present
       register: result
 
     - name: Assert that ISO image has been uploaded and that the image is ready for insertion
       scale_computing.hypercore.iso_info:
-        name: TinyCore-iso-integration.iso
+        name: ci-upload-iso-integration.iso
       register: result
     - ansible.builtin.assert:
         that:
           - "{{result.records.0.ready_for_insert}} is true"
 
 
-    - name: Upload ISO image TinyCore-iso-integration.iso to HyperCore API (test idempotence)
+    - name: Upload ISO image ci-upload-iso-integration.iso to HyperCore API (test idempotence)
       scale_computing.hypercore.iso: *iso-upload
       register: result
     - ansible.builtin.assert:
@@ -62,7 +62,7 @@
 
     - name: Verify that deletion was successful
       scale_computing.hypercore.iso_info:
-        name: TinyCore-iso-integration.iso
+        name: ci-upload-iso-integration.iso
       register: result
     - ansible.builtin.assert:
         that:
@@ -70,16 +70,16 @@
 
     - name: Delete locally installed ISO image from current dir
       ansible.builtin.file:
-        path: integration.iso
+        path: ci-upload-iso-integration.iso
         state: absent
       register: file_deleted
     - ansible.builtin.assert:
         that:
           file_deleted is changed
 
-    - name: Assert that TinyCore-iso-integration.iso is not in iso_info result any more
+    - name: Assert that ci-upload-iso-integration.iso is not in iso_info result any more
       scale_computing.hypercore.iso_info:
-        name: TinyCore-iso-integration.iso
+        name: ci-upload-iso-integration.iso
       register: result
     - ansible.builtin.assert:
         that:
