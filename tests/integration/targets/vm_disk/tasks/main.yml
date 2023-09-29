@@ -133,28 +133,26 @@
           - result is changed
           - result.record | length == 0
 
+    # The file should be already created by prepare_iso.yml
     - name: Get integration-test.iso info
       scale_computing.hypercore.iso_info:
         name: "integration-test.iso"
       register: uploaded_iso_info
+    - ansible.builtin.assert:
+        that:
+          - uploaded_iso_info.records | length == 1
+          - uploaded_iso_info.records.0.size == 356352
 
-    - name: Create a text file
-      command: touch integration.txt
-      when: uploaded_iso_info.records | length == 0
-
-    - name: Create an ISO file
-      command: genisoimage -output integration.iso integration.txt
-      when: uploaded_iso_info.records | length == 0
-
-    - name: Upload ISO image integration-test.iso to HyperCore API
-      scale_computing.hypercore.iso:
+    - name: Get integration-test-disk.iso info
+      scale_computing.hypercore.iso_info:
         name: "integration-test-disk.iso"
-        source: "integration.iso"
-        state: present
-      when: uploaded_iso_info.records | length == 0
-      register: result
+      register: uploaded_iso_info
+    - ansible.builtin.assert:
+        that:
+          - uploaded_iso_info.records | length == 1
+          - uploaded_iso_info.records.0.size == 356352
 
-    - name: Attach integration.iso ISO onto the current CD-ROM device
+    - name: Attach integration-test-disk.iso ISO onto the current CD-ROM device
       scale_computing.hypercore.vm_disk: &create-cdrom-disk
         vm_name: vm-integration-test-disks
         items:
@@ -258,12 +256,6 @@
           - result is succeeded
           - result is changed
           - result.record == []
-
-    - name: Delete locally installed ISO image from current dir
-      ansible.builtin.file:
-        path: integration.iso
-        state: absent
-      register: file_deleted
 
     - name: Delete the VM on which the tests were performed
       scale_computing.hypercore.vm: *vm-delete
