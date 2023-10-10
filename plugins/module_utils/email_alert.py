@@ -18,7 +18,7 @@ from ..module_utils.typed_classes import (
     TypedEmailAlertToAnsible,
     TypedEmailAlertFromAnsible,
 )
-from typing import Union, Any, Dict, Optional
+from typing import Union, Any, Dict, Optional, List
 
 
 class EmailAlert(PayloadMapper):
@@ -98,7 +98,7 @@ class EmailAlert(PayloadMapper):
         ansible_dict: Dict[Any, Any],
         rest_client: RestClient,
         must_exist: bool = False,
-    ):
+    ) -> Optional[EmailAlert]:
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
         hypercore_dict = rest_client.get_record(
             "/rest/v1/AlertEmailTarget", query, must_exist=must_exist
@@ -112,7 +112,7 @@ class EmailAlert(PayloadMapper):
         ansible_dict: Dict[Any, Any],
         rest_client: RestClient,
         must_exist: bool = False,
-    ):
+    ) -> Optional[EmailAlert]:
         query = get_query(
             ansible_dict,
             "email",
@@ -124,6 +124,26 @@ class EmailAlert(PayloadMapper):
 
         alert_email_from_hypercore = EmailAlert.from_hypercore(hypercore_dict)
         return alert_email_from_hypercore
+
+    @classmethod
+    def list_by_email(
+        cls,
+        ansible_dict: Dict[Any, Any],
+        rest_client: RestClient,
+    ) -> List[EmailAlert]:
+        query = get_query(
+            ansible_dict,
+            "email",
+            ansible_hypercore_map=dict(email="emailAddress"),
+        )
+        hypercore_dict_list = rest_client.list_records(
+            "/rest/v1/AlertEmailTarget", query
+        )
+
+        alert_email_from_hypercore_list = [
+            EmailAlert.from_hypercore(hc_dict) for hc_dict in hypercore_dict_list
+        ]
+        return alert_email_from_hypercore_list
 
     @classmethod
     def get_state(
