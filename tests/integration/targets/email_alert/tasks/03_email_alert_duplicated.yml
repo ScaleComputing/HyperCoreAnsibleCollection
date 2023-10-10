@@ -1,0 +1,77 @@
+---
+# A corner case.
+# See https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues/264
+# On existing cluster are duplicated email_alerts.
+# Remove all duplicates in one pass.
+- name: Prepare for test - cleanup (also test Remove with loop)
+  include_tasks: helper_api_email_alert_delete_all.yml
+- scale_computing.hypercore.email_alert_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - info.records == []
+      - info.records|length == 0|int
+
+- name: API add emails aa*1 bb*2
+  include_tasks: helper_api_email_alert_create_one.yml
+  vars:
+    email_alert_email: "{{ item }}"
+  loop:
+    - "{{ email_aa }}"
+    - "{{ email_bb }}"
+    - "{{ email_bb }}"
+
+# -----------------------------------------------------------
+# Try to create aa or bb
+# email_aa is just regular idempotence
+- name: Create new Email Alert Recipient aa
+  scale_computing.hypercore.email_alert:
+    email: "{{ email_aa }}"
+    state: present
+  register: result
+- scale_computing.hypercore.email_alert_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result is succeeded
+      - result is not changed
+      - result.record.email == email_aa
+- &assert_info
+  ansible.builtin.assert:
+    that:
+      - info.records|length == 3
+      - info.records | map(attribute='email') | sort == [email_aa, email_bb, email_bb] | sort
+
+# email_bb - module will fail, nothing should change
+- name: Create new Email Alert Recipient bb
+  scale_computing.hypercore.email_alert:
+    email: "{{ email_bb }}"
+    state: present
+  register: result
+  ignore_errors: true
+- scale_computing.hypercore.email_alert_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result is failed
+      - result is not changed
+      - "'2 records from endpoint' in result.msg"
+- *assert_info
+
+# -----------------------------------------------------------
+- name: Remove Email Alert Recipient bb
+  scale_computing.hypercore.email_alert:
+    email: "{{ email_bb }}"
+    state: absent
+  register: result
+- scale_computing.hypercore.email_alert_info:
+  register: info
+- ansible.builtin.assert:
+    that:
+      - result is succeeded
+      - result is changed
+      - result.record == {}
+- ansible.builtin.assert:
+    that:
+      - info.records|length == 1
+      - info.records | map(attribute='email') | sort == [email_aa] | sort

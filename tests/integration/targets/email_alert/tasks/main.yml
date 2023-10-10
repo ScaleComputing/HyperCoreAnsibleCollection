@@ -19,5 +19,6 @@
   block:
     - include_tasks: 01_email_alert_info.yml
     - include_tasks: 02_email_alert.yml
+    - include_tasks: 03_email_alert_duplicated.yml
   always:
     - include_tasks: helper_api_email_alert_reset.yml
