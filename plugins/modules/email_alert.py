@@ -18,6 +18,8 @@ short_description: Create, update, delete or send test emails to Email Alert Rec
 description:
   - Use this module to create, update, delete or send test emails to the
     Email Alert Recipients configuration on HyperCore API.
+  - Module does not support creating or modifying multiple Email Alert Recipients with same email address.
+  - Module does allow removing duplicated Email Alert Recipients.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -199,15 +201,20 @@ def update_email_alert(module: AnsibleModule, rest_client: RestClient):
 
 
 def delete_email_alert(module: AnsibleModule, rest_client: RestClient):
-    delete_email = EmailAlert.get_by_email(
+    delete_emails = EmailAlert.list_by_email(
         dict(email=module.params["email"]), rest_client
     )
 
-    if not delete_email:
+    if not delete_emails:
         return False, {}, dict(before={}, after={})
+    if len(delete_emails) > 1:
+        msg = f"Multiple EmailAlert objects match email={module.params['email']} - count={len(delete_emails)}."
+        msg += " All will be deleted, but only one will be reported as deleted in module return value."
+        module.warn(msg)
 
-    before = delete_email.to_ansible()
-    delete_email.delete(rest_client, module.check_mode)
+    before = delete_emails[0].to_ansible()
+    for delete_email in delete_emails:
+        delete_email.delete(rest_client, module.check_mode)
 
     return (
         True,

@@ -10,6 +10,8 @@ __metaclass__ = type
 import sys
 
 from unittest import mock
+from unittest.mock import call
+
 import pytest
 
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
@@ -245,18 +247,45 @@ class TestModifyEmailAlert:
                 email_alert.update_email_alert(module, rest_client)
 
     @pytest.mark.parametrize(
-        ("rc_email_alert", "email", "expected_return"),
+        ("rc_email_alerts", "email", "expected_return"),
         [
-            (None, "test@test.com", (False, {})),
+            # no email
+            ([], "test@test.com", (False, {})),
+            # single email
             (
-                EmailAlert(
-                    uuid="test",
-                    alert_tag_uuid="0",
-                    email="test@test.com",
-                    resend_delay=123,
-                    silent_period=123,
-                    latest_task_tag={},
-                ),
+                [
+                    EmailAlert(
+                        uuid="test",
+                        alert_tag_uuid="0",
+                        email="test@test.com",
+                        resend_delay=123,
+                        silent_period=123,
+                        latest_task_tag={},
+                    ),
+                ],
+                "test@test.com",
+                (True, {}),
+            ),
+            # duplicate emails
+            (
+                [
+                    EmailAlert(
+                        uuid="test_uuid_0",
+                        alert_tag_uuid="0",
+                        email="test@test.com",
+                        resend_delay=123,
+                        silent_period=123,
+                        latest_task_tag={},
+                    ),
+                    EmailAlert(
+                        uuid="test_uuid_1",
+                        alert_tag_uuid="1",
+                        email="test@test.com",
+                        resend_delay=123,
+                        silent_period=123,
+                        latest_task_tag={},
+                    ),
+                ],
                 "test@test.com",
                 (True, {}),
             ),
@@ -268,7 +297,7 @@ class TestModifyEmailAlert:
         rest_client,
         task_wait,
         mocker,
-        rc_email_alert,
+        rc_email_alerts,
         email,
         expected_return,
     ):
@@ -283,8 +312,8 @@ class TestModifyEmailAlert:
             "taskTag": 123,
         }
         mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert.EmailAlert.get_by_email"
-        ).return_value = rc_email_alert
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert.EmailAlert.list_by_email"
+        ).return_value = rc_email_alerts
         rest_client.update_record.return_value = task_tag
 
         called_with_dict = dict(
@@ -296,13 +325,13 @@ class TestModifyEmailAlert:
 
         EmailAlert.delete = mock.create_autospec(EmailAlert.delete)
         email_alert.delete_email_alert(module, rest_client)
-        if rc_email_alert:
-            EmailAlert.delete.assert_called_once_with(
-                rc_email_alert, **called_with_dict
-            )
-        else:
-            EmailAlert.delete.assert_not_called()
-
+        assert EmailAlert.delete.call_count == len(rc_email_alerts)
+        EmailAlert.delete.assert_has_calls(
+            [
+                call(rc_email_alert, **called_with_dict)
+                for rc_email_alert in rc_email_alerts
+            ]
+        )
         assert changed == expected_return[0]
         assert record == expected_return[1]
 
