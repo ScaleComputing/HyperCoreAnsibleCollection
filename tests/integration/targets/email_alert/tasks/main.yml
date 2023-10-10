@@ -6,27 +6,14 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
     email_alert_config: "{{ sc_config[sc_host].email_alert }}"
+    email_aa: aa@test.com
+    email_bb: bb@test.com
+    email_all:
+      - "{{ email_aa }}"
+      - "{{ email_bb }}"
 
   block:
     - include_tasks: 01_email_alert_info.yml
     - include_tasks: 02_email_alert.yml
   always:
-    - name: Get current email_alert
-      scale_computing.hypercore.api:
-        action: get
-        endpoint: /rest/v1/AlertEmailTarget
-      register: api_email_alert_result
-
-    - name: Remove current email_alert
-      scale_computing.hypercore.api:
-        action: delete
-        endpoint: /rest/v1/AlertEmailTarget/{{ item.uuid }}
-      loop: "{{ api_email_alert_result.record }}"
-
-    - name: Create configured email_alert
-      scale_computing.hypercore.api:
-        action: post
-        endpoint: /rest/v1/AlertEmailTarget
-        data:
-          emailAddress: "{{ item }}"
-      loop: "{{ email_alert_config }}"
+    - include_tasks: helper_api_email_alert_reset.yml

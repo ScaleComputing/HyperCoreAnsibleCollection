@@ -1,0 +1,13 @@
+---
+# Remove oll email alerts
+- name: HELPER DELETE ALL Get current email_alert
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/AlertEmailTarget
+  register: api_email_alert_result
+
+- name: HELPER DELETE ALL Remove current email_alert
+  scale_computing.hypercore.api:
+    action: delete
+    endpoint: /rest/v1/AlertEmailTarget/{{ item.uuid }}
+  loop: "{{ api_email_alert_result.record }}"

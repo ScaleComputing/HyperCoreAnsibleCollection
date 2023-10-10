@@ -1,0 +1,22 @@
+---
+# Reset email alert configuration after CI tests finishes.
+
+- name: HELPER RESET Get current email_alert
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/AlertEmailTarget
+  register: api_email_alert_result
+
+- name: HELPER RESET Remove current email_alert
+  scale_computing.hypercore.api:
+    action: delete
+    endpoint: /rest/v1/AlertEmailTarget/{{ item.uuid }}
+  loop: "{{ api_email_alert_result.record }}"
+
+- name: HELPER RESET Create configured email_alert
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/AlertEmailTarget
+    data:
+      emailAddress: "{{ item }}"
+  loop: "{{ email_alert_config }}"
