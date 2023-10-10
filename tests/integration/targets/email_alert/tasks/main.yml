@@ -11,6 +11,10 @@
     email_all:
       - "{{ email_aa }}"
       - "{{ email_bb }}"
+    new_email: new@test.com
+    create_email: test@test.com
+    new_email_2: new_2@test.com
+    create_email_2: test_2@test.com
 
   block:
     - include_tasks: 01_email_alert_info.yml
