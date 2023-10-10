@@ -1,0 +1,8 @@
+---
+# Create one email alert
+- name: HELPER CREATE ONE Create configured email_alert
+  scale_computing.hypercore.api:
+    action: post
+    endpoint: /rest/v1/AlertEmailTarget
+    data:
+      emailAddress: "{{ email_alert_email }}"
