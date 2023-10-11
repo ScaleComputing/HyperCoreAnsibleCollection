@@ -73,7 +73,7 @@ integration:  ## Run integration tests
 docs:  ## Build collection documentation
 	pip install -r docs.requirements
 	pip install -r docs/requirements.txt
-	cd docs && ./build.sh
+	cd docs && ANSIBLE_COLLECTIONS_PATH=${PWD}/../../.. ./build.sh
 
 .PHONY: mypy
 mypy: ## Run mypy hint checker
