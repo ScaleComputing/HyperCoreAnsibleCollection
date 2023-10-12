@@ -22,6 +22,7 @@ All other parameters hold the information related to the resource that we are op
    :caption: Guides:
 
    extra/quickstart.rst
+   extra/password_masking.rst
    extra/deprecation.rst
 
 
