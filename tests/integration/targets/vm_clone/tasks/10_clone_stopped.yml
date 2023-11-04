@@ -1,3 +1,13 @@
+# ---------------------------------------------------------------------------------------------------------------------
+- name: Retrieve XLAB-vm_clone_CI-test
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-vm_clone-CI_test
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+
+# ----------------------------------Clone check------------------------------------------------------------------------
 - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-clone
   scale_computing.hypercore.vm_clone:
     vm_name: XLAB-vm_clone_CI-test-clone

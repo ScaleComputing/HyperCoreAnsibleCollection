@@ -6,6 +6,8 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   block:
+    # For manual testing, run 01 and 02 once.
+    # Then a single 10, 11 etc test can be run.
     - include_tasks: 01_cleanup.yml
     - include_tasks: 02_prepare_source_vms.yml
     - include_tasks: 10_clone_stopped.yml
