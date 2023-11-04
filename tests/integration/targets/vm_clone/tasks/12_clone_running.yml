@@ -29,7 +29,7 @@
       - demo_server_info.records.0.boot_devices | length == cloned_while_running_info.records.0.boot_devices | length
       - demo_server_info.records.0.disks | length == cloned_while_running_info.records.0.disks | length
       - demo_server_info.records.0.nics | length == cloned_while_running_info.records.0.nics | length
-      - source_info.records.0.nics.0.mac !=  cloned_info.records.0.nics.0.mac
+      - demo_server_info.records.0.nics.0.mac !=  cloned_while_running_info.records.0.nics.0.mac
       - demo_server_info.records.0.node_affinity != cloned_while_running_info.records.0.node_affinity
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
@@ -55,5 +55,5 @@
       - demo_server_info.records.0.boot_devices | length == cloned_while_running_info.records.0.boot_devices | length
       - demo_server_info.records.0.disks | length == cloned_while_running_info.records.0.disks | length
       - demo_server_info.records.0.nics | length == cloned_while_running_info.records.0.nics | length
-      - source_info.records.0.nics.0.mac !=  cloned_info.records.0.nics.0.mac
+      - demo_server_info.records.0.nics.0.mac !=  cloned_while_running_info.records.0.nics.0.mac
       - demo_server_info.records.0.node_affinity != cloned_while_running_info.records.0.node_affinity
