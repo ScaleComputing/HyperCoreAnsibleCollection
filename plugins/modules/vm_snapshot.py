@@ -16,6 +16,12 @@ author:
 short_description: Handles VM snapshots.
 description:
   - Use this module to perform snapshot creation or deletion.
+  - |
+    No snapshot will be created if VM already has a snapshot with same I(label) as passed to module.
+    This allows rerunning the playbook in idempotent way.
+    Ansible will create a given snapshot only first time.
+    This is notable difference from web UI,
+    where user can create multiple snapshots with same label.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
