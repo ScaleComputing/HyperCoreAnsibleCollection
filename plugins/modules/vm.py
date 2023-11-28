@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm
 
@@ -242,6 +243,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Create and start the VM with disks, nics and boot devices set. Attach ISO onto the VM. Add cloud init data
   scale_computing.hypercore.vm:
@@ -286,6 +288,7 @@ EXAMPLES = r"""
   register: result
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

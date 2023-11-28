@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_disk
 
@@ -121,6 +122,7 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Set exact disk
   scale_computing.hypercore.vm_disk:
@@ -222,6 +224,7 @@ EXAMPLES = r"""
 """
 
 
+# language=yaml
 RETURN = r"""
 record:
   description:

@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: time_server
 
@@ -35,12 +36,14 @@ notes:
  - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Change NTP server
   scale_computing.hypercore.time_server:
     source: europe.pool.ntp.org
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

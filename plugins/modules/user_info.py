@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: user_info
 
@@ -29,6 +30,7 @@ options:
     type: str
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: List all users
   scale_computing.hypercore.user_info:
@@ -40,6 +42,7 @@ EXAMPLES = r"""
   register: user
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

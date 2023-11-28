@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: dns_config
 
@@ -53,6 +54,7 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Add entry to existing DNS configuration
   scale_computing.hypercore.dns_config:
@@ -71,6 +73,7 @@ EXAMPLES = r"""
     state: set
 """
 
+# language=yaml
 RETURN = r"""
 results:
   description:

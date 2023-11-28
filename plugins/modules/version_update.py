@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: version_update
 
@@ -33,6 +34,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Update hypercore version
   scale_computing.hypercore.version_update:
@@ -40,6 +42,7 @@ EXAMPLES = r"""
   register: result
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: syslog_server_info
 
@@ -25,12 +26,14 @@ seealso:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: List all Syslog servers on HyperCore API
   scale_computing.hypercore.syslog_server_info:
   register: syslog_server
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

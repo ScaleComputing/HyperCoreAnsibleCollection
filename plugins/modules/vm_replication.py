@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_replication
 
@@ -40,6 +41,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Replicate demo-vm VM to DC2
   scale_computing.hypercore.vm_replication:
@@ -58,6 +60,7 @@ EXAMPLES = r"""
     state: reenabled
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

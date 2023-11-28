@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_snapshot_attach_disk
 
@@ -63,6 +64,7 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Attach a disk from a VM Snapshot to a VM
   scale_computing.hypercore.vm_snapshot_attach_disk:
@@ -74,6 +76,7 @@ EXAMPLES = r"""
     source_disk_slot: 1
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

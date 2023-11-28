@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: remote_cluster_info
 
@@ -31,6 +32,7 @@ options:
       - Otherwise, all remote clusters are going to get listed.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Get info about specific remote cluster
   scale_computing.hypercore.remote_cluster_info:
@@ -42,6 +44,7 @@ EXAMPLES = r"""
   register: result
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

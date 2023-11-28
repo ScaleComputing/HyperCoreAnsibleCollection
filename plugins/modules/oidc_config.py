@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: oidc_config
 
@@ -50,6 +51,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: New OIDC config
   scale_computing.hypercore.oidc_config:
@@ -60,6 +62,7 @@ EXAMPLES = r"""
     scopes: "openid+profile"
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

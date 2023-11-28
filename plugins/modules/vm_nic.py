@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_nic
 
@@ -72,6 +73,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Set NIC interface
   scale_computing.hypercore.vm_nic:
@@ -136,6 +138,7 @@ EXAMPLES = r"""
     state: set
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

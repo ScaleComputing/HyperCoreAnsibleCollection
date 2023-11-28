@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: snapshot_schedule_info
 
@@ -31,6 +32,7 @@ options:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: List specific snapshot schedule
   scale_computing.hypercore.snapshot_schedule_info:
@@ -43,6 +45,7 @@ EXAMPLES = r"""
 """
 
 
+# language=yaml
 RETURN = r"""
 records:
   description:

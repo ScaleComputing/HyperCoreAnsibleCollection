@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: cluster_shutdown
 
@@ -32,12 +33,14 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Shutdown cluster
   scale_computing.hypercore.cluster_shutdown:
     force_shutdown: true
 """
 
+# language=yaml
 RETURN = r"""
 shutdown:
   description: C(true) if the cluster has been shut down.

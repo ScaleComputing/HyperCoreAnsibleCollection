@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: registration
 
@@ -48,6 +49,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: New registration
   scale_computing.hypercore.registration:
@@ -67,6 +69,7 @@ EXAMPLES = r"""
     state: absent
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

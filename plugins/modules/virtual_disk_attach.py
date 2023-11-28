@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: virtual_disk_attach
 
@@ -86,6 +87,7 @@ options:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Clone an uploaded virtual disk and attach it to a virtual machine.
   scale_computing.hypercore.virtual_disk_attach:
@@ -103,6 +105,7 @@ EXAMPLES = r"""
   register: disk
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

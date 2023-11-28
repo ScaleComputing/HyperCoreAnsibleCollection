@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: virtual_disk
 
@@ -42,6 +43,7 @@ options:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: upload VD to HyperCore cluster
   scale_computing.hypercore.virtual_disk:
@@ -57,6 +59,7 @@ EXAMPLES = r"""
   register: vd_delete_info
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

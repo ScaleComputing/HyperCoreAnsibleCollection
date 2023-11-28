@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: cluster_name
 
@@ -32,6 +33,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Update cluster name
   scale_computing.hypercore.cluster_name:
@@ -39,6 +41,7 @@ EXAMPLES = r"""
   register: result
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

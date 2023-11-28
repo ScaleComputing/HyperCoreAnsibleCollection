@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_nic_info
 
@@ -30,6 +31,7 @@ options:
     type: int
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Retrieve NIC info on VLAN 15
   scale_computing.hypercore.vm_nic_info:
@@ -43,6 +45,7 @@ EXAMPLES = r"""
   register: testout
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

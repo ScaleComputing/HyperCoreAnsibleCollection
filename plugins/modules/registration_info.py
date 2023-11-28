@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: registration_info
 
@@ -22,6 +23,7 @@ extends_documentation_fragment:
 seealso: []
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Get registration info
   scale_computing.hypercore.registration_info:
@@ -32,6 +34,7 @@ EXAMPLES = r"""
     var: output
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

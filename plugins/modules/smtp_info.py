@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: smtp_info
 
@@ -29,12 +30,14 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: List all configurations on DNS configuration on HyperCore API
   scale_computing.hypercore.smtp_info:
   register: smtp_info
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

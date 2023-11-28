@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_info
 
@@ -30,6 +31,7 @@ options:
     type: str
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Retrieve specific VM
   scale_computing.hypercore.vm_info:
@@ -41,6 +43,7 @@ EXAMPLES = r"""
   register: result
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

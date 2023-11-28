@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: certificate
 
@@ -35,6 +36,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Upload new certificate
   scale_computing.hypercore.certificate:
@@ -42,6 +44,7 @@ EXAMPLES = r"""
     certificate: "{{ lookup('file', 'scale_cert.cer') }}"
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

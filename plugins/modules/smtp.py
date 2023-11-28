@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: smtp
 
@@ -68,6 +69,7 @@ notes:
 """
 
 # TODO: HOW TO DELETE SMTP CONFIGURATION?? SHOULD STATE PRESENT/ABSENT BE ADDED??
+# language=yaml
 EXAMPLES = r"""
 - name: Modify SMTP configuration (authorization disabled)
   scale_computing.hypercore.smtp:
@@ -86,6 +88,7 @@ EXAMPLES = r"""
     from_address: example@example.com
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

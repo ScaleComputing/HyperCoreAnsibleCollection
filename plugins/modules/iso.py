@@ -10,6 +10,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: iso
 
@@ -57,6 +58,7 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Create ISO image
   scale_computing.hypercore.iso:
@@ -71,6 +73,7 @@ EXAMPLES = r"""
 """
 
 
+# language=yaml
 RETURN = r"""
 record:
   description:

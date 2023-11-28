@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: api
 
@@ -62,6 +63,7 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Create a VM with specified data
   scale_computing.hypercore.api:
@@ -162,6 +164,7 @@ EXAMPLES = r"""
 """
 
 
+# language=yaml
 RETURN = r"""
 record:
   description:

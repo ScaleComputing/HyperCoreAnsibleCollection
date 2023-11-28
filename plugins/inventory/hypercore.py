@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 name: hypercore
 author:
@@ -43,6 +44,9 @@ options:
     default: false
     required: false
 """
+
+
+# language=yaml
 EXAMPLES = r"""
 # A trivial example that creates a list of all VMs.
 # No groups will be created - all the resulting hosts are ungrouped.
