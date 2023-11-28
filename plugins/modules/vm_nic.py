@@ -123,9 +123,9 @@ EXAMPLES = r"""
         type: RTL8139
     state: present
   loop:
-  - XLAB-demo-vm
-  - XLAB-POST-TEST
-  - XLAB-us11-example6
+    - XLAB-demo-vm
+    - XLAB-POST-TEST
+    - XLAB-us11-example6
 
 - name: Change mac on NIC
   scale_computing.hypercore.vm_nic:

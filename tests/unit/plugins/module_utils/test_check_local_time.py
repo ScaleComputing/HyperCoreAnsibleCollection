@@ -32,7 +32,7 @@ pytestmark = pytest.mark.skipif(
 class TestCheckLocalTime:
     def test_get_local_time(self):
         local_time = check_local_time.get_local_time("Europe/Ljubljana")
-        assert type(local_time) == datetime.datetime
+        assert isinstance(local_time, datetime.datetime)
 
     def test_get_time_interval(self):
         start_time, end_time = check_local_time.get_time_interval("22:31-4:45")

@@ -70,7 +70,6 @@ EXAMPLES = r"""
       username: user
       password: pass
   register: output
-
 """
 
 RETURN = r"""
