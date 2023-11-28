@@ -10,7 +10,7 @@ jobs:
   mypy:
     name: Type checks (mypy)
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:8
+    container: quay.io/justinc1_github/scale_ci_integ:9
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -27,7 +27,7 @@ jobs:
 
   docs:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:8
+    container: quay.io/justinc1_github/scale_ci_integ:9
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -48,7 +48,7 @@ jobs:
 
   sanity-test:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:8
+    container: quay.io/justinc1_github/scale_ci_integ:9
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -69,7 +69,7 @@ jobs:
 
   units-test:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:8
+    container: quay.io/justinc1_github/scale_ci_integ:9
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
