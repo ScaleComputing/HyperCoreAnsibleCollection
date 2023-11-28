@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: snapshot_schedule
 
@@ -84,6 +85,7 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Setup snapshot schedule
   scale_computing.hypercore.snapshot_schedule:
@@ -98,6 +100,7 @@ EXAMPLES = r"""
 """
 
 # TODO record is list with single item, should be a dict.
+# language=yaml
 RETURN = r"""
 record:
   description:

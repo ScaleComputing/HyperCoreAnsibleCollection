@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: node_info
 
@@ -23,12 +24,14 @@ seealso:
   - module: scale_computing.hypercore.vm_node_affinity
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: List all cluster nodes
   scale_computing.hypercore.node_info:
   register: nodes
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

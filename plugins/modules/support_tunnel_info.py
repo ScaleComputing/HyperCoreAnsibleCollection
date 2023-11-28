@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: support_tunnel_info
 
@@ -23,11 +24,13 @@ extends_documentation_fragment:
 seealso: []
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Check status of the remote support tunnel
   scale_computing.hypercore.support_tunnel_info:
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

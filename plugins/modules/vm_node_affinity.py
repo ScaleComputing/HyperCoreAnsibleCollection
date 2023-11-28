@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_node_affinity
 
@@ -82,6 +83,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Set VM node affinity by node uuid
   scale_computing.hypercore.vm_node_affinity:
@@ -115,6 +117,7 @@ EXAMPLES = r"""
       node_uuid: ""
 """
 
+# language=yaml
 RETURN = r"""
 msg:
   description:

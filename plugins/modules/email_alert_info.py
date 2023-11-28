@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: email_alert_info
 
@@ -25,12 +26,14 @@ seealso:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: List all Email Alert Recipients on HyperCore API
   scale_computing.hypercore.email_alert_info:
   register: email_alert
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

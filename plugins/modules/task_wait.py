@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: task_wait
 
@@ -34,6 +35,7 @@ options:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Wait for the object to be created
   scale_computing.hypercore.task_wait:
@@ -43,6 +45,7 @@ EXAMPLES = r"""
 """
 
 
+# language=yaml
 RETURN = r""" # """  # https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html
 
 

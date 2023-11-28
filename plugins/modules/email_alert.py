@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: email_alert
 
@@ -52,6 +53,7 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Create a new Email Alert Recipient
   scale_computing.hypercore.email_alert:
@@ -75,6 +77,7 @@ EXAMPLES = r"""
     state: test
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

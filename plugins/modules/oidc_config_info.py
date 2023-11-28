@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: oidc_config_info
 
@@ -23,11 +24,13 @@ extends_documentation_fragment:
 seealso: []
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: info OIDC config
   scale_computing.hypercore.oidc_config_info:
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

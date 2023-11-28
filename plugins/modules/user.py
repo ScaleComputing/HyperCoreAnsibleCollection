@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: user
 
@@ -68,6 +69,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Create new user
   scale_computing.hypercore.user:
@@ -94,6 +96,7 @@ EXAMPLES = r"""
     username: user
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

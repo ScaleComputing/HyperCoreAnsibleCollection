@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_snapshot
 
@@ -57,6 +58,7 @@ options:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Create snapshot with label "new" from VM "test-VM"
   scale_computing.hypercore.vm_snapshot:
@@ -81,6 +83,7 @@ EXAMPLES = r"""
   register: vm_snapshot
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_clone
 
@@ -58,6 +59,7 @@ notes:
   - C(check_mode) is not supported.
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Clone VM
   scale_computing.hypercore.vm_clone:
@@ -73,6 +75,7 @@ EXAMPLES = r"""
   register: output
 """
 
+# language=yaml
 RETURN = r"""
 msg:
   description:

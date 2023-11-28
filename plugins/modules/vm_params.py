@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_params
 
@@ -78,6 +79,7 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Set VM simple params
   scale_computing.hypercore.vm_params:
@@ -104,6 +106,7 @@ EXAMPLES = r"""
 """
 
 
+# language=yaml
 RETURN = r"""
 vm_rebooted:
   description:

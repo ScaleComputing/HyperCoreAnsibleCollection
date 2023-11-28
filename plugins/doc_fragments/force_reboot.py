@@ -10,6 +10,7 @@ __metaclass__ = type
 
 
 class ModuleDocFragment(object):
+    # language=yaml
     DOCUMENTATION = r"""
 options:
   force_reboot:

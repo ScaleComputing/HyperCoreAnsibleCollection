@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: version_update_status_info
 
@@ -24,12 +25,14 @@ seealso:
   - module: scale_computing.hypercore.version_update_info
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Get status of the latest update applied
   scale_computing.hypercore.version_update_status_info:
   register: result
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

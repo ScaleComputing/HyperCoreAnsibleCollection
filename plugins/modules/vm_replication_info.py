@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: vm_replication_info
 
@@ -30,6 +31,7 @@ options:
     required: False
 """
 
+# language=yaml
 EXAMPLES = r"""
 - name: Module vm_replication_info sample output
   scale_computing.hypercore.vm_replication_info:
@@ -41,6 +43,7 @@ EXAMPLES = r"""
   register: records
 """
 
+# language=yaml
 RETURN = r"""
 records:
   description:

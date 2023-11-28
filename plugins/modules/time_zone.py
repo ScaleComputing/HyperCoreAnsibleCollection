@@ -9,6 +9,7 @@ from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 
+# language=yaml
 DOCUMENTATION = r"""
 module: time_zone
 
@@ -433,12 +434,14 @@ notes:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: Change time zone
   scale_computing.hypercore.time_zone:
     source: Europe/Ljubljana
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:

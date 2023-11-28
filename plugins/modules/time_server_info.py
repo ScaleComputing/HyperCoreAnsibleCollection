@@ -7,6 +7,7 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+# language=yaml
 DOCUMENTATION = r"""
 module: time_server_info
 
@@ -25,12 +26,14 @@ seealso:
 """
 
 
+# language=yaml
 EXAMPLES = r"""
 - name: List all Time Server source configurations on HyperCore API
   scale_computing.hypercore.time_server_info:
   register: time_server
 """
 
+# language=yaml
 RETURN = r"""
 record:
   description:
