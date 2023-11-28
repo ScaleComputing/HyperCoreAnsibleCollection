@@ -165,7 +165,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ansible: [ 2.15.0 ]
+        ansible: [ 2.16.0 ]
         example_name: ${{ fromJson(needs.examples-matrix.outputs.matrix) }}
     steps:
       - name: Checkout
@@ -211,7 +211,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # ansible: [2.15.0]
+        # ansible: [2.16.0]
         # python: [3.11]
         # test_name: [user_info]
         test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
@@ -256,7 +256,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=2.15.0
+      - run: pip install ansible-core~=2.16.0
       # We have ansible.cfg "for testing" in git repo
       # (it is excluded in galaxy.yml, so it is not part of collection artifact)
       # But it does affect ansible-galaxy and ansible-test commands.
@@ -352,7 +352,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=2.15.0
+      - run: pip install ansible-core~=2.16.0
       # ${{ env.WORKDIR }} cannot be used
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
