@@ -215,13 +215,13 @@ class Client:
             if (
                 e.args
                 and isinstance(e.args, tuple)
-                and type(e.args[0]) == ConnectionRefusedError
+                and isinstance(e.args[0], ConnectionRefusedError)
             ):
                 raise ConnectionRefusedError(e.reason)
             elif (
                 e.args
                 and isinstance(e.args, tuple)
-                and type(e.args[0]) == ConnectionResetError
+                and isinstance(e.args[0], ConnectionResetError)
             ):
                 raise ConnectionResetError(e.reason)
             elif (

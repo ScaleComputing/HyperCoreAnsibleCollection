@@ -280,7 +280,7 @@ class UpdateStatus(PayloadMapper):
     def from_hypercore(cls, hypercore_data: dict[Any, Any]) -> UpdateStatus:
         # using .get since keys are not always present in the output
         # using type == str since "prepareStatus" is sometimes str, sometimes dict, and .get can't be used
-        if type(hypercore_data["prepareStatus"]) == str:
+        if isinstance(hypercore_data["prepareStatus"], str):
             prepare_status = hypercore_data["prepareStatus"]
         else:
             prepare_status = hypercore_data["prepareStatus"].get("state")

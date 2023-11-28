@@ -72,7 +72,6 @@ EXAMPLES = r"""
       username: user
       password: pass
   register: output
-
 """
 
 # language=yaml

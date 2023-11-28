@@ -36,9 +36,9 @@ EXAMPLES = r"""
 - name: Module vm_replication_info sample output
   scale_computing.hypercore.vm_replication_info:
     cluster_instance:
-        host: 'host address'
-        username: 'username'
-        password: 'password'
+      host: 'host address'
+      username: 'username'
+      password: 'password'
     vm_name: XLAB-demo-vm-clone
   register: records
 """

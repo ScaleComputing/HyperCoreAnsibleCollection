@@ -54,87 +54,86 @@ EXAMPLES = r"""
 plugin: scale_computing.hypercore.hypercore
 
 # `ansible-inventory -i examples/hypercore_inventory.yaml --graph` output:
-#@all:
-#  |--@grp0:
-#  |  |--ci-inventory-vm4
-#  |  |--ci-inventory-vm6
-#  |--@grp1:
-#  |  |--ci-inventory-vm5
-#  |  |--ci-inventory-vm6
-#  |--@ungrouped:
-#  |  |--ci-inventory-vm2
-#  |  |--ci-inventory-vm3
+# @all:
+#   |--@grp0:
+#   |  |--ci-inventory-vm4
+#   |  |--ci-inventory-vm6
+#   |--@grp1:
+#   |  |--ci-inventory-vm5
+#   |  |--ci-inventory-vm6
+#   |--@ungrouped:
+#   |  |--ci-inventory-vm2
+#   |  |--ci-inventory-vm3
 
 
 # Example with all available parameters and how to set them.
 # A group "my-group" is created where all the VMs with "ansbile_enable" tag are added.
 # For VM "ci-inventory-vm6" we added values for host and user, every other VM has default values.
 
-plugin: scale_computing.hypercore.hypercore
+plugin: scale_computing.hypercore.hypercore  # yamllint disable rule:key-duplicates
 
-look_for_ansible_enable: True
-look_for_ansible_disable: True
+look_for_ansible_enable: true
+look_for_ansible_disable: true
 
 # `ansible-inventory -i hypercore_inventory.yaml --list` output:
-#{
-#    "_meta": {
-#        "hostvars": {
-#            "ci-inventory-vm2": {
-#                "ansible_host": "10.0.0.2",
-#               "ansible_port": 22,
+# {
+#     "_meta": {
+#         "hostvars": {
+#             "ci-inventory-vm2": {
+#                 "ansible_host": "10.0.0.2",
+#                "ansible_port": 22,
+#                 "ansible_user": "root"
+#             },
+#             "ci-inventory-vm3": {
+#                "ansible_host": "10.0.0.3",
+#                "ansible_port": 22,
 #                "ansible_user": "root"
-#            },
-#            "ci-inventory-vm3": {
-#               "ansible_host": "10.0.0.3",
-#               "ansible_port": 22,
-#               "ansible_user": "root"
-#            },
-#            "ci-inventory-vm4": {
-#               "ansible_host": "10.0.0.4",
-#               "ansible_port": 22,
-#               "ansible_user": "root"
-#            },
-#            "ci-inventory-vm5": {
-#               "ansible_host": "ci-inventory-vm5",
-#               "ansible_port": 22,
-#               "ansible_user": "root"
-#            },
-#            "ci-inventory-vm6": {
-#               "ansible_host": "ci-inventory-vm6",
-#               "ansible_port": 22,
-#               "ansible_user": "root"
-#           }
-#       }
-#    },
-#    "all": {
-#        "children": [
-#           "grp0",
-#           "grp1",
-#           "ungrouped"
-#        ]
-#    },
-#   "grp0": {
-#        "hosts": [
-#           "ci-inventory-vm4",
-#           "ci-inventory-vm6"
-#        ]
-#   },
-#    "grp1": {
-#        "hosts": [
-#            "ci-inventory-vm5",
+#             },
+#             "ci-inventory-vm4": {
+#                "ansible_host": "10.0.0.4",
+#                "ansible_port": 22,
+#                "ansible_user": "root"
+#             },
+#             "ci-inventory-vm5": {
+#                "ansible_host": "ci-inventory-vm5",
+#                "ansible_port": 22,
+#                "ansible_user": "root"
+#             },
+#             "ci-inventory-vm6": {
+#                "ansible_host": "ci-inventory-vm6",
+#                "ansible_port": 22,
+#                "ansible_user": "root"
+#            }
+#        }
+#     },
+#     "all": {
+#         "children": [
+#            "grp0",
+#            "grp1",
+#            "ungrouped"
+#         ]
+#     },
+#    "grp0": {
+#         "hosts": [
+#            "ci-inventory-vm4",
 #            "ci-inventory-vm6"
-#        ]
+#         ]
 #    },
-#    "ungrouped": {
-#        "hosts": [
-#            "ci-inventory-vm2",
-#           "ci-inventory-vm3"
-#        ]
-#   }
-#}
-
-
+#     "grp1": {
+#         "hosts": [
+#             "ci-inventory-vm5",
+#             "ci-inventory-vm6"
+#         ]
+#     },
+#     "ungrouped": {
+#         "hosts": [
+#             "ci-inventory-vm2",
+#            "ci-inventory-vm3"
+#         ]
+#    }
+# }
 """
+
 from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
 import yaml
 import logging

@@ -29,7 +29,7 @@ class TaskTag:
             return
         if task is None:
             return
-        if type(task) != dict:
+        if not isinstance(task, dict):
             raise errors.ScaleComputingError("task should be dictionary.")
         if "taskTag" not in task.keys():
             raise errors.ScaleComputingError("taskTag is not in task dictionary.")
@@ -60,7 +60,7 @@ class TaskTag:
     ) -> Optional[Dict[Any, Any]]:
         if not task:
             return None
-        if type(task) != dict:
+        if not isinstance(task, dict):
             raise errors.ScaleComputingError("task should be dictionary.")
         if "taskTag" not in task.keys():
             raise errors.ScaleComputingError("taskTag is not in task dictionary.")
