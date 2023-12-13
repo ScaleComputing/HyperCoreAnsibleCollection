@@ -23,6 +23,7 @@ extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
   - scale_computing.hypercore.vm_name
   - scale_computing.hypercore.force_reboot
+  - scale_computing.hypercore.machine_type
 seealso: []
 options:
   vm_name_new:
@@ -145,7 +146,10 @@ def main():
     module = AnsibleModule(
         supports_check_mode=False,
         argument_spec=dict(
-            arguments.get_spec("cluster_instance"),
+            arguments.get_spec(
+                "cluster_instance",
+                "machine_type",
+            ),
             vm_name=dict(
                 type="str",
                 required=True,

@@ -611,7 +611,10 @@ class TestEnsurePresent:
 
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
-        ).return_value = (True, True)
+        ).side_effect = [
+            (False, False),  # first machine_type - no change
+            (True, True),  # second memory changes
+        ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
         ).return_value = (True, True)
@@ -726,7 +729,7 @@ class TestEnsurePresent:
                     "vm_name": "VM-name-unique",
                 },
             },
-            False,
+            True,
         )
         assert expected_result == result
 

@@ -52,6 +52,12 @@ SHARED_SPECS = dict(
         ),
         required_together=[("username", "password")],
     ),
+
+    machine_type=dict(
+        type="str",
+        choices=["BIOS", "UEFI", "vTPM+UEFI", "vTPM+UEFI-compatible"],
+    ),
+
 )
 
 
