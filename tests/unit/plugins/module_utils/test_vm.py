@@ -1641,6 +1641,7 @@ class TestManageVMParams:
                 power_state="start",
                 snapshot_schedule="",
                 operating_system="",
+                machine_type=None,
             ),
         )
 
@@ -1672,6 +1673,7 @@ class TestManageVMParams:
                 power_state="start",
                 snapshot_schedule="snapshot_schedule",
                 operating_system="",
+                machine_type=None,
             ),
         )
 
@@ -1711,6 +1713,7 @@ class TestManageVMParams:
                 power_state="start",
                 snapshot_schedule="snapshot_schedule",
                 operating_system="",
+                machine_type=None,
             ),
         )
 
@@ -1722,7 +1725,7 @@ class TestManageVMParams:
             power_state="started",
         )
 
-        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module)
+        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module, [])
         assert changed is True
         assert changed_parameters == {
             "vm_name": True,
@@ -1751,6 +1754,7 @@ class TestManageVMParams:
                 power_state="start",
                 snapshot_schedule="",
                 operating_system="",
+                machine_type=None,
             ),
         )
 
@@ -1762,7 +1766,7 @@ class TestManageVMParams:
             power_state="started",
         )
 
-        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module)
+        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module, [])
         assert changed is True
         assert changed_parameters == {
             "vm_name": True,
@@ -1791,6 +1795,7 @@ class TestManageVMParams:
                 power_state="start",
                 snapshot_schedule="",
                 operating_system="",
+                machine_type=None,
             ),
         )
 
@@ -1804,7 +1809,7 @@ class TestManageVMParams:
             power_state="started",
         )
 
-        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module)
+        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module, [])
         assert changed is False
         assert changed_parameters == {
             "description": False,
@@ -1831,6 +1836,7 @@ class TestManageVMParams:
                 vcpu=2,
                 power_state="start",
                 snapshot_schedule="snapshot_schedule",
+                machine_type=None,
             ),
         )
         changed = {
@@ -1859,6 +1865,7 @@ class TestManageVMParams:
                 description="Updated parameters",
                 tags=["Xlab"],
                 power_state="start",
+                machine_type="BIOS",
             ),
         )
         changed = {
@@ -1888,6 +1895,7 @@ class TestManageVMParams:
                 power_state="stop",
                 snapshot_schedule="snapshot_schedule_new",
                 operating_system="",
+                machine_type="BIOS",
             ),
             check_mode=False,
         )
@@ -2014,6 +2022,7 @@ class TestManageVMParams:
                 power_state="started",
                 snapshot_schedule="",
                 operating_system="",
+                machine_type=None,
             ),
             check_mode=False,
         )
@@ -2051,7 +2060,7 @@ class TestManageVMParams:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         changed, rebooted, diff = ManageVMParams.set_vm_params(
-            module, rest_client, vm_before
+            module, rest_client, vm_before, []
         )
 
         assert changed is True
@@ -2094,6 +2103,7 @@ class TestManageVMParams:
                 power_state="started",
                 snapshot_schedule="",
                 operating_system="",
+                machine_type=None,
             ),
             check_mode=True,
         )
@@ -2111,7 +2121,7 @@ class TestManageVMParams:
         )
 
         changed, reboot_needed, diff = ManageVMParams.set_vm_params(
-            module, rest_client, vm_before
+            module, rest_client, vm_before, []
         )
 
         assert changed is False

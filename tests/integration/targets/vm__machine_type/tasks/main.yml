@@ -1,0 +1,184 @@
+---
+# This is a part of the vm module.
+# The main vm test was divided into smaller tests for sake of synchronous testing.
+
+# HC3 9.3 added machine_type_keyword
+# In https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues/284 was requested
+# to allow changing machine_type.
+# We can PATCH machine_type, but not machine_type_keyword.
+# Seems machine_type_keyword is usable only for POST.
+- name: Test VM create with minimum parameters
+  environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    vm_name: "vm-machine-type"
+
+  block:
+# ----------------------------------Cleanup--------------------------------------------------------------------------------
+    - &delete-vm
+      name: Delete the machine-type VM if it exists from before
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        state: absent
+      register: vm_deleted
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+# Create BIOS VM
+    - &create-vm
+      name: Create the VM using machine-type BIOS
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        state: present
+        memory: "{{ '512 MB' | human_to_bytes }}"
+        vcpu: 2
+        disks: []
+        nics: []
+        boot_devices: []
+        # machine_type: BIOS
+      register: vm_created
+    - ansible.builtin.assert:
+        that:
+          - vm_created is succeeded
+          - vm_created is changed
+          - vm_created.vm_rebooted == False
+    - &test-create-vm
+      ansible.builtin.assert:
+        that:
+          - vm_created.record.0.description == ""
+          - vm_created.record.0.memory == 536870912
+          - vm_created.record.0.tags == [""]
+          - vm_created.record.0.vcpu == 2
+          - vm_created.record.0.vm_name == "{{ vm_name }}"
+          - vm_created.record.0.disks | length == 0
+          - vm_created.record.0.nics | length == 0
+          - vm_created.record.0.boot_devices | length == 0
+          - vm_created.record.0.power_state == "started"
+          - vm_created.record.0.machine_type == "BIOS"
+
+    - &create-vm-info
+      name: Retrieve info about machine-type VM
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name }}"
+      register: vm_created
+    - &test-create-vm-info
+      ansible.builtin.assert:
+        that:
+          - vm_created.records.0.description == ""
+          - vm_created.records.0.memory == 536870912
+          - vm_created.records.0.tags == [""]
+          - vm_created.records.0.vcpu == 2
+          - vm_created.records.0.vm_name == "{{ vm_name }}"
+          - vm_created.records.0.disks | length == 0
+          - vm_created.records.0.nics | length == 0
+          - vm_created.records.0.boot_devices | length == 0
+          - vm_created.records.0.power_state == "started"
+          - vm_created.records.0.machine_type == "BIOS"
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+# Change to UEFI VM - NVRAM disk missing
+    - name: Update the VM using machine-type UEFI - NVRAM disk missing
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        state: present
+        memory: "{{ '512 MB' | human_to_bytes }}"
+        vcpu: 2
+        disks: []
+        nics: []
+#        boot_devices: []
+        machine_type: UEFI
+      register: vm_create
+      ignore_errors: True
+    - ansible.builtin.assert:
+        that:
+          - vm_create is failed
+          - vm_create is not changed
+          - vm_create.msg == "Changing machineType to UEFI requires nvram disk."
+    - name: Retrieve info about machine-type VM - NVRAM disk missing
+      <<: *create-vm-info
+    - *test-create-vm-info
+
+# ----------------------------------Job-------------------------------------------------------------------------------------
+# Change to UEFI VM
+    - &update-vm
+      name: Update the VM using machine-type UEFI
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        state: present
+        memory: "{{ '512 MB' | human_to_bytes }}"
+        vcpu: 2
+        disks:
+          - type: nvram
+            disk_slot: -1
+            size: 540672
+        nics: []
+#        boot_devices: []
+        machine_type: UEFI
+        # No OS installed, force shutdown/reboot needs to be allowed.
+        force_reboot: true
+        shutdown_timeout: 10
+      register: vm_updated
+    - ansible.builtin.assert:
+        that:
+          - vm_updated is succeeded
+          - vm_updated is changed
+          - vm_updated.vm_rebooted == True
+    - &test-update-vm
+      ansible.builtin.assert:
+        that:
+          - vm_updated.record.0.description == ""
+          - vm_updated.record.0.memory == 536870912
+          - vm_updated.record.0.tags == [""]
+          - vm_updated.record.0.vcpu == 2
+          - vm_updated.record.0.vm_name == "{{ vm_name }}"
+          - vm_updated.record.0.disks | length == 1
+          - vm_updated.record.0.disks.0.type == "nvram"
+          - vm_updated.record.0.disks.0.size == 540672
+          - vm_updated.record.0.disks.0.disk_slot == -1
+          - vm_updated.record.0.nics | length == 0
+          - vm_updated.record.0.boot_devices | length == 0
+          - vm_updated.record.0.power_state == "started"
+          - vm_updated.record.0.machine_type == "UEFI"
+
+    - &vm-info
+      name: Retrieve info about machine-type VM
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name }}"
+      register: vm_updated
+    - &test-vm-info
+      ansible.builtin.assert:
+        that:
+          - vm_updated.records.0.description == ""
+          - vm_updated.records.0.memory == 536870912
+          - vm_updated.records.0.tags == [""]
+          - vm_updated.records.0.vcpu == 2
+          - vm_updated.records.0.vm_name == "{{ vm_name }}"
+          - vm_updated.records.0.disks | length == 1
+          - vm_updated.records.0.disks.0.type == "nvram"
+          - vm_updated.records.0.disks.0.size == 540672
+          - vm_updated.records.0.disks.0.disk_slot == -1
+          - vm_updated.records.0.nics | length == 0
+          - vm_updated.records.0.boot_devices | length == 0
+          - vm_updated.records.0.power_state == "started"
+          - vm_updated.records.0.machine_type == "UEFI"
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+    - name: Update the VM using machine-type UEFI - Idempotence
+      <<: *update-vm
+    - ansible.builtin.assert:
+        that:
+          - vm_updated is succeeded
+          - vm_updated is not changed
+          - vm_updated.vm_rebooted == False
+    - *test-update-vm
+    - name: Retrieve info about machine-type VM - Idempotence
+      <<: *vm-info
+    - *test-vm-info
+
+# TODO try to remove NVRAM disk
+
+# ----------------------------------Cleanup--------------------------------------------------------------------------------
+    - name: Delete the machine-type VM
+      <<: *delete-vm

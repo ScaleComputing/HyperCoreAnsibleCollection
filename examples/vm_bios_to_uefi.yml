@@ -1,0 +1,56 @@
+---
+- name: Create VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_name: demo-vm-bios-uefi
+
+  tasks:
+    - name: Create VM {{ vm_name }}
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        memory: "{{ '1 GB' | human_to_bytes }}"
+        vcpu: 2
+        disks:
+          - type: virtio_disk
+            disk_slot: 0
+            size: "{{ '10 GB' | human_to_bytes }}"
+        nics:
+          - type: virtio
+            vlan: 10
+        state: present
+        power_state: stop
+        # os_other or os_windows_server_2012
+        operating_system: os_other
+        machine_type: BIOS
+      register: vm_result
+
+    - name: Show the info about BIOS VM {{ vm_name }}
+      ansible.builtin.debug:
+        var: vm_result
+
+    - name: Change BIOS VM to UEFI, NVRAM disk is needed too
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        memory: "{{ '1 GB' | human_to_bytes }}"
+        vcpu: 2
+        disks:
+          - type: virtio_disk
+            disk_slot: 0
+            size: "{{ '10 GB' | human_to_bytes }}"
+          - type: nvram
+            disk_slot: -1
+            size: 540672
+        nics:
+          - type: virtio
+            vlan: 10
+        state: present
+        # os_other or os_windows_server_2012
+        operating_system: os_other
+        machine_type: UEFI
+      register: vm_result
+
+    - name: Show the info about UEFI VM {{ vm_name }}
+      ansible.builtin.debug:
+        var: vm_result

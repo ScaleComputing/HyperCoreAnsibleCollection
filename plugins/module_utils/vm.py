@@ -11,7 +11,7 @@ __metaclass__ = type
 
 import base64
 from time import sleep, time
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from ..module_utils.errors import DeviceNotUnique
 from ..module_utils.rest_client import RestClient
@@ -96,6 +96,7 @@ REBOOT_LOOKUP = dict(
     vcpu=True,
     power_state=False,
     snapshot_schedule=False,
+    machine_type=True,
 )
 
 
@@ -220,7 +221,7 @@ class VM(PayloadMapper):
         node_affinity=None,
         snapshot_schedule=None,
         reboot=False,  # Is reboot needed
-        was_shutdown_tried=False,  # Has shutdown request already been tried
+        # _was_nice_shutdown_tried=False,  # Has shutdown request already been tried
         machine_type=None,
         replication_source_vm_uuid=None,
         snapshot_uuids=None,
@@ -241,10 +242,24 @@ class VM(PayloadMapper):
         self.node_affinity = node_affinity
         self.snapshot_schedule = snapshot_schedule  # name of the snapshot_schedule
         self.snapshot_uuids = snapshot_uuids or []
-        self.reboot = reboot
-        self.was_shutdown_tried = was_shutdown_tried
         self.machine_type = machine_type
         self.replication_source_vm_uuid = replication_source_vm_uuid
+        #
+        # .reboot is True if: VM was initially running, and was shutdown during module execution.
+        # .reboot does not mean VM was already rebooted.
+        # .reboot means reboot is needed, but only if new power_state requires running VM.
+        self.reboot = reboot
+        # .was_nice_shutdown_tried is True if nice ACPI shutdown was tried
+        self._was_nice_shutdown_tried = False
+        # if nice shutdown was tried, did it work?
+        self._did_nice_shutdown_work = False
+        # ._was_force_shutdown_tried is True if force shutdown (stop) was tried
+        self._was_force_shutdown_tried = False
+        # self._did_force_shutdown_work = False
+        self._was_start_tried = False
+        # self._did_start_work = False
+        # Now, VM was rebooted when it was running at start, then stopped and powered on:
+        # .power_state in [] and any(_did_nice_shutdown_work, _did_force_shutdown_work) and _was_start_tried
 
     @property
     def nic_list(self):
@@ -721,7 +736,8 @@ class VM(PayloadMapper):
         )
 
     def __str__(self):
-        return super().__str__()
+        # to_hypercore() needs HcVersion, we do not have it
+        return str(dict(ansible=self.to_ansible()))
 
     def get_specific_nic(self, query):
         results = [nic.to_ansible() for nic in self.nics]
@@ -864,10 +880,19 @@ class VM(PayloadMapper):
             return True
         if (
             module.params["force_reboot"]
-            and self.was_shutdown_tried
+            and self._was_nice_shutdown_tried
             and not self.reboot
         ):
+            if self._was_force_shutdown_tried is not False:
+                raise AssertionError(
+                    "VM should be shutdown at most once during module execution"
+                )
             self.update_vm_power_state(module, rest_client, "stop")
+            self._was_force_shutdown_tried = True
+            # force shutdown should always work. If not, we need to pool for state change.
+            # Maybe se need to pool for state change anyway -
+            # TaskTag might be finished before VM is really off.
+            # self._did_force_shutdown_work = True
             self.reboot = True
             return True
         return False
@@ -885,10 +910,14 @@ class VM(PayloadMapper):
         if (
             vm_fresh_data["state"] == "RUNNING"
             and module.params["shutdown_timeout"]
-            and not self.was_shutdown_tried
+            and not self._was_nice_shutdown_tried
         ):
+            if self._was_force_shutdown_tried is not False:
+                raise AssertionError(
+                    "VM should be shutdown at most once during module execution"
+                )
             self.update_vm_power_state(module, rest_client, "shutdown")
-            self.was_shutdown_tried = True
+            self._was_nice_shutdown_tried = True
             shutdown_timeout = module.params["shutdown_timeout"]
             start = time()
             while 1:
@@ -898,6 +927,7 @@ class VM(PayloadMapper):
                 current_time = time() - start
                 if vm["state"] in ["SHUTDOWN", "SHUTOFF"]:
                     self.reboot = True
+                    self._did_nice_shutdown_work = True
                     return True
                 if current_time >= shutdown_timeout:
                     return False
@@ -908,6 +938,17 @@ class VM(PayloadMapper):
         # Powers up a VM in case it was shutdown during module action.
         if self.reboot:
             self.update_vm_power_state(module, rest_client, "start")
+            self._was_start_tried = True
+
+    def was_vm_rebooted(self):
+        # Now, VM was rebooted when it was running at start, then stopped and powered on:
+        # Assume we did not try to shutdown/stop a stopped VM.
+        # We assume VM start did work (there are cases when VM is not bootable - like UEFI without NVRAM disk).
+        was_shutdown = any(
+            [self._did_nice_shutdown_work, self._was_force_shutdown_tried]
+        )
+        vm_rebooted = was_shutdown and self._was_start_tried
+        return vm_rebooted
 
     def do_shutdown_steps(self, module, rest_client):
         if not self.wait_shutdown(module, rest_client):
@@ -926,6 +967,7 @@ class VM(PayloadMapper):
         # vTPM+UEFI machine type must have NVRAM and VTPM disks.
         # This in not implemented yet, since this version of API does not support VTPM.
         if (
+            # TODO -compatible type is missing
             self.machine_type == "vTPM+UEFI"
             and "nvram" not in disk_type_list
             and "vtpm" not in disk_type_list
@@ -953,6 +995,14 @@ class ManageVMParams(VM):
             payload["mem"] = module.params["memory"]
         if module.params["vcpu"] is not None:
             payload["numVCPU"] = module.params["vcpu"]
+        if module.params["machine_type"] is not None:
+            # On create/POST, machineTypeKeyword can be used (if HC3>=9.3.0).
+            # On update/PATCH, machineTypeKeyword cannot be used (tested with HC3 9.3.5).
+            hcversion = HyperCoreVersion(rest_client)
+            hc3_machine_type = VmMachineType.from_ansible_to_hypercore(
+                module.params["machine_type"], hcversion
+            )
+            payload["machineType"] = hc3_machine_type
         if (
             module.params["snapshot_schedule"] is not None
         ):  # we want to be able to write ""
@@ -967,17 +1017,26 @@ class ManageVMParams(VM):
         return payload
 
     @staticmethod
-    def _needs_reboot(module, changed):
+    def _needs_reboot(module, changed: dict[str, bool]):
+        """
+
+        Args:
+            module: ansible module
+            changed: Contains list of parameter names that were changed
+
+        Returns: True if (at least one) parameter change requires VM reboot.
+
+        """
         for param in module.params:
             if (
                 module.params[param] is not None and param in REBOOT_LOOKUP
             ):  # skip not provided parameters and cluster_instance
-                if REBOOT_LOOKUP[param] and changed[param]:
+                if REBOOT_LOOKUP[param] and changed.get(param):
                     return True
         return False
 
     @staticmethod
-    def _to_be_changed(vm, module):
+    def _to_be_changed(vm, module, param_subset: List[str]):
         changed_params = {}
         if module.params["vm_name_new"]:
             changed_params["vm_name"] = vm.name != module.params["vm_name_new"]
@@ -1002,13 +1061,29 @@ class ManageVMParams(VM):
             # state in playbook is different than read from HC3 (start/started)
             is_substring = module.params["power_state"] not in vm.power_state
             changed_params["power_state"] = is_substring
+        if module.params["machine_type"] is not None:
+            changed_params["machine_type"] = (
+                vm.machine_type != module.params["machine_type"]
+            )
         if (
             module.params["snapshot_schedule"] is not None
         ):  # we want to be able to write ""
             changed_params["snapshot_schedule"] = (
                 vm.snapshot_schedule != module.params["snapshot_schedule"]
             )
-        return any(changed_params.values()), changed_params
+
+        if param_subset:
+            # Caller can decide to change only subset of all needed changes.
+            # This allows applying a change in two steps.
+            changed_params_filtered = {
+                param_name: changed_params[param_name]
+                for param_name in param_subset
+                if param_name in changed_params
+            }
+        else:
+            changed_params_filtered = changed_params
+
+        return any(changed_params_filtered.values()), changed_params_filtered
 
     @staticmethod
     def _build_after_diff(module, rest_client):
@@ -1076,9 +1151,13 @@ class ManageVMParams(VM):
             before["snapshot_schedule"] = vm.snapshot_schedule
         return before
 
-    @staticmethod
-    def set_vm_params(module, rest_client, vm):
-        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module)
+    @classmethod
+    def set_vm_params(cls, module, rest_client, vm, param_subset: List[str]):
+        changed, changed_parameters = ManageVMParams._to_be_changed(
+            vm, module, param_subset
+        )
+        cls._check_if_required_disks_are_present(module, vm, changed_parameters)
+
         if changed:
             payload = ManageVMParams._build_payload(module, rest_client)
             endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
@@ -1089,6 +1168,7 @@ class ManageVMParams(VM):
             ) and vm.power_state not in ["stop", "stopped", "shutdown"]:
                 vm.do_shutdown_steps(module, rest_client)
             else:
+                # boot/reboot/reset VM if requested
                 # power_state needs different endpoint
                 # Wait_task in update_vm_power_state doesn't handle check_mode
                 if module.params["power_state"] and not module.check_mode:
@@ -1109,6 +1189,46 @@ class ManageVMParams(VM):
                 False,
                 dict(before=None, after=None),
             )
+
+    @classmethod
+    def _check_if_required_disks_are_present(
+        cls, module, vm, changed_parameters: dict[str, bool]
+    ):
+        if "machine_type" in changed_parameters:
+            # Changing machineType can make VM unbootable (from BIOS to UEFI, without NVRAM disk).
+            # After boot is tried, VM does not boot, type cannot be changed back, and support is needed.
+            # Prevent that.
+            if module.params["machine_type"] == "BIOS":
+                nvram_needed = False
+                vtpm_needed = False
+            elif module.params["machine_type"] == "UEFI":
+                nvram_needed = True
+                vtpm_needed = False
+            elif module.params["machine_type"] in ["vTPM+UEFI", "vTPM+UEFI-compatible"]:
+                nvram_needed = True
+                vtpm_needed = True
+            else:
+                raise AssertionError(
+                    f"machine_type={module.params['machine_type']} not included in set_vm_params."
+                )
+            # At end of module execution we will have VM with final_disks.
+            final_disks = vm.disks
+            if module.params["disks"]:
+                final_disks = [
+                    Disk.from_ansible(disk) for disk in module.params["disks"]
+                ]
+            nvram_disks = [disk for disk in final_disks if disk.type == "nvram"]
+            vtpm_disks = [disk for disk in final_disks if disk.type == "vtpm"]
+            fail_message_requirements = []
+            if nvram_needed and not nvram_disks:
+                fail_message_requirements.append("nvram disk")
+            if vtpm_needed and not vtpm_disks:
+                fail_message_requirements.append("vtpm disk")
+            if fail_message_requirements:
+                fail_details = ", ".join(fail_message_requirements)
+                module.fail_json(
+                    f"Changing machineType to {module.params['machine_type']} requires {fail_details}."
+                )
 
 
 class ManageVMDisks:
@@ -1257,7 +1377,7 @@ class ManageVMDisks:
                 module.check_mode,
             )
             TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-        return True, [], dict(before=disks_before, after=[]), vm.reboot
+        return True, [], dict(before=disks_before, after=[]), vm.was_vm_rebooted()
 
     @classmethod
     def ensure_present_or_set(cls, module, rest_client, module_path):
@@ -1359,9 +1479,9 @@ class ManageVMDisks:
                 changed,
                 disks_after,
                 dict(before=disks_before, after=disks_after),
-                vm_before.reboot,
+                vm_before.was_vm_rebooted(),
             )
-        return changed, vm_before.reboot
+        return changed, vm_before.was_vm_rebooted()
 
 
 class ManageVMNics(Nic):

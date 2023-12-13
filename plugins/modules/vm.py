@@ -32,6 +32,7 @@ extends_documentation_fragment:
   - scale_computing.hypercore.vm_name
   - scale_computing.hypercore.cloud_init
   - scale_computing.hypercore.force_reboot
+  - scale_computing.hypercore.machine_type
 seealso:
   - module: scale_computing.hypercore.vm_info
   - module: scale_computing.hypercore.vm_params
@@ -398,6 +399,8 @@ vm_rebooted:
 
 from ansible.module_utils.basic import AnsibleModule
 
+from typing import List
+
 from ..module_utils import arguments, errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
@@ -436,8 +439,10 @@ def _set_nics(module, rest_client):
     return ManageVMNics.ensure_present_or_set(module, rest_client, MODULE_PATH)
 
 
-def _set_vm_params(module, rest_client, vm):
-    changed_params, reboot, diff = ManageVMParams.set_vm_params(module, rest_client, vm)
+def _set_vm_params(module, rest_client, vm, param_subset: List[str]):
+    changed_params, reboot, diff = ManageVMParams.set_vm_params(
+        module, rest_client, vm, param_subset
+    )
     return changed_params, reboot
 
 
@@ -446,6 +451,11 @@ def ensure_present(module, rest_client):
     reboot = False
     if vm_before:
         before = vm_before.to_ansible()  # for output
+        # machineType needs to be set to uefi/vtpm first,
+        # next nvram/vtpm disk can be added.
+        changed_params_1, reboot_params_1 = _set_vm_params(
+            module, rest_client, vm_before, param_subset=["machine_type"]
+        )
         changed_disks, reboot_disk = _set_disks(module, rest_client)
         changed_nics, reboot_nic = _set_nics(module, rest_client)
         existing_boot_order = vm_before.get_boot_device_order()
@@ -457,9 +467,27 @@ def ensure_present(module, rest_client):
         # since boot order cannot be set when the vm is running.
         # set_vm_params updates VM's name, description, tags, memory, number of CPU,
         # changed the power state and/or assigns the snapshot schedule to the VM
-        changed_params, reboot_params = _set_vm_params(module, rest_client, vm_before)
-        changed = any((changed_order, changed_params, changed_disks, changed_nics))
-        reboot = any((reboot_disk, reboot_nic, reboot_boot_order, reboot_params))
+        changed_params_2, reboot_params_2 = _set_vm_params(
+            module, rest_client, vm_before, param_subset=[]
+        )
+        changed = any(
+            (
+                changed_order,
+                changed_params_1,
+                changed_params_2,
+                changed_disks,
+                changed_nics,
+            )
+        )
+        reboot = any(
+            (
+                reboot_disk,
+                reboot_nic,
+                reboot_boot_order,
+                reboot_params_1,
+                reboot_params_2,
+            )
+        )
         name_field = "vm_name_new" if module.params["vm_name_new"] else "vm_name"
     else:
         before = None  # for output
@@ -485,12 +513,13 @@ def ensure_present(module, rest_client):
             )
         changed = True
         name_field = "vm_name"
+    if reboot and module.params["power_state"] not in ["shutdown", "stop"]:
+        # we need to reboot old VM
+        vm_before.reboot = reboot
+        vm_before.vm_power_up(module, rest_client)
     vm_after = VM.get_by_name(module.params, rest_client, name_field=name_field)
     after = vm_after.to_ansible()
-    if reboot and module.params["power_state"] not in ["shutdown", "stop"]:
-        vm_after.reboot = reboot
-        vm_after.vm_power_up(module, rest_client)
-    return changed, [after], dict(before=before, after=after), vm_after.reboot
+    return changed, [after], dict(before=before, after=after), reboot
 
 
 def run(module, rest_client):
@@ -535,7 +564,10 @@ def main():
     module = AnsibleModule(
         supports_check_mode=False,  # False ATM
         argument_spec=dict(
-            arguments.get_spec("cluster_instance"),
+            arguments.get_spec(
+                "cluster_instance",
+                "machine_type",
+            ),
             vm_name=dict(
                 type="str",
                 required=True,
@@ -683,10 +715,6 @@ def main():
             ),
             snapshot_schedule=dict(
                 type="str",
-            ),
-            machine_type=dict(
-                type="str",
-                choices=["BIOS", "UEFI", "vTPM+UEFI", "vTPM+UEFI-compatible"],
             ),
         ),
         required_if=[
