@@ -84,7 +84,7 @@ options:
         description:
           - The bus type the VirDomainBlockDevice will use.
           - If I(type=ide_cdrom), I(iso_name) is also required. Se documentation of I(iso_name) for more details.
-        choices: [ ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
+        choices: [ ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram, vtpm ]
         required: true
       iso_name:
         type: str
@@ -292,7 +292,7 @@ from ..module_utils import arguments
 from ..module_utils.errors import ScaleComputingError
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.vm import ManageVMDisks
+from ..module_utils.vm import ManageVMDisks, compute_params_disk_slot
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.disk import Disk
 from ..module_utils.iso import ISO
@@ -357,6 +357,10 @@ def run(module, rest_client):
     return changed, records, diff, reboot
 
 
+def compute_params(module):
+    compute_params_disk_slot(module, "items")
+
+
 def main():
     module = AnsibleModule(
         supports_check_mode=False,
@@ -404,6 +408,7 @@ def main():
                             "scsi_disk",
                             "ide_floppy",
                             "nvram",
+                            "vtpm",
                         ],
                         required=True,
                     ),
@@ -433,6 +438,7 @@ def main():
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
+        compute_params(module)
         changed, record, diff, reboot = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff, vm_rebooted=reboot)
     except ScaleComputingError as e:

@@ -6,4 +6,8 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
 
   block:
-    - include_tasks: issue_12_machine_types.yml
+    - include_tasks: 00_cleanup.yml
+    - include_tasks: 01_machine_type_bios.yml
+    - include_tasks: 02_machine_type_uefi.yml
+    - include_tasks: 03_machine_type_uefi_vtpm.yml
+    - include_tasks: 00_cleanup.yml

@@ -1,0 +1,10 @@
+# ----------------------------------Cleanup------------------------------------------------------------------------
+- name: Delete XLAB-vm
+  scale_computing.hypercore.vm:
+    vm_name: "{{ item }}"
+    state: absent
+  loop:
+    - XLAB-test-machine-type-bios
+    - XLAB-test-machine-type-uefi
+    - XLAB-test-machine-type-uefi-no-nvram
+    - XLAB-test-machine-type-vTPM+UEFI

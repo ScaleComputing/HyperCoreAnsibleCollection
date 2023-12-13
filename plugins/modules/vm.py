@@ -122,7 +122,7 @@ options:
           - The bus type the VM will use.
           - If I(type=ide_cdrom), it's assumed you want to attach ISO image to cdrom disk. In that
             case, field iso_name is required.
-        choices: [ ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram ]
+        choices: [ ide_cdrom, virtio_disk, ide_disk, scsi_disk, ide_floppy, nvram, vtpm ]
         required: true
       iso_name:
         type: str
@@ -407,6 +407,7 @@ from ..module_utils.vm import (
     ManageVMDisks,
     ManageVMNics,
     VmMachineType,
+    compute_params_disk_slot,
 )
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.hypercore_version import HyperCoreVersion
@@ -526,6 +527,10 @@ def check_params(module, rest_client):
             module.fail_json(msg=msg)
 
 
+def compute_params(module):
+    compute_params_disk_slot(module, "disks")
+
+
 def main():
     module = AnsibleModule(
         supports_check_mode=False,  # False ATM
@@ -595,6 +600,7 @@ def main():
                             "scsi_disk",
                             "ide_floppy",
                             "nvram",
+                            "vtpm",
                         ],
                         required=True,
                     ),
@@ -712,6 +718,7 @@ def main():
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
         check_params(module, rest_client)
+        compute_params(module)
         changed, record, diff, reboot = run(module, rest_client)
         module.exit_json(changed=changed, record=record, diff=diff, vm_rebooted=reboot)
     except errors.ScaleComputingError as e:

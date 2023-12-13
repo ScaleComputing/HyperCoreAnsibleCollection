@@ -195,7 +195,7 @@ def create_payload(
     )
     payload["template"] = Disk.from_ansible(  # type: ignore
         module.params["disk"]
-    ).post_and_patch_payload(vm)
+    ).post_and_patch_payload(vm, existing_disk=None)
     payload["template"].pop("readOnly")
     # get() does not work, since key is always present
     if module.params["disk"]["size"]:

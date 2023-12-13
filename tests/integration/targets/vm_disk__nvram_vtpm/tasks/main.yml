@@ -1,0 +1,117 @@
+---
+# See https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues/283
+# Add (and maybe remove) nvram and vtpm disk.
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    vm_name: vm-integration-nvram-vtpm-disk
+
+  block:
+    # -------------------------------------------------------------------------------------
+    # Cleanup
+    - name: Delete the VM if it exists from before - {{ vm_name }}
+      scale_computing.hypercore.vm: &vm-delete
+        vm_name: "{{ vm_name }}"
+        state: absent
+        memory: 536870912
+        vcpu: 2
+      register: result
+
+    # -------------------------------------------------------------------------------------
+    # Create VM
+    - name: Create VM on which we'll build our block devices on
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        description: "{{ vm_name }}"
+        tags:
+          - "Integration test"
+        memory: 536870912
+        vcpu: 2
+        power_state: shutdown
+        state: present
+        disks:
+          - disk_slot: 0
+            type: virtio_disk
+            size: "{{ '5 GB' | human_to_bytes }}"
+        nics: [ ]
+        machine_type: BIOS
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is changed
+          - result.record | length == 1
+          - result.record.0.disks | length == 1
+          - result.record.0.disks.0.type == "virtio_disk"
+          - result.record.0.disks.0.disk_slot == 0
+          - result.record.0.disks.0.size == 5368709120
+          - result.record.0.disks.0.iso_name == ""
+          - result.record.0.disks.0.tiering_priority_factor == 4
+          - result.record.0.disks.0.cache_mode == "writethrough"
+          - result.record.0.disks.0.disable_snapshotting == false
+
+    # -------------------------------------------------------------------------------------
+    # Add NVRAM, VTPM
+    - name: Add vtpm and nvram virtual disks
+      scale_computing.hypercore.vm_disk: &add_nvram
+        vm_name: "{{ vm_name }}"
+        items:
+          - disk_slot: 0
+            type: nvram
+            size: 540672
+          - disk_slot: 0
+            type: vtpm
+            size: 1024
+        state: present
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is changed
+    - ansible.builtin.assert: &assert_with_nvram
+        that:
+          - result.record | length == 3
+
+          - result.record.0.type == "virtio_disk"
+          - result.record.0.disk_slot == 0
+          - result.record.0.size == 5368709120
+          - result.record.0.iso_name == ""
+          - result.record.0.tiering_priority_factor == 4
+          - result.record.0.cache_mode == "writethrough"
+          - result.record.0.disable_snapshotting == false
+
+          - result.record.1.type == "nvram"
+          - result.record.1.disk_slot == -1
+          - result.record.1.size == 540672
+          - result.record.1.iso_name == ""
+          - result.record.1.tiering_priority_factor == 4
+          - result.record.1.cache_mode == "none"
+          - result.record.1.disable_snapshotting == false
+
+          - result.record.2.type == "vtpm"
+          - result.record.2.disk_slot == -1
+          - result.record.2.size == 1024
+          - result.record.2.iso_name == ""
+          - result.record.2.tiering_priority_factor == 4
+          - result.record.2.cache_mode == "none"
+          - result.record.2.disable_snapshotting == false
+
+    # -------------------------------------------------------------------------------------
+    # Idempotence
+    - name: Add vtpm and nvram virtual disks
+      scale_computing.hypercore.vm_disk: *add_nvram
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is not changed
+    - ansible.builtin.assert: *assert_with_nvram
+
+    # -------------------------------------------------------------------------------------
+    # Cleanup
+    - name: Delete the VM on which the tests were performed
+      scale_computing.hypercore.vm: *vm-delete
+      register: result

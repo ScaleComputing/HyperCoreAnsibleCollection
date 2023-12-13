@@ -179,6 +179,24 @@ class VmMachineType:
         return cls._map_ansible_to_hypercore_machine_type_keyword[ansible_machine_type]
 
 
+def compute_params_disk_slot(module, disk_key: str):
+    # Some params can be computed or ignored.
+    # For NVRAM and VTPM disks the disk slot is ignored.
+    # API will always return disk_slot=-1.
+    # Ignore different user provided values.
+    # disk_key is "disks" for vm module, "items" for vm_disk module.
+    disks = module.params.get(disk_key, [])
+    # disks might be None.
+    disks = disks or []
+    for disk in disks:
+        if disk["type"] in ["nvram", "vtpm"]:
+            if "disk_slot" in disk and disk["disk_slot"] != -1:
+                module.warn(
+                    f"Disk with type={disk['type']} can have only disk_slot -1; ignoring provided value {disk['disk_slot']}."
+                )
+                disk["disk_slot"] = -1
+
+
 class VM(PayloadMapper):
     # Fields cloudInitData, desiredDisposition and latestTaskTag are left out and won't be transferred between
     # ansible and hypercore transformations
@@ -1107,7 +1125,7 @@ class ManageVMDisks:
     @staticmethod
     def _create_block_device(module, rest_client, vm, desired_disk):
         # vm is instance of VM, desired_disk is instance of Disk
-        payload = desired_disk.post_and_patch_payload(vm)
+        payload = desired_disk.post_and_patch_payload(vm, None)
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomainBlockDevice",
             payload,
@@ -1132,8 +1150,10 @@ class ManageVMDisks:
         TaskTag.wait_task(rest_client, task_tag, module.check_mode)
 
     @staticmethod
-    def _update_block_device(module, rest_client, desired_disk, existing_disk, vm):
-        payload = desired_disk.post_and_patch_payload(vm)
+    def _update_block_device(
+        module, rest_client, desired_disk, existing_disk: Disk, vm
+    ):
+        payload = desired_disk.post_and_patch_payload(vm, existing_disk)
         if existing_disk.needs_reboot("update", desired_disk):
             vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
@@ -1306,6 +1326,14 @@ class ManageVMDisks:
                         for k, v in desired_disk.to_ansible().items()
                         if v is not None
                     }
+
+                    if existing_disk.type == "nvram":
+                        # Special case: nvram disk, PATCH cannot change the size/capacity
+                        # See also Disk.post_and_patch_payload
+                        ansible_desired_disk_filtered["size"] = ansible_existing_disk[
+                            "size"
+                        ]
+
                     if is_superset(
                         ansible_existing_disk, ansible_desired_disk_filtered
                     ):

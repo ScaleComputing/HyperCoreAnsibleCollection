@@ -1,0 +1,4 @@
+---
+minor_changes:
+  - Added `vtpm` disk type to vm and vm_disks modules.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/286)
