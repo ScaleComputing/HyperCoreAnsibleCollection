@@ -1,0 +1,73 @@
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Make source vm - BIOS
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-machine-type-bios
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "blabla"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    machine_type: BIOS
+    power_state: stop
+    disks:
+    - type: ide_cdrom
+      disk_slot: 0
+    nics: []
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-machine-type-bios
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-machine-type-bios
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.machine_type == "BIOS"
+      - source_info.records.0.disks | length == 1
+      - source_info.records.0.disks.0.type == "ide_cdrom"
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.vcpu == 2
+
+# ----------------------------------Idempotence check------------------------------------------------------------------------
+- name: Make source vm - BIOS (Idempotence)
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-machine-type-bios
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "blabla"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    machine_type: BIOS
+    power_state: stop
+    disks:
+    - type: ide_cdrom
+      disk_slot: 0
+    nics: []
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is not changed
+      - output is succeeded
+
+- name: Retrieve XLAB-test-machine-type-bios (Idempotence)
+  scale_computing.hypercore.vm_info:
+    vm_name: XLAB-test-machine-type-bios
+  register: source_info
+- ansible.builtin.assert:
+    that:
+      - source_info.records | length == 1
+      - source_info.records.0.vcpu == 2
+      - source_info.records.0.power_state == "stopped"
+      - source_info.records.0.disks | length == 1
+      - source_info.records.0.disks.0.type == "ide_cdrom"
+      - source_info.records.0.disks.0.disk_slot == 0
+      - source_info.records.0.machine_type == "BIOS"

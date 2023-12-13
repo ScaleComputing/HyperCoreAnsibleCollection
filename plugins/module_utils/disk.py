@@ -184,13 +184,27 @@ class Disk(PayloadMapper):
     def __str__(self):
         return super().__str__()
 
-    def post_and_patch_payload(self, vm):
+    def post_and_patch_payload(self, vm, existing_disk: Disk):
         # vm is instance of class VM
         # vm will always have uuid property in the playbook
-        return dict(
+        payload = dict(
             {key: val for key, val in self.to_hypercore().items() if val is not None},
             virDomainUUID=vm.uuid,
         )
+        # Special case - NVRAM disk
+        # HyperCore will ignore provided slot, and will set slot=-1.
+        # Similar for size/capacity, nvram has size 540672 B (at least on HC3 9.2.22).
+        # Capacity field is required for POST, but it cannot be changed with PATCH.
+        if self.type == "nvram":
+            payload.pop("slot", None)
+            if existing_disk and payload.get("capacity"):
+                payload["capacity"] = existing_disk.size
+        # Special case - VTPM disk
+        # HyperCore will ignore provided slot, and will set slot=-1.
+        # The size/capacity is respected.
+        if self.type == "vtpm":
+            payload.pop("slot", None)
+        return payload
 
     def needs_reboot(self, action: str, desired_disk=None) -> bool:
         # action is "create", "update", "delete".

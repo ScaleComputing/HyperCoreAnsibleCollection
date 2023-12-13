@@ -231,7 +231,7 @@ class TestDisk:
 
         assert disk1 == disk2
 
-    def test_post_and_patch_payload(self):
+    def test_post_and_patch_payload__virtio(self):
         vm = VM(
             uuid="id",
             name="VM-name",
@@ -248,8 +248,9 @@ class TestDisk:
             tiering_priority_factor=4,
             read_only=False,
         )
+        existing_disk = None
 
-        payload = disk.post_and_patch_payload(vm)
+        payload = disk.post_and_patch_payload(vm, existing_disk)
 
         assert payload == {
             "cacheMode": "NONE",
@@ -259,6 +260,150 @@ class TestDisk:
             "slot": 0,
             "tieringPriorityFactor": 8,
             "type": "VIRTIO_DISK",
+            "virDomainUUID": "id",
+        }
+
+    def test_post_and_patch_payload__nvram_post(self):
+        vm = VM(
+            uuid="id",
+            name="VM-name",
+            memory=42,
+            vcpu=2,
+        )
+
+        disk = Disk(
+            type="nvram",
+            slot=-1,
+            cache_mode="none",
+            size=4200,
+            disable_snapshotting=False,
+            tiering_priority_factor=4,
+            read_only=False,
+        )
+        existing_disk = None
+
+        payload = disk.post_and_patch_payload(vm, existing_disk)
+
+        assert payload == {
+            "cacheMode": "NONE",
+            "capacity": 4200,
+            "disableSnapshotting": False,
+            "readOnly": False,
+            # "slot": -1,
+            "tieringPriorityFactor": 8,
+            "type": "NVRAM",
+            "virDomainUUID": "id",
+        }
+
+    def test_post_and_patch_payload__nvram_patch(self):
+        vm = VM(
+            uuid="id",
+            name="VM-name",
+            memory=42,
+            vcpu=2,
+        )
+
+        disk = Disk(
+            type="nvram",
+            slot=-1,
+            cache_mode="none",
+            size=4200,
+            disable_snapshotting=False,
+            tiering_priority_factor=4,
+            read_only=False,
+        )
+        existing_disk = Disk(
+            type="nvram",
+            slot=-1,
+            cache_mode="none",
+            size=540672,
+            disable_snapshotting=False,
+            tiering_priority_factor=4,
+            read_only=False,
+        )
+
+        payload = disk.post_and_patch_payload(vm, existing_disk)
+
+        assert payload == {
+            "cacheMode": "NONE",
+            "capacity": 540672,
+            "disableSnapshotting": False,
+            "readOnly": False,
+            # "slot": -1,
+            "tieringPriorityFactor": 8,
+            "type": "NVRAM",
+            "virDomainUUID": "id",
+        }
+
+    def test_post_and_patch_payload__vtpm_post(self):
+        vm = VM(
+            uuid="id",
+            name="VM-name",
+            memory=42,
+            vcpu=2,
+        )
+
+        disk = Disk(
+            type="vtpm",
+            slot=-1,
+            cache_mode="none",
+            size=4200,
+            disable_snapshotting=False,
+            tiering_priority_factor=4,
+            read_only=False,
+        )
+        existing_disk = None
+
+        payload = disk.post_and_patch_payload(vm, existing_disk)
+
+        assert payload == {
+            "cacheMode": "NONE",
+            "capacity": 4200,
+            "disableSnapshotting": False,
+            "readOnly": False,
+            # "slot": -1,
+            "tieringPriorityFactor": 8,
+            "type": "VTPM",
+            "virDomainUUID": "id",
+        }
+
+    def test_post_and_patch_payload__vtpm_patch(self):
+        vm = VM(
+            uuid="id",
+            name="VM-name",
+            memory=42,
+            vcpu=2,
+        )
+
+        disk = Disk(
+            type="vtpm",
+            slot=-1,
+            cache_mode="none",
+            size=4200,
+            disable_snapshotting=False,
+            tiering_priority_factor=4,
+            read_only=False,
+        )
+        existing_disk = Disk(
+            type="vtpm",
+            slot=-1,
+            cache_mode="none",
+            size=4100,
+            disable_snapshotting=False,
+            tiering_priority_factor=4,
+            read_only=False,
+        )
+
+        payload = disk.post_and_patch_payload(vm, existing_disk)
+
+        assert payload == {
+            "cacheMode": "NONE",
+            "capacity": 4200,
+            "disableSnapshotting": False,
+            "readOnly": False,
+            # "slot": -1,
+            "tieringPriorityFactor": 8,
+            "type": "VTPM",
             "virDomainUUID": "id",
         }
 
