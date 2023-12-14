@@ -245,6 +245,7 @@ def run(module, rest_client):
     else:
         changed, records, diff, reboot = ensure_absent(module, rest_client)
     if virtual_machine_obj_list[0]:
+        # BUG - the virtual_machine_obj_list[0] is local to this function, .reboot is not set
         virtual_machine_obj_list[0].vm_power_up(module, rest_client)
     return changed, records, diff, reboot
 
