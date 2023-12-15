@@ -134,7 +134,7 @@ EXAMPLES = r"""
     vm_name: XLAB-demo-vm
     items:
       - vlan: 1
-        mac_new: 01:23:45:67:89:AB
+        mac_new: 7C:4C:58:01:23:45
     state: set
 """
 
