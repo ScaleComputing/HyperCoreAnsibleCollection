@@ -207,7 +207,7 @@
           - vlan: 1
             type: virtio
             vlan_new: 10
-            mac_new: '01:23:45:67:89:AB'
+            mac_new: '7C:4C:58:01:23:45'
         state: present
       register: output
     - ansible.builtin.assert:
@@ -223,7 +223,7 @@
               - output.records | length == 2
               - output.records.0.vlan == 10
               - output.records.0.type == 'virtio'
-              - output.records.0.mac == '01:23:45:67:89:AB'
+              - output.records.0.mac == '7C:4C:58:01:23:45'
               - output.records.1.vlan == 2
               - output.records.1.type == 'virtio'
               - output is not changed
@@ -237,7 +237,7 @@
           - vlan: 1
             type: virtio
             vlan_new: 10
-            mac_new: '01:23:45:67:89:AB'
+            mac_new: '7C:4C:58:01:23:45'
         state: present
       register: output
     - ansible.builtin.assert:
