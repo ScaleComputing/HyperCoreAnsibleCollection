@@ -16,6 +16,8 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils im
     MIN_PYTHON_VERSION,
 )
 
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
+
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
     reason=f"requires python{MIN_PYTHON_VERSION[0]}.{MIN_PYTHON_VERSION[1]} or higher",
@@ -115,9 +117,10 @@ class TestEnsureAbsent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
-        rest_client.list_records.return_value = [self._get_empty_test_vm()]
-        rest_client.create_record.return_value = {"taskTag": "1234"}
-        results = vm_nic.ensure_absent(module=module, rest_client=rest_client)
+        # rest_client.list_records.return_value = [self._get_empty_test_vm()]
+        vm_before = VM.from_hypercore(self._get_empty_test_vm(), rest_client)
+        # rest_client.create_record.return_value = {"taskTag": "1234"}
+        results = vm_nic.ensure_absent(module=module, rest_client=rest_client, vm_before=vm_before)
         assert results == (False, [], {"before": [], "after": []}, False)
 
     def test_ensure_absent_when_change(self, create_module, rest_client, mocker):
@@ -148,10 +151,11 @@ class TestEnsureAbsent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
-        rest_client.list_records.return_value = [self._get_test_vm()]
+        # rest_client.list_records.return_value = [self._get_test_vm()]
+        vm_before = VM.from_hypercore(self._get_test_vm(), rest_client)
         rest_client.get_record.return_value = {"state": "COMPLETED"}
-        rest_client.create_record.return_value = {"taskTag": "1234"}
-        results = vm_nic.ensure_absent(module=module, rest_client=rest_client)
+        # rest_client.create_record.return_value = {"taskTag": "1234"}
+        results = vm_nic.ensure_absent(module=module, rest_client=rest_client, vm_before=vm_before)
         assert results == (
             True,
             [None, None],

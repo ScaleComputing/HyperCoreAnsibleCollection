@@ -8,6 +8,7 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
     iso_name: "Porteus-XFCE-v5.0-x86_64.iso"
+    vm_shutdown_timeout: 300
 
   block:
 # ----------------------------------Cleanup--------------------------------------------------------------------------------
@@ -28,6 +29,8 @@
 
 # ----------------------------------Job-------------------------------------------------------------------------------------
     - name: Create and start the VM with disks, nics and boot devices set. Attach ISO onto the VM.
+#      environment:
+#        SC_DEBUG_LOG_TRAFFIC: 1
       scale_computing.hypercore.vm: &create-vm
         vm_name: vm-integration-test-vm
         description: Demo VM
@@ -63,6 +66,7 @@
       register: vm_created
     - ansible.builtin.assert:
         that:
+          - vm_created.vm_rebooted is false
           - vm_created.record.0.description == "Demo VM"
           - vm_created.record.0.memory == 536870912
           - vm_created.record.0.tags == ["Xlab", "mytag1", "mytag2"]
@@ -95,6 +99,7 @@
     - ansible.builtin.assert:
         that:
           - result is not changed
+          - result.vm_rebooted is false
 
     - name: Retrieve vm-integration-test-vm Idempotence
       scale_computing.hypercore.vm_info:
@@ -125,6 +130,7 @@
           - vm_created.records.0.boot_devices.1.disk_slot == 0
           - vm_created.records.0.boot_devices.2.vlan == 1
           - vm_created.records.0.power_state == "started"
+          - vm_created.records.0.machine_type == "BIOS"
 
 # ----------------------------------Job-------------------------------------------------------------------------------------
     # SLOW 5 min
@@ -132,13 +138,18 @@
     # VM needs to be rebooted.
     # A running OS will accept ACPI signal.
     # Otherwise, module waits a long time, then a force reboot happens.
+    # TODO maybe vm_module sends ACPI shutdown while VM is not fully up, and it gets lost.
+    # Resend ACPI shutdown. Would help Windows VMs too - we added something like this to shutdown role.
     - name: Update the VM
+#      environment:
+#        SC_DEBUG_LOG_TRAFFIC: 1
       scale_computing.hypercore.vm: &update-vm
         vm_name: vm-integration-test-vm
         state: present
         memory: "{{ '512 MB' | human_to_bytes }}"
         vcpu: 2
         force_reboot: true
+        shutdown_timeout: "{{ vm_shutdown_timeout }}"
         disks:
           - type: ide_cdrom
             disk_slot: 0
@@ -175,14 +186,17 @@
           - result.records[0].disks.2.disk_slot == 1
           - result.records[0].vcpu == 2
           - result.records[0].memory == 536870912
+          - result.records.0.power_state == "started"
+          - result.records.0.machine_type == "BIOS"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
-    - name: Update the VM Idempotence
+    - name: Update the VM Idempotence 1
       scale_computing.hypercore.vm: *update-vm
       register: result
     - ansible.builtin.assert:
         that:
         - result is not changed
+        - result.vm_rebooted is false
 
     - name: Assert the VM has been updated Idempotence
       scale_computing.hypercore.vm_info: *get-vm-by-name
@@ -199,6 +213,7 @@
         memory: "{{ '512 MB' | human_to_bytes }}"
         vcpu: 2
         force_reboot: true
+        shutdown_timeout: "{{ vm_shutdown_timeout }}"
         disks:
           - type: ide_cdrom
             disk_slot: 0
@@ -244,14 +259,17 @@
           - result.records[0].nics.1.type == "virtio"
           - result.records[0].vcpu == 2
           - result.records[0].memory == 536870912
+          - result.records.0.power_state == "started"
+          - result.records.0.machine_type == "BIOS"
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
-    - name: Update the VM Idempotence
+    - name: Update the VM Idempotence 2
       scale_computing.hypercore.vm: *update-vm2
       register: result
     - ansible.builtin.assert:
         that:
         - result is not changed
+        - result.vm_rebooted is false
 
     - name: Assert the VM has been updated Idempotence
       scale_computing.hypercore.vm_info: *get-vm-by-name2

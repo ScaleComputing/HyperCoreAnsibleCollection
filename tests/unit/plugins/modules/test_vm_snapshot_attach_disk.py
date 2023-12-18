@@ -132,7 +132,7 @@ class TestAttachDisk:
             tags="XLAB-test-tag1,XLAB-test-tag2",
             description="desc",
             mem=42,
-            state="RUNNING",
+            state="SHUTOFF",
             numVCPU=2,
             netDevs=[],
             blockDevs=[],
@@ -155,7 +155,8 @@ class TestAttachDisk:
     @pytest.mark.parametrize(
         ("destination_vm_disk_info", "expected_return"),
         [
-            (None, (True, BLOCK_DEVICE, dict(before=None, after=BLOCK_DEVICE), True)),
+            # TODO - unit test also with running VM
+            (None, (True, BLOCK_DEVICE, dict(before=None, after=BLOCK_DEVICE), False)),
             (
                 BLOCK_DEVICE,
                 (False, BLOCK_DEVICE, dict(before=BLOCK_DEVICE, after=None), False),

@@ -1,4 +1,8 @@
 ---
+- name: Show test parameters
+  ansible.builtin.debug:
+    msg: disk_type={{ disk_type }} expected_vm_reboot={{ expected_vm_reboot }}
+
 # ------------------------------------------------------------------------------------------------------------------
 # Cleanup
 

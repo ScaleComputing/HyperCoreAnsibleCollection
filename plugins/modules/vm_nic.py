@@ -193,20 +193,16 @@ from ..module_utils.state import NicState
 MODULE_PATH = "scale_computing.hypercore.vm_nic"
 
 
-def ensure_absent(module, rest_client):
+def ensure_absent(module, rest_client, vm_before: VM):
     before = []
     after = []
     changed = False
-    virtual_machine_obj_list = VM.get(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )
     if module.params["items"]:
+        # TODO BUG if multiple NICs are deleted, module incorrectly reports only last one in (after, diff).
         for nic in module.params["items"]:
-            nic["vm_uuid"] = virtual_machine_obj_list[0].uuid
+            nic["vm_uuid"] = vm_before.uuid
             nic = Nic.from_ansible(ansible_data=nic)
-            existing_hc3_nic, existing_hc3_nic_with_new = virtual_machine_obj_list[
-                0
-            ].find_nic(
+            existing_hc3_nic, existing_hc3_nic_with_new = vm_before.find_nic(
                 vlan=nic.vlan, mac=nic.mac, vlan_new=nic.vlan_new, mac_new=nic.mac_new
             )
             if existing_hc3_nic:  # Delete nic
@@ -214,9 +210,8 @@ def ensure_absent(module, rest_client):
                     changed,
                     before,
                     after,
-                    reboot,
                 ) = ManageVMNics.send_delete_nic_request_to_hypercore(
-                    virtual_machine_obj_list[0],
+                    vm_before,
                     module,
                     rest_client=rest_client,
                     nic_to_delete=existing_hc3_nic,
@@ -227,7 +222,6 @@ def ensure_absent(module, rest_client):
         changed,
         after,
         dict(before=before, after=after),
-        virtual_machine_obj_list[0].reboot,
     )
 
 
@@ -238,16 +232,15 @@ def run(module, rest_client):
     if len(virtual_machine_obj_list) == 0:
         # VM absent, might be typo in vm_name
         module.fail_json(f"VM with name={module.params['vm_name']} not found.")
+    vm_before = virtual_machine_obj_list[0]
     if module.params["state"] in [NicState.present, NicState.set]:
-        changed, records, diff, reboot = ManageVMNics.ensure_present_or_set(
-            module, rest_client, MODULE_PATH
+        changed, records, diff = ManageVMNics.ensure_present_or_set(
+            module, rest_client, MODULE_PATH, vm_before
         )
     else:
-        changed, records, diff, reboot = ensure_absent(module, rest_client)
-    if virtual_machine_obj_list[0]:
-        # BUG - the virtual_machine_obj_list[0] is local to this function, .reboot is not set
-        virtual_machine_obj_list[0].vm_power_up(module, rest_client)
-    return changed, records, diff, reboot
+        changed, records, diff = ensure_absent(module, rest_client, vm_before)
+    vm_before.vm_power_up(module, rest_client)
+    return changed, records, diff, vm_before.was_vm_rebooted()
 
 
 def main():

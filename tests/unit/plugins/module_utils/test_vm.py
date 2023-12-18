@@ -2907,7 +2907,10 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         module_path = "scale_computing.hypercore.vm_disk"
-        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
+        vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
+        results = ManageVMDisks.ensure_present_or_set(
+            module, rest_client, module_path, vm_before
+        )
         assert results == (
             True,
             [
@@ -3047,7 +3050,10 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
-        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
+        vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
+        results = ManageVMDisks.ensure_present_or_set(
+            module, rest_client, module_path, vm_before
+        )
         assert results == (
             False,
             [
@@ -3208,7 +3214,10 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
         module_path = "scale_computing.hypercore.vm_disk"
-        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
+        vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
+        results = ManageVMDisks.ensure_present_or_set(
+            module, rest_client, module_path, vm_before
+        )
         assert results == (
             True,
             [
@@ -3376,7 +3385,10 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
-        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
+        vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
+        results = ManageVMDisks.ensure_present_or_set(
+            module, rest_client, module_path, vm_before
+        )
         assert results == (
             True,
             [
@@ -3536,7 +3548,10 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
-        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
+        vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
+        results = ManageVMDisks.ensure_present_or_set(
+            module, rest_client, module_path, vm_before
+        )
         assert results == (
             True,
             [
@@ -3643,7 +3658,10 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
-        result = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
+        vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
+        result = ManageVMDisks.ensure_present_or_set(
+            module, rest_client, module_path, vm_before
+        )
         assert result == (
             True,
             [],
@@ -3801,7 +3819,10 @@ class TestManageVMDisks:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
-        result = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path)
+        vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
+        result = ManageVMDisks.ensure_present_or_set(
+            module, rest_client, module_path, vm_before
+        )
 
         assert result == (
             True,
@@ -4377,9 +4398,11 @@ class TestManageVMNics:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        vm_before = VM.from_hypercore(self._get_empty_test_vm(), rest_client)
         module_path = "scale_computing.hypercore.vm_nic"
+
         results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
+            module=module, rest_client=rest_client, module_path=module_path, vm_before=vm_before,
         )
         assert results == (False, [], {"before": [], "after": []}, False)
 
@@ -4406,9 +4429,10 @@ class TestManageVMNics:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
+        vm_before = VM.from_hypercore(self._get_empty_test_vm(), rest_client)
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
+            module=module, rest_client=rest_client, module_path=module_path, vm_before=vm_before,
         )
 
         assert results == (False, [], {"before": [], "after": []}, False)

@@ -228,7 +228,7 @@ def attach_disk(
         dict(
             before=None, after=created_disk
         ),  # before, we ofcourse, didn't have that new block device, and after we should have it
-        vm_object.reboot,
+        vm_object.was_vm_rebooted(),
     )
 
 

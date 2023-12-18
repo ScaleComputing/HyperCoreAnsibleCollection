@@ -341,7 +341,7 @@ def ensure_absent(module, rest_client):
         changed,
         disks_after,
         dict(before=disks_before, after=disks_after),
-        vm_before.reboot,
+        vm_before.was_vm_rebooted(),
     )
 
 
@@ -351,8 +351,9 @@ def run(module, rest_client):
     if module.params["state"] == "absent":
         changed, records, diff, reboot = ensure_absent(module, rest_client)
     else:
+        vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
         changed, records, diff, reboot = ManageVMDisks.ensure_present_or_set(
-            module, rest_client, MODULE_PATH
+            module, rest_client, MODULE_PATH, vm_before
         )
     return changed, records, diff, reboot
 

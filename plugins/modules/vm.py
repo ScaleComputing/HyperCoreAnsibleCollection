@@ -419,31 +419,33 @@ MODULE_PATH = "scale_computing.hypercore.vm"
 
 
 def _set_boot_order(module, rest_client, vm, existing_boot_order):
-    if module.params["boot_devices"] is not None:
-        # set_boot_devices return bool whether the order has been changed or not
-        boot_order_changed = vm.set_boot_devices(
-            module.params["boot_devices"],
-            module,
-            rest_client,
-            existing_boot_order,
-        )
-        return boot_order_changed, vm.reboot
-    return False, vm.reboot
+    if module.params["boot_devices"] is None:
+        return False
+    # set_boot_devices return bool whether the order has been changed or not
+    boot_order_changed = vm.set_boot_devices(
+        module.params["boot_devices"],
+        module,
+        rest_client,
+        existing_boot_order,
+    )
+    return boot_order_changed
 
 
-def _set_disks(module, rest_client):
-    return ManageVMDisks.ensure_present_or_set(module, rest_client, MODULE_PATH)
+def _set_disks(module, rest_client, vm_before: VM):
+    return ManageVMDisks.ensure_present_or_set(
+        module, rest_client, MODULE_PATH, vm_before
+    )
 
 
-def _set_nics(module, rest_client):
-    return ManageVMNics.ensure_present_or_set(module, rest_client, MODULE_PATH)
+def _set_nics(module, rest_client, vm_before: VM):
+    return ManageVMNics.ensure_present_or_set(module, rest_client, MODULE_PATH, vm_before)
 
 
 def _set_vm_params(module, rest_client, vm, param_subset: List[str]):
-    changed_params, reboot, diff = ManageVMParams.set_vm_params(
+    changed_params, diff = ManageVMParams.set_vm_params(
         module, rest_client, vm, param_subset
     )
-    return changed_params, reboot
+    return changed_params
 
 
 def ensure_present(module, rest_client):
@@ -451,15 +453,15 @@ def ensure_present(module, rest_client):
     reboot = False
     if vm_before:
         before = vm_before.to_ansible()  # for output
+        existing_boot_order = vm_before.get_boot_device_order()
         # machineType needs to be set to uefi/vtpm first,
         # next nvram/vtpm disk can be added.
-        changed_params_1, reboot_params_1 = _set_vm_params(
+        changed_params_1 = _set_vm_params(
             module, rest_client, vm_before, param_subset=["machine_type"]
         )
-        changed_disks, reboot_disk = _set_disks(module, rest_client)
-        changed_nics, reboot_nic = _set_nics(module, rest_client)
-        existing_boot_order = vm_before.get_boot_device_order()
-        changed_order, reboot_boot_order = _set_boot_order(
+        changed_disks = _set_disks(module, rest_client, vm_before)
+        changed_nics = _set_nics(module, rest_client, vm_before)
+        changed_order = _set_boot_order(
             module, rest_client, vm_before, existing_boot_order
         )
         # Set vm params
@@ -467,7 +469,7 @@ def ensure_present(module, rest_client):
         # since boot order cannot be set when the vm is running.
         # set_vm_params updates VM's name, description, tags, memory, number of CPU,
         # changed the power state and/or assigns the snapshot schedule to the VM
-        changed_params_2, reboot_params_2 = _set_vm_params(
+        changed_params_2 = _set_vm_params(
             module, rest_client, vm_before, param_subset=[]
         )
         changed = any(
@@ -479,15 +481,8 @@ def ensure_present(module, rest_client):
                 changed_nics,
             )
         )
-        reboot = any(
-            (
-                reboot_disk,
-                reboot_nic,
-                reboot_boot_order,
-                reboot_params_1,
-                reboot_params_2,
-            )
-        )
+        vm_before.vm_power_up(module, rest_client)
+        was_vm_rebooted = vm_before.was_vm_rebooted()
         name_field = "vm_name_new" if module.params["vm_name_new"] else "vm_name"
     else:
         before = None  # for output
@@ -513,13 +508,10 @@ def ensure_present(module, rest_client):
             )
         changed = True
         name_field = "vm_name"
-    if reboot and module.params["power_state"] not in ["shutdown", "stop"]:
-        # we need to reboot old VM
-        vm_before.reboot = reboot
-        vm_before.vm_power_up(module, rest_client)
+        was_vm_rebooted = False
     vm_after = VM.get_by_name(module.params, rest_client, name_field=name_field)
     after = vm_after.to_ansible()
-    return changed, [after], dict(before=before, after=after), reboot
+    return changed, [after], dict(before=before, after=after), was_vm_rebooted
 
 
 def run(module, rest_client):
