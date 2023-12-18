@@ -40,7 +40,7 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -55,7 +55,7 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -157,7 +157,7 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="start",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -188,7 +188,7 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -220,7 +220,7 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="running",
+            power_state="started",
             vcpu=2,
             nics=[],
             disks=[],
@@ -988,7 +988,7 @@ class TestNic:
         results = virtual_machine.delete_unused_nics_to_hypercore_vm(
             module, rest_client, nic_key
         )
-        assert results == (False, False)
+        assert results is False
 
     def test_delete_unused_nics_to_hypercore_vm_when_one_nic_deleted(
         self, create_module, rest_client, mocker
@@ -1059,7 +1059,7 @@ class TestNic:
         results = virtual_machine.delete_unused_nics_to_hypercore_vm(
             module, rest_client, nic_key
         )
-        assert results == (True, False)
+        assert results is True
 
     def test_delete_unused_nics_to_hypercore_vm_when_multiple_nic_deleted(
         self, create_module, rest_client, mocker
@@ -1142,7 +1142,7 @@ class TestNic:
         results = virtual_machine.delete_unused_nics_to_hypercore_vm(
             module, rest_client, nic_key
         )
-        assert results == (True, False)
+        assert results is True
 
     def test_find_nic_vlan(self, rest_client, mocker):
         mocker.patch(
@@ -1892,7 +1892,7 @@ class TestManageVMParams:
                 tags=["Xlab", "updated"],
                 memory=512000,
                 vcpu=4,
-                power_state="stop",
+                power_state="stopped",
                 snapshot_schedule="snapshot_schedule_new",
                 operating_system="",
                 machine_type="BIOS",
@@ -1910,7 +1910,7 @@ class TestManageVMParams:
                 tags=["Xlab", "updated"],
                 description="Updated description",
                 memory=512000,
-                power_state="stop",
+                power_state="stopped",
                 vcpu=4,
                 snapshot_schedule="snapshot_schedule_new",
             ),
@@ -1921,7 +1921,7 @@ class TestManageVMParams:
             tags=["Xlab", "updated"],
             description="Updated description",
             memory=512000,
-            power_state="stop",
+            power_state="stopped",
             vcpu=4,
             snapshot_schedule="snapshot_schedule_new",
         )
@@ -2059,12 +2059,9 @@ class TestManageVMParams:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
-        changed, rebooted, diff = ManageVMParams.set_vm_params(
-            module, rest_client, vm_before, []
-        )
+        changed, diff = ManageVMParams.set_vm_params(module, rest_client, vm_before, [])
 
         assert changed is True
-        assert rebooted is False
         assert diff == {
             "before": {
                 "vm_name": "old_name",
@@ -2120,16 +2117,14 @@ class TestManageVMParams:
             snapshot_schedule="",
         )
 
-        changed, reboot_needed, diff = ManageVMParams.set_vm_params(
-            module, rest_client, vm_before, []
-        )
+        changed, diff = ManageVMParams.set_vm_params(module, rest_client, vm_before, [])
 
         assert changed is False
-        assert reboot_needed is False
         assert diff == {
             "before": None,
             "after": None,
         }
+        assert vm_before.was_vm_rebooted() is False
 
 
 class TestManageVMDisks:
@@ -2360,7 +2355,7 @@ class TestManageVMDisks:
                 vm_name="VM-name",
             )
         )
-        vm = VM(name="vm-name", memory=42, vcpu=2, uuid="id")
+        vm = VM(name="vm-name", memory=42, vcpu=2, uuid="id", power_state="shutdown")
         desired_disk = Disk(
             type="virtio_disk",
             slot=0,
@@ -2517,8 +2512,8 @@ class TestManageVMDisks:
             "taskTag": "123",
             "state": "COMPLETED",
         }
-        vm = VM(name="vm-name", memory=42, vcpu=2, uuid="id")
-        result = ManageVMDisks._update_block_device(
+        vm = VM(name="vm-name", memory=42, vcpu=2, uuid="id", power_state="shutdown")
+        ManageVMDisks._update_block_device(
             module, rest_client, desired_disk, existing_disk, vm
         )
         rest_client.update_record.assert_called_with(
@@ -2538,8 +2533,6 @@ class TestManageVMDisks:
             },
             False,
         )
-
-        assert result is False
 
     def test_delete_not_used_disks_no_deletion(
         self, create_module, rest_client, mocker
@@ -3967,7 +3960,7 @@ class TestManageVMNics:
             ),
             check_mode=False,
         )
-        existing_nic = {
+        existing_nic_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
             "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "vlan": 1,
@@ -3976,7 +3969,7 @@ class TestManageVMNics:
             "connected": True,
             "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
         }
-        new_nic = {
+        new_nic_dict = {
             "uuid": "6756f2hj-6u9a-90ff-6g91-7jeahgf47aab",
             "virDomainUUID": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "vlan": 1,
@@ -4000,25 +3993,25 @@ class TestManageVMNics:
             "state": "COMPLETED",
         }
         rest_client.get_record.side_effect = [
-            new_nic,
+            new_nic_dict,
+            new_nic_dict,
             {"state": "Done"},
         ]
         results = ManageVMNics.send_update_nic_request_to_hypercore(
             module,
             VM.from_hypercore(self._get_empty_test_vm(), rest_client),
             rest_client=rest_client,
-            new_nic=Nic.from_hypercore(new_nic),
-            existing_nic=Nic.from_hypercore(existing_nic),
+            new_nic=Nic.from_hypercore(new_nic_dict),
+            existing_nic=Nic.from_hypercore(existing_nic_dict),
             before=[],
             after=[],
         )
-        existing_nic = Nic.from_hypercore(existing_nic)
-        new_nic = Nic.from_hypercore(new_nic)
+        existing_nic = Nic.from_hypercore(existing_nic_dict)
+        new_nic = Nic.from_hypercore(new_nic_dict)
         assert results == (
             True,
             [existing_nic.to_ansible()],
             [new_nic.to_ansible()],
-            False,
         )
 
     def test_update_nic_when_one_nic_updated(self, rest_client, create_module, mocker):
@@ -4067,7 +4060,8 @@ class TestManageVMNics:
         }
         rest_client.get_record.side_effect = [
             new_nic,
-            {"taskTag": "1234", "state": "Done"},
+            new_nic,
+            {"taskTag": "1234", "state": "Done"},  #
         ]
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.Node.get_node"
@@ -4090,7 +4084,7 @@ class TestManageVMNics:
             before,
             after,
         )
-        assert results == (changed, before, after, False)
+        assert results == (changed, before, after)
 
     def test_send_create_nic_to_hypercore(self, rest_client, create_module, mocker):
         module = create_module(
@@ -4131,6 +4125,7 @@ class TestManageVMNics:
         }
         rest_client.get_record.side_effect = [
             new_nic,
+            new_nic,
             {"state": "Done"},
         ]
         results = ManageVMNics.send_create_nic_request_to_hypercore(
@@ -4145,7 +4140,6 @@ class TestManageVMNics:
             True,
             [None],
             [Nic.from_hypercore(new_nic).to_ansible()],
-            False,
         )
 
     def test_send_delete_nic_request_to_hypercore(
@@ -4188,7 +4182,7 @@ class TestManageVMNics:
             before=[],
             after=[],
         )
-        assert results == (True, [nic_to_delete.to_ansible()], [None], False)
+        assert results == (True, [nic_to_delete.to_ansible()], [None])
 
     @classmethod
     def _get_empty_test_vm(cls):
@@ -4402,9 +4396,12 @@ class TestManageVMNics:
         module_path = "scale_computing.hypercore.vm_nic"
 
         results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path, vm_before=vm_before,
+            module=module,
+            rest_client=rest_client,
+            module_path=module_path,
+            vm_before=vm_before,
         )
-        assert results == (False, [], {"before": [], "after": []}, False)
+        assert results == (False, [], {"before": [], "after": []})
 
     def test_ensure_present_or_set_when_no_change_and_state_present(
         self, rest_client, create_module, mocker
@@ -4432,10 +4429,13 @@ class TestManageVMNics:
         vm_before = VM.from_hypercore(self._get_empty_test_vm(), rest_client)
         module_path = "scale_computing.hypercore.vm_nic"
         results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path, vm_before=vm_before,
+            module=module,
+            rest_client=rest_client,
+            module_path=module_path,
+            vm_before=vm_before,
         )
 
-        assert results == (False, [], {"before": [], "after": []}, False)
+        assert results == (False, [], {"before": [], "after": []})
 
     @pytest.mark.skip("todo")
     def test_ensure_present_or_set_when_changed_create_nics_and_state_set(

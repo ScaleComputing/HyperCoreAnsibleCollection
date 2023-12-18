@@ -438,7 +438,9 @@ def _set_disks(module, rest_client, vm_before: VM):
 
 
 def _set_nics(module, rest_client, vm_before: VM):
-    return ManageVMNics.ensure_present_or_set(module, rest_client, MODULE_PATH, vm_before)
+    return ManageVMNics.ensure_present_or_set(
+        module, rest_client, MODULE_PATH, vm_before
+    )
 
 
 def _set_vm_params(module, rest_client, vm, param_subset: List[str]):
@@ -450,7 +452,6 @@ def _set_vm_params(module, rest_client, vm, param_subset: List[str]):
 
 def ensure_present(module, rest_client):
     vm_before = VM.get_by_old_or_new_name(module.params, rest_client)
-    reboot = False
     if vm_before:
         before = vm_before.to_ansible()  # for output
         existing_boot_order = vm_before.get_boot_device_order()

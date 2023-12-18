@@ -812,16 +812,16 @@ class TestEnsurePresent:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
-        ).return_value = (False, False)
+        ).return_value = False
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
-        ).return_value = (False, False)
+        ).return_value = False
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
-        ).return_value = (False, False)
+        ).return_value = False
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics"
-        ).return_value = (False, False)
+        ).return_value = False
 
         result = vm.ensure_present(module, rest_client)
         changed = result[0]

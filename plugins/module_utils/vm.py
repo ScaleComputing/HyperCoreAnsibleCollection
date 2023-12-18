@@ -894,10 +894,7 @@ class VM(PayloadMapper):
         )
         if vm_fresh_data["state"] in ["SHUTOFF", "SHUTDOWN"]:
             return True
-        if (
-            module.params["force_reboot"]
-            and self._was_nice_shutdown_tried
-        ):
+        if module.params["force_reboot"] and self._was_nice_shutdown_tried:
             self.update_vm_power_state(module, rest_client, "stop")
             # force shutdown should always work. If not, we need to pool for state change.
             # Maybe we need to pool for state change anyway -
@@ -949,9 +946,7 @@ class VM(PayloadMapper):
 
         Returns: True if VM was shutdown (nice ACPI, or force).
         """
-        return any(
-            [self._did_nice_shutdown_work, self._was_force_shutdown_tried]
-        )
+        return any([self._did_nice_shutdown_work, self._was_force_shutdown_tried])
 
     def was_vm_rebooted(self) -> bool:
         # Now, VM was rebooted when it was running at start, then stopped and powered on:
