@@ -1,0 +1,59 @@
+---
+# Try to use vm_nic module on non-existent VM
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    vm_name: XLAB-vm_nic_CI_test_c
+  block:
+# ----------------------------------Cleanup--------------------------------------------------------------------------------
+
+    - name: Delete XLAB-vm_nic_CI_test
+      scale_computing.hypercore.vm: &delete-XLAB-vm_nic_CI_test
+        vm_name: "{{ vm_name }}"
+        state: absent
+      register: result
+
+# -----------------------------------------------------------------------------------------------------------------------
+    - name: Create Nic in not-present VM XLAB-vm_nic_CI_test
+      scale_computing.hypercore.vm_nic:
+        vm_name: "{{ vm_name }}"
+        items:
+          - vlan: 1
+            type: RTL8139
+          - vlan: 2
+            type: virtio
+        state: set
+      register: output
+      ignore_errors: true
+    - &failed
+      ansible.builtin.assert:
+        that:
+          - output is failed
+          - output is not changed
+          - output.msg == "VM with name={{ vm_name }} not found."
+
+    - name: Delete Nic in not-present VM XLAB-vm_nic_CI_test
+      scale_computing.hypercore.vm_nic:
+        vm_name: "{{ vm_name }}"
+        items:
+          - vlan: 2
+            type: virtio
+        state: absent
+      register: output
+      ignore_errors: true
+    - *failed
+
+
+    - name: Delete all Nics in XLAB-vm_nic_CI_test
+      scale_computing.hypercore.vm_nic:
+        vm_name: "{{ vm_name }}"
+        items: []
+        state: set
+        force_reboot: True
+        shutdown_timeout: "{{ shutdown_timeout }}"
+      register: output
+      ignore_errors: true
+    - *failed

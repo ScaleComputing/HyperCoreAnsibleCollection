@@ -16,3 +16,4 @@
   block:
     - include_tasks: 01_vm_nic_stopped.yml
     - include_tasks: 02_vm_nic_running.yml
+    - include_tasks: 03_vm_nic_no_vm.yml
