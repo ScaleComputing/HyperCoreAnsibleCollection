@@ -35,10 +35,8 @@ from ..module_utils import errors
 from ..module_utils.snapshot_schedule import SnapshotSchedule
 from ..module_utils.hypercore_version import HyperCoreVersion
 
-# FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE and FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE are mappings for how
-# states are stored in python/ansible and how are they stored in hypercore
-
-# Inverted dict FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE
+# HyperCore state (ansible power_state) are a state machine.
+# We have states and actions to move between states.
 FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE = dict(
     RUNNING="started",
     SHUTOFF="stopped",
@@ -48,9 +46,7 @@ FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE = dict(
     CRASHED="crashed",
 )
 
-# FROM_ANSIBLE_TO_HYPERCORE_ACTION_STATE in mapping between how states are stored in ansible and how
-# states are stored in hypercore. Used in update_vm_power_state.
-FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE = dict(
+FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION = dict(
     start="START",
     shutdown="SHUTDOWN",
     stop="STOP",
@@ -220,7 +216,6 @@ class VM(PayloadMapper):
         operating_system=None,
         node_affinity=None,
         snapshot_schedule=None,
-        reboot=False,  # Is reboot needed
         # _was_nice_shutdown_tried=False,  # Has shutdown request already been tried
         machine_type=None,
         replication_source_vm_uuid=None,
@@ -244,11 +239,10 @@ class VM(PayloadMapper):
         self.snapshot_uuids = snapshot_uuids or []
         self.machine_type = machine_type
         self.replication_source_vm_uuid = replication_source_vm_uuid
-        #
-        # .reboot is True if: VM was initially running, and was shutdown during module execution.
-        # .reboot does not mean VM was already rebooted.
-        # .reboot means reboot is needed, but only if new power_state requires running VM.
-        self.reboot = reboot
+
+        if power_state not in FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE.values():
+            raise AssertionError(f"Unknown VM power_state={power_state}")
+        self._initially_running = power_state == "started"
         # .was_nice_shutdown_tried is True if nice ACPI shutdown was tried
         self._was_nice_shutdown_tried = False
         # if nice shutdown was tried, did it work?
@@ -272,6 +266,12 @@ class VM(PayloadMapper):
     @classmethod
     def from_ansible(cls, ansible_data):
         vm_dict = ansible_data
+
+        # Unfortunately we were using in playbooks "start" instead of "started", etc.
+        power_state_value = vm_dict.get("power_state", None)
+        if power_state_value == "start":
+            power_state_value = "started"
+
         return cls(
             uuid=vm_dict.get("uuid", None),  # No uuid when creating object from ansible
             name=vm_dict["vm_name"],
@@ -286,7 +286,7 @@ class VM(PayloadMapper):
             boot_devices=vm_dict.get("boot_devices", []),
             attach_guest_tools_iso=vm_dict["attach_guest_tools_iso"] or False,
             operating_system=vm_dict.get("operating_system"),
-            power_state=vm_dict.get("power_state", None),
+            power_state=power_state_value,
             machine_type=vm_dict.get("machine_type", None),
         )
 
@@ -537,7 +537,7 @@ class VM(PayloadMapper):
             vm_dict["operatingSystem"] = self.operating_system
         # state attribute is used by HC3 only during VM create.
         if self.power_state:
-            vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE.get(
+            vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION.get(
                 self.power_state, "unknown-power-state-sorry"
             )
 
@@ -668,7 +668,7 @@ class VM(PayloadMapper):
                 )
                 TaskTag.wait_task(rest_client, response)
                 changed = True
-        return changed, self.reboot
+        return changed
 
     def export_vm(self, rest_client, ansible_dict):
         data = VM.create_export_or_import_vm_payload(
@@ -817,12 +817,28 @@ class VM(PayloadMapper):
         # desired_power_state must be present in FROM_ANSIBLE_TO_HYPERCORE_ACTION_STATE's keys
         if not self.power_state:
             raise errors.ScaleComputingError("No information about VM's power state.")
+
+        # keep a record what was done
+        if desired_power_state == "start":
+            if self._was_start_tried:
+                raise AssertionError("VM _was_start_tried already set")
+            self._was_start_tried = True
+        if desired_power_state == "shutdown":
+            if self._was_nice_shutdown_tried:
+                raise AssertionError("VM _was_nice_shutdown_tried already set")
+            self._was_nice_shutdown_tried = True
+        if desired_power_state == "stop":
+            if self._was_force_shutdown_tried:
+                raise AssertionError("VM _was_force_shutdown_tried already set")
+            self._was_force_shutdown_tried = True
+        # reboot, reset are not included
+
         task_tag = rest_client.create_record(
             "/rest/v1/VirDomain/action",
             [
                 dict(
                     virDomainUUID=self.uuid,
-                    actionType=FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE[
+                    actionType=FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION[
                         desired_power_state
                     ],
                     cause="INTERNAL",
@@ -881,19 +897,12 @@ class VM(PayloadMapper):
         if (
             module.params["force_reboot"]
             and self._was_nice_shutdown_tried
-            and not self.reboot
         ):
-            if self._was_force_shutdown_tried is not False:
-                raise AssertionError(
-                    "VM should be shutdown at most once during module execution"
-                )
             self.update_vm_power_state(module, rest_client, "stop")
-            self._was_force_shutdown_tried = True
             # force shutdown should always work. If not, we need to pool for state change.
-            # Maybe se need to pool for state change anyway -
+            # Maybe we need to pool for state change anyway -
             # TaskTag might be finished before VM is really off.
             # self._did_force_shutdown_work = True
-            self.reboot = True
             return True
         return False
 
@@ -909,15 +918,10 @@ class VM(PayloadMapper):
             return True
         if (
             vm_fresh_data["state"] == "RUNNING"
-            and module.params["shutdown_timeout"]
+            # and module.params["shutdown_timeout"]  # default is 300 anyway
             and not self._was_nice_shutdown_tried
         ):
-            if self._was_force_shutdown_tried is not False:
-                raise AssertionError(
-                    "VM should be shutdown at most once during module execution"
-                )
             self.update_vm_power_state(module, rest_client, "shutdown")
-            self._was_nice_shutdown_tried = True
             shutdown_timeout = module.params["shutdown_timeout"]
             start = time()
             while 1:
@@ -936,18 +940,24 @@ class VM(PayloadMapper):
 
     def vm_power_up(self, module, rest_client):
         # Powers up a VM in case it was shutdown during module action.
-        if self.reboot:
+        # Do not power up VM that was initially stopped.
+        if self.was_vm_shutdown() and self._initially_running:
             self.update_vm_power_state(module, rest_client, "start")
-            self._was_start_tried = True
 
-    def was_vm_rebooted(self):
+    def was_vm_shutdown(self) -> bool:
+        """
+
+        Returns: True if VM was shutdown (nice ACPI, or force).
+        """
+        return any(
+            [self._did_nice_shutdown_work, self._was_force_shutdown_tried]
+        )
+
+    def was_vm_rebooted(self) -> bool:
         # Now, VM was rebooted when it was running at start, then stopped and powered on:
         # Assume we did not try to shutdown/stop a stopped VM.
         # We assume VM start did work (there are cases when VM is not bootable - like UEFI without NVRAM disk).
-        was_shutdown = any(
-            [self._did_nice_shutdown_work, self._was_force_shutdown_tried]
-        )
-        vm_rebooted = was_shutdown and self._was_start_tried
+        vm_rebooted = self.was_vm_shutdown() and self._was_start_tried
         return vm_rebooted
 
     def do_shutdown_steps(self, module, rest_client):
@@ -995,7 +1005,7 @@ class ManageVMParams(VM):
             payload["mem"] = module.params["memory"]
         if module.params["vcpu"] is not None:
             payload["numVCPU"] = module.params["vcpu"]
-        if module.params["machine_type"] is not None:
+        if module.params.get("machine_type") is not None:
             # On create/POST, machineTypeKeyword can be used (if HC3>=9.3.0).
             # On update/PATCH, machineTypeKeyword cannot be used (tested with HC3 9.3.5).
             hcversion = HyperCoreVersion(rest_client)
@@ -1017,7 +1027,7 @@ class ManageVMParams(VM):
         return payload
 
     @staticmethod
-    def _needs_reboot(module, changed: dict[str, bool]):
+    def _needs_reboot(module, changed_parameters: dict[str, bool]):
         """
 
         Args:
@@ -1027,11 +1037,11 @@ class ManageVMParams(VM):
         Returns: True if (at least one) parameter change requires VM reboot.
 
         """
-        for param in module.params:
+        for param_name in module.params:
             if (
-                module.params[param] is not None and param in REBOOT_LOOKUP
+                module.params[param_name] is not None and param_name in REBOOT_LOOKUP
             ):  # skip not provided parameters and cluster_instance
-                if REBOOT_LOOKUP[param] and changed.get(param):
+                if REBOOT_LOOKUP[param_name] and changed_parameters.get(param_name):
                     return True
         return False
 
@@ -1056,12 +1066,13 @@ class ManageVMParams(VM):
             changed_params["vcpu"] = vm.numVCPU != module.params["vcpu"]
         if module.params["power_state"]:
             # This is comparison between two strings. This works because module.params["power_state"]
-            # is in FROM_ANSIBLE_TO_HYPERCORE_POWER_STATE.keys(), whereas vm.power_state
+            # is in FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION.keys(), whereas vm.power_state
             # is in FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE.values().
             # state in playbook is different than read from HC3 (start/started)
+            # TODO double check if text above is still true
             is_substring = module.params["power_state"] not in vm.power_state
             changed_params["power_state"] = is_substring
-        if module.params["machine_type"] is not None:
+        if module.params.get("machine_type") is not None:
             changed_params["machine_type"] = (
                 vm.machine_type != module.params["machine_type"]
             )
@@ -1106,6 +1117,7 @@ class ManageVMParams(VM):
             if module.params["snapshot_schedule"] is not None:
                 after["snapshot_schedule"] = module.params["snapshot_schedule"]
             return after
+
         query = {
             "name": module.params["vm_name_new"]
             if module.params["vm_name_new"]
@@ -1171,13 +1183,13 @@ class ManageVMParams(VM):
                 # boot/reboot/reset VM if requested
                 # power_state needs different endpoint
                 # Wait_task in update_vm_power_state doesn't handle check_mode
+                # TODO likely this is to early for VM module
                 if module.params["power_state"] and not module.check_mode:
                     vm.update_vm_power_state(
                         module, rest_client, module.params["power_state"]
                     )
             return (
                 True,
-                vm.reboot,
                 dict(
                     before=ManageVMParams._build_before_diff(vm, module),
                     after=ManageVMParams._build_after_diff(module, rest_client),
@@ -1185,7 +1197,6 @@ class ManageVMParams(VM):
             )
         else:
             return (
-                False,
                 False,
                 dict(before=None, after=None),
             )
@@ -1282,7 +1293,6 @@ class ManageVMDisks:
             module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-        return vm.reboot
 
     @classmethod
     def _delete_not_used_disks(cls, module, rest_client, vm, changed, disk_key):
@@ -1377,16 +1387,17 @@ class ManageVMDisks:
                 module.check_mode,
             )
             TaskTag.wait_task(rest_client, task_tag, module.check_mode)
-        return True, [], dict(before=disks_before, after=[]), vm.was_vm_rebooted()
+        return True, [], dict(before=disks_before, after=[]), False
 
     @classmethod
-    def ensure_present_or_set(cls, module, rest_client, module_path):
+    def ensure_present_or_set(cls, module, rest_client, module_path, vm_before: VM):
         # At the moment, this method is called in modules vm_disk and vm
         # Module path is here to distinguish from which module ensure_present_or_set was called from
         changed = False
         called_from_vm_disk = not VM.called_from_vm_module(module_path)
         disk_key = "items" if called_from_vm_disk else "disks"
-        vm_before, disks_before = cls.get_vm_by_name(module, rest_client)
+        # vm_before, disks_before = cls.get_vm_by_name(module, rest_client)
+        disks_before = [disk.to_ansible() for disk in vm_before.disks]
         if (
             called_from_vm_disk
             and module.params["state"] == "set"
@@ -1472,8 +1483,8 @@ class ManageVMDisks:
             changed = cls._delete_not_used_disks(
                 module, rest_client, vm_before, changed, disk_key
             )
-        vm_before.vm_power_up(module, rest_client)
         if called_from_vm_disk:
+            vm_before.vm_power_up(module, rest_client)
             vm_after, disks_after = cls.get_vm_by_name(module, rest_client)
             return (
                 changed,
@@ -1481,7 +1492,7 @@ class ManageVMDisks:
                 dict(before=disks_before, after=disks_after),
                 vm_before.was_vm_rebooted(),
             )
-        return changed, vm_before.was_vm_rebooted()
+        return changed
 
 
 class ManageVMNics(Nic):
@@ -1516,12 +1527,12 @@ class ManageVMNics(Nic):
             payload=data,
             check_mode=False,
         )
+        TaskTag.wait_task(rest_client=rest_client, task=response)
         new_nic_obj = ManageVMNics.get_by_uuid(
             rest_client=rest_client, nic_uuid=existing_nic.uuid
         )
         after.append(new_nic_obj.to_ansible())
-        TaskTag.wait_task(rest_client=rest_client, task=response)
-        return True, before, after, virtual_machine_obj.reboot
+        return True, before, after
 
     @classmethod
     def send_create_nic_request_to_hypercore(
@@ -1537,12 +1548,12 @@ class ManageVMNics(Nic):
         response = rest_client.create_record(
             endpoint="/rest/v1/VirDomainNetDevice", payload=data, check_mode=False
         )
+        TaskTag.wait_task(rest_client=rest_client, task=response)
         new_nic_obj = ManageVMNics.get_by_uuid(
             rest_client=rest_client, nic_uuid=response["createdUUID"]
         )
         after.append(new_nic_obj.to_ansible())
-        TaskTag.wait_task(rest_client=rest_client, task=response)
-        return True, before, after, virtual_machine_obj.reboot
+        return True, before, after
 
     @classmethod
     def send_delete_nic_request_to_hypercore(
@@ -1558,20 +1569,31 @@ class ManageVMNics(Nic):
             endpoint="/rest/v1/VirDomainNetDevice/" + nic_to_delete.uuid,
             check_mode=False,
         )
-        after.append(None)
         TaskTag.wait_task(rest_client=rest_client, task=response)
-        return True, before, after, virtual_machine_obj.reboot
+        after.append(None)
+        return True, before, after
 
     @classmethod
-    def ensure_present_or_set(cls, module, rest_client, module_path):
+    def ensure_present_or_set(cls, module, rest_client, module_path, vm_before: VM):
+        """
+
+        Args:
+            module:
+            rest_client:
+            module_path:
+            vm_before: The VM matching vm_name/vm_name_new
+
+        Returns:
+            changed:
+            before:
+            after:
+            reboot: bool, it means reboot required if VM was running before.
+        """
         before = []
         after = []
         changed = False
         called_from_vm_nic = not VM.called_from_vm_module(module_path)
         nic_key = "items" if called_from_vm_nic else "nics"
-        vm_before = VM.get_by_old_or_new_name(
-            module.params, rest_client=rest_client, must_exist=True
-        )
         if module.params[nic_key]:
             for nic in module.params[nic_key]:
                 nic["vm_uuid"] = vm_before.uuid
@@ -1586,10 +1608,9 @@ class ManageVMNics(Nic):
                     existing_hc3_nic_with_new, nic
                 ):  # Update existing with vlan_new or mac_new - corner case
                     (
-                        changed,
+                        changed_tmp,
                         before,
                         after,
-                        reboot,
                     ) = ManageVMNics.send_update_nic_request_to_hypercore(
                         module,
                         vm_before,
@@ -1599,16 +1620,16 @@ class ManageVMNics(Nic):
                         before,
                         after,
                     )
+                    changed = changed or changed_tmp
                 elif (
                     existing_hc3_nic  # Nic
                     and not existing_hc3_nic_with_new  # None
                     and Nic.is_update_needed(existing_hc3_nic, nic)  # True
                 ):  # Update existing
                     (
-                        changed,
+                        changed_tmp,
                         before,
                         after,
-                        reboot,
                     ) = ManageVMNics.send_update_nic_request_to_hypercore(
                         module,
                         vm_before,
@@ -1618,13 +1639,13 @@ class ManageVMNics(Nic):
                         before,
                         after,
                     )
+                    changed = changed or changed_tmp
                 # Create new
                 elif not existing_hc3_nic and not existing_hc3_nic_with_new:
                     (
-                        changed,
+                        changed_tmp,
                         before,
                         after,
-                        reboot,
                     ) = ManageVMNics.send_create_nic_request_to_hypercore(
                         module,
                         vm_before,
@@ -1633,6 +1654,7 @@ class ManageVMNics(Nic):
                         before=before,
                         after=after,
                     )
+                    changed = changed or changed_tmp
         elif module.params[nic_key] == []:  # empty set in ansible, delete all
             for nic in vm_before.nic_list:
                 before.append(nic.to_ansible())
@@ -1640,21 +1662,28 @@ class ManageVMNics(Nic):
             raise errors.MissingValueAnsible(
                 "items, cannot be null, empty must be set to []"
             )
-        updated_virtual_machine = VM.get_by_old_or_new_name(
+
+        # If the only change is to delete a NIC, then
+        # the vm_before would not know VM was shutdown and reboot is needed.
+        # The delete_unused_nics_to_hypercore_vm() must get updated VLANs.
+        updated_virtual_machine_TEMP = VM.get_by_old_or_new_name(
             module.params, rest_client=rest_client
         )
+        updated_virtual_machine = vm_before
+        updated_virtual_machine.nics = updated_virtual_machine_TEMP.nics
+        del updated_virtual_machine_TEMP
+        # TODO are nics from vm_before used anywhere?
+
         if module.params["state"] == NicState.set or not called_from_vm_nic:
             # Check if any nics need to be deleted from the vm
-            if updated_virtual_machine.delete_unused_nics_to_hypercore_vm(
+            changed_tmp = updated_virtual_machine.delete_unused_nics_to_hypercore_vm(
                 module, rest_client, nic_key
-            )[0]:
-                changed = True
-                vm_before.reboot = True
+            )
+            changed = changed or changed_tmp
         if called_from_vm_nic:
             return (
                 changed,
                 after,
                 dict(before=before, after=after),
-                vm_before.reboot,
             )
-        return changed, vm_before.reboot
+        return changed

@@ -242,7 +242,7 @@ def ensure_absent(module, rest_client):
     vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
         module.params, rest_client
     )
-    return changed, after, dict(before=before, after=after), vm_before.reboot
+    return changed, after, dict(before=before, after=after), vm_before.was_vm_rebooted()
 
 
 def ensure_present(module, rest_client):
@@ -271,7 +271,7 @@ def ensure_present(module, rest_client):
     vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
         module.params, rest_client
     )
-    return changed, after, dict(before=before, after=after), vm_before.reboot
+    return changed, after, dict(before=before, after=after), vm_before.was_vm_rebooted()
 
 
 def ensure_set(module, rest_client):
@@ -284,7 +284,7 @@ def ensure_set(module, rest_client):
     vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
         module.params, rest_client
     )
-    return changed, after, dict(before=before, after=after), vm_before.reboot
+    return changed, after, dict(before=before, after=after), vm_before.was_vm_rebooted()
 
 
 def run(module, rest_client):
@@ -298,6 +298,7 @@ def run(module, rest_client):
     else:
         changed, after, diff, reboot = ensure_present(module, rest_client)
     if vm:
+        # TODO BUG, this does not work - copy of `vm` is used in say ensure_present
         vm.vm_power_up(module, rest_client)
     return changed, after, diff, reboot
 

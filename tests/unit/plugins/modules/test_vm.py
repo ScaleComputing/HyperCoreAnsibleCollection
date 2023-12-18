@@ -729,7 +729,8 @@ class TestEnsurePresent:
                     "vm_name": "VM-name-unique",
                 },
             },
-            True,
+            # VM was not running before, it was not rebooted.
+            False,
         )
         assert expected_result == result
 
@@ -868,6 +869,8 @@ class TestEnsurePresent:
             ),
         )
 
+        # Initialy VM was shutdown, module will start it.
+        # Module will return rebooted=False - VM was not running before invocation.
         rest_client.get_record.side_effect = [
             dict(
                 uuid="id",
@@ -1110,7 +1113,7 @@ class TestEnsurePresent:
                     "vm_name": "VM-name-unique",
                 },
             },
-            True,
+            False,  # VM was not rebooted
         )
 
     def test_ensure_present_create_vm_no_boot_devices_power_state_is_shutdown_v92(

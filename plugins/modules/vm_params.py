@@ -132,14 +132,12 @@ def run(module, rest_client):
     # Update VM's name, description, tags, memory, number of CPUs, power_state and/or assign snapshot schedule.
     # In case if reboot is needed, set_vm_params will shutdown the vm
     # In case if reboot is not needed, set_vm_params will set power_state as specified in the module.params["power_state"]
-    changed, reboot, diff = ManageVMParams.set_vm_params(module, rest_client, vm)
+    changed, diff = ManageVMParams.set_vm_params(module, rest_client, vm, param_subset=[])
     if module.params["power_state"] not in ["shutdown", "stop"]:
         # VM will be powered on in case if reboot is needed and module.params["power_state"] in ["start", "reboot", "reset"]
         # if reboot is not needed, vm_power_up doesn't do anything
         vm.vm_power_up(module, rest_client)
-    else:
-        reboot = False
-    return changed, reboot, diff
+    return changed, vm.was_vm_rebooted(), diff
 
 
 def main():

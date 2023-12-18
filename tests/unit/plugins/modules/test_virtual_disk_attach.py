@@ -37,6 +37,7 @@ def virtual_machine():
         memory=1024,
         vcpu=4,
         disks=[Disk(type="virtio_disk", slot=0), Disk(type="virtio_disk", slot=1)],
+        power_state="stopped",
     )
 
 
