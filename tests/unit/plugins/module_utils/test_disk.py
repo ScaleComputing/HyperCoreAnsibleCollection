@@ -237,6 +237,7 @@ class TestDisk:
             name="VM-name",
             memory=42,
             vcpu=2,
+            power_state="started",
         )
 
         disk = Disk(
