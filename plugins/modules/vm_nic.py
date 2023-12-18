@@ -200,9 +200,6 @@ def ensure_absent(module, rest_client):
     virtual_machine_obj_list = VM.get(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )
-    # VM already absent
-    if len(virtual_machine_obj_list) == 0:
-        return changed, after, dict(before=before, after=after)
     if module.params["items"]:
         for nic in module.params["items"]:
             nic["vm_uuid"] = virtual_machine_obj_list[0].uuid
@@ -238,6 +235,9 @@ def run(module, rest_client):
     virtual_machine_obj_list = VM.get(
         query={"name": module.params["vm_name"]}, rest_client=rest_client
     )
+    if len(virtual_machine_obj_list) == 0:
+        # VM absent, might be typo in vm_name
+        module.fail_json(f"VM with name={module.params['vm_name']} not found.")
     if module.params["state"] in [NicState.present, NicState.set]:
         changed, records, diff, reboot = ManageVMNics.ensure_present_or_set(
             module, rest_client, MODULE_PATH
