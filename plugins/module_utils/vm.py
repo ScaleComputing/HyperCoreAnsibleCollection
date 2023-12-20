@@ -52,9 +52,18 @@ FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION = dict(
     stop="STOP",
     reboot="REBOOT",
     reset="RESET",
-    started="START",
+    started="START",  # TODO remove?
 )
 
+FROM_ANSIBLE_POWER_ACTION_TO_ANSIBLE_POWER_STATE = dict(
+    start="started",
+    # both "stop" and "shutdown" result in "stopped" state
+    shutdown="stopped",
+    stop="stopped",
+    reboot="started",
+    reset="started",
+    started="started",  # TODO remove?
+)
 
 VM_PAYLOAD_KEYS = [
     "blockDevs",
@@ -83,7 +92,9 @@ DISK_TYPES_HYPERCORE = [
     "NVRAM",
 ]
 
-
+# List VM params that require VM reboot,
+# either because VM then can be changed only if VM is shutdown,
+# or because change is applied only after shutdown.
 REBOOT_LOOKUP = dict(
     vm_name=False,
     description=False,
@@ -208,6 +219,7 @@ class VM(PayloadMapper):
         tags=None,  # tags are stored internally as list of strings
         description=None,
         power_state=None,
+        power_action=None,
         nics=None,  # nics represents a list of type Nic
         disks=None,  # disks represents a list of type Nic
         # boot_devices are stored as list of nics and/or disks internally.
@@ -228,7 +240,6 @@ class VM(PayloadMapper):
         self.tags = tags
         self.description = description
         self.mem = memory
-        self.power_state = power_state
         self.numVCPU = vcpu
         self.nics = nics or []
         self.disks = disks or []
@@ -240,8 +251,38 @@ class VM(PayloadMapper):
         self.machine_type = machine_type
         self.replication_source_vm_uuid = replication_source_vm_uuid
 
-        if power_state not in FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE.values():
+        power_state_values = list(FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE.values()) + [
+            None
+        ]
+        power_action_values = list(FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION.keys()) + [
+            None
+        ]
+        if power_state not in power_state_values:
             raise AssertionError(f"Unknown VM power_state={power_state}")
+        if power_action not in power_action_values:
+            raise AssertionError(f"Unknown VM power_action={power_action}")
+        # VM.from_hypercore() will get only power_state
+        # VM.from_ansible() will get only power_action
+        if power_state and power_action:
+            # is bug, or is this useful?
+            raise AssertionError(
+                f"Both power_state={power_state} and power_action={power_action} are set"
+            )
+        if power_state is None and power_action is None:
+            # is bug, or is this useful?
+            raise AssertionError(
+                f"Neither power_state={power_state} nor power_action={power_action} is set"
+            )
+        self._power_state = power_state
+        self._power_action = power_action
+        if power_state and power_action is None:
+            # compute required action (if current state is known)
+            pass
+        if power_state is None and power_action:
+            # compute final power_state after action is applied
+            pass
+            # self._power_state = FROM_ANSIBLE_POWER_ACTION_TO_ANSIBLE_POWER_STATE[power_action]
+
         self._initially_running = power_state == "started"
         # .was_nice_shutdown_tried is True if nice ACPI shutdown was tried
         self._was_nice_shutdown_tried = False
@@ -268,9 +309,8 @@ class VM(PayloadMapper):
         vm_dict = ansible_data
 
         # Unfortunately we were using in playbooks "start" instead of "started", etc.
-        power_state_value = vm_dict.get("power_state", None)
-        if power_state_value == "start":
-            power_state_value = "started"
+        # Ansible module param with name "power_state" is actually power_action.
+        power_action = vm_dict.get("power_state", None)
 
         return cls(
             uuid=vm_dict.get("uuid", None),  # No uuid when creating object from ansible
@@ -286,7 +326,7 @@ class VM(PayloadMapper):
             boot_devices=vm_dict.get("boot_devices", []),
             attach_guest_tools_iso=vm_dict["attach_guest_tools_iso"] or False,
             operating_system=vm_dict.get("operating_system"),
-            power_state=power_state_value,
+            power_action=power_action,
             machine_type=vm_dict.get("machine_type", None),
         )
 
@@ -536,9 +576,9 @@ class VM(PayloadMapper):
         if self.operating_system:
             vm_dict["operatingSystem"] = self.operating_system
         # state attribute is used by HC3 only during VM create.
-        if self.power_state:
+        if self._power_action:
             vm_dict["state"] = FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION.get(
-                self.power_state, "unknown-power-state-sorry"
+                self._power_action, "unknown-power-state-sorry"
             )
 
         if self.machine_type and hcversion.verify("<9.3.0"):
@@ -554,7 +594,7 @@ class VM(PayloadMapper):
             vm_name=self.name,
             description=self.description,
             operating_system=self.operating_system,
-            power_state=self.power_state,
+            power_state=self._power_state,
             memory=self.mem,
             vcpu=self.numVCPU,
             disks=[disk.to_ansible() for disk in self.disk_list],
@@ -713,7 +753,7 @@ class VM(PayloadMapper):
             timeout=None,
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other: "VM"):
         """One VM is equal to another if it has ALL attributes exactly the same"""
         return all(
             (
@@ -724,7 +764,8 @@ class VM(PayloadMapper):
                 self.tags == other.tags,
                 self.description == other.description,
                 self.mem == other.mem,
-                self.power_state == other.power_state,
+                self._power_state == other._power_state,
+                self._power_action == other._power_action,
                 self.numVCPU == other.numVCPU,
                 self.nics == other.nics,
                 self.disks == other.disks,
@@ -812,22 +853,22 @@ class VM(PayloadMapper):
         ]
         return vm, boot_devices_uuid, boot_devices_ansible
 
-    def update_vm_power_state(self, module, rest_client, desired_power_state):
+    def update_vm_power_state(self, module, rest_client, desired_power_action):
         """Sets the power state to what is stored in self.power_state"""
-        # desired_power_state must be present in FROM_ANSIBLE_TO_HYPERCORE_ACTION_STATE's keys
-        if not self.power_state:
+        # desired_power_action must be present in FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION's keys
+        if not self._power_state:
             raise errors.ScaleComputingError("No information about VM's power state.")
 
         # keep a record what was done
-        if desired_power_state == "start":
+        if desired_power_action == "start":
             if self._was_start_tried:
                 raise AssertionError("VM _was_start_tried already set")
             self._was_start_tried = True
-        if desired_power_state == "shutdown":
+        if desired_power_action == "shutdown":
             if self._was_nice_shutdown_tried:
                 raise AssertionError("VM _was_nice_shutdown_tried already set")
             self._was_nice_shutdown_tried = True
-        if desired_power_state == "stop":
+        if desired_power_action == "stop":
             if self._was_force_shutdown_tried:
                 raise AssertionError("VM _was_force_shutdown_tried already set")
             self._was_force_shutdown_tried = True
@@ -839,7 +880,7 @@ class VM(PayloadMapper):
                 dict(
                     virDomainUUID=self.uuid,
                     actionType=FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION[
-                        desired_power_state
+                        desired_power_action
                     ],
                     cause="INTERNAL",
                 )
@@ -927,7 +968,6 @@ class VM(PayloadMapper):
                 )
                 current_time = time() - start
                 if vm["state"] in ["SHUTDOWN", "SHUTOFF"]:
-                    self.reboot = True
                     self._did_nice_shutdown_work = True
                     return True
                 if current_time >= shutdown_timeout:
@@ -936,9 +976,20 @@ class VM(PayloadMapper):
         return False
 
     def vm_power_up(self, module, rest_client):
-        # Powers up a VM in case it was shutdown during module action.
-        # Do not power up VM that was initially stopped.
+        # Powers up a VM in case:
+        #   - VM was shutdown during module execution or
+        #   - started/running state was explicitly requested (by module param power_state).
+        # But: VM is not started if
+        #   - VM was initially stopped and
+        #   - module param power_state is omitted or contains "stop".
         if self.was_vm_shutdown() and self._initially_running:
+            self.update_vm_power_state(module, rest_client, "start")
+            return
+        # Also start VM if module power_state requires a power on.
+        # Field _power_action is set only if VM instance was created with from_ansible();
+        # it is None if VM instance was created with from_hypercore().
+        requested_power_action = module.params.get("power_state")
+        if requested_power_action == "start":
             self.update_vm_power_state(module, rest_client, "start")
 
     def was_vm_shutdown(self) -> bool:
@@ -1064,9 +1115,24 @@ class ManageVMParams(VM):
             # is in FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION.keys(), whereas vm.power_state
             # is in FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE.values().
             # state in playbook is different than read from HC3 (start/started)
+            # E.g. "start" in "started", "stop" in "stopped".
             # TODO double check if text above is still true
-            is_substring = module.params["power_state"] not in vm.power_state
-            changed_params["power_state"] = is_substring
+            # is_substring = module.params["power_state"] not in vm._power_action
+            # changed_params["power_state"] = is_substring
+            # q(module.params["power_state"], vm._power_state, vm._power_action, changed_params["power_state"])
+
+            # vm._power_state describes actual state from HC3.
+            # module.params["power_state"] is ansible power_action, describing desired state.
+            requested_power_action = module.params["power_state"]
+            if requested_power_action in ["reset", "reboot"]:
+                # "reset" and "reboot" needs to be applied always.
+                changed_params["power_state"] = True
+            else:
+                desired_power_state = FROM_ANSIBLE_POWER_ACTION_TO_ANSIBLE_POWER_STATE[
+                    requested_power_action
+                ]
+                changed_params["power_state"] = desired_power_state != vm._power_state
+
         if module.params.get("machine_type") is not None:
             changed_params["machine_type"] = (
                 vm.machine_type != module.params["machine_type"]
@@ -1132,7 +1198,7 @@ class ManageVMParams(VM):
         if module.params["vcpu"] is not None:
             after["vcpu"] = vm.numVCPU
         if module.params["power_state"]:
-            after["power_state"] = vm.power_state
+            after["power_state"] = vm._power_state
         if module.params["snapshot_schedule"] is not None:
             after["snapshot_schedule"] = vm.snapshot_schedule
         return after
@@ -1153,7 +1219,7 @@ class ManageVMParams(VM):
         if module.params["vcpu"]:
             before["vcpu"] = vm.numVCPU
         if module.params["power_state"]:
-            before["power_state"] = vm.power_state
+            before["power_state"] = vm._power_state
         if module.params["snapshot_schedule"] is not None:
             before["snapshot_schedule"] = vm.snapshot_schedule
         return before
@@ -1172,17 +1238,8 @@ class ManageVMParams(VM):
             TaskTag.wait_task(rest_client, task_tag)
             if ManageVMParams._needs_reboot(
                 module, changed_parameters
-            ) and vm.power_state not in ["stop", "stopped", "shutdown"]:
+            ) and vm._power_action not in ["stop", "stopped", "shutdown"]:
                 vm.do_shutdown_steps(module, rest_client)
-            else:
-                # boot/reboot/reset VM if requested
-                # power_state needs different endpoint
-                # Wait_task in update_vm_power_state doesn't handle check_mode
-                # TODO likely this is to early for VM module
-                if module.params["power_state"] and not module.check_mode:
-                    vm.update_vm_power_state(
-                        module, rest_client, module.params["power_state"]
-                    )
             return (
                 True,
                 dict(
@@ -1218,11 +1275,14 @@ class ManageVMParams(VM):
                     f"machine_type={module.params['machine_type']} not included in set_vm_params."
                 )
             # At end of module execution we will have VM with final_disks.
-            final_disks = vm.disks
-            if module.params["disks"]:
+            if "disks" in module.params:
+                # vm module, "disks" param was passed
                 final_disks = [
                     Disk.from_ansible(disk) for disk in module.params["disks"]
                 ]
+            else:
+                # vm_params has no disks, we need to check the actual VM disks
+                final_disks = vm.disks
             nvram_disks = [disk for disk in final_disks if disk.type == "nvram"]
             vtpm_disks = [disk for disk in final_disks if disk.type == "vtpm"]
             fail_message_requirements = []

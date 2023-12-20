@@ -1,0 +1,240 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    vm_name: XLAB-vm_params_CI_test-UEFI-2
+
+  block:
+  # ===================================================================
+  # Prepare test VM with known initial state
+  - &delete-vm
+    name: Delete VM vm_params machine_type
+    scale_computing.hypercore.vm:
+      vm_name: "{{ vm_name }}"
+      state: absent
+
+  - name: Create VM vm_params machine_type
+    scale_computing.hypercore.vm:
+      vm_name: "{{ vm_name }}"
+      description: VM for testing vm_params module machine_type
+      power_state: stop
+      machine_type: BIOS
+      state: present
+      tags:
+        - Xlab
+      memory: "{{ '512 MB' | human_to_bytes }}"
+      vcpu: 2
+      disks: []
+      nics: []
+    register: initial
+  - ansible.builtin.assert:
+      that:
+        - initial is changed
+
+  # ===================================================================
+  # Set VMs params, except for name
+  - &set-vm-to-uefi
+    name: Set VM to UEFI mode, missing NVRAM disk
+    scale_computing.hypercore.vm_params:
+      vm_name: "{{ vm_name }}"
+      description: VM for testing vm_params module machine_type - updated
+      tags:
+        - Xlab
+        - updated
+      vcpu: 3
+      memory:  "{{ '1024 MB' | human_to_bytes }}"
+      power_state: start
+      force_reboot: True
+      shutdown_timeout: 10
+      machine_type: UEFI
+    register: output
+    ignore_errors: true
+  - ansible.builtin.assert:
+      that:
+        - output is failed
+        - output is not changed
+        - output.msg == "Changing machineType to UEFI requires nvram disk."
+
+  - &check-vm-not-updated
+    block:
+      - name: Check VMs params are not changed
+        scale_computing.hypercore.vm_info:
+          vm_name: "{{ vm_name }}"
+        register: updated
+      - ansible.builtin.assert:
+          that:
+            - updated.records | length == 1
+            - updated.records[0].description == "VM for testing vm_params module machine_type"
+            - updated.records[0].tags == ["Xlab"]
+            - updated.records[0].vcpu == 2
+            - updated.records[0].memory == 536870912
+            - updated.records[0].power_state == "stopped"
+            - updated.records[0].snapshot_schedule == ""
+
+  # ===================================================================
+  # Add required NVRAM disk, then use vm_params to set UEFI mode
+  - name: Add NVRAM disk to VM
+    scale_computing.hypercore.vm:
+      vm_name: "{{ vm_name }}"
+      description: VM for testing vm_params module machine_type
+      power_state: stop
+      machine_type: BIOS
+      state: present
+      tags:
+        - Xlab
+      memory: "{{ '512 MB' | human_to_bytes }}"
+      vcpu: 2
+      disks:
+        - type: nvram
+          disk_slot: -1
+          size: 540672
+      nics: [ ]
+    register: output
+  - assert:
+      that:
+        - output is changed
+        - output.vm_rebooted == false
+        - output.record[0].disks | length == 1
+        - output.record[0].disks.0.type == "nvram"
+        - output.record[0].disks.0.disk_slot == -1
+  # check with vm_info NVRAM disk was added
+  - name: Get vm_info
+    scale_computing.hypercore.vm_info:
+      vm_name: "{{ vm_name }}"
+    register: output
+  - assert:
+      that:
+        - output.records[0].disks | length == 1
+        - output.records[0].disks.0.type == "nvram"
+        - output.records[0].disks.0.disk_slot == -1
+
+  # ===================================================================
+  # Change VM machine_type
+  - name: Set VM to UEFI mode, NVRAM disk present
+    <<: *set-vm-to-uefi
+  - ansible.builtin.assert:
+      that:
+        - output is changed
+        - output.vm_rebooted is false
+
+  - &check-vm-updated
+    block:
+      - name: Check VMs params were changed
+        scale_computing.hypercore.vm_info:
+          vm_name: "{{ vm_name }}"
+        register: updated
+      - ansible.builtin.assert:
+          that:
+            - updated.records | length == 1
+            - updated.records[0].description == "VM for testing vm_params module machine_type - updated"
+            - updated.records[0].tags == ["Xlab", "updated"]
+            - updated.records[0].vcpu == 3
+            - updated.records[0].memory == 1073741824
+            - updated.records[0].power_state == "started"
+            - updated.records[0].snapshot_schedule == ""
+
+  # ===================================================================
+  # Change VM machine_type - idempotence
+  - name: Set VM to UEFI mode, NVRAM disk present, idempotence
+    <<: *set-vm-to-uefi
+  - ansible.builtin.assert:
+      that:
+        - output is not changed
+        - output.vm_rebooted is false
+
+  - *check-vm-updated
+
+  # ===================================================================
+  # Delete snapshot schedule, description and tags
+  - name: Delete snapshot schedule, description and tags from VM
+    scale_computing.hypercore.vm_params: &delete-schedule-description-tags
+      vm_name: "{{ vm_name }}"
+      snapshot_schedule: ""
+      tags: [""]
+      description: ""
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - output is changed
+        - output.vm_rebooted is false
+
+  - name: Check VMs params changed
+    scale_computing.hypercore.vm_info:
+      vm_name: "{{ vm_name }}"
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - output.records[0].description == ""
+        - output.records[0].tags == [""]
+        - not output.records[0].snapshot_schedule
+
+  - name: Delete snapshot schedule, description and tags - idempotence
+    scale_computing.hypercore.vm_params: *delete-schedule-description-tags
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - output is not changed
+        - output.vm_rebooted is false
+
+  - name: Check VMs params aren't changed
+    scale_computing.hypercore.vm_info:
+      vm_name: "{{ vm_name }}"
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - output.records[0].description == ""
+        - output.records[0].tags == [""]
+        - not output.records[0].snapshot_schedule
+
+  # ===================================================================
+  # Set nonexisting snapshot schedule
+  - name: Set VMs snapshot_schedule - not found
+    scale_computing.hypercore.vm_params:
+      vm_name: "{{ vm_name }}"
+      snapshot_schedule: not_existing
+    ignore_errors: True
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - "'No records from endpoint /rest/v1/VirDomainSnapshotSchedule' in output.msg"
+
+  - name: Check VMs snapshot schedule isn't changed
+    scale_computing.hypercore.vm_info:
+      vm_name: "{{ vm_name }}"
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - not output.records[0].snapshot_schedule
+
+  # ===================================================================
+  # Set nonexisting snapshot schedule
+  - name: Set VMs power_state - applied
+    scale_computing.hypercore.vm_params:
+      vm_name: "{{ vm_name }}"
+      power_state: reset
+    # ignore_errors: True
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - output is succeeded
+        # changes since RESET power action was sent to VM.
+        # Change is observable as HC3 should reset a running VM.
+        - output is changed
+        - output.vm_rebooted is false  # true  # todo - is this reported? should we pretend reboot==reset - it is not same.
+
+  - name: Check VMs power_state isn't changed
+    scale_computing.hypercore.vm_info:
+      vm_name: "{{ vm_name }}"
+    register: output
+  - ansible.builtin.assert:
+      that:
+        - output is succeeded
+        # HC3 9.2.22 - RESET is accepted, but VM remains stopped as it was stopped before.
+        - output.records[0].power_state == "started"
+
+  # ===================================================================
+  # Cleanup
+  - *delete-vm
