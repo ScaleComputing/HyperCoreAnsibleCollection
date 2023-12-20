@@ -8,6 +8,10 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
     iso_name: "Porteus-XFCE-v5.0-x86_64.iso"
+    # Testing against local NUC v9.2.22
+    # vm_shutdown_timeout: 3  # STOP send immediately after SHUTDOWN, STOP task takes ages...
+    # vm_shutdown_timeout: 30  # sometimes works, sometimes we get internal error at "Update the VM" or "Update the VM 2nd time"
+    # vm_shutdown_timeout: 40  # seems to work reliably
     vm_shutdown_timeout: 300
 
   block:
