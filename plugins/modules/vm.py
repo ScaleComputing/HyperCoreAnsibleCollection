@@ -525,7 +525,8 @@ def ensure_absent(module, rest_client):
     reboot = False
     vm = VM.get_by_name(module.params, rest_client)
     if vm:
-        if vm.power_state != "shutdown":  # First, shut it off and then delete
+        if vm._power_state != "shutdown":  # First, shut it off and then delete
+            # TODO ==shutdown or ==stopped ??
             vm.update_vm_power_state(module, rest_client, "stop")
         task_tag = rest_client.delete_record(
             "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid), module.check_mode

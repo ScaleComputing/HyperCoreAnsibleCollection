@@ -35,12 +35,13 @@ pytestmark = pytest.mark.skipif(
 class TestVM:
     def test_vm_from_ansible(self):
         vm_dict = dict(
+            # this are module params
             uuid=None,  # No uuid when creating object from ansible
             vm_name="VM-name",
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="started",
+            power_state="start",
             vcpu=2,
             nics=[],
             disks=[],
@@ -55,7 +56,7 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="started",
+            power_action="start",
             vcpu=2,
             nics=[],
             disks=[],
@@ -157,7 +158,7 @@ class TestVM:
             tags=["XLAB-test-tag1", "XLAB-test-tag2"],
             description="desc",
             memory=42,
-            power_state="started",
+            power_action="start",
             vcpu=2,
             nics=[],
             disks=[],
