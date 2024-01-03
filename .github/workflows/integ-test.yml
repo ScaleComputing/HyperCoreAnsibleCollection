@@ -60,9 +60,10 @@ jobs:
       fail-fast: false
       matrix:
         sc_host:
-          - https://10.5.11.200
-          - https://10.5.11.201
-          - https://10.5.11.203 # HC 9.3.x
+          - https://10.5.11.200  # HC 9.1.x
+          - https://10.5.11.201  # HC 9.2.x
+          - https://10.5.11.203  # HC 9.3.x
+          - https://10.5.11.204  # HC 9.4.x
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -179,7 +180,7 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          sc_host: https://10.5.11.203
+          sc_host: https://10.5.11.204
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
@@ -219,6 +220,7 @@ jobs:
           - https://10.5.11.200
           - https://10.5.11.201
           - https://10.5.11.203
+          - https://10.5.11.204
         include:
           - sc_host: https://10.5.11.50
             test_name: vm_replication
@@ -236,11 +238,15 @@ jobs:
             test_name: vm_replication
           - sc_host: https://10.5.11.203
             test_name: vm_replication
+          - sc_host: https://10.5.11.204
+            test_name: vm_replication
           - sc_host: https://10.5.11.200
             test_name: vm_clone__replicated
           - sc_host: https://10.5.11.201
             test_name: vm_clone__replicated
           - sc_host: https://10.5.11.203
+            test_name: vm_clone__replicated
+          - sc_host: https://10.5.11.204
             test_name: vm_clone__replicated
           # Seem as VSNS nodes cannot open remote tunnel.
           # Code/port that worked (was opened, then closed) on real HyperCode
@@ -250,6 +256,8 @@ jobs:
           - sc_host: https://10.5.11.201
             test_name: support_tunnel
           - sc_host: https://10.5.11.203
+            test_name: support_tunnel
+          - sc_host: https://10.5.11.204
             test_name: support_tunnel
     steps:
       - name: Checkout
@@ -308,6 +316,7 @@ jobs:
           - https://10.5.11.200
           - https://10.5.11.201
           - https://10.5.11.203
+          - https://10.5.11.204
         exclude:
           # role cluster_config can be used with HC3 9.1, but you need to omit cluster_name setting.
           # CI job role_cluster_config does try to set cluster_name, so it would fail.
