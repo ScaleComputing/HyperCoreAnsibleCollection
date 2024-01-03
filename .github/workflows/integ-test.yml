@@ -287,7 +287,7 @@ jobs:
       - integ
     if: "always() && (needs.integ-matrix.result=='success')"
     runs-on: [ self-hosted2 ]
-    container: quay.io/justinc1_github/scale_ci_integ:3
+    container: quay.io/justinc1_github/scale_ci_integ:9
     env:
       DEBIAN_FRONTEND: noninteractive
     defaults:
@@ -330,7 +330,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=2.13.0
+      - run: pip install ansible-core~=2.16.0
       # We have ansible.cfg "for testing" in git repo
       # (it is excluded in galaxy.yml, so it is not part of collection artifact)
       # But it does affect ansible-galaxy and ansible-test commands.
