@@ -66,7 +66,7 @@ jobs:
           - https://10.5.11.204  # HC 9.4.x
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
       - run: ansible-galaxy collection install community.crypto community.general
@@ -94,7 +94,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
       # We want to run all integ tests periodically - "integ_tests_include || '*'", the '*' is used.
@@ -124,7 +124,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
       - run: |
@@ -170,7 +170,7 @@ jobs:
         example_name: ${{ fromJson(needs.examples-matrix.outputs.matrix) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
       - run: pip install ansible-core~=${{ matrix.ansible }}
@@ -261,7 +261,7 @@ jobs:
             test_name: support_tunnel
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
       - run: pip install ansible-core~=2.16.0
@@ -327,7 +327,7 @@ jobs:
         #     test_name: dns_config
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
       - run: pip install ansible-core~=2.16.0
@@ -358,7 +358,7 @@ jobs:
         working-directory: ${{ env.WORKDIR }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
       - run: pip install ansible-core~=2.16.0
@@ -383,7 +383,7 @@ jobs:
         working-directory: ${{ env.WORKDIR }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
       # ${{ env.WORKDIR }} cannot be used
