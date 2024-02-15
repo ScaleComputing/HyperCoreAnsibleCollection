@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Perform sanity testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: python -c "import json, yaml; print('version_matrix=' + json.dumps(yaml.safe_load(open('.github/workflows/files/ansible-test-units-matrix.yml'))))"
       - id: set-matrix
         name: set version_matrix output
@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Perform units testing with ansible-test
         uses: ansible-community/ansible-test-gh-action@release/v1
         with:
