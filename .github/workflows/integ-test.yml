@@ -10,7 +10,7 @@ on:
           List integration tests to include.
           Use "*" to run all tests.
           Use regex like 'node|^git_issue' to run only a subset.
-        default: ""
+        default: "*"
       # dns_config|time_server - NTP cannot be reconfigured if DNS is invalid
       # git_issues - slow, do not run on each push. TODO - run them only once a day
       # oidc_config - during reconfiguration API returns 500/502 errors for other requests
@@ -25,16 +25,38 @@ on:
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
         default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
+      integ_seq_tests_include:
+        type: string
+        description: |-
+          List seq integration tests to include.
+        # We want to run sequentially all tests that cannot run in parallel (e.g. all that listed in integ_tests_exclude).
+        # Some tests can be tested on VSNS - those are run on VSNS.
+        # Some cannot, those are run on test cluster 10.5.11.50.
+        # Some cannot be tested at all - shutdown and version update.
+        default: "^dns_config$|^oidc_config$|^smtp$|^role_cluster_config$|^utils_login$|^certificate$"
+      integ_seq_tests_exclude:
+        type: string
+        description: |-
+          List seq integration tests to exclude.
+        default: ""
       examples_tests_include:
         type: string
         description: |-
           List examples to include into testing.
           Use "*" to test all examples.
         default: "iso_info"
+      examples_tests_exclude:
+        type: string
+        description: |-
+          List examples to exclude from testing.
+        default: ""
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
   INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
+  INTEG_SEQ_TESTS_INCLUDE_SCHEDULE: "^dns_config$|^oidc_config$|^smtp$|^role_cluster_config$|^utils_login$|^certificate$"
+  INTEG_SEQ_TESTS_EXCLUDE_SCHEDULE: ""
   EXAMPLES_TESTS_INCLUDE_SCHEDULE: "*"
+  EXAMPLES_TESTS_EXCLUDE_SCHEDULE: ""
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
   WORKDIR: work-dir/ansible_collections/scale_computing/hypercore
@@ -101,20 +123,49 @@ jobs:
       # When running with workflow-dispatch, user is required to put some non-empty string into integ_tests_include.
       - run: echo 'INTEG_TESTS_INCLUDE=${{ github.event.inputs.integ_tests_include || env.INTEG_TESTS_INCLUDE_SCHEDULE }}' >> $GITHUB_ENV
       - run: echo 'INTEG_TESTS_EXCLUDE=${{ github.event.inputs.integ_tests_exclude || env.INTEG_TESTS_EXCLUDE_SCHEDULE }}' >> $GITHUB_ENV
-#      - run: echo 'INTEG_TESTS_TO_RUN_SEQUENTIALLY=${{ github.event.inputs.integ_tests_to_run_sequentially || env.INTEG_TESTS_TO_RUN_SEQUENTIALLY }}' >> $GITHUB_ENV
-
       - id: set-matrix
         shell: bash
         run: |-
           echo "matrix=$(
             ls -r tests/integration/targets |
-            grep -v -E "${{ env.INTEG_TESTS_EXCLUDE }}" |
+            grep -v -E "${{ env.INTEG_TESTS_EXCLUDE || '^dummy-no-such-test$' }}" |
             grep -E "${{ env.INTEG_TESTS_INCLUDE }}" |
             jq -R -s -c 'split("\n")[:-1]'
           )" >> $GITHUB_OUTPUT
     if: "${{ github.event.inputs.integ_tests_include || github.event.schedule }}"
 
+
+  integ-seq-matrix:
+    needs:
+      - integ-matrix
+    runs-on: [ubuntu-latest]
+    container: quay.io/justinc1_github/scale_ci_integ:9
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.WORKDIR }}
+      - run: echo 'INTEG_SEQ_TESTS_INCLUDE=${{ github.event.inputs.integ_seq_tests_include || env.INTEG_SEQ_TESTS_INCLUDE_SCHEDULE }}' >> $GITHUB_ENV
+      - run: echo 'INTEG_SEQ_TESTS_EXCLUDE=${{ github.event.inputs.integ_seq_tests_exclude || env.INTEG_SEQ_TESTS_EXCLUDE_SCHEDULE }}' >> $GITHUB_ENV
+      - id: set-matrix
+        shell: bash
+        run: |-
+          echo "matrix=$(
+            ls -r tests/integration/targets |
+            grep -v -E "${{ env.INTEG_SEQ_TESTS_EXCLUDE || '^dummy-no-such-test$' }}" |
+            grep -E "${{ env.INTEG_SEQ_TESTS_INCLUDE }}" |
+            jq -R -s -c 'split("\n")[:-1]'
+          )" >> $GITHUB_OUTPUT
+    if: "${{ github.event.inputs.integ_seq_tests_include || github.event.schedule }}"
+
   examples-matrix:
+    needs:
+      - integ-seq-matrix
     runs-on: [ ubuntu-latest ]
     container: quay.io/justinc1_github/scale_ci_integ:9
     defaults:
@@ -127,13 +178,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
-      - run: |
-          if [ "" != "${{ github.event.schedule }}" ]
-          then
-            echo 'EXAMPLES_TESTS_INCLUDE=${{ env.EXAMPLES_TESTS_INCLUDE_SCHEDULE }}' >> $GITHUB_ENV
-          else
-            echo 'EXAMPLES_TESTS_INCLUDE=${{ github.event.inputs.examples_tests_include }}' >> $GITHUB_ENV
-          fi
+      - run: echo 'EXAMPLES_TESTS_INCLUDE=${{ github.event.inputs.examples_tests_include || env.EXAMPLES_TESTS_INCLUDE_SCHEDULE }}' >> $GITHUB_ENV
+      - run: echo 'EXAMPLES_TESTS_EXCLUDE=${{ github.event.inputs.examples_tests_exclude || env.EXAMPLES_TESTS_EXCLUDE_SCHEDULE }}' >> $GITHUB_ENV
       # A few files are not an example playbook:
       #   hypercore_inventory.yml - inventory example
       #   cloud-init-user-data-example.yml - cloud-init user-data example
@@ -143,6 +189,7 @@ jobs:
           echo "matrix=$(
             ls -r examples |
             grep -v -E "^README.md$|^hypercore_inventory.yml$|^cloud-init-user-data-example.yml$" |
+            grep -v -E "${{ env.EXAMPLES_TESTS_EXCLUDE || '^dummy-no-such-example$' }}" |
             grep -E "${{ env.EXAMPLES_TESTS_INCLUDE }}" |
             jq -R -s -c 'split("\n")[:-1]'
           )" >> $GITHUB_OUTPUT
@@ -152,9 +199,8 @@ jobs:
     needs:
       - examples-matrix
       # run examples after integ - they will both try to modify say syslog_server etc
-      - integ
-      - integ-seq
-    if: "always() && (needs.examples-matrix.result=='success')"
+      - integ-seq-run
+    if: "(!cancelled())  && (needs.examples-matrix.result=='success')"
     runs-on: [ self-hosted2 ]
     container: quay.io/justinc1_github/scale_ci_integ:9
     env:
@@ -173,11 +219,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=${{ matrix.ansible }}
-      - run: ansible-galaxy collection install community.crypto community.general
-      - run: ansible-galaxy collection list
-
-      # ${{ env.WORKDIR }} cannot be used
+      - name: SKIP test if it succeeded before
+        shell: bash
+        env:
+          X_GITHUB_JOB_NAME: "examples-run (${{ matrix.ansible }}, ${{ matrix.example_name }})"
+        run: |
+          if ! .github/job_retry_needed.py
+          then
+            echo SKIP test, job retry not needed
+            echo 'X_GITHUB_SKIP_TEST=1' >> $GITHUB_ENV
+          else
+            echo 'X_GITHUB_SKIP_TEST=0' >> $GITHUB_ENV
+          fi
+      - name: Install prerequisites
+        shell: bash
+        run: |
+          [ "$X_GITHUB_SKIP_TEST" == "1" ] && exit 0
+          pip install ansible-core~=${{ matrix.ansible }}
+          ansible-galaxy collection install community.crypto community.general
+          ansible-galaxy collection list
+      # ${{ env.WORKDIR }} cannot be used in "uses:"
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
           sc_host: https://10.5.11.204
@@ -186,22 +247,25 @@ jobs:
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
-      - run: |
+      - name: Debug test config
+        shell: bash
+        run: |
           pwd
           ls -al tests/integration/integration_config.yml
           head tests/integration/integration_config.yml
-
-      - run: |
+      - name: Run test
+        shell: bash
+        run: |
+          [ "$X_GITHUB_SKIP_TEST" == "1" ] && exit 0
           eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
           eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_username')
           eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_password')
           eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
           ansible-playbook -i localhost, -e hypercore_example_check_mode=true examples/${{ matrix.example_name }}
 
-  integ:
+  integ-run:
     needs:
       - integ-matrix
-      # - units-test
     runs-on: [self-hosted2]
     container: quay.io/justinc1_github/scale_ci_integ:9
     env:
@@ -281,11 +345,11 @@ jobs:
           working_directory: ${{ env.WORKDIR }}
       - run: ansible-test integration --local ${{ matrix.test_name }}
 
-  integ-seq:
+  integ-seq-run:
     needs:
-      - integ-matrix
-      - integ
-    if: "always() && (needs.integ-matrix.result=='success')"
+      - integ-seq-matrix
+      - integ-run
+    if: "(!cancelled()) && (needs.integ-seq-matrix.result=='success')"
     runs-on: [ self-hosted2 ]
     container: quay.io/justinc1_github/scale_ci_integ:9
     env:
@@ -298,20 +362,10 @@ jobs:
       # The max number of concurent jobs
       max-parallel: 1
       matrix:
+        test_name: ${{ fromJson(needs.integ-seq-matrix.outputs.matrix) }}
         # "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
         # Some tests can be tested on VSNS - those are run on VSNS.
         # Some cannot, those are run on test cluster 10.5.11.50.
-        test_name:
-          - dns_config
-          # - cluster_shutdown
-          # - version_update
-          - oidc_config
-          - smtp
-          - role_cluster_config
-          # - role_version_update_single_node
-          # after oidc_config configures OIDC login, the utils_login can be tested too
-          - utils_login
-          - certificate
         sc_host:
           - https://10.5.11.200
           - https://10.5.11.201
@@ -330,13 +384,29 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=2.16.0
-      # We have ansible.cfg "for testing" in git repo
-      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
-      # But it does affect ansible-galaxy and ansible-test commands.
-      - run: ansible-galaxy collection install community.crypto
-      - run: ansible-galaxy collection list
-      # ${{ env.WORKDIR }} cannot be used
+      - name: SKIP test if it succeeded before
+        shell: bash
+        env:
+          X_GITHUB_JOB_NAME: "integ-seq-run (${{ matrix.test_name }}, ${{ matrix.sc_host }})"
+        run: |
+          if ! .github/job_retry_needed.py
+          then
+            echo SKIP test, job retry not needed
+            echo 'X_GITHUB_SKIP_TEST=1' >> $GITHUB_ENV
+          else
+            echo 'X_GITHUB_SKIP_TEST=0' >> $GITHUB_ENV
+          fi
+      - name: Install prerequisites
+        # We have ansible.cfg "for testing" in git repo
+        # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+        # But it does affect ansible-galaxy and ansible-test commands.
+        shell: bash
+        run: |
+          [ "$X_GITHUB_SKIP_TEST" == "1" ] && exit 0
+          pip install ansible-core~=2.16.0
+          ansible-galaxy collection install community.crypto
+          ansible-galaxy collection list
+      # ${{ env.WORKDIR }} cannot be used in "uses:"
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
           sc_host: ${{ matrix.sc_host }}
@@ -345,7 +415,11 @@ jobs:
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
-      - run: ansible-test integration --local ${{ matrix.test_name }}
+      - name: Run test
+        shell: bash
+        run: |
+          [ "$X_GITHUB_SKIP_TEST" == "1" ] && exit 0
+          ansible-test integration --local ${{ matrix.test_name }}
 
   replica_cleanup:
     needs: []
