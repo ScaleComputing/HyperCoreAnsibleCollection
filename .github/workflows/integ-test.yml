@@ -222,6 +222,7 @@ jobs:
       - name: SKIP test if it succeeded before
         shell: bash
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           X_GITHUB_JOB_NAME: "examples-run (${{ matrix.ansible }}, ${{ matrix.example_name }})"
         run: |
           if ! .github/job_retry_needed.py
@@ -387,6 +388,7 @@ jobs:
       - name: SKIP test if it succeeded before
         shell: bash
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           X_GITHUB_JOB_NAME: "integ-seq-run (${{ matrix.test_name }}, ${{ matrix.sc_host }})"
         run: |
           if ! .github/job_retry_needed.py

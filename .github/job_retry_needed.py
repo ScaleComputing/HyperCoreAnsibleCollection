@@ -10,16 +10,43 @@ import os
 import sys
 import json
 import logging
-import urllib.request
+from urllib.request import Request, urlopen
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 def url_get_json(url):
-    with urllib.request.urlopen(url) as response:
-        content = response.read()
-        return json.loads(content)
+    request = Request(url)
+    github_token = os.environ.get("GITHUB_TOKEN")
+    if github_token:
+        logger.info("GITHUB_TOKEN is present, authorization header will be set")
+        request.add_header("authorization", f"Bearer {github_token}")
+    else:
+        logger.warning("GITHUB_TOKEN is absent, anonymous access has lower rate-limit")
+    response = urlopen(request)
+    content = response.read()
+    return json.loads(content), response
+
+
+def url_get_json_all_pages(url0):
+    url = url0
+    json_data_all = []
+    while url:
+        json_data, response = url_get_json(url)
+        json_data_all.append(json_data)
+        link_header = response.headers.get("Link")
+        print(f"link_header={link_header}")
+        links = [link.strip() for link in link_header.split(",")]
+        rel_text = '; rel="next"'
+        link_next = [link for link in links if link.endswith(rel_text)]
+        if not link_next:
+            # last or the only page
+            break
+        link_next = link_next[0]
+        link_next = link_next[:-len(rel_text)]
+        url = link_next.strip("<").strip(">")
+    return json_data_all
 
 
 def output_retry_job_names(retry_job_names):
@@ -36,7 +63,7 @@ def main():
     run_id = os.environ["GITHUB_RUN_ID"]
     job_name = os.environ["X_GITHUB_JOB_NAME"]
 
-    run_data = url_get_json(f"{repo_api}/actions/runs/{run_id}")
+    run_data, _response = url_get_json(f"{repo_api}/actions/runs/{run_id}")
     # print(f"run_data={json.dumps(run_data, indent=4)}")
     run_attempt = run_data['run_attempt']
     logger.info("Latest/current run_attempt=%s", run_attempt)
@@ -51,8 +78,11 @@ def main():
     previous_attempt_jobs_url = f"{previous_attempt_url}/jobs"
     logger.info("previous_attempt_jobs_url=%s", previous_attempt_jobs_url)
 
-    _jobs_data = url_get_json(previous_attempt_jobs_url)
-    previous_jobs = _jobs_data["jobs"]
+    _jobs_data_all = url_get_json_all_pages(previous_attempt_jobs_url)
+    previous_jobs = []
+    for json_data in _jobs_data_all:
+        # we are interested into jobs only
+        previous_jobs += json_data["jobs"]
     logger.info("previous_jobs count=%d", len(previous_jobs))
     for job in previous_jobs:
         logger.info(
