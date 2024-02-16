@@ -113,6 +113,9 @@ sc_config:
         is_supported: True
         # expected virtual disk replucation factor
         replication_factor: 2
+      vtpm_disk:
+        # VTPM is not supported on version 9.1
+        is_supported: True
       cluster_name:
         # cluster name can be changed iff version ">=9.1.21 <9.2.0 || >=9.2.11"
         is_writable: True
@@ -149,6 +152,8 @@ sc_config:
       virtual_disk:
         is_supported: False
         # replication_factor:
+      vtpm_disk:
+        is_supported: False
       cluster_name:
         is_writable: False
 
@@ -183,6 +188,8 @@ sc_config:
       virtual_disk:
         is_supported: True
         replication_factor: 1
+      vtpm_disk:
+        is_supported: True
       cluster_name:
         is_writable: True
 
@@ -217,6 +224,8 @@ sc_config:
       virtual_disk:
         is_supported: True
         replication_factor: 1
+      vtpm_disk:
+        is_supported: True
       cluster_name:
         is_writable: True
 

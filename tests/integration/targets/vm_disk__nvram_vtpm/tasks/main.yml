@@ -8,6 +8,7 @@
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
     vm_name: vm-integration-nvram-vtpm-disk
+    vtpm_supported: "{{ sc_config[sc_host].features.vtpm_disk.is_supported }}"
 
   block:
     # -------------------------------------------------------------------------------------
@@ -49,22 +50,21 @@
           - result.record.0.disks.0.disk_slot == 0
           - result.record.0.disks.0.size == 5368709120
           - result.record.0.disks.0.iso_name == ""
-          - result.record.0.disks.0.tiering_priority_factor == 4
+          # HC3 9.1.14 - for brief time is tiering_priority_factor 0, then it becomes 4
+          # HC3 9.2 - final tiering_priority_factor is 8
+          - result.record.0.disks.0.tiering_priority_factor in [0, 4, 8]
           - result.record.0.disks.0.cache_mode == "writethrough"
           - result.record.0.disks.0.disable_snapshotting == false
 
     # -------------------------------------------------------------------------------------
-    # Add NVRAM, VTPM
-    - name: Add vtpm and nvram virtual disks
+    # Add NVRAM
+    - name: Add nvram virtual disk
       scale_computing.hypercore.vm_disk: &add_nvram
         vm_name: "{{ vm_name }}"
         items:
           - disk_slot: 0
             type: nvram
             size: 540672
-          - disk_slot: 0
-            type: vtpm
-            size: 1024
         state: present
       register: result
     - ansible.builtin.assert:
@@ -73,13 +73,13 @@
           - result is changed
     - ansible.builtin.assert: &assert_with_nvram
         that:
-          - result.record | length == 3
+          - result.record | length == 2
 
           - result.record.0.type == "virtio_disk"
           - result.record.0.disk_slot == 0
           - result.record.0.size == 5368709120
           - result.record.0.iso_name == ""
-          - result.record.0.tiering_priority_factor == 4
+          - result.record.0.tiering_priority_factor in [0, 4, 8]
           - result.record.0.cache_mode == "writethrough"
           - result.record.0.disable_snapshotting == false
 
@@ -91,17 +91,9 @@
           - result.record.1.cache_mode == "none"
           - result.record.1.disable_snapshotting == false
 
-          - result.record.2.type == "vtpm"
-          - result.record.2.disk_slot == -1
-          - result.record.2.size == 1024
-          - result.record.2.iso_name == ""
-          - result.record.2.tiering_priority_factor == 4
-          - result.record.2.cache_mode == "none"
-          - result.record.2.disable_snapshotting == false
-
     # -------------------------------------------------------------------------------------
     # Idempotence
-    - name: Add vtpm and nvram virtual disks
+    - name: Add nvram virtual disk
       scale_computing.hypercore.vm_disk: *add_nvram
       register: result
     - ansible.builtin.assert:
@@ -109,6 +101,84 @@
           - result is succeeded
           - result is not changed
     - ansible.builtin.assert: *assert_with_nvram
+
+    # -------------------------------------------------------------------------------------
+    # Add VTPM
+    - name: Test with VTPM - supported
+      when: vtpm_supported
+      block:
+        - name: Add vtpm virtual disk - supported
+          scale_computing.hypercore.vm_disk: &add_vtpm
+            vm_name: "{{ vm_name }}"
+            items:
+              - disk_slot: 0
+                type: vtpm
+                size: 1024
+            state: present
+          register: result
+        - ansible.builtin.assert:
+            that:
+              - result is succeeded
+              - result is changed
+        - ansible.builtin.assert: &assert_with_nvram_vtpm
+            that:
+              - result.record | length == 3
+
+              - result.record.0.type == "virtio_disk"
+              - result.record.0.disk_slot == 0
+              - result.record.0.size == 5368709120
+              - result.record.0.iso_name == ""
+              - result.record.0.tiering_priority_factor in [0, 4, 8]
+              - result.record.0.cache_mode == "writethrough"
+              - result.record.0.disable_snapshotting == false
+
+              - result.record.1.type == "nvram"
+              - result.record.1.disk_slot == -1
+              - result.record.1.size == 540672
+              - result.record.1.iso_name == ""
+              - result.record.1.tiering_priority_factor == 4
+              - result.record.1.cache_mode == "none"
+              - result.record.1.disable_snapshotting == false
+
+              - result.record.2.type == "vtpm"
+              - result.record.2.disk_slot == -1
+              - result.record.2.size == 1024
+              - result.record.2.iso_name == ""
+              - result.record.2.tiering_priority_factor == 4
+              - result.record.2.cache_mode == "none"
+              - result.record.2.disable_snapshotting == false
+
+        # -------------------------------------------------------------------------------------
+        # Idempotence
+        - name: Add vtpm virtual disk - supported
+          scale_computing.hypercore.vm_disk: *add_vtpm
+          register: result
+        - ansible.builtin.assert:
+            that:
+              - result is succeeded
+              - result is not changed
+        - ansible.builtin.assert: *assert_with_nvram_vtpm
+
+    # -------------------------------------------------------------------------------------
+    # Add VTPM
+    - name: Test with VTPM - unsupported
+      when: not vtpm_supported
+      block:
+        - name: Add vtpm virtual disk - unsupported
+          scale_computing.hypercore.vm_disk:
+            vm_name: "{{ vm_name }}"
+            items:
+              - disk_slot: 0
+                type: vtpm
+                size: 1024
+            state: present
+          register: result
+          ignore_errors: True
+        - ansible.builtin.assert:
+            that:
+              - result is failed
+              - result is not changed
+              - "'Unexpected response - 400' in result.msg"
 
     # -------------------------------------------------------------------------------------
     # Cleanup
