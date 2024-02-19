@@ -12,7 +12,13 @@ delete_files () {
     password=$4
     folder=$5 # Folder where files are located.
 
-    list_dir=$(smbclient "//$server$share" -U "$username%$password" -D "$folder" -c l)
+    echo "========================================================="
+    list_dir=$(smbclient "//$server$share" -U "$username%$password" -D "$folder" -c l || true)
+    if echo "$list_dir" | grep -q "NT_STATUS_OBJECT_NAME_NOT_FOUND"
+    then
+      echo "WARNING directory $folder does not exist."
+      return
+    fi
     # for each file we have a line is like "  Cuba                                N     2416  Mon Apr 27 10:52:07 2020"
     # Output list of all files inside given directory, easier to debug.
     echo "Folder: $folder"
@@ -54,11 +60,21 @@ main () {
     # username is provided as domain;username
     IFS=';' read -ra username <<< "$3"
 
+    ci_system_name_all=""
+    ci_system_name_all+=" pub5 "
+    for ii in $(seq 200 210)
+    do
+      ci_system_name_all+=" vsns$ii "
+    done
+
     folder='integration-test-vm-export'
     delete_files "$1" "$2" "${username[1]}" "$4" "$folder"
 
-    folder='integration-test-vm-import'
-    delete_files "$1" "$2" "${username[1]}" "$4" "$folder"
+    for ci_system_name in $ci_system_name_all
+    do
+      folder="integration-test-vm-import-$ci_system_name"
+      delete_files "$1" "$2" "${username[1]}" "$4" "$folder"
+    done
 
     exit 0
 }

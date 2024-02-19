@@ -4,6 +4,13 @@
     SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
     SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    # Multiple HC3 cluster write to same SMB share.
+    # The import test might fail if two clusters write to same directory.
+    # This is likely reason why those two failed:
+    # - https://github.com/ScaleComputing/HyperCoreAnsibleCollection/actions/runs/7954381469/job/21711756495#step:8:79
+    # - https://github.com/ScaleComputing/HyperCoreAnsibleCollection/actions/runs/7954381469/job/21711756629#step:8:79
+    ci_system_name: "{{ sc_config[sc_host].ci_system_name }}"
 
   block:
 # ----------------------------------Cleanup------------------------------------------------------------------------
@@ -77,7 +84,7 @@
         vm_name: XLAB-import-test-integration
         smb:
           server: "{{ smb_server }}"
-          path: "{{ smb_share }}/integration-test-vm-import"
+          path: "{{ smb_share }}/integration-test-vm-import-{{ ci_system_name }}"
           username: "{{ smb_username }}"
           password: "{{ smb_password }}"
       register: output
@@ -91,7 +98,7 @@
         vm_name: XLAB-import-test-integration-imported
         smb:
           server: "{{ smb_server }}"
-          path: "{{ smb_share }}/integration-test-vm-import"
+          path: "{{ smb_share }}/integration-test-vm-import-{{ ci_system_name }}"
           username: "{{ smb_username }}"
           password: "{{ smb_password }}"
       register: import_vm
@@ -119,7 +126,7 @@
         vm_name: XLAB-import-test-integration-imported-cloud-init
         smb:
           server: "{{ smb_server }}"
-          path: "{{ smb_share }}/integration-test-vm-import"
+          path: "{{ smb_share }}/integration-test-vm-import-{{ ci_system_name }}"
           username: "{{ smb_username }}"
           password: "{{ smb_password }}"
         cloud_init:
@@ -159,7 +166,7 @@
         vm_name: XLAB-import-test-integration-imported
         smb:
           server: "{{ smb_server }}"
-          path: "{{ smb_share }}/integration-test-vm-import"
+          path: "{{ smb_share }}/integration-test-vm-import-{{ ci_system_name }}"
           username: "{{ smb_username }}"
           password: "{{ smb_password }}"
       register: import_vm
@@ -187,7 +194,7 @@
         vm_name: XLAB-import-test-integration-imported-cloud-init
         smb:
           server: "{{ smb_server }}"
-          path: "{{ smb_share }}/integration-test-vm-import"
+          path: "{{ smb_share }}/integration-test-vm-import-{{ ci_system_name }}"
           username: "{{ smb_username }}"
           password: "{{ smb_password }}"
         cloud_init:
