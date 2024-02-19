@@ -72,6 +72,7 @@ sc_config:
 
   https://10.5.11.50:
     <<: *base_cfg
+    ci_system_name: pub5
     sc_username: "{{ sc_username_50 }}"
     sc_password: "{{ sc_password_50 }}"
     # Only .50 is configured with remote replication.
@@ -122,6 +123,7 @@ sc_config:
 
   https://10.5.11.200:
     <<: *base_cfg
+    ci_system_name: vsns200
     sc_username: admin
     sc_password: admin
     sc_replication_dest_host: ""
@@ -159,6 +161,7 @@ sc_config:
 
   https://10.5.11.201:
     <<: *base_cfg
+    ci_system_name: vsns201
     sc_username: admin
     sc_password: admin
     sc_replication_dest_host: ""
@@ -196,6 +199,7 @@ sc_config:
 
   https://10.5.11.203:
     <<: *base_cfg
+    ci_system_name: vsns203
     sc_username: admin
     sc_password: admin
     sc_replication_dest_host: ""
@@ -232,6 +236,7 @@ sc_config:
 
   https://10.5.11.204:
     <<: *base_cfg
+    ci_system_name: vsns204
     sc_username: admin
     sc_password: admin
     sc_replication_dest_host: ""
