@@ -13,10 +13,10 @@
     SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
   vars:
-     vm_name_a: "vm-disk--remove-disk--a"
-     vm_names_all:
-       - "{{ vm_name_a }}"
-     shutdown_timeout: 30
+    vm_name_a: "vm-disk--remove-disk--a"
+    vm_names_all:
+      - "{{ vm_name_a }}"
+    shutdown_timeout: 30
 
   block:
     - include_tasks: 01_remove_disk_stopped.yml
