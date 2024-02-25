@@ -4,6 +4,11 @@
     SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
     SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    # expected_default_X_tiering_priority_factor is used if
+    # tieringPriorityFactor is not specified to module.
+    expected_default_hc3_tiering_priority_factor: 8
+    expected_default_ansible_tiering_priority_factor: 4
 
   block:
     - include_tasks: issue_15_tiering_priority.yml
