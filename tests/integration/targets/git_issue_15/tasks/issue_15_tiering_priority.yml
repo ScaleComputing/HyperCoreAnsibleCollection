@@ -8,6 +8,16 @@
     - XLAB-test-tiering-priority-running
 
 # ----------------------------------Setup-----------------------------------------------------------------------------
+- name: Get HyperCore version
+  scale_computing.hypercore.cluster_info:
+  register: cluster_info
+
+- name: Change expected default tiering_priority_factor values iff version==9.2.13.x
+  when: cluster_info.record.icos_version == "9.2.13.211102"
+  set_fact:
+    expected_default_hc3_tiering_priority_factor: 0
+    expected_default_ansible_tiering_priority_factor: 0
+
 - name: Create a source VM
   scale_computing.hypercore.api:
     action: post
@@ -32,7 +42,7 @@
       - vm_created is succeeded
 
 # ------------------------------------------------------------------------------------
-# Wait on VM tieringPriorityFactor to change if needed
+# Wait on VM tieringPriorityFactor to change from initial 0 to final value if needed
 - name: Get XLAB-test-tiering-priority info via api
   scale_computing.hypercore.api:
     action: get
@@ -42,9 +52,10 @@
     that:
       - result.record.0.name == "XLAB-test-tiering-priority"
       # HC3 values
-      - result.record.0.blockDevs.0.tieringPriorityFactor in [0, 8]
+      - result.record.0.blockDevs.0.tieringPriorityFactor in [0, expected_default_hc3_tiering_priority_factor]
 
 # 5 sec was not enough :/
+# Likely only on loaded host (many parallel CI tests).
 - name: Wait N sec - tieringPriorityFactor should change
   ansible.builtin.pause:
     seconds: 30
@@ -58,7 +69,7 @@
     that:
       - result.record.0.name == "XLAB-test-tiering-priority"
       # HC3 values
-      - result.record.0.blockDevs.0.tieringPriorityFactor == 8
+      - result.record.0.blockDevs.0.tieringPriorityFactor == expected_default_hc3_tiering_priority_factor
 
 # ------------------------------------------------------------------------------------
 
@@ -70,7 +81,7 @@
     that:
       - source_info.records | length == 1
       - source_info.records.0.power_state == "stopped"
-      - source_info.records.0.disks.0.tiering_priority_factor in [0, 4]
+      - source_info.records.0.disks.0.tiering_priority_factor == expected_default_ansible_tiering_priority_factor
 
 - name: Create a source running VM
   scale_computing.hypercore.vm:
