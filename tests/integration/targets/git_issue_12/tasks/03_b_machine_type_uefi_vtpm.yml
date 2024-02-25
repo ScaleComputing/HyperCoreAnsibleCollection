@@ -1,0 +1,31 @@
+# machine_type: vTPM+UEFI is not supported
+# ----------------------------------Job-----------------------------------------------------------------------------
+- name: Make source vm - vTPM+UEFI
+  scale_computing.hypercore.vm:
+    vm_name: XLAB-test-machine-type-vTPM+UEFI
+    memory: "{{ '1 GB'|human_to_bytes}}"
+    description: "blabla"
+    tags:
+      - Xlab
+      - Integration
+    vcpu: 2
+    state: present
+    machine_type: vTPM+UEFI
+    power_state: stop
+    disks:
+    - type: ide_cdrom
+      disk_slot: 0
+    - type: nvram
+      disk_slot: 1
+      size: "{{ '200 GB' | human_to_bytes }}"
+    - type: vtpm
+      disk_slot: 2
+      size: "{{ '200 GB' | human_to_bytes }}"
+    nics: []
+  register: output
+  ignore_errors: True
+- ansible.builtin.assert:
+    that:
+      - output is not changed
+      - output is failed
+      - "'machine_type=vTPM+UEFI is not supported on HyperCore version' in output.msg"
