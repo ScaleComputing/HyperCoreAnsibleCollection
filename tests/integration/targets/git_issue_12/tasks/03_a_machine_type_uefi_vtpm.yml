@@ -1,9 +1,5 @@
+# machine_type: vTPM+UEFI is supported
 # ----------------------------------Job-----------------------------------------------------------------------------
-
-#- name: Try make source vm - UEFI without nvram.
-
-# TODO: vTPM+UEFI machine type is not yet supported on this API version.
-# TODO: Uncomment when VTPM is implemented.
 - name: Make source vm - vTPM+UEFI
   scale_computing.hypercore.vm:
     vm_name: XLAB-test-machine-type-vTPM+UEFI

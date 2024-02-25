@@ -9,5 +9,8 @@
     - include_tasks: 00_cleanup.yml
     - include_tasks: 01_machine_type_bios.yml
     - include_tasks: 02_machine_type_uefi.yml
-    - include_tasks: 03_machine_type_uefi_vtpm.yml
     - include_tasks: 00_cleanup.yml
+    - include_tasks: 03_a_machine_type_uefi_vtpm.yml
+      when: "{{ sc_config[sc_host].features.vtpm_disk.is_supported }}"
+    - include_tasks: 03_b_machine_type_uefi_vtpm.yml
+      when: not sc_config[sc_host].features.vtpm_disk.is_supported
