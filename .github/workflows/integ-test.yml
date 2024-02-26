@@ -24,7 +24,7 @@ on:
           List integration tests to exclude.
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
-        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
+        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$"
       integ_seq_tests_include:
         type: string
         description: |-
@@ -33,7 +33,7 @@ on:
         # Some tests can be tested on VSNS - those are run on VSNS.
         # Some cannot, those are run on test cluster 10.5.11.50.
         # Some cannot be tested at all - shutdown and version update.
-        default: "^dns_config$|^oidc_config$|^smtp$|^role_cluster_config$|^utils_login$|^certificate$"
+        default: "^dns_config$|^oidc_config$|^smtp$|^role_cluster_config$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$"
       integ_seq_tests_exclude:
         type: string
         description: |-
@@ -52,8 +52,8 @@ on:
         default: ""
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
-  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^utils_login$|^certificate$"
-  INTEG_SEQ_TESTS_INCLUDE_SCHEDULE: "^dns_config$|^oidc_config$|^smtp$|^role_cluster_config$|^utils_login$|^certificate$"
+  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$"
+  INTEG_SEQ_TESTS_INCLUDE_SCHEDULE: "^dns_config$|^oidc_config$|^smtp$|^role_cluster_config$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$"
   INTEG_SEQ_TESTS_EXCLUDE_SCHEDULE: ""
   EXAMPLES_TESTS_INCLUDE_SCHEDULE: "*"
   EXAMPLES_TESTS_EXCLUDE_SCHEDULE: ""
