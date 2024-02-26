@@ -1,0 +1,76 @@
+# called from other workflows
+name: _ansible-test
+
+env:
+  WORKDIR: work-dir/ansible_collections/scale_computing/hypercore
+
+on:
+  workflow_call:
+    inputs:
+      sc_host:
+        type: string
+        required: true
+        description: HyperCore host
+      test_names:
+        type: string
+        required: true
+        description: List of tests to run. JSON encoded.
+
+jobs:
+  ansible_test:
+    name: ansible-test
+    runs-on: [ self-hosted2 ]
+    container: quay.io/justinc1_github/scale_ci_integ:9
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    defaults:
+      run:
+        working-directory: ${{ env.WORKDIR }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        test_name: ${{ fromJson(inputs.test_names) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.WORKDIR }}
+      - name: SKIP test if it succeeded before
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          X_GITHUB_JOB_NAME: "integ-seq-run (${{ inputs.sc_host }}), ansible-test (${{ matrix.test_name }})"
+        run: |
+          if ! .github/job_retry_needed.py
+          then
+            echo SKIP test, job retry not needed
+            echo 'X_GITHUB_SKIP_TEST=1' >> $GITHUB_ENV
+          else
+            echo 'X_GITHUB_SKIP_TEST=0' >> $GITHUB_ENV
+          fi
+      - name: Install prerequisites
+        # We have ansible.cfg "for testing" in git repo
+        # (it is excluded in galaxy.yml, so it is not part of collection artifact)
+        # But it does affect ansible-galaxy and ansible-test commands.
+        shell: bash
+        run: |
+          [ "$X_GITHUB_SKIP_TEST" == "1" ] && exit 0
+          pip install ansible-core~=2.16.0
+          ansible-galaxy collection install community.crypto
+          ansible-galaxy collection list
+      # ${{ env.WORKDIR }} cannot be used in "uses:"
+      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
+        with:
+          sc_host: ${{ inputs.sc_host }}
+          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
+          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
+          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
+          working_directory: ${{ env.WORKDIR }}
+      - name: Run test
+        shell: bash
+        run: |
+          [ "$X_GITHUB_SKIP_TEST" == "1" ] && exit 0
+          ansible-test integration --local ${{ matrix.test_name }}
