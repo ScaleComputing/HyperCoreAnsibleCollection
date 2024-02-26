@@ -1,0 +1,9 @@
+---
+# Cleanup
+- name: Delete test VMs
+  scale_computing.hypercore.vm:
+    vm_name: "{{ vm_name }}"
+    state: absent
+  loop: "{{ vm_name_all }}"
+  loop_control:
+    loop_var: vm_name

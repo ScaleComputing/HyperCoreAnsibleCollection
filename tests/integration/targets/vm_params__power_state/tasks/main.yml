@@ -1,0 +1,33 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    vm_name_a: XLAB-vm_params-power-state-a
+    vm_name_b: XLAB-vm_params-power-state-b
+    vm_name_all:
+      - "{{ vm_name_a }}"
+      - "{{ vm_name_b }}"
+    iso_name_with_acpi: "Porteus-XFCE-v5.0-x86_64.iso"
+    iso_name_no_acpi: "integration-test.iso"
+
+  block:
+    - include_tasks: helper_remove_vms.yml
+    - include_tasks: helper_create_vms.yml
+
+    - include_tasks: 03_power_state.yml
+      vars:
+        vm_name: "{{ vm_name_a }}"
+        # what will be VM power_state after acpi shutdown
+        state_after_acpi_shutdown: stopped
+        # Is 1st power_state stop a change or not?
+        power_state_stop_is_change: False
+    - include_tasks: 03_power_state.yml
+      vars:
+        vm_name: "{{ vm_name_b }}"
+        state_after_acpi_shutdown: started
+        power_state_stop_is_change: True
+
+    - include_tasks: helper_remove_vms.yml
