@@ -1,0 +1,92 @@
+---
+# ===================================================================
+# Nice ACPI shutdown
+- &vm_info
+  name: Get VM state {{ vm_name }}
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ vm_name }}"
+  register: vm_info_result
+- ansible.builtin.assert:
+    that:
+      - vm_info_result.records[0].vm_name == vm_name
+      - vm_info_result.records[0].power_state == "started"
+
+- &vm_shutdown
+  name: Send nice ACPI shutdown VM {{ vm_name }}
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ vm_name }}"
+    power_state: shutdown
+    # shutdown_timeout applies only if force shutdown is allowed
+    # shutdown_timeout: 30
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output is changed
+      - output.vm_rebooted is false
+
+# Porteus ISO requires about 60-100 sec to boot, 15 sec to shutdown
+- &wait_shutdown
+  name: Wait 30 sec on VM to fully shutdown {{ vm_name }}
+  ansible.builtin.pause:
+    seconds: 30
+
+- *vm_info
+- ansible.builtin.assert:
+    that:
+      - vm_info_result.records[0].vm_name == vm_name
+      - vm_info_result.records[0].power_state == state_after_acpi_shutdown
+
+# ===================================================================
+# Idempotence
+# But retry results in 500 internal error on HC3 9.1 - 9.4, we need to avoid sending a second request to HyperCore.
+- name: Retry ACPI shutdown
+  when: state_after_acpi_shutdown == "started"
+  block:
+    - *vm_shutdown
+    - ansible.builtin.assert:
+        that:
+          - output is changed
+          - output.vm_rebooted is false
+    - *wait_shutdown
+    - *vm_info
+    - ansible.builtin.assert:
+        that:
+          - vm_info_result.records[0].vm_name == vm_name
+          - vm_info_result.records[0].power_state == state_after_acpi_shutdown
+
+# ===================================================================
+# Force shutdown
+- &vm_stop
+  name: Send force shutdown VM {{ vm_name }}
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ vm_name }}"
+    power_state: stop
+    # shutdown_timeout applies only if force shutdown is allowed
+    shutdown_timeout: 30
+  register: output
+- ansible.builtin.assert:
+    that:
+      - output.changed == power_state_stop_is_change
+      - output.vm_rebooted is false
+
+- *wait_shutdown
+- *vm_info
+- ansible.builtin.assert:
+    that:
+      - vm_info_result.records[0].vm_name == vm_name
+      - vm_info_result.records[0].power_state == "stopped"
+
+# ===================================================================
+# Idempotence
+- *vm_stop
+- ansible.builtin.assert:
+    that:
+      - output is not changed
+      - output.vm_rebooted is false
+
+# - *wait_shutdown
+- *vm_info
+- ansible.builtin.assert:
+    that:
+      - vm_info_result.records[0].vm_name == vm_name
+      - vm_info_result.records[0].power_state == "stopped"
