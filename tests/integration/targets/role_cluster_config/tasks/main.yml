@@ -135,6 +135,15 @@
 
   block:
     # ====================================================================================
+    - name: Show if cluster_name is writable (hc3 >= 9.2)
+      ansible.builtin.debug:
+       msg: sc_host={{ sc_host }} features.cluster_name.is_writable={{ sc_config[sc_host].features.cluster_name.is_writable }}
+
+    - name: SKIP test if cluster_name is not writable
+      ansible.builtin.meta: end_play
+      when: not sc_config[sc_host].features.cluster_name.is_writable
+
+    # ====================================================================================
     # -----------------------------------------------------------------
     # Apply cluster config A and test
     - name: Apply and test cluster_config_a
