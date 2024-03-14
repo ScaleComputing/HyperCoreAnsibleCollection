@@ -210,8 +210,7 @@
         - not output.records[0].snapshot_schedule
 
   # ===================================================================
-  # Set nonexisting snapshot schedule
-  - name: Set VMs power_state - applied
+  - name: Set VMs power_state - reset
     scale_computing.hypercore.vm_params:
       vm_name: "{{ vm_name }}"
       power_state: reset
@@ -225,6 +224,11 @@
         - output is changed
         - output.vm_rebooted is false  # true  # todo - is this reported? should we pretend reboot==reset - it is not same.
 
+    # HC3 returned error for RESET, but it did reset VM (HC3 v9.4.0)
+    # After RESET, VM was 10-15 sec in stopped state.
+  - name: Wait on VM stop/start to finish
+    ansible.builtin.pause:
+      seconds: 20
   - name: Check VMs power_state isn't changed
     scale_computing.hypercore.vm_info:
       vm_name: "{{ vm_name }}"
@@ -232,7 +236,6 @@
   - ansible.builtin.assert:
       that:
         - output is succeeded
-        # HC3 9.2.22 - RESET is accepted, but VM remains stopped as it was stopped before.
         - output.records[0].power_state == "started"
 
   # ===================================================================

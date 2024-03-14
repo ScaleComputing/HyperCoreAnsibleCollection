@@ -812,7 +812,7 @@ class TestEnsurePresent:
         ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
-        ).return_value = False
+        ).return_value = (False, {})
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
         ).return_value = False

@@ -2060,7 +2060,9 @@ class TestManageVMParams:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
-        changed, diff = ManageVMParams.set_vm_params(module, rest_client, vm_before, [])
+        changed, diff, changed_parameters = ManageVMParams.set_vm_params(
+            module, rest_client, vm_before, []
+        )
 
         assert changed is True
         assert diff == {
@@ -2082,6 +2084,15 @@ class TestManageVMParams:
                 "power_state": "started",
                 "snapshot_schedule": "",
             },
+        }
+        assert changed_parameters == {
+            "vm_name": True,
+            "description": True,
+            "tags": False,
+            "memory": False,
+            "vcpu": True,
+            "power_state": False,
+            "snapshot_schedule": False,
         }
 
     def test_run_no_change(self, create_module, rest_client, mocker):
@@ -2118,12 +2129,22 @@ class TestManageVMParams:
             snapshot_schedule="",
         )
 
-        changed, diff = ManageVMParams.set_vm_params(module, rest_client, vm_before, [])
+        changed, diff, changed_parameters = ManageVMParams.set_vm_params(
+            module, rest_client, vm_before, []
+        )
 
         assert changed is False
         assert diff == {
             "before": None,
             "after": None,
+        }
+        assert changed_parameters == {
+            "description": False,
+            "tags": False,
+            "memory": False,
+            "vcpu": False,
+            "power_state": False,
+            "snapshot_schedule": False,
         }
         assert vm_before.was_vm_rebooted() is False
 
