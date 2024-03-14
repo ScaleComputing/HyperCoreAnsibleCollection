@@ -295,6 +295,8 @@ class VM(PayloadMapper):
         # self._did_start_work = False
         # Now, VM was rebooted when it was running at start, then stopped and powered on:
         # .power_state in [] and any(_did_nice_shutdown_work, _did_force_shutdown_work) and _was_start_tried
+        self._was_reboot_tried = False
+        self._was_reset_tried = False
 
     @property
     def nic_list(self):
@@ -853,40 +855,87 @@ class VM(PayloadMapper):
         ]
         return vm, boot_devices_uuid, boot_devices_ansible
 
-    def update_vm_power_state(self, module, rest_client, desired_power_action):
+    def update_vm_power_state(
+        self, module, rest_client, desired_power_action, ignore_repeated_request: bool
+    ):
         """Sets the power state to what is stored in self.power_state"""
+
         # desired_power_action must be present in FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION's keys
+        def assert_or_ignore_repeated_request(msg):
+            if ignore_repeated_request:
+                # Do not start/stop/shutdown VM twice.
+                # Normally we want to assert if a second start/stop/shutdown is tried.
+                # But as very last module change it makes sense to push VM into requested power_state,
+                # without knowing what did module already do with VM power_state.
+                # So in this special case, allow a second call, and just silently ignore
+                # it if VM power_state was already set to desired state.
+                return
+            else:
+                raise AssertionError(msg)
+
         if not self._power_state:
             raise errors.ScaleComputingError("No information about VM's power state.")
 
         # keep a record what was done
         if desired_power_action == "start":
             if self._was_start_tried:
-                raise AssertionError("VM _was_start_tried already set")
+                return assert_or_ignore_repeated_request(
+                    "VM _was_start_tried already set"
+                )
             self._was_start_tried = True
         if desired_power_action == "shutdown":
             if self._was_nice_shutdown_tried:
-                raise AssertionError("VM _was_nice_shutdown_tried already set")
+                return assert_or_ignore_repeated_request(
+                    "VM _was_nice_shutdown_tried already set"
+                )
             self._was_nice_shutdown_tried = True
         if desired_power_action == "stop":
             if self._was_force_shutdown_tried:
-                raise AssertionError("VM _was_force_shutdown_tried already set")
-            self._was_force_shutdown_tried = True
-        # reboot, reset are not included
-
-        task_tag = rest_client.create_record(
-            "/rest/v1/VirDomain/action",
-            [
-                dict(
-                    virDomainUUID=self.uuid,
-                    actionType=FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION[
-                        desired_power_action
-                    ],
-                    cause="INTERNAL",
+                return assert_or_ignore_repeated_request(
+                    "VM _was_force_shutdown_tried already set"
                 )
-            ],
-            module.check_mode,
-        )
+            self._was_force_shutdown_tried = True
+        if desired_power_action == "reboot":
+            if self._was_reboot_tried:
+                return assert_or_ignore_repeated_request(
+                    "VM _was_reboot_tried already set"
+                )
+            self._was_reboot_tried = True
+        if desired_power_action == "reset":
+            if self._was_reset_tried:
+                return assert_or_ignore_repeated_request(
+                    "VM _was_reset_tried already set"
+                )
+            self._was_reset_tried = True
+
+        try:
+            task_tag = rest_client.create_record(
+                "/rest/v1/VirDomain/action",
+                [
+                    dict(
+                        virDomainUUID=self.uuid,
+                        actionType=FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION[
+                            desired_power_action
+                        ],
+                        cause="INTERNAL",
+                    )
+                ],
+                module.check_mode,
+            )
+        except errors.UnexpectedAPIResponse as ex:
+            if desired_power_action != "reset":
+                raise
+            # We are allowed to send reset only if VM is in
+            # RUNNING or SHUTDOWN (as in middle of shutting down, but not yet fully shutdown).
+            # If VM is already shutoff, the request fails.
+            # Ignore this special case.
+            # The whole RESET is not even exposed on HyperCore UI,
+            # maybe we should remove it from ansible.
+            if ex.response_status != 500:
+                # the '500 b'{"error":"An internal error occurred"}'' is the one to ignore
+                raise
+            module.warn("Ignoring failed VM RESET")
+            return
         TaskTag.wait_task(rest_client, task_tag)
 
     @classmethod
@@ -936,7 +985,7 @@ class VM(PayloadMapper):
         if vm_fresh_data["state"] in ["SHUTOFF", "SHUTDOWN"]:
             return True
         if module.params["force_reboot"] and self._was_nice_shutdown_tried:
-            self.update_vm_power_state(module, rest_client, "stop")
+            self.update_vm_power_state(module, rest_client, "stop", False)
             # force shutdown should always work. If not, we need to pool for state change.
             # Maybe we need to pool for state change anyway -
             # TaskTag might be finished before VM is really off.
@@ -959,7 +1008,7 @@ class VM(PayloadMapper):
             # and module.params["shutdown_timeout"]  # default is 300 anyway
             and not self._was_nice_shutdown_tried
         ):
-            self.update_vm_power_state(module, rest_client, "shutdown")
+            self.update_vm_power_state(module, rest_client, "shutdown", False)
             shutdown_timeout = module.params["shutdown_timeout"]
             start = time()
             while 1:
@@ -983,14 +1032,14 @@ class VM(PayloadMapper):
         #   - VM was initially stopped and
         #   - module param power_state is omitted or contains "stop".
         if self.was_vm_shutdown() and self._initially_running:
-            self.update_vm_power_state(module, rest_client, "start")
+            self.update_vm_power_state(module, rest_client, "start", False)
             return
         # Also start VM if module power_state requires a power on.
         # Field _power_action is set only if VM instance was created with from_ansible();
         # it is None if VM instance was created with from_hypercore().
         requested_power_action = module.params.get("power_state")
         if requested_power_action == "start":
-            self.update_vm_power_state(module, rest_client, "start")
+            self.update_vm_power_state(module, rest_client, "start", False)
 
     def was_vm_shutdown(self) -> bool:
         """
@@ -1236,21 +1285,26 @@ class ManageVMParams(VM):
             endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
             task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
             TaskTag.wait_task(rest_client, task_tag)
+
+            # shutdown VM if it needs to be rebooted to apply NIC/disk changes
             if ManageVMParams._needs_reboot(
                 module, changed_parameters
             ) and vm._power_action not in ["stop", "stopped", "shutdown"]:
                 vm.do_shutdown_steps(module, rest_client)
+
             return (
                 True,
                 dict(
                     before=ManageVMParams._build_before_diff(vm, module),
                     after=ManageVMParams._build_after_diff(module, rest_client),
                 ),
+                changed_parameters,
             )
         else:
             return (
                 False,
                 dict(before=None, after=None),
+                changed_parameters,
             )
 
     @classmethod

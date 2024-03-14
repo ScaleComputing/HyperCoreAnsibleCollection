@@ -444,10 +444,10 @@ def _set_nics(module, rest_client, vm_before: VM):
 
 
 def _set_vm_params(module, rest_client, vm, param_subset: List[str]):
-    changed_params, diff = ManageVMParams.set_vm_params(
+    changed_params, diff, changed_parameters = ManageVMParams.set_vm_params(
         module, rest_client, vm, param_subset
     )
-    return changed_params
+    return changed_params, changed_parameters
 
 
 def ensure_present(module, rest_client):
@@ -457,7 +457,7 @@ def ensure_present(module, rest_client):
         existing_boot_order = vm_before.get_boot_device_order()
         # machineType needs to be set to uefi/vtpm first,
         # next nvram/vtpm disk can be added.
-        changed_params_1 = _set_vm_params(
+        changed_params_1, changed_parameters_1 = _set_vm_params(
             module, rest_client, vm_before, param_subset=["machine_type"]
         )
         changed_disks = _set_disks(module, rest_client, vm_before)
@@ -470,7 +470,7 @@ def ensure_present(module, rest_client):
         # since boot order cannot be set when the vm is running.
         # set_vm_params updates VM's name, description, tags, memory, number of CPU,
         # changed the power state and/or assigns the snapshot schedule to the VM
-        changed_params_2 = _set_vm_params(
+        changed_params_2, changed_parameters_2 = _set_vm_params(
             module, rest_client, vm_before, param_subset=[]
         )
         changed = any(
@@ -505,7 +505,7 @@ def ensure_present(module, rest_client):
         # Set power state
         if module.params["power_state"] != "shutdown":
             vm_created.update_vm_power_state(
-                module, rest_client, module.params["power_state"]
+                module, rest_client, module.params["power_state"], False
             )
         changed = True
         name_field = "vm_name"
@@ -527,7 +527,7 @@ def ensure_absent(module, rest_client):
     if vm:
         if vm._power_state != "shutdown":  # First, shut it off and then delete
             # TODO ==shutdown or ==stopped ??
-            vm.update_vm_power_state(module, rest_client, "stop")
+            vm.update_vm_power_state(module, rest_client, "stop", False)
         task_tag = rest_client.delete_record(
             "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid), module.check_mode
         )
