@@ -248,3 +248,17 @@ releases:
     - vm_info_module.yml
     - vm_snapshot_modules.yml
     release_date: '2023-07-07'
+  1.4.0:
+    changes:
+      major_changes:
+      - Allow changing VM `machine_type` using vm and vm_param modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/287)
+      minor_changes:
+      - Added `vtpm` disk type to vm and vm_disks modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/286)
+      - Fix `vm_rebooted` output value. The meaning needs to be "was VM rebooted".
+        Some modules were still returning "VM needs to be rebooted (if it is running)
+        to apply (some) changes".
+      - vm_nic module fails with descriptive message (no crash) if VM is missing.
+    fragments:
+    - 20240212-vtpm-disk-type.yml
+    - 20240226-change-machine-type.yml
+    release_date: '2024-03-28'
