@@ -19,6 +19,9 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  CHECKOUT_PATH: ansible_collections/scale_computing/hypercore
+
 jobs:
   # Single deploy job since we're just deploying
   deploy:
@@ -30,20 +33,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          path: ${{ env.CHECKOUT_PATH }}
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Build Ansible collection docs
         run: |
-          /bin/rm -fr /tmp/scale-ansible-collection
-          mkdir -p /tmp/scale-ansible-collection/ansible_collections/scale_computing/
-          cp -a . /tmp/scale-ansible-collection/ansible_collections/scale_computing/hypercore
-          export ANSIBLE_COLLECTIONS_PATH=/tmp/scale-ansible-collection
+          cd "$CHECKOUT_PATH"
           apt update && apt install -y rsync
           make docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: "docs/build/html"
+          path: "${{ env.CHECKOUT_PATH }}/docs/build/html/"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
