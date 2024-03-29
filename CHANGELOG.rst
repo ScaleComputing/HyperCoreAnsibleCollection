@@ -1,9 +1,23 @@
-=======================================
-Scale_Computing.Hypercore Release Notes
-=======================================
+========================================
+Scale\_Computing.Hypercore Release Notes
+========================================
 
 .. contents:: Topics
 
+v1.4.0
+======
+
+Major Changes
+-------------
+
+- Allow changing VM `machine_type` using vm and vm_param modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/287)
+
+Minor Changes
+-------------
+
+- Added `vtpm` disk type to vm and vm_disks modules. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/286)
+- Fix `vm_rebooted` output value. The meaning needs to be "was VM rebooted". Some modules were still returning "VM needs to be rebooted (if it is running) to apply (some) changes".
+- vm_nic module fails with descriptive message (no crash) if VM is missing.
 
 v1.3.0
 ======

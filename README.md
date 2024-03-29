@@ -22,6 +22,8 @@ This collection requires Python 3.8 or greater.
 This collection has been tested against following HyperCore cluster versions:
 - v9.1.14.208456
 - v9.2.13.211102
+- v9.3.5.212852
+- v9.4.0.213268
 
 ## Included content
 
