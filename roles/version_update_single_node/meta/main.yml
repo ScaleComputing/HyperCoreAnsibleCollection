@@ -1,0 +1,10 @@
+galaxy_info:
+  author: Ana Zobec <ana.zobec@xlab.si>
+  role_name: version_update_single_node
+  description: Update version on Scale Computing HyperCore cluster
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.14.0"
+  platforms:
+    - name: GenericLinux
+      versions:
+        - all
