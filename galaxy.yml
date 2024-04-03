@@ -19,7 +19,9 @@ homepage: https://github.com/ScaleComputing/HyperCoreAnsibleCollection
 issues: https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues
 build_ignore:
   - .*
-  - tests
+  - tests/integration
+  - tests/output
+  - tests/unit
   - docs
   # all this should be under hacking/ or similar
   - ci-infra
