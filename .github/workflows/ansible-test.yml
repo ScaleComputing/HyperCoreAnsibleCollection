@@ -62,3 +62,9 @@ jobs:
           ansible-core-version: ${{ matrix.ansible }}
           target-python-version: ${{ matrix.python }}
           testing-type: units
+
+  import-galaxy-test:
+    permissions:
+      contents: read
+    name: Import collection with Galaxy importer
+    uses: ansible-community/github-action-test-galaxy-import/.github/workflows/test-galaxy-import.yml@main
