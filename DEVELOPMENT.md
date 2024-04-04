@@ -137,3 +137,24 @@ the prerequisites.
   release](https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues/new/choose)."
   template
 - Complete each of the items in the release steps checklist
+
+# Adding new CI test cluster
+
+The CI test clusters are VSNSs - virtual single node clusters.
+ScaleComputing does setup new VSNS, with suitable HyperCore version installed.
+
+Steps:
+ - Request / reserve static IP address from Alex
+   - either replacing existing static IP or using next in series 105.11.20x
+ - create empty VM with 1 virtio disk, type other, tag hc3nested, 16GB ram, 4 cores.
+ - image new vSNS node using test iso image (vs. release - this may change in upcoming releases)
+ - (optional) Save it as template VM, example name `vsns9213-unconfigured`
+ - as admin/admin
+   - run `sudo scnodeinit` to configure IPs,
+   - `sudo singleNodeCluster=1 scclusterinit`
+ - Save it as template VM, example name `vsns9213-template`
+ - Create a final vSNS from template VM, example name `vsns9213-ci`
+ - Add vSNS login URL to Azure OIDC redirectUris
+   - ensure ip address is added to entraAD (azure) app registration for OIDC integration (ask Dave if needed)
+      - "app_display_name": "Scale Computing HC3",
+      - "app_id": "d2298ec0-0596-49d2-9554-840a2fe20603",
