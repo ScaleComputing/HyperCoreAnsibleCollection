@@ -1,97 +1,78 @@
 ---
-# tasks file for url2template role - takes image_url and turns it into a VM template of the same name
-# returns that name as image_name
-  - name: Set image name as ansible fact (for single image)
-    ansible.builtin.set_fact:
-      image_name: "{{ item | split('/') | last }}"
-    loop: "{{ image_url }}"
+- name: Get info about template VM {{ url2template_vm_name }}
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ url2template_vm_name }}"
+  register: vm_info_result
 
-  - name: Download Virtual Disk(s) image from URL list
-    ansible.builtin.get_url:
-      url: "{{ item }}"
-      dest: "{{ image_path }}{{ image_name}}"
-      timeout: 10000
-      validate_certs: false
-      force: false
-    register: download
-    loop: "{{ image_url }}"
-    throttle: 1 
+- name: Create template VM if it does not already exist {{ url2template_vm_name }}
+  when: vm_info_result.records | length == 0
+  block:
+    - name: Set url2template_image_filename as ansible fact
+      ansible.builtin.set_fact:
+        url2template_image_filename: "{{ url2template_image_url | split('/') | last }}"
 
-  - name: Delete existing uploading-"{{ image_name }}" virtual disk # recovers from any previous failed upload 
-    scale_computing.hypercore.virtual_disk:
-      name: "uploading-{{ image_name }}"
-      state: absent
-    register: deleted
-    loop: "{{ image_url }}"      
+    - name: Download Virtual Disk image from URL
+      ansible.builtin.get_url:
+        url: "{{ url2template_image_url }}"
+        dest: /tmp/{{ url2template_image_filename }}
+        mode: "0644"
+        timeout: 10000
+        validate_certs: false
 
-  - name: Upload Virtual Disk {{ item | split('/') | last }}" to HyperCore "{{ inventory_hostname }}"
-    scale_computing.hypercore.virtual_disk:
-      name: "{{ image_name }}"
-      source: "{{ image_path }}{{ image_name }}"
-      state: present
-    register: uploadResult
-    loop: "{{ image_url }}" 
-    ignore_errors: false
-    throttle: 1 
-#TODO - could use a handler to force update virtual disk attached to template only if there is a new download or upload?
+    - name: Upload Virtual Disk to HyperCore {{ url2template_image_filename }}"
+      scale_computing.hypercore.virtual_disk:
+        name: "{{ url2template_image_filename }}"
+        source: /tmp/{{ url2template_image_filename }}
+        state: present
 
-  - name: Get info about template VM {{ image_name }}
-    scale_computing.hypercore.vm_info:
-      vm_name: "{{ image_name }}"
-    register: vm_info_result
+  # TODO - could use a handler to force update virtual disk attached to template only if there is a new download or upload?
+  # ANS - no way to know if downloaded image is different from existing image on HyperCore;
+  # for this HC3 would need to return file content hash.
 
-  - name: Create "{{ image_name }}" template vm if it does not already exist 
-    scale_computing.hypercore.vm:
-      vm_name: "{{ image_name }}"
-      description: "{{ image_url[0] }} template "
-      state: present
-      tags:
-        - template
-        - serial
-      memory: "{{ '1 GB' | human_to_bytes }}"
-      vcpu: 0 # makes template vm unbootable - must change cpu on cloned vm 
-      power_state: stop
-      disks:
-        - type: ide_cdrom
-          disk_slot: 0
-        # - type: virtio
-        #   disk_slot: 0
-      nics:
-        - vlan: 0
-          type: virtio
-      operating_system:  os_other
-      machine_type: "BIOS"    
-    when:  vm_info_result.records | length == 0   #only create VM if it doesn't already exist - else would delete existing template disk
-    register: template
-    throttle: 1 
+    - name: Compute template VM disks - BIOS type
+      when: url2template_machine_type in ["BIOS"]
+      ansible.builtin.set_fact:
+        url2template_vm_disks: []
+    - name: Compute template VM disks - UEFI types
+      when: url2template_machine_type not in ["BIOS"]
+      ansible.builtin.set_fact:
+        url2template_vm_disks:
+          - type: nvram
+            disk_slot: -1
+            # size: 540672
 
-  - name: Attach uploaded virtual disk to  "{{ image_name }}" template  # this will attach latest image every time - should there be way to only attach if not exist?
-    scale_computing.hypercore.virtual_disk_attach:
-      name: "{{ image_name }}"
-      vm_name: "{{ image_name }}"
-      disk:
-        type: virtio_disk
-        disk_slot: 1
-        disable_snapshotting: false
-    register: diskattached
-    throttle: 1 
+    - name: Create template VM "{{ url2template_vm_name }}"
+      scale_computing.hypercore.vm:
+        vm_name: "{{ url2template_vm_name }}"
+        description: "{{ url2template_vm_name }} template, source URL {{ url2template_image_url }}"
+        state: present
+        # TODO params
+        tags:
+          - template
+          - serial
+        memory: "{{ '1 GB' | human_to_bytes }}"
+        vcpu: 0  # makes template vm unbootable - must change cpu on cloned vm
+        power_state: stop
+        disks: "{{ url2template_vm_disks }}"
+        nics:
+          - vlan: 0
+            type: virtio
+        operating_system: "{{ url2template_operating_system }}"
+        machine_type: "{{ url2template_machine_type }}"
 
-  - name: Set attached vsd device as bootable
-    scale_computing.hypercore.vm_boot_devices:
-      vm_name: "{{ image_name }}"
-      items:
-        - type: virtio_disk
-          disk_slot: 1
-      state: present
-    register: bootable
-    throttle: 1 
-
-  - name: Disk desired configuration for "{{ image_name }}"   # seems resizing disk before first boot causes panic on debian11 bulseye unless serial port exists - add SERIAL to tag or description
-    scale_computing.hypercore.vm_disk:
-      vm_name: "{{ image_name }}"
-      items:
-        - disk_slot: 1
+    - name: Attach uploaded virtual disk to template VM - {{ ' '.join([url2template_image_filename, url2template_vm_name]) }}
+      scale_computing.hypercore.virtual_disk_attach:
+        name: "{{ url2template_image_filename }}"
+        vm_name: "{{ url2template_vm_name }}"
+        disk:
+          # TODO param
           type: virtio_disk
-          size: "{{ '50 GB' | human_to_bytes }}" # 50GB | human to bytes results in 53.7GB VSD in Hypercore
-      state: present
-    throttle: 1 
+          disk_slot: 1
+
+    - name: Set attached disk device as bootable
+      scale_computing.hypercore.vm_boot_devices:
+        vm_name: "{{ url2template_vm_name }}"
+        items:
+          - type: virtio_disk
+            disk_slot: 1
+        state: present
