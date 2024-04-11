@@ -1,0 +1,31 @@
+---
+argument_specs:
+  main:
+    short_description: Download VM image from URL and create a template VM
+    description:
+      - Role url2template can be use to download VM image from URL and create a template VM.
+        Role first downloads image from URL, then it created a VirtualDisk from it.
+        Next a template VM is created using the VirtualDisk.
+    options:
+      url2template_image_url:
+        description:
+          - The URL with disk image.
+        required: true
+        type: str
+      url2template_vm_name:
+        description:
+          - The name for the template VM.
+        required: true
+        type: str
+      url2template_machine_type:
+        description:
+          - The I(machine_type) for the template VM.
+          - For allowed values see I(machine_type) in M(scale_computing.hypercore.vm).
+        required: true
+        type: str
+      url2template_operating_system:
+        description:
+          - The operating system for the template VM.
+          - For allowed values see I(operating_system) in M(scale_computing.hypercore.vm).
+        required: true
+        type: str
