@@ -11,3 +11,4 @@ tests/integration/inventory
 
 docs/build
 docs/source/modules
+ci-infra/local-dev

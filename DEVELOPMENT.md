@@ -30,6 +30,14 @@ To be able to run example playbooks execute in shell:
 export SC_HOST=https://1.2.3.4
 export SC_USERNAME=admin
 export SC_PASSWORD=admin_pass
+
+# For convience you can store the environ variables into .sh or .env file in git-ignored directory:
+cat <EOF >>ci-infra/local-dev/env-host-4.sh
+export SC_HOST=https://1.2.3.4
+export SC_USERNAME=admin
+export SC_PASSWORD=admin_pass
+EOF
+source ci-infra/local-dev/env-host-4.sh
 ```
 
 ## Debugging
