@@ -1,0 +1,65 @@
+Content-Type: multipart/mixed; boundary="//"
+MIME-Version: 1.0
+
+--//
+Content-Type: text/cloud-config; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="cloud-config.txt"
+
+#cloud-config
+
+# Tested with Ubuntu 22.04 cloud image.
+
+# Uncomment for password login
+# password: "password"
+# chpasswd: { expire: False }
+# ssh_pwauth: True
+
+hostname: {{ vm_name | replace("_", "-") }}
+# fqdn: {{ vm_name | replace("_", "-") }}.example.com
+manage_etc_hosts: localhost
+ssh_authorized_keys: {{ vm_ssh_authorized_keys }}
+disable_root: false
+ssh_import_id: {{ vm_ssh_import_id }}
+package_update: true
+package_upgrade: false
+packages:
+ - qemu-guest-agent
+package_reboot_if_required: true
+# runcmd runs only on first boot
+runcmd:
+  - [ sh, -c, 'sudo echo GRUB_CMDLINE_LINUX="nomodeset" >> /etc/default/grub' ]
+  - [ sh, -c, 'sudo echo GRUB_GFXPAYLOAD_LINUX="1024x768" >> /etc/default/grub' ]
+  - [ sh, -c, 'sudo echo GRUB_DISABLE_LINUX_UUID=true >> /etc/default/grub' ]
+  - [ sh, -c, 'sudo update-grub' ]
+  - [ echo, message, CC-runcmd-jc ]
+# bootcmd runs on every boot
+# bootcmd:
+# qemu-guest-agent is not yet installed - packages are installed later
+# network is not yet up
+#  - apt update
+#  - DEBIAN_FRONTEND=noninteractive apt install -y qemu-guest-agent
+#  - [ systemctl, restart, --no-block, qemu-guest-agent ]
+# scripts_user:
+# write_files: []
+final_message: |
+  cloud-init has finished
+  version: $version
+  timestamp: $timestamp
+  datasource: $datasource
+  uptime: $uptime
+--//
+Content-Type: text/x-shellscript; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="userdata.txt"
+
+#!/bin/bash
+  # mkdir test-userscript
+  # touch /test-userscript/userscript.txt
+  # echo "Created by bash shell script" >> /test-userscript/userscript.txt
+  # echo which qemu-ga >> /test-userscript/userscript.txt
+  # which qemu-ga >> /test-userscript/userscript.txt 2>1
+  systemctl start qemu-guest-agent
+--//--

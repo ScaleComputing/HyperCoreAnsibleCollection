@@ -1,0 +1,13 @@
+---
+- name: Refresh inventory
+  ansible.builtin.meta: refresh_inventory
+
+# qemu-ga was not yet asked for VM IP, so inventory plugin has wrong address (hostname, not IP).
+# Retry N times.
+- name: Wait for ssh connection to VM
+  ansible.builtin.wait_for_connection:
+    timeout: 30
+    sleep: 10
+  when: template2vm_wait_ssh_result is not defined or template2vm_wait_ssh_result is failed
+  register: template2vm_wait_ssh_result
+  ignore_errors: true

@@ -1,0 +1,30 @@
+---
+- name: Clone template VM {{ " ".join([template2vm_source_vm_name, "to", template2vm_vm_name]) }}
+#  throttle: 1
+  scale_computing.hypercore.vm_clone:
+    vm_name: "{{ template2vm_vm_name }}"
+    source_vm_name: "{{ template2vm_source_vm_name }}"
+    # tags: "{{ vm_tags }}"  # TODO tags are added, not replaced
+    cloud_init:
+      user_data: "{{ template2vm_user_data }}"
+      meta_data: "{{ template2vm_meta_data }}"
+
+- name: Set disk size
+  scale_computing.hypercore.vm_disk:
+    vm_name: "{{ template2vm_vm_name }}"
+    items:
+      - disk_slot: 1
+        type: virtio_disk
+        size: "{{ template2vm_disk_size }}"
+    state: present
+
+# TODO add extra /data disk
+
+- name: Set params and start VM {{ template2vm_vm_name }}
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ template2vm_vm_name }}"
+    description: "{{ template2vm_description }}"
+    tags: "{{ template2vm_vm_tags }}"
+    vcpu: "{{ template2vm_vcpu }}"
+    memory: "{{ template2vm_memory }}"
+    power_state: "{{ template2vm_power_state }}"

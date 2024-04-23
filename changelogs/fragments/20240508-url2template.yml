@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Added roles url2template and template2vm.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/310)

@@ -1,0 +1,16 @@
+dsmode: local
+local-hostname: "{{ vm_name }}"
+network-interfaces: |
+  auto lo
+  iface lo inet loopback
+
+{% if vm_network_mode == "dhcp" %}
+  iface {{ vm_network_iface }} inet dhcp
+{% endif %}
+{% if vm_network_mode == "static" %}
+  iface {{ vm_network_iface }} inet static
+    address {{ vm_network_ip_address }}
+    netmask {{ vm_network_netmask }}
+    gateway {{ vm_network_gateway }}
+    dns-nameservers {{ vm_network_dns_nameservers }}
+{% endif %}
