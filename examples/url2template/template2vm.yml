@@ -1,0 +1,71 @@
+---
+
+# Run as
+# ansible-playbook -i localhost, -i examples/url2template/hypercore.yml examples/url2template/template2vm.yml -v
+
+- name: Create VM from template VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_group: test-clones
+    source_vm_name: ubuntu-22.04-server-cloudimg-amd64.img
+    vm_name: "{{ vm_group }}-server-0"
+    description: created from {{ source_vm_name }}
+    vcpu: 4
+    memory: "{{ '1 GB' | human_to_bytes }}"
+    disk_size: "{{ '20 GB' | human_to_bytes }}"
+    #
+    # do we have ens1 or enp1s0 or something else
+    vm_network_iface: ens3
+    # DHCP IP address from DHCP
+    vm_network_mode: "dhcp"
+    # vm_network_mode: "static"
+    # Static IP address
+    # vm_network_ip_address: 172.31.6.20
+    # vm_network_netmask: 255.255.255.0
+    # vm_network_gateway: 172.31.6.1
+    # vm_network_dns_nameservers: 8.8.8.8
+
+    # Add your ssh public key for publickey authentication
+    vm_ssh_authorized_keys:
+      - ssh-ed25519 rest-of-you-ssh-key-here...
+    # Import SSH key from github.com
+    vm_ssh_import_id: ""
+    # vm_ssh_import_id: "gh:your_username"
+
+  tasks:
+    - name: Create VM from template
+      ansible.builtin.include_role:
+        name: scale_computing.hypercore.template2vm
+      vars:
+        template2vm_source_vm_name: "{{ source_vm_name }}"
+        template2vm_vm_name: "{{ vm_name }}"
+        template2vm_description: test server, created from {{ source_vm_name }}
+        template2vm_vm_tags:
+          - "{{ vm_group }}"
+          - ansible_group__{{ vm_group }}
+          # If static IP address is used, optionally uncomment this to set ansible_host
+          # - ansible_host__{{ vm_network_ip_address }}
+        template2vm_vcpu: "{{ vcpu }}"
+        template2vm_memory: "{{ memory }}"
+        template2vm_disk_size: "{{ disk_size }}"
+        template2vm_power_state: start
+        # cloud-init
+        template2vm_user_data: "{{ lookup('template', 'user-data.ubuntu-22.04.yml.j2') }}"
+        template2vm_meta_data: "{{ lookup('template', 'meta-data.ubuntu-22.04.yml.j2') }}"
+
+    - name: Refresh inventory
+      ansible.builtin.meta: refresh_inventory
+
+- name: Wait on VM to boot
+  hosts: "{{ vm_group }}"
+  gather_facts: false
+  vars:
+    vm_group: test-clones
+  tasks:
+    - name: Refresh inventory and wait
+      ansible.builtin.include_role:
+        name: scale_computing.hypercore.template2vm
+        tasks_from: wait_vm_boot_tasks.yml
+      loop: "{{ range(10) }}"

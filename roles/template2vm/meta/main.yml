@@ -1,0 +1,10 @@
+galaxy_info:
+  author: Justin Cinkelj <justin.cinkelj@xlab.si>
+  role_name: template2vm
+  description: Clone a template VM to a regular VM
+  license: GPL-3.0-or-later
+  min_ansible_version: "2.14.0"
+  platforms:
+    - name: GenericLinux
+      versions:
+        - all

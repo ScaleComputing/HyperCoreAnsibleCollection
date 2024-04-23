@@ -1,0 +1,77 @@
+---
+argument_specs:
+  main:
+    short_description: Clone a template VM to a regular VM
+    description:
+      - Role url2template is used to clone a template VM to a regular VM.
+      - Most parameters have 1-to-1 mapping to M(scale_computing.hypercore.vm) parameters.
+    options:
+      template2vm_source_vm_name:
+        description:
+          - The source template VM used to create a new VM.
+        required: true
+        type: str
+      template2vm_vm_name:
+        description:
+          - The VM to be created.
+        required: true
+        type: str
+      template2vm_description:
+        description:
+          - Description for new VM.
+        required: true
+        type: str
+      template2vm_vm_tags:
+        description:
+          - VM tags for new VM.
+        required: true
+        type: list
+        elements: str
+      template2vm_vcpu:
+        description:
+          - vCPU count for new VM.
+        required: true
+        type: int
+      template2vm_memory:
+        description:
+          - Memory for new VM.
+        required: true
+        type: int
+      template2vm_disk_size:
+        description:
+          - Disk size for VM OS disk, in bytes unit.
+          - Needs to be bigger or equal to source template VM OS disk.
+        required: true
+        type: int
+      template2vm_power_state:
+        description:
+          - Power state for new VM.
+        required: true
+        type: str
+      template2vm_user_data:
+        description:
+          - Cloud-init user-data.
+        required: false
+        type: str
+        default: ""
+      template2vm_meta_data:
+        description:
+          - Cloud-init meta-data.
+        required: false
+        type: str
+        default: ""
+
+  wait_vm_boot_tasks:
+    short_description: Wait until VM is booted
+    description:
+      - Wait until VM is booted - e.g. ssh connection can be made.
+      - As new VM(s) were just created on HyperCore, an inventory refresh is made
+        before check if VMs are reachable via ssh.
+      - Inventory refresh is needed before each check, to ensure we get DHCP assigned VM IP address.
+    options:
+      template2vm_wait_vm_boot_tasks_dummy_param:
+        description:
+          - Ignore this. ansible-lint does not like role with empty options; so we have a dummy param.
+        required: false
+        type: str
+        default: ""
