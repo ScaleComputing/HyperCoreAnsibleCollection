@@ -50,6 +50,10 @@
         template2vm_vcpu: "{{ vcpu }}"
         template2vm_memory: "{{ memory }}"
         template2vm_disk_size: "{{ disk_size }}"
+        template2vm_nics:
+          - type: virtio
+          - type: INTEL_E1000
+            vlan: 10
         template2vm_power_state: start
         # cloud-init
         template2vm_user_data: "{{ lookup('template', 'user-data.ubuntu-22.04.yml.j2') }}"
