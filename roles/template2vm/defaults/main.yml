@@ -1,0 +1,4 @@
+---
+template2vm_nics:
+  - type: virtio
+    vlan: 0

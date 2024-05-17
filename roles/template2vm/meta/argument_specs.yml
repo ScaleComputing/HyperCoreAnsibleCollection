@@ -60,6 +60,41 @@ argument_specs:
         required: false
         type: str
         default: ""
+      template2vm_nics:
+        description:
+          - List of network interfaces.
+          - See also M(scale_computing.hypercore.vm_nic) parameter I(items).
+        required: false
+        default:
+          - type: virtio
+            vlan: 0
+        type: list
+        elements: dict
+        options:
+          connected:
+            description: Is network interface connected or not.
+            required: false
+            type: bool
+            default: true
+          mac:
+            description: NIC MAC address.
+            required: false
+            type: str
+            default: ""
+          type:
+            description: Defines type of the network interface.
+            required: false
+            type: str
+            default: virtio
+            choices:
+              - virtio
+              - RTL8139
+              - INTEL_E1000
+          vlan:
+            description: NIC VLAN.
+            required: false
+            type: int
+            default: 0
 
   wait_vm_boot_tasks:
     short_description: Wait until VM is booted

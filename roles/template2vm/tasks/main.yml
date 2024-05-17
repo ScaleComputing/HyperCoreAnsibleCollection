@@ -20,6 +20,12 @@
 
 # TODO add extra /data disk
 
+- name: Set network interfaces
+  scale_computing.hypercore.vm_nic:
+    vm_name: "{{ template2vm_vm_name }}"
+    items: "{{ template2vm_nics }}"
+    state: set
+
 - name: Set params and start VM {{ template2vm_vm_name }}
   scale_computing.hypercore.vm_params:
     vm_name: "{{ template2vm_vm_name }}"
