@@ -1,0 +1,65 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+
+  vars:
+    # ubuntu-18.10 - old and non-LTS image, we will use it only for testing this role
+    # removing it during test should not affect any other test
+    image_url: https://cloud-images.ubuntu.com/releases/cosmic/release-20190628/ubuntu-18.10-server-cloudimg-amd64.img
+    template_vm_name: "{{ image_url | split('/') | last }}"
+    machine_type: BIOS
+    expected_description: >-
+          ubuntu-18.10-server-cloudimg-amd64.img template,
+          source URL
+          https://cloud-images.ubuntu.com/releases/cosmic/release-20190628/ubuntu-18.10-server-cloudimg-amd64.img
+
+  block:
+    - name: Exit if VirtualDisk is not supported
+      when: sc_config[sc_host].features.virtual_disk.is_supported is false
+      ansible.builtin.meta: end_play
+
+    - name: Remove VirtualDisk
+      scale_computing.hypercore.virtual_disk:
+        name: "{{ template_vm_name }}"
+        state: absent
+
+    - name: Remove template VM
+      scale_computing.hypercore.vm:
+        vm_name: "{{ template_vm_name }}"
+        state: absent
+
+    - name: Create template VM using role url2template
+      ansible.builtin.include_role:
+        name: scale_computing.hypercore.url2template
+      vars:
+        url2template_image_url: "{{ image_url }}"
+        url2template_vm_name: "{{ template_vm_name }}"
+        url2template_machine_type: "{{ machine_type }}"
+        url2template_operating_system: os_other
+
+    - name: Get template VM info
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ template_vm_name }}"
+      register: vm_result
+
+    - name: Check template VM
+      ansible.builtin.assert:
+        that:
+          - vm_result.records | length == 1
+          - vm_result.records.0.description == expected_description
+          - vm_result.records.0.vcpu == 0
+          - vm_result.records.0.machine_type == "BIOS"
+          - vm_result.records.0.operating_system == "os_other"
+          - vm_result.records.0.power_state == "stopped"
+          - vm_result.records.0.tags == ["template", "serial"]
+          - vm_result.records.0.disks | length == 1
+          - vm_result.records.0.disks.0.type == "virtio_disk"
+          - vm_result.records.0.boot_devices | length == 1
+          - vm_result.records.0.boot_devices.0.type == "virtio_disk"
+          - vm_result.records.0.nics | length == 1
+          - vm_result.records.0.nics.0.type == "virtio"
+          - vm_result.records.0.nics.0.vlan == 0
+          - vm_result.records.0.nics.0.connected == true
