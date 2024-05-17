@@ -46,7 +46,7 @@
       register: result
     - ansible.builtin.assert:
         that:
-          - "{{result.records.0.ready_for_insert}} is true"
+          - result.records.0.ready_for_insert is true
 
 
     - name: Upload ISO image ci-upload-iso-integration.iso to HyperCore API (test idempotence)
