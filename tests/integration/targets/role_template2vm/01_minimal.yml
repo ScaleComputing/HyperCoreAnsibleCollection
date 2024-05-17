@@ -1,0 +1,53 @@
+---
+- name: Clone template to VM - minimal params
+  hosts: localhost
+  gather_facts: False
+
+  vars:
+    vm_name: "ci_template_clone_01"
+    vm_group: ci_template_clones
+
+  tasks:
+    - name: Clone template VM using role template2vm
+      ansible.builtin.include_role:
+        name: scale_computing.hypercore.template2vm
+      vars:
+        template2vm_source_vm_name: "{{ template_vm_name }}"
+        template2vm_vm_name: "{{ vm_name }}"
+        template2vm_description: CI {{ vm_name }}
+        template2vm_vm_tags:
+          - "{{ vm_group }}"
+          - ansible_group__{{ vm_group }}
+          # If static IP address is used, optionally uncomment this to set ansible_host
+          # - ansible_host__{{ vm_network_ip_address }}
+        template2vm_vcpu: 2
+        template2vm_memory: "{{ '1 GB' | human_to_bytes }}"
+        template2vm_disk_size: "{{ '3 GB' | human_to_bytes }}"
+        template2vm_power_state: stop
+
+    - name: Get cloned VM info
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name }}"
+      register: vm_result
+
+    - name: Check cloned VM
+      ansible.builtin.assert:
+        that:
+          - vm_result.records | length == 1
+          - vm_result.records.0.description == "CI ci_template_clone_01"
+          - vm_result.records.0.vcpu == 2
+          - vm_result.records.0.memory == 1073741824
+          - vm_result.records.0.machine_type == "BIOS"
+          - vm_result.records.0.operating_system == "os_other"
+          - vm_result.records.0.power_state == "stopped"
+          - vm_result.records.0.tags == ["ci_template_clones", "ansible_group__ci_template_clones"]
+          - vm_result.records.0.disks | length == 1
+          - vm_result.records.0.disks.0.type == "virtio_disk"
+          - vm_result.records.0.disks.0.disk_slot == 1
+          - vm_result.records.0.disks.0.size == 3221225472
+          - vm_result.records.0.boot_devices | length == 1
+          - vm_result.records.0.boot_devices.0.type == "virtio_disk"
+          - vm_result.records.0.nics | length == 1
+          - vm_result.records.0.nics.0.type == "virtio"
+          - vm_result.records.0.nics.0.vlan == 0
+          - vm_result.records.0.nics.0.connected == true

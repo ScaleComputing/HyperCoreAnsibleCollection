@@ -1,0 +1,14 @@
+---
+image_url: https://cloud-images.ubuntu.com/releases/focal/release-20240513/ubuntu-20.04-server-cloudimg-amd64.img
+template_vm_name: "{{ image_url | split('/') | last }}"
+machine_type: BIOS
+
+vm_group: ci_template_clones
+ssh_key_dirname: /tmp/ci-ssh
+# ssh_key_dirname: ci-ssh
+ssh_key_filename: "{{ ssh_key_dirname }}/ci_ssh_key"
+
+vm_names:
+  - ci_template_clone_01
+  - ci_template_clone_02
+  - ci_template_clone_03
