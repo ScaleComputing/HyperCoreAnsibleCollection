@@ -1,4 +1,7 @@
 ---
+template2vm_user_data: ""
+template2vm_meta_data: ""
 template2vm_nics:
   - type: virtio
     vlan: 0
+template2vm_wait_vm_boot_tasks_dummy_param: ""

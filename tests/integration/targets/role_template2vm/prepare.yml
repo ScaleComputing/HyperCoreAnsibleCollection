@@ -1,0 +1,28 @@
+---
+- name: Prepare test environment
+  hosts: localhost
+  gather_facts: False
+
+  tasks:
+    # ===============================================================================
+    - name: Create template VM using role url2template
+      ansible.builtin.include_role:
+        name: scale_computing.hypercore.url2template
+      vars:
+        url2template_image_url: "{{ image_url }}"
+        url2template_vm_name: "{{ template_vm_name }}"
+        url2template_machine_type: "{{ machine_type }}"
+        url2template_operating_system: os_other
+
+    # ===============================================================================
+    - name: Create SSH dir
+      ansible.builtin.file:
+        path: "{{ ssh_key_dirname }}"
+        state: directory
+        mode: "0700"
+
+    - name: Create SSH key ci_ssh_key
+      ansible.builtin.command:
+        # cmd: ls -al {{ ssh_key_dirname }}
+        cmd: ssh-keygen -t ed25519 -f {{ ssh_key_filename }} -C for-ci-testing -N ''
+        creates: "{{ ssh_key_filename }}"
