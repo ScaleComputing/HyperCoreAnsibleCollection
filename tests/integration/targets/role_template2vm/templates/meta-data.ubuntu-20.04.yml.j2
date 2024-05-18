@@ -5,7 +5,14 @@ network-interfaces: |
   iface lo inet loopback
 
 {% if vm_network_mode == "dhcp" %}
+  # On Intel NUC with v9.2.27 (https://172.31.6.11) we have eth device ens3
+  # vm_network_iface==ens3
   iface {{ vm_network_iface }} inet dhcp
+
+  # But we have eth device ens1 on
+  #   - CI VSNS v9.3.5 (https://10.5.11.203/)
+  #   - CI VSNS v9.4.0 (https://10.5.11.204/)
+  iface ens1 inet dhcp
 {% endif %}
 {% if vm_network_mode == "static" %}
   iface {{ vm_network_iface }} inet static
