@@ -4,6 +4,14 @@ Scale\_Computing.Hypercore Release Notes
 
 .. contents:: Topics
 
+v1.5.0
+======
+
+Major Changes
+-------------
+
+- Added roles url2template and template2vm. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/310)
+
 v1.4.0
 ======
 
