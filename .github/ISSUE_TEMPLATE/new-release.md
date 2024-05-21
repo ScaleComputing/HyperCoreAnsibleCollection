@@ -3,7 +3,7 @@ name: New release
 about: Start a new release
 title: ":flying_saucer: Release version [VERSION]"
 labels: release
-assignees: ddemlow
+assignees: shoriminimoe
 
 ---
 
