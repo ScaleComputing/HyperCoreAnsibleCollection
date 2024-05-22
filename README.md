@@ -3,9 +3,11 @@
 The Ansible Collection for Scale Computing HyperCore ([HyperCore](https://www.scalecomputing.com/sc-hypercore))
 a variety of Ansible content to help automate the management of Scale Computing HyperCore products.
 
+Documentation is available at https://scalecomputing.github.io/HyperCoreAnsibleCollection/.
 
+# Requirements
 <!--start requires_ansible-->
-## Ansible version compatibility
+## Ansible version requirements
 
 This collection has been tested against following Ansible versions: **>=2.12**.
 
@@ -13,17 +15,59 @@ The collection should work with any Ansible version **>=2.9.10**,
 but this is not granted.
 <!--end requires_ansible-->
 
-## Python version compatibility
+## Python version requirements
 
 This collection requires Python 3.8 or greater.
 
-## HyperCore cluster version compatibility
+## HyperCore cluster version requirements
 
 This collection has been tested against following HyperCore cluster versions:
 - v9.1.14.208456
 - v9.2.13.211102
 - v9.3.5.212852
 - v9.4.0.213268
+
+# Installation
+
+Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
+
+```
+ansible-galaxy collection install scale_computing.hypercore
+```
+
+You can also include it in a requirements.yml file and install it with
+`ansible-galaxy collection install -r requirements.yml`, using the format:
+
+```
+# requirements.yml snippet
+collections:
+  - name: scale_computing.hypercore
+    # Optionally pin the collection version
+    # version: 1.0.0
+```
+
+To upgrade the collection to the latest available version, run the following command:
+
+```
+ansible-galaxy collection install scale_computing.hypercore --upgrade
+```
+
+You can also install a specific version of the collection, for example,
+if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version 1.0.0:
+
+```
+ansible-galaxy collection install scale_computing.hypercore:==1.0.0
+```
+
+See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
+
+## Use Cases
+
+Usecases include:
+  - Configure or reconfigure a HyperCore cluster.
+  - Update HyperCore cluster.
+  - Create and maintain VMs on HyperCore clusters.
+  - Upgrade VMs on HyperCore cluster, revert to previous version if upgrade fails.
 
 ## Included content
 
@@ -116,6 +160,6 @@ The [examples](https://github.com/ScaleComputing/HyperCoreAnsibleCollection/tree
 subdirectory contains usage examples for individual modules.
 Look at [examples/README.md](https://github.com/ScaleComputing/HyperCoreAnsibleCollection/tree/main/examples/README.md) to see how to use each example.
 
-# Development
+# Testing and Development
 
 See [DEVELOPMENT.md](https://github.com/ScaleComputing/HyperCoreAnsibleCollection/tree/main/DEVELOPMENT.md).
