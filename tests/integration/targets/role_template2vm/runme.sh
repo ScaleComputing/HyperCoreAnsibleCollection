@@ -14,6 +14,7 @@ print("export SC_USERNAME='{}'".format(data["sc_config"][sc_host]["sc_username"]
 print("export SC_PASSWORD='{}'".format(data["sc_config"][sc_host]["sc_password"]))
 # SC_AUTH_METHOD==local by default, leave it unset
 print("export SC_VIRTUAL_DISK_IS_SUPPORTED='{}'".format(data["sc_config"][sc_host]["features"]["virtual_disk"]["is_supported"]))
+print("export SC_VERSION_UPDATE_CURRENT_VERSION='{}'".format(data["sc_config"][sc_host]["features"]["version_update"]["current_version"]))
 EOF
 )"
 
@@ -22,6 +23,11 @@ env | grep SC_
 if [ "$SC_VIRTUAL_DISK_IS_SUPPORTED" != "True" ]
 then
   echo "Virtual disk feature is not supported, not testing template2vm" 2>&1
+  exit 0
+fi
+if (echo "$SC_VERSION_UPDATE_CURRENT_VERSION" | grep "^9\.2\.")
+then
+  echo "Virtual disk feature on HyperCore 9.2 is experimental, not testing template2vm" 2>&1
   exit 0
 fi
 
