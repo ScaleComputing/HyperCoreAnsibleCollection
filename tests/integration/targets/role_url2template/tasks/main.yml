@@ -21,6 +21,12 @@
       when: sc_config[sc_host].features.virtual_disk.is_supported is false
       ansible.builtin.meta: end_play
 
+    # In addition, on HC3 9.2 is VirtualDisk experimental, and has known problems with compressed images etc.
+    # Skip the test, the used image is preblematic on 9.2.
+    - name: Exit if HyperCore version is 9.2
+      when: sc_config[sc_host].features.version_update.current_version.startswith("9.2.")
+      ansible.builtin.meta: end_play
+
     - name: Remove VirtualDisk
       scale_computing.hypercore.virtual_disk:
         name: "{{ template_vm_name }}"

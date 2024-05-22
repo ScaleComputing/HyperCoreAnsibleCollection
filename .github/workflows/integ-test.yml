@@ -324,6 +324,18 @@ jobs:
             test_name: support_tunnel
           - sc_host: https://10.5.11.204
             test_name: support_tunnel
+          # Virtual disk:
+          # - not supported on 9.1 https://10.5.11.200
+          # - experimantal on 9.2 https://10.5.11.201, some images (compressed?) do not work
+          - sc_host: https://10.5.11.200
+            test_name: role_url2template
+          - sc_host: https://10.5.11.201
+            test_name: role_url2template
+          - sc_host: https://10.5.11.200
+            test_name: role_template2vm
+          - sc_host: https://10.5.11.201
+            test_name: role_template2vm
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
