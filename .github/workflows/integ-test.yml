@@ -304,6 +304,23 @@ jobs:
       test_names: ${{ needs.integ-seq-matrix.outputs.matrix }}
       outer_job_name: integ-seq-run
 
+  # On physical HyperCore
+  integ-physical:
+    strategy:
+      fail-fast: false
+    secrets: inherit
+    uses: ./.github/workflows/z_ansible-test.yml
+    with:
+      sc_host: https://10.5.11.50
+      test_names: >-
+        [
+          "vm_replication",
+          'vm_replication_info",
+          "vm_clone__replicated",
+          "support_tunnel"
+        ]
+      outer_job_name: integ-physical
+
   replica_cleanup:
     needs: []
     runs-on: [self-hosted2]
