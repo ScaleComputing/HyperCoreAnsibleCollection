@@ -15,6 +15,10 @@ on:
         type: string
         required: true
         description: List of tests to run. JSON encoded.
+      outer_job_name:
+        type: string
+        required: true
+        description: Name of job including this workflow.
 
 jobs:
   ansible_test:
@@ -41,8 +45,10 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          X_GITHUB_JOB_NAME: "integ-seq-run (${{ inputs.sc_host }}), ansible-test (${{ matrix.test_name }})"
+          X_GITHUB_JOB_NAME: "${{ inputs.outer_job_name }} (${{ inputs.sc_host }}), ansible-test (${{ matrix.test_name }})"
         run: |
+          echo DBG X_GITHUB_JOB_NAME=$X_GITHUB_JOB_NAME
+          echo DBG inputs.outer_job_name=${{ inputs.outer_job_name }}
           if ! .github/job_retry_needed.py
           then
             echo SKIP test, job retry not needed

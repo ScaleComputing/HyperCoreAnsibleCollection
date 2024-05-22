@@ -18,13 +18,14 @@ on:
       # smtp - email_alert test requires a configured SMTP
       # role_cluster_config - role cluster_config reconfigures DNS, SMTP, OIDC. And it is slow.
       # version_update_single_node - role would change version, VSNS system cannot be updated.
+      # vm_replication vm_clone__replicated - VSNS were not configured with replication
       integ_tests_exclude:
         type: string
         description: |-
           List integration tests to exclude.
           Use "*" to exclude all tests.
           Use regex like 'node|^git_issue|^dns_config$' to exclude only a subset.
-        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$"
+        default: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$|^vm_replication$|^vm_replication_info$|^vm_clone__replicated$|^support_tunnel$"
       integ_seq_tests_include:
         type: string
         description: |-
@@ -52,7 +53,7 @@ on:
         default: ""
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
-  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$"
+  INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$|^vm_replication$|^vm_replication_info$|^vm_clone__replicated$|^support_tunnel$"
   INTEG_SEQ_TESTS_INCLUDE_SCHEDULE: "^dns_config$|^oidc_config$|^smtp$|^role_cluster_config$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$"
   INTEG_SEQ_TESTS_EXCLUDE_SCHEDULE: ""
   EXAMPLES_TESTS_INCLUDE_SCHEDULE: "*"
@@ -267,96 +268,21 @@ jobs:
   integ-run:
     needs:
       - integ-matrix
-    runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:9
-    env:
-      DEBIAN_FRONTEND: noninteractive
-    defaults:
-      run:
-        working-directory: ${{ env.WORKDIR }}
+    if: "(!cancelled()) && (needs.integ-matrix.result=='success')"
     strategy:
       fail-fast: false
       matrix:
-        # ansible: [2.16.0]
-        # python: [3.11]
-        # test_name: [user_info]
-        test_name: ${{ fromJson(needs.integ-matrix.outputs.matrix) }}
         sc_host:
           - https://10.5.11.200
           - https://10.5.11.201
           - https://10.5.11.203
           - https://10.5.11.204
-        include:
-          - sc_host: https://10.5.11.50
-            test_name: vm_replication
-          - sc_host: https://10.5.11.50
-            test_name: vm_replication_info
-          - sc_host: https://10.5.11.50
-            test_name: support_tunnel
-          - sc_host: https://10.5.11.50
-            test_name: vm_clone__replicated
-        exclude:
-          # The VSNS were not configured with remote replication cluster.
-          - sc_host: https://10.5.11.200
-            test_name: vm_replication
-          - sc_host: https://10.5.11.201
-            test_name: vm_replication
-          - sc_host: https://10.5.11.203
-            test_name: vm_replication
-          - sc_host: https://10.5.11.204
-            test_name: vm_replication
-          - sc_host: https://10.5.11.200
-            test_name: vm_clone__replicated
-          - sc_host: https://10.5.11.201
-            test_name: vm_clone__replicated
-          - sc_host: https://10.5.11.203
-            test_name: vm_clone__replicated
-          - sc_host: https://10.5.11.204
-            test_name: vm_clone__replicated
-          # Seem as VSNS nodes cannot open remote tunnel.
-          # Code/port that worked (was opened, then closed) on real HyperCode
-          # did not work with VSNS.
-          - sc_host: https://10.5.11.200
-            test_name: support_tunnel
-          - sc_host: https://10.5.11.201
-            test_name: support_tunnel
-          - sc_host: https://10.5.11.203
-            test_name: support_tunnel
-          - sc_host: https://10.5.11.204
-            test_name: support_tunnel
-          # Virtual disk:
-          # - not supported on 9.1 https://10.5.11.200
-          # - experimantal on 9.2 https://10.5.11.201, some images (compressed?) do not work
-          - sc_host: https://10.5.11.200
-            test_name: role_url2template
-          - sc_host: https://10.5.11.201
-            test_name: role_url2template
-          - sc_host: https://10.5.11.200
-            test_name: role_template2vm
-          - sc_host: https://10.5.11.201
-            test_name: role_template2vm
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          path: ${{ env.WORKDIR }}
-      - run: pip install ansible-core~=2.16.0
-      # We have ansible.cfg "for testing" in git repo
-      # (it is excluded in galaxy.yml, so it is not part of collection artifact)
-      # But it does affect ansible-galaxy and ansible-test commands.
-      - run: ansible-galaxy collection install community.crypto
-      - run: ansible-galaxy collection list
-      # ${{ env.WORKDIR }} cannot be used
-      - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
-        with:
-          sc_host: ${{ matrix.sc_host }}
-          sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
-          oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
-          oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
-          working_directory: ${{ env.WORKDIR }}
-      - run: ansible-test integration --local ${{ matrix.test_name }}
+    secrets: inherit
+    uses: ./.github/workflows/z_ansible-test.yml
+    with:
+      sc_host: ${{ matrix.sc_host }}
+      test_names: ${{ needs.integ-matrix.outputs.matrix }}
+      outer_job_name: integ-run
 
   integ-seq-run:
     needs:
@@ -376,6 +302,7 @@ jobs:
     with:
       sc_host: ${{ matrix.sc_host }}
       test_names: ${{ needs.integ-seq-matrix.outputs.matrix }}
+      outer_job_name: integ-seq-run
 
   replica_cleanup:
     needs: []
