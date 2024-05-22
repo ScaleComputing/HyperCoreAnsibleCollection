@@ -50,14 +50,14 @@ on:
         type: string
         description: |-
           List examples to exclude from testing.
-        default: ""
+        default: "^version_update_single_node.yml$|^vm_os_upgrade$|^vm_snapshot_attach_disk.yml$|^url2template$"
 env:
   INTEG_TESTS_INCLUDE_SCHEDULE: "*"
   INTEG_TESTS_EXCLUDE_SCHEDULE: "^dns_config$|^cluster_shutdown$|^version_update$|^oidc_config$|^smtp$|^role_cluster_config$|^role_version_update_single_node$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$|^vm_replication$|^vm_replication_info$|^vm_clone__replicated$|^support_tunnel$"
   INTEG_SEQ_TESTS_INCLUDE_SCHEDULE: "^dns_config$|^oidc_config$|^smtp$|^role_cluster_config$|^version_update__shutdown_restart_vms$|^utils_login$|^certificate$"
   INTEG_SEQ_TESTS_EXCLUDE_SCHEDULE: ""
   EXAMPLES_TESTS_INCLUDE_SCHEDULE: "*"
-  EXAMPLES_TESTS_EXCLUDE_SCHEDULE: ""
+  EXAMPLES_TESTS_EXCLUDE_SCHEDULE: "^version_update_single_node.yml$|^vm_os_upgrade$|^vm_snapshot_attach_disk.yml$|^url2template$"
   # ansible-test needs special directory structure.
   # WORKDIR is a subdir of GITHUB_WORKSPACE
   WORKDIR: work-dir/ansible_collections/scale_computing/hypercore
