@@ -2,4 +2,4 @@
 # In requires_ansible we need to avoid unsupported ansible versions
 # to make ansible-lint happy.
 # The collection should still work also with older ansible versions.
-requires_ansible: ">=2.14.0"
+requires_ansible: ">=2.15.0"
