@@ -45,7 +45,7 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          X_GITHUB_JOB_NAME: "${{ inputs.outer_job_name }} (${{ inputs.sc_host }}), ansible-test (${{ matrix.test_name }})"
+          X_GITHUB_JOB_NAME: "${{ inputs.outer_job_name }} (${{ inputs.sc_host }}) / ansible-test (${{ matrix.test_name }})"
         run: |
           echo DBG X_GITHUB_JOB_NAME=$X_GITHUB_JOB_NAME
           echo DBG inputs.outer_job_name=${{ inputs.outer_job_name }}
