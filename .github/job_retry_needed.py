@@ -90,6 +90,19 @@ def main():
             job["id"], job["status"], job["conclusion"], job["name"]
         )
 
+    # Double check input job name is one of actual job names
+    # Naming convention changed at some time:
+    #   new: 'integ-seq-run (https://10.5.11.201) / ansible-test (utils_login)'
+    #   old: 'integ-seq-run (https://10.5.11.201), ansible-test (utils_login)'
+    all_job_names = [
+        job["name"]
+        for job in previous_jobs
+    ]
+    if job_name not in all_job_names:
+        logger.exception("ERROR, job_name='%s' is unknown, job will be re-run", job_name)
+        # exit with 0, this will re-run the job.
+        return
+
     # Decide which jobs should NOT be re-run.
     # https://docs.github.com/en/actions/learn-github-actions/contexts#steps-context
     # conclusion == success, failure, cancelled, or skipped.
