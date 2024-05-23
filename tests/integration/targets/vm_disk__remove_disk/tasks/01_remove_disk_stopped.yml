@@ -40,11 +40,11 @@
     that:
       - vm_result is changed
       - vm_result.record.0.description == "VM remove disk CI test"
-      - vm_result.record.0.vm_name == "{{ vm_name_a }}"
+      - vm_result.record.0.vm_name == vm_name_a
       - vm_result.record.0.disks | length == 2
       - vm_result.vm_rebooted == False
       - vm_info_a_initial_result.records.0.description == "VM remove disk CI test"
-      - vm_info_a_initial_result.records.0.vm_name == "{{ vm_name_a }}"
+      - vm_info_a_initial_result.records.0.vm_name == vm_name_a
       - vm_info_a_initial_result.records.0.power_state == "stopped"
       - vm_info_a_initial_result.records.0.disks | length == 2
 
