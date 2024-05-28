@@ -306,8 +306,6 @@ jobs:
 
   # On physical HyperCore
   integ-physical:
-    strategy:
-      fail-fast: false
     secrets: inherit
     uses: ./.github/workflows/z_ansible-test.yml
     with:

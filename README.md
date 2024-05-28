@@ -150,6 +150,8 @@ Usecases include:
 | --- | --- |
 | [scale_computing.hypercore.check_local_time](https://scalecomputing.github.io/HyperCoreAnsibleCollection/collections/scale_computing/hypercore/check_local_time_role.html) | Check if local time meets the required time interval  |
 | [scale_computing.hypercore.cluster_config](https://scalecomputing.github.io/HyperCoreAnsibleCollection/collections/scale_computing/hypercore/cluster_config_role.html) | Configure HyperCore cluster  |
+| [scale_computing.hypercore.template2vm](https://scalecomputing.github.io/HyperCoreAnsibleCollection/collections/scale_computing/hypercore/template2vm_role.html) | Clone a template VM to a regular VM  |
+| [scale_computing.hypercore.url2template](https://scalecomputing.github.io/HyperCoreAnsibleCollection/collections/scale_computing/hypercore/url2template_role.html) | Download VM image from URL and create a template VM  |
 | [scale_computing.hypercore.version_update_single_node](https://scalecomputing.github.io/HyperCoreAnsibleCollection/collections/scale_computing/hypercore/version_update_single_node_role.html) | Update single-node systems  |
 <!--end Role name list-->
 

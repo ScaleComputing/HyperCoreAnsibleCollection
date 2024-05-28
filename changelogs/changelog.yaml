@@ -262,3 +262,10 @@ releases:
     - 20240212-vtpm-disk-type.yml
     - 20240226-change-machine-type.yml
     release_date: '2024-03-28'
+  1.5.0:
+    changes:
+      major_changes:
+      - Added roles url2template and template2vm. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/310)
+    fragments:
+    - 20240508-url2template.yml
+    release_date: '2024-05-21'
