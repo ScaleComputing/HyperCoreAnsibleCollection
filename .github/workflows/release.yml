@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup python 🐍
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
       - name: Install dependencies 👽
@@ -44,7 +44,7 @@ jobs:
           echo "See also: [CHANGELOG](${CHANGELOG_URL}#${REF_NAME//./-})" >>release_notes.md
 
       - name: Release 🛸
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             *.tar.gz
