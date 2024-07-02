@@ -7,6 +7,14 @@
     syslog_server: 10.5.11.222
 
   tasks:
+    - name: Set all Syslog servers - this removes everything not listed in syslog_servers
+      scale_computing.hypercore.syslog_server:
+        syslog_servers:
+          - host: "{{ syslog_server }}" # [ REQUIRED ]
+            port: 514 # [ OPTIONAL ]
+            protocol: udp # tcp --> [ OPTIONAL ]
+        state: set
+
     - name: Create Syslog server
       scale_computing.hypercore.syslog_server:
         host: "{{ syslog_server }}" # [ REQUIRED ]

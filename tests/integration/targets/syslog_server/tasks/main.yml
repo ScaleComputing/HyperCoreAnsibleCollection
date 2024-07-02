@@ -9,6 +9,7 @@
   block:
     - include_tasks: 01_syslog_server_info.yml
     - include_tasks: 02_syslog_server.yml
+    - include_tasks: 03_syslog_server_set.yml
   always:
     - name: Get current syslog_server
       scale_computing.hypercore.api:

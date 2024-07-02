@@ -1,0 +1,275 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+
+  vars:
+    syslog_server_a:
+      host: aa_syslog.example.com
+      port: 100
+      protocol: tcp
+    syslog_server_b:
+      host: bb_syslog.example.com
+      port: 101
+      protocol: udp
+
+  block:
+    - name: Get current syslog_server
+      scale_computing.hypercore.api:
+        action: get
+        endpoint: /rest/v1/AlertSyslogTarget
+      register: api_syslog_server_result
+
+    - name: Remove current syslog_server
+      scale_computing.hypercore.api:
+        action: delete
+        endpoint: /rest/v1/AlertSyslogTarget/{{ item.uuid }}
+      loop: "{{ api_syslog_server_result.record }}"
+
+    # -----------------------------------------------------------
+    # Set server aa, with minimal params
+    - &set_a_min_param
+      block:
+        - name: Set Syslog servers a_min_param
+          scale_computing.hypercore.syslog_server:
+            syslog_servers:
+              - host: aa_syslog_min.example.com
+            state: set
+          register: result
+        - scale_computing.hypercore.syslog_server_info:
+          register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - &test_a_min_param
+      ansible.builtin.assert:
+        that:
+          - not result.record
+          - result.records | length == 1
+          - result.records.0.keys() | sort ==
+            [ 'alert_tag_uuid', 'host', 'latest_task_tag', 'port',
+            'protocol', 'resend_delay', 'silent_period', 'uuid' ]
+          - result.records.0.host == "aa_syslog_min.example.com"
+          - result.records.0.port == 514
+          - result.records.0.protocol == "udp"
+          - info.records | length == 1|int
+          - info.records.0.host == "aa_syslog_min.example.com"
+          - info.records.0.port == 514
+          - info.records.0.protocol == "udp"
+          - info.records == result.records
+
+    # idempotence
+    - *set_a_min_param
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - *test_a_min_param
+
+    # -----------------------------------------------------------
+    # Set server aa
+    - &set_a
+      block:
+        - name: Set Syslog servers a
+          scale_computing.hypercore.syslog_server:
+            syslog_servers:
+              - "{{ syslog_server_a }}"
+            state: set
+          register: result
+        - scale_computing.hypercore.syslog_server_info:
+          register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - &test_a
+      ansible.builtin.assert:
+        that:
+          - not result.record
+          - result.records | length == 1
+          - result.records.0.keys() | sort ==
+            [ 'alert_tag_uuid', 'host', 'latest_task_tag', 'port',
+            'protocol', 'resend_delay', 'silent_period', 'uuid' ]
+          - result.records.0.host == syslog_server_a.host
+          - result.records.0.port == syslog_server_a.port
+          - result.records.0.protocol == syslog_server_a.protocol
+          - info.records | length == 1|int
+          - info.records.0.host == syslog_server_a.host
+          - info.records.0.port == syslog_server_a.port
+          - info.records.0.protocol == syslog_server_a.protocol
+          - info.records == result.records
+
+    # idempotence
+    - *set_a
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - *test_a
+
+    # -----------------------------------------------------------
+    # Change to server bb
+    - &set_b
+      block:
+        - name: Set Syslog servers b
+          scale_computing.hypercore.syslog_server:
+            syslog_servers:
+              - "{{ syslog_server_b }}"
+            state: set
+          register: result
+        - scale_computing.hypercore.syslog_server_info:
+          register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - &test_b
+      ansible.builtin.assert:
+        that:
+          - not result.record
+          - result.records | length == 1
+          - result.records.0.keys() | sort ==
+            [ 'alert_tag_uuid', 'host', 'latest_task_tag', 'port',
+            'protocol', 'resend_delay', 'silent_period', 'uuid' ]
+          - result.records.0.host == syslog_server_b.host
+          - result.records.0.port == syslog_server_b.port
+          - result.records.0.protocol == syslog_server_b.protocol
+          - info.records | length == 1|int
+          - info.records.0.host == syslog_server_b.host
+          - info.records.0.port == syslog_server_b.port
+          - info.records.0.protocol == syslog_server_b.protocol
+          - info.records == result.records
+
+    # idempotence
+    - *set_b
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - *test_b
+
+    # -----------------------------------------------------------
+    # Change to server bb, aa
+    - &set_b_a
+      block:
+        - name: Set Syslog servers b-a
+          scale_computing.hypercore.syslog_server:
+            syslog_servers:
+              - "{{ syslog_server_b }}"
+              - "{{ syslog_server_a }}"
+            state: set
+          register: result
+        - scale_computing.hypercore.syslog_server_info:
+          register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    # output is sorted, and we read back [a, b]
+    - &test_a_b
+      ansible.builtin.assert:
+        that:
+          - not result.record
+          - result.records | length == 2
+          - result.records.0.keys() | sort ==
+            [ 'alert_tag_uuid', 'host', 'latest_task_tag', 'port',
+            'protocol', 'resend_delay', 'silent_period', 'uuid' ]
+          - result.records.0.host == syslog_server_a.host
+          - result.records.0.port == syslog_server_a.port
+          - result.records.0.protocol == syslog_server_a.protocol
+          - result.records.1.host == syslog_server_b.host
+          - result.records.1.port == syslog_server_b.port
+          - result.records.1.protocol == syslog_server_b.protocol
+          - info.records | length == 2|int
+          - info.records.0.host == syslog_server_a.host
+          - info.records.0.port == syslog_server_a.port
+          - info.records.0.protocol == syslog_server_a.protocol
+          - info.records.1.host == syslog_server_b.host
+          - info.records.1.port == syslog_server_b.port
+          - info.records.1.protocol == syslog_server_b.protocol
+          - info.records == result.records
+
+    # idempotence
+    - *set_b_a
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - *test_a_b
+
+    # -----------------------------------------------------------
+    # Change to server aa, bb.
+    # But this is same as bb, aa.
+    - &set_a_b
+      block:
+        - name: Set Syslog servers a-b
+          scale_computing.hypercore.syslog_server:
+            syslog_servers:
+              - "{{ syslog_server_a }}"
+              - "{{ syslog_server_b }}"
+            state: set
+          register: result
+        - scale_computing.hypercore.syslog_server_info:
+          register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - *test_a_b
+
+    # idempotence
+    - *set_a_b
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - *test_a_b
+
+    # -----------------------------------------------------------
+    # Change to server aa
+    - *set_a
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - *test_a
+
+    # idempotence
+    - *set_a
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - *test_a
+
+    # -----------------------------------------------------------
+    # Change to no server
+    - &set_none
+      block:
+        - name: Set Syslog servers none
+          scale_computing.hypercore.syslog_server:
+            syslog_servers: []
+            state: set
+          register: result
+        - scale_computing.hypercore.syslog_server_info:
+          register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - &test_none
+      ansible.builtin.assert:
+        that:
+          - not result.record
+          - result.records == []
+          - info.records == []
+
+    # idempotence
+    - *set_none
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - *test_none

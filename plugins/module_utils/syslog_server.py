@@ -47,16 +47,16 @@ class SyslogServer(PayloadMapper):
     @classmethod
     def from_ansible(cls, ansible_data: TypedSyslogServerFromAnsible) -> SyslogServer:
         return SyslogServer(
-            uuid=ansible_data["uuid"],
+            uuid=ansible_data.get("uuid"),
             host=ansible_data["host"],
             port=ansible_data["port"],
             protocol=ansible_data["protocol"],
         )
 
     @classmethod
-    def from_hypercore(cls, hypercore_data: Dict[Any, Any]) -> Optional[SyslogServer]:
+    def from_hypercore(cls, hypercore_data: Dict[Any, Any]) -> SyslogServer:
         if not hypercore_data:
-            return None
+            raise AssertionError("hypercore_data dict must be non-emtpy")
         return cls(
             uuid=hypercore_data["uuid"],
             alert_tag_uuid=hypercore_data["alertTagUUID"],
@@ -104,6 +104,22 @@ class SyslogServer(PayloadMapper):
             )
         )
 
+    def is_equivalent(self, other: SyslogServer) -> bool:
+        """
+        Method compares if two objects are "equal".
+        Equal in sense are equal all attributes configurable via GUI and/or ansible module.
+
+        This is not __eq__ method, as __eq__ is already used "for CI testing purposes only",
+        in this and most other classes.
+        """
+        if self.host != other.host:
+            return False
+        if self.port != other.port:
+            return False
+        if self.protocol != other.protocol:
+            return False
+        return True
+
     @classmethod
     def get_by_uuid(
         cls,
@@ -115,7 +131,9 @@ class SyslogServer(PayloadMapper):
         hypercore_dict = rest_client.get_record(
             "/rest/v1/AlertSyslogTarget", query, must_exist=must_exist
         )
-        syslog_server_from_hypercore = cls.from_hypercore(hypercore_dict)  # type: ignore
+        if hypercore_dict is None:
+            return None
+        syslog_server_from_hypercore = cls.from_hypercore(hypercore_dict)
         return syslog_server_from_hypercore
 
     @classmethod
@@ -128,22 +146,63 @@ class SyslogServer(PayloadMapper):
         hypercore_dict = rest_client.get_record(
             "/rest/v1/AlertSyslogTarget", {"host": host}, must_exist=must_exist
         )
+        if hypercore_dict is None:
+            return None
 
-        syslog_server = SyslogServer.from_hypercore(hypercore_dict)  # type: ignore
+        syslog_server = SyslogServer.from_hypercore(hypercore_dict)
         return syslog_server
+
+    def __lt__(self, other: SyslogServer) -> bool:
+        # API response is sorted by UUID.
+        # We want to sort by host, port, protocol.
+        if self.host is None:
+            raise AssertionError()
+        if self.port is None:
+            raise AssertionError()
+        if self.protocol is None:
+            raise AssertionError()
+        if other.host is None:
+            raise AssertionError()
+        if other.port is None:
+            raise AssertionError()
+        if other.protocol is None:
+            raise AssertionError()
+
+        if self.host < other.host:
+            return True
+        elif self.host > other.host:
+            return False
+        if self.port < other.port:
+            return True
+        elif self.port > other.port:
+            return False
+        if self.protocol < other.protocol:
+            return True
+        elif self.protocol > other.protocol:
+            return False
+        return False
+
+    @classmethod
+    def get_all(
+        cls,
+        rest_client: RestClient,
+    ) -> List[SyslogServer]:
+        syslog_servers = [
+            cls.from_hypercore(hypercore_data=hypercore_dict)
+            for hypercore_dict in rest_client.list_records(
+                "/rest/v1/AlertSyslogTarget/"
+            )
+        ]
+        syslog_servers.sort()
+        return syslog_servers
 
     @classmethod
     def get_state(
         cls,
         rest_client: RestClient,
-    ) -> List[Optional[TypedSyslogServerToAnsible]]:
-        state = [
-            cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
-            for hypercore_dict in rest_client.list_records(
-                "/rest/v1/AlertSyslogTarget/"
-            )
-        ]
-
+    ) -> List[TypedSyslogServerToAnsible]:
+        syslog_servers = cls.get_all(rest_client)
+        state = [ss.to_ansible() for ss in syslog_servers]
         return state
 
     @classmethod
@@ -162,7 +221,9 @@ class SyslogServer(PayloadMapper):
             rest_client,
             must_exist=True,
         )
-        return syslog_server  # type: ignore
+        if syslog_server is None:
+            raise AssertionError()
+        return syslog_server
 
     def update(
         self,

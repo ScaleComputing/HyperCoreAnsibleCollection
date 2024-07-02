@@ -14,6 +14,9 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server import (
     SyslogServer,
 )
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag import (
+    TaskTag,
+)
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
     MIN_PYTHON_VERSION,
 )
@@ -75,7 +78,9 @@ class TestSyslogServer:
         assert self.syslog_server == syslog_server_from_hypercore
 
     def test_syslog_server_from_hypercore_dict_empty(self):
-        assert SyslogServer.from_hypercore([]) is None
+        with pytest.raises(AssertionError) as excinfo:
+            SyslogServer.from_hypercore([])
+        assert "hypercore_data dict must be non-emtpy" in str(excinfo.value)
 
     def test_syslog_server_to_ansible(self):
         assert self.syslog_server.to_ansible() == self.ansible_dict
@@ -131,3 +136,88 @@ class TestSyslogServer:
 
         result = SyslogServer.get_by_host("0.0.0.0", rest_client)
         assert result == self.syslog_server
+
+    def test_is_equivalent(self):
+        ss = SyslogServer(host="1.0.0.10", port=10514, protocol="udp")
+
+        a0 = SyslogServer(host="1.0.0.10", port=10514, protocol="udp")
+        # attributes not configurable via module/GUI need to be ignored
+        a1 = SyslogServer(host="1.0.0.10", port=10514, protocol="udp", uuid="uuid-a1")
+        a2 = SyslogServer(
+            host="1.0.0.10",
+            port=10514,
+            protocol="udp",
+            alert_tag_uuid="alert_tag_uuid-a2",
+        )
+        a3 = SyslogServer(
+            host="1.0.0.10", port=10514, protocol="udp", resend_delay=12345
+        )
+        a4 = SyslogServer(
+            host="1.0.0.10", port=10514, protocol="udp", silent_period=123456
+        )
+        a5 = SyslogServer(
+            host="1.0.0.10", port=10514, protocol="udp", latest_task_tag=TaskTag()
+        )
+        task_tag = dict(
+            createdUUID="latest_task_tag-createdUUID", taskTag="taskTag-112233"
+        )
+        a6 = SyslogServer(
+            host="1.0.0.10", port=10514, protocol="udp", latest_task_tag=task_tag
+        )
+
+        assert ss.is_equivalent(a0)
+        assert ss.is_equivalent(a1)
+        assert ss.is_equivalent(a2)
+        assert ss.is_equivalent(a3)
+        assert ss.is_equivalent(a4)
+        assert ss.is_equivalent(a5)
+        assert ss.is_equivalent(a6)
+
+        b0 = SyslogServer(host="1.0.0.11", port=10514, protocol="udp")
+        b1 = SyslogServer(host="1.0.0.10", port=11514, protocol="udp")
+        b2 = SyslogServer(host="1.0.0.10", port=10514, protocol="tcp")
+
+        assert not ss.is_equivalent(b0)
+        assert not ss.is_equivalent(b1)
+        assert not ss.is_equivalent(b2)
+
+    def test_lt(self):
+        s0 = SyslogServer(host="1.0.0.10", port=514, protocol="udp")
+        # host is sorted as string, so we have strange "09" in IP.
+        s1 = SyslogServer(host="1.0.0.09", port=514, protocol="udp")
+        s2 = SyslogServer(host="1.0.0.10", port=510, protocol="udp")
+        s3 = SyslogServer(host="1.0.0.10", port=514, protocol="tcp")
+        assert not s0 < s1  # pylint: disable=unnecessary-negation
+        assert not s0 < s2  # pylint: disable=unnecessary-negation
+        assert not s0 < s3  # pylint: disable=unnecessary-negation
+
+        assert s1 < s2
+        assert s1 < s3
+
+        assert s2 < s3
+
+    def test_sorted(self):
+        servers = [
+            SyslogServer(host="1.0.0.10", port=514, protocol="udp"),
+            SyslogServer(host="1.0.0.09", port=514, protocol="udp"),
+            SyslogServer(host="1.0.0.10", port=510, protocol="udp"),
+            SyslogServer(host="1.0.0.10", port=514, protocol="tcp"),
+        ]
+
+        servers.sort()
+
+        assert servers[0].host == "1.0.0.09"  # <--
+        assert servers[0].port == 514
+        assert servers[0].protocol == "udp"
+        #
+        assert servers[1].host == "1.0.0.10"
+        assert servers[1].port == 510  # <--
+        assert servers[1].protocol == "udp"
+        #
+        assert servers[2].host == "1.0.0.10"
+        assert servers[2].port == 514
+        assert servers[2].protocol == "tcp"  # <--
+        #
+        assert servers[3].host == "1.0.0.10"
+        assert servers[3].port == 514
+        assert servers[3].protocol == "udp"
