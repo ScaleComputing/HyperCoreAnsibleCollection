@@ -1,0 +1,6 @@
+---
+minor_changes:
+  - Role `cluster_config` invokes multiple cluster configuration modules.
+    If one module fails, the role now continues with other modules to apply
+    as many configuration changes as possible.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/322)

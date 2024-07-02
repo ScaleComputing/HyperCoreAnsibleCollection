@@ -29,7 +29,8 @@
         # certificate: plain_text_from_x509
         config_url: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
         scopes: openid+profile
-      time_server: 10.5.11.5
+      # time_server: 10.5.11.5
+      time_server: 216.239.35.4  # time.google.com
       time_zone: Europe/Ljubljana
       smtp:
         server: mail_a.example.com
@@ -71,7 +72,8 @@
         # certificate: plain_text_from_x509
         config_url: https://login.microsoftonline.com/76d4c62a-a9ca-4dc2-9187-e2cc4d9abe7f/v2.0/.well-known/openid-configuration
         scopes: openid+profile
-      time_server: 10.5.11.7
+      # time_server: 10.5.11.7
+      time_server: 216.239.35.4  # time.google.com
       time_zone: Europe/Zagreb
       smtp:
         server: mail_b.example.com
@@ -92,8 +94,59 @@
           port: 101
           protocol: udp
 
-    # TODO test with invalid inputs:
-    # email_alerts - a single string, not list with length=1
+    # time_server is invalid, but time_zone should still be set
+    # part that is invalid
+    cluster_config_a_error_part_invalid:
+      time_server: 1.1.1.1  # ERROR invalid NTP server
+    # part that is valid and is applied
+    cluster_config_a_error_part_valid:
+      time_zone: Europe/Berlin
+      smtp:
+        server: mail_error_a.example.com
+        port: 25
+        use_ssl: False
+        auth_user: ""
+        auth_password: ""
+        from_address: "ci-test-error-a@example.com"
+      email_alerts:
+        - user_error_a1@test.com
+        - user_error_a2test.com
+        - user_c@test.com
+      syslog_servers:
+        - host: 10.10.10.12
+          port: 44
+          protocol: tcp
+        - host: 10.10.10.100
+          port: 102
+          protocol: tcp
+    cluster_config_a_error_applied: "{{ cluster_config_a_error_expected | combine(cluster_config_a_error_part_invalid) }}"
+    cluster_config_a_error_expected: "{{ cluster_config_a | combine(cluster_config_a_error_part_valid) }}"
+
+    cluster_config_b_error_part_invalid:
+      time_server: 1.1.1.1  # ERROR invalid NTP server
+    # part that is valid and is applied
+    cluster_config_b_error_part_valid:
+      time_zone: Europe/Berlin
+      smtp:
+        server: mail_error_b.example.com
+        port: 26
+        use_ssl: False
+        auth_user: ""
+        auth_password: ""
+        from_address: "ci-test-error-b@example.com"
+      email_alerts:
+        - user_error_b1@test.com
+        - user_error_b2test.com
+        - user_c@test.com
+      syslog_servers:
+        - host: 10.10.10.13
+          port: 45
+          protocol: tcp
+        - host: 10.10.10.100
+          port: 103
+          protocol: tcp
+    cluster_config_b_error_applied: "{{ cluster_config_b_error_expected | combine(cluster_config_b_error_part_invalid) }}"
+    cluster_config_b_error_expected: "{{ cluster_config_b | combine(cluster_config_b_error_part_valid) }}"
 
     # special values, they will set cluster to 'unconfigured' state.
     cluster_config_empty:
@@ -152,6 +205,7 @@
         dbg_suffix: "cluster_config_a"
         cluster_config_applied: "{{ cluster_config_a }}"
         cluster_config_expected: "{{ cluster_config_a }}"
+        cluster_config_role_failure_expected: False
 
     # -----------------------------------------------------------------
     # Apply cluster_config_nochange and test
@@ -230,6 +284,25 @@
       vars:
         cluster_config_partial_update: "{{ {item.key: item.value} }}"
       loop: "{{ cluster_config_a | dict2items }}"
+
+    # ====================================================================================
+    # -----------------------------------------------------------------
+    # Apply configuration with error, test only problematic setting was not applied
+    - name: Apply and test cluster_config_a_error
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_a_error"
+        cluster_config_applied: "{{ cluster_config_a_error_applied }}"
+        cluster_config_expected: "{{ cluster_config_a_error_expected }}"
+        cluster_config_role_failure_expected: True
+
+    - name: Apply and test cluster_config_b_error
+      include_tasks: apply_and_test.yml
+      vars:
+        dbg_suffix: "cluster_config_b_error"
+        cluster_config_applied: "{{ cluster_config_b_error_applied }}"
+        cluster_config_expected: "{{ cluster_config_b_error_expected }}"
+        cluster_config_role_failure_expected: True
 
     # ====================================================================================
     # Revert to configuration from integration_config.yml

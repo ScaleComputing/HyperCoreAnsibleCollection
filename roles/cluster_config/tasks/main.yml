@@ -5,11 +5,25 @@
 # - provide explicit empty value ("" or [] or {}) for given configuration entry
 # - or call corresponding plugin with state=absent
 
+- name: Set fact cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: []
+    cluster_config_role_failed: false
+
+# -------------------------------------------------------------------
 - name: Set cluster name
   scale_computing.hypercore.cluster_name:
     name_new: "{{ cluster_config_configuration.name }}"
+  register: cluster_config_task_status_cluster_name
   when: cluster_config_configuration.name | default(False)
+  ignore_errors: true
 
+- name: Append to cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_cluster_name] }}"
+    cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_cluster_name is failed) }}"
+
+# -------------------------------------------------------------------
 - name: Set registration data
   scale_computing.hypercore.registration:
     company_name: "{{ cluster_config_configuration.registration.company_name }}"
@@ -17,27 +31,51 @@
     phone: "{{ cluster_config_configuration.registration.phone }}"
     email: "{{ cluster_config_configuration.registration.email }}"
     state: present
+  register: cluster_config_task_status_registration
   when: cluster_config_configuration.registration | default(False)
+  ignore_errors: true
 
+- name: Append to cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_registration] }}"
+    cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_registration is failed) }}"
+
+# -------------------------------------------------------------------
 - name: Set DNS servers configuration
   scale_computing.hypercore.dns_config:
     dns_servers: "{{ cluster_config_configuration.dns.server_ips | default(omit) }}"
     state: set
+  register: cluster_config_task_status_dns_config_dns_servers
   when:
     - cluster_config_configuration.dns | default(False)
     - '"server_ips" in cluster_config_configuration.dns'
     - cluster_config_configuration.dns.server_ips is not none
+  ignore_errors: true
 
+- name: Append to cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_dns_config_dns_servers] }}"
+    cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_dns_config_dns_servers is failed) }}"
+
+# -------------------------------------------------------------------
 - name: Set DNS search_domains configuration
   scale_computing.hypercore.dns_config:
     dns_servers: "{{ cluster_config_configuration.dns.server_ips | default(omit) }}"
     search_domains: "{{ cluster_config_configuration.dns.search_domains | default(omit) }}"
     state: set
+  register: cluster_config_task_status_dns_config_search_domains
   when:
     - cluster_config_configuration.dns | default(False)
     - '"search_domains" in cluster_config_configuration.dns'
     - cluster_config_configuration.dns.search_domains is not none
+  ignore_errors: true
 
+- name: Append to cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_dns_config_search_domains] }}"
+    cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_dns_config_search_domains is failed) }}"
+
+# -------------------------------------------------------------------
 - name: Set OIDC configuration
   scale_computing.hypercore.oidc_config:
     client_id: "{{ cluster_config_configuration.oidc.client_id }}"
@@ -45,18 +83,42 @@
     certificate: "{{ cluster_config_configuration.oidc.certificate | default(omit) }}"
     config_url: "{{ cluster_config_configuration.oidc.config_url }}"
     scopes: "{{ cluster_config_configuration.oidc.scopes }}"
+  register: cluster_config_task_status_oidc_config
   when: cluster_config_configuration.oidc | default(False)
+  ignore_errors: true
 
+- name: Append to cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_oidc_config] }}"
+    cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_oidc_config is failed) }}"
+
+# -------------------------------------------------------------------
 - name: Set time server
   scale_computing.hypercore.time_server:
     source: "{{ cluster_config_configuration.time_server }}"
+  register: cluster_config_task_status_time_server
   when: cluster_config_configuration.time_server | default(False)
+  ignore_errors: true
 
+- name: Append to cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_time_server] }}"
+    cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_time_server is failed) }}"
+
+# -------------------------------------------------------------------
 - name: Set time zone
   scale_computing.hypercore.time_zone:
     zone: "{{ cluster_config_configuration.time_zone }}"
+  register: cluster_config_task_status_time_zone
   when: cluster_config_configuration.time_zone | default(False)
+  ignore_errors: true
 
+- name: Append to cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_time_zone] }}"
+    cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_time_zone is failed) }}"
+
+# -------------------------------------------------------------------
 - name: Set SMTP configuration
   scale_computing.hypercore.smtp:
     server: "{{ cluster_config_configuration.smtp.server }}"
@@ -65,8 +127,16 @@
     auth_user: "{{ cluster_config_configuration.smtp.auth_user | default(omit) }}"
     auth_password: "{{ cluster_config_configuration.smtp.auth_password | default(omit) }}"
     from_address: "{{ cluster_config_configuration.smtp.from_address | default(omit) }}"
+  register: cluster_config_task_status_smtp
   when: cluster_config_configuration.smtp | default(False)
+  ignore_errors: true
 
+- name: Append to cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_smtp] }}"
+    cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_smtp is failed) }}"
+
+# -------------------------------------------------------------------
 - name: Reconfigure email alert recipients
   when:
     - '"email_alerts" in cluster_config_configuration'
@@ -95,6 +165,12 @@
       loop_control:
         loop_var: email_address
 
+# - name: Append to cluster_config_task_statuses
+#   ansible.builtin.set_fact:
+#     cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_email_alerts] }}"
+#     cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_email_alerts is failed) }}"
+
+# -------------------------------------------------------------------
 - name: Reconfigure syslog servers
   when:
     - '"syslog_servers" in cluster_config_configuration'
@@ -124,3 +200,24 @@
       loop: "{{ cluster_config_configuration.syslog_servers or [] }}"
       loop_control:
         loop_var: syslog_server
+
+# - name: Append to cluster_config_task_statuses
+#   ansible.builtin.set_fact:
+#     cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_syslog_servers] }}"
+#     cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_syslog_servers is failed) }}"
+
+# -------------------------------------------------------------------
+# - name: Show cluster_config_task_statuses 1
+#   ansible.builtin.debug:
+#     msg: |
+#       cluster_config_task_statuses: {{ cluster_config_task_statuses }}
+
+# - name: Show cluster_config_task_statuses 2
+#   ansible.builtin.debug:
+#     msg: |
+#       failed: {{ cluster_config_task_statuses | map(attribute='failed', default="likely-task-skipped") }}
+
+- name: Fail role if any task failed
+  ansible.builtin.fail:
+    msg: Some tasks failed, see output above for details - {{ cluster_config_task_statuses | map(attribute='failed', default="likely-task-skipped") }}
+  when: cluster_config_role_failed
