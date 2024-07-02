@@ -15,14 +15,6 @@
     new_host: 1.2.3.4
 
   block:
-    - name: Get starting hosts
-      scale_computing.hypercore.syslog_server_info:
-      register: info
-    - ansible.builtin.set_fact:
-        starting_servers: "{{ info.records }}"
-
-    # -----------------------------------------------------------
-
     - name: Get current syslog_server
       scale_computing.hypercore.api:
         action: get
@@ -72,6 +64,7 @@
           - result.diff.before == result.diff.after
     - ansible.builtin.assert: *test0
 
+    # -----------------------------------------------------------
     - name: Update Syslog server
       scale_computing.hypercore.syslog_server: '{{ create_syslog_server | combine({"state": "present"}) }}'
       register: result
@@ -103,6 +96,7 @@
           - result.diff.before == result.diff.after
     - ansible.builtin.assert: *test1
 
+    # -----------------------------------------------------------
     - name: Update Syslog server - HOST ONLY
       scale_computing.hypercore.syslog_server:
         host: "{{ create_syslog_server.host }}"
@@ -140,6 +134,7 @@
           - result.diff.before == result.diff.after
     - ansible.builtin.assert: *test2
 
+    # -----------------------------------------------------------
     - name: Delete Syslog server
       scale_computing.hypercore.syslog_server:
         host: "{{ new_host }}"
