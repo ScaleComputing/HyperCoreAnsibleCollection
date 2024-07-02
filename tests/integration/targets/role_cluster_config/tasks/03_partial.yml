@@ -1,0 +1,12 @@
+---
+# -----------------------------------------------------------------
+# Partially apply cluster config A and test
+# Start with empty cluster_config_partial, then gradually change it to cluster_config_a, one attribute at a time.
+# Initial state is cluster_config_b.
+- ansible.builtin.set_fact:
+    cluster_config_expected: "{{ cluster_config_b }}"
+
+- ansible.builtin.include_tasks: partial_update.yml
+  vars:
+    cluster_config_partial_update: "{{ {item.key: item.value} }}"
+  loop: "{{ cluster_config_a | dict2items }}"
