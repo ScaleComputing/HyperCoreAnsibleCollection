@@ -18,6 +18,7 @@ author:
 short_description: List Syslog servers on HyperCore API
 description:
   - Use this module to list information about the Syslog servers configuration on HyperCore API.
+  - The output is sorted, in ascending order, first by host, then port, then protocol.
 version_added: 1.2.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -98,10 +99,10 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.syslog_server import SyslogServer
 from ..module_utils.typed_classes import TypedSyslogServerToAnsible
-from typing import List, Optional
+from typing import List
 
 
-def run(rest_client: RestClient) -> List[Optional[TypedSyslogServerToAnsible]]:
+def run(rest_client: RestClient) -> List[TypedSyslogServerToAnsible]:
     return SyslogServer.get_state(rest_client)
 
 

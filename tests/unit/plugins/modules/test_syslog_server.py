@@ -65,18 +65,20 @@ class TestModifySyslogServer:
             )
         )
 
+        expected_obj = dict(
+            uuid="test",
+            alert_tag_uuid="0",
+            host="0.0.0.0",
+            port=42,
+            protocol=HYPERCORE_PROTOCOL_UDP,
+            resend_delay=123,
+            silent_period=123,
+            latest_task_tag={},
+        )
         expected_return = (
             True,
-            dict(
-                uuid="test",
-                alert_tag_uuid="0",
-                host="0.0.0.0",
-                port=42,
-                protocol=HYPERCORE_PROTOCOL_UDP,
-                resend_delay=123,
-                silent_period=123,
-                latest_task_tag={},
-            ),
+            expected_obj,
+            [expected_obj],
         )
 
         task_tag = {
@@ -89,6 +91,10 @@ class TestModifySyslogServer:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_by_host"
         ).return_value = None
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_all"
+        ).return_value = [SyslogServer(**expected_return[1])]
+
         rest_client.create_record.return_value = task_tag
 
         called_with_dict = dict(
@@ -97,7 +103,9 @@ class TestModifySyslogServer:
             check_mode=False,
         )
 
-        changed, record, diff = syslog_server.create_syslog_server(module, rest_client)
+        changed, record, records, diff = syslog_server.create_syslog_server(
+            module, rest_client
+        )
         SyslogServer.create = mock.create_autospec(SyslogServer.create)
         syslog_server.create_syslog_server(module, rest_client)
 
@@ -105,6 +113,7 @@ class TestModifySyslogServer:
 
         assert changed == expected_return[0]
         assert record == expected_return[1]  # after
+        assert records == expected_return[2]
 
     @pytest.mark.parametrize(
         ("host", "host_new", "port", "protocol", "expected"),
@@ -313,6 +322,10 @@ class TestModifySyslogServer:
             mocker.patch(
                 "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_by_host"
             ).return_value = rc_syslog_server
+            mocker.patch(
+                "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_all"
+            ).return_value = []
+            expected_records = []
         else:
             rc_expected_syslog_dict = expected_syslog_dict
             if expected_protocol == HYPERCORE_PROTOCOL_UDP:
@@ -322,6 +335,11 @@ class TestModifySyslogServer:
             mocker.patch(
                 "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_by_host"
             ).return_value = SyslogServer(**rc_expected_syslog_dict)
+            mocker.patch(
+                "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_all"
+            ).return_value = [SyslogServer(**rc_expected_syslog_dict)]
+            expected_records = [expected_syslog_dict]
+
         rest_client.update_record.return_value = task_tag
 
         called_with_dict = dict(
@@ -333,7 +351,7 @@ class TestModifySyslogServer:
         )
 
         SyslogServer.update = mock.create_autospec(SyslogServer.update)
-        changed, record, diff = syslog_server.update_syslog_server(
+        changed, record, records, diff = syslog_server.update_syslog_server(
             rc_syslog_server, module, rest_client
         )
         if not rc_syslog_server:
@@ -353,15 +371,17 @@ class TestModifySyslogServer:
             )
 
         print("record:", record)
+        print("records:", records)
         print("expect:", expected_syslog_dict)
 
         assert changed == expected_change
         assert record == expected_syslog_dict
+        assert records == expected_records
 
     @pytest.mark.parametrize(
         ("rc_syslog_server", "host", "expected_return"),
         [
-            (None, "0.0.0.0", (False, {})),
+            (None, "0.0.0.0", (False, {}, [])),
             (
                 SyslogServer(
                     uuid="test",
@@ -374,7 +394,7 @@ class TestModifySyslogServer:
                     latest_task_tag={},
                 ),
                 "0.0.0.0",
-                (True, {}),
+                (True, {}, []),
             ),
         ],
     )
@@ -401,6 +421,10 @@ class TestModifySyslogServer:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_by_host"
         ).return_value = rc_syslog_server
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.syslog_server.SyslogServer.get_all"
+        ).return_value = []  # state after delete
+
         rest_client.update_record.return_value = task_tag
 
         called_with_dict = dict(
@@ -408,7 +432,7 @@ class TestModifySyslogServer:
             check_mode=False,
         )
 
-        changed, record, diff = syslog_server.delete_syslog_server(
+        changed, record, records, diff = syslog_server.delete_syslog_server(
             rc_syslog_server, module, rest_client
         )
 
@@ -423,6 +447,7 @@ class TestModifySyslogServer:
 
         assert changed == expected_return[0]
         assert record == expected_return[1]
+        assert records == expected_return[2]
 
 
 class TestMain:
@@ -433,16 +458,13 @@ class TestMain:
             password="admin",
         )
 
-    def test_fail(self, run_main):
-        success, result = run_main(syslog_server)
+    def test_fail(self, run_main_with_record_and_records):
+        success, result = run_main_with_record_and_records(syslog_server)
 
         print(result["msg"])
 
         assert success is False
-        assert (
-            "missing required arguments: state, host" in result["msg"]
-            or "missing required arguments: host, state" in result["msg"]
-        )
+        assert "missing required arguments: state" in result["msg"]
 
     @pytest.mark.parametrize(
         ("host", "host_new", "port", "protocol", "state"),
@@ -455,7 +477,7 @@ class TestMain:
     )
     def test_params(
         self,
-        run_main,
+        run_main_with_record_and_records,
         host,
         host_new,
         port,
@@ -477,7 +499,7 @@ class TestMain:
         if not protocol:
             params["protocol"] = "udp"
 
-        success, result = run_main(syslog_server, params)
+        success, result = run_main_with_record_and_records(syslog_server, params)
 
         print(result)
 
