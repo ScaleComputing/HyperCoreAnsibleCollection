@@ -1,0 +1,18 @@
+---
+# -----------------------------------------------------------------
+# Apply configuration with error, test only problematic setting was not applied
+- name: Apply and test cluster_config_a_error
+  include_tasks: apply_and_test.yml
+  vars:
+    dbg_suffix: "cluster_config_a_error"
+    cluster_config_applied: "{{ cluster_config_a_error_applied }}"
+    cluster_config_expected: "{{ cluster_config_a_error_expected }}"
+    cluster_config_role_failure_expected: true
+
+- name: Apply and test cluster_config_b_error
+  include_tasks: apply_and_test.yml
+  vars:
+    dbg_suffix: "cluster_config_b_error"
+    cluster_config_applied: "{{ cluster_config_b_error_applied }}"
+    cluster_config_expected: "{{ cluster_config_b_error_expected }}"
+    cluster_config_role_failure_expected: true

@@ -13,3 +13,4 @@
     dbg_suffix: "cluster_config_partial_update={{ cluster_config_partial_update }}"
     cluster_config_applied: "{{ cluster_config_partial_update }}"
     # cluster_config_expected: "{{ cluster_config_expected }}"  # is a global var/fact
+    cluster_config_role_failure_expected: false

@@ -1,0 +1,28 @@
+---
+# -----------------------------------------------------------------
+# Apply cluster config B and test
+- name: Apply and test cluster_config_b
+  include_tasks: apply_and_test.yml
+  vars:
+    dbg_suffix: "cluster_config_b"
+    cluster_config_applied: "{{ cluster_config_b }}"
+    cluster_config_expected: "{{ cluster_config_b }}"
+    cluster_config_role_failure_expected: false
+
+# -----------------------------------------------------------------
+# Apply cluster_config_nochange and test
+- name: Apply and test cluster_config_nochange_1 b
+  include_tasks: apply_and_test.yml
+  vars:
+    dbg_suffix: "cluster_config_nochange_1 - b"
+    cluster_config_applied: "{{ cluster_config_nochange_1 }}"
+    cluster_config_expected: "{{ cluster_config_b }}"
+    cluster_config_role_failure_expected: false
+
+- name: Apply and test cluster_config_nochange_2 b
+  include_tasks: apply_and_test.yml
+  vars:
+    dbg_suffix: "cluster_config_nochange_2 - b"
+    cluster_config_applied: "{{ cluster_config_nochange_2 }}"
+    cluster_config_expected: "{{ cluster_config_b }}"
+    cluster_config_role_failure_expected: false
