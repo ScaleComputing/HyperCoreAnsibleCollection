@@ -4,6 +4,10 @@ Role cluster_config can be used to:
 - fully configure a new HyperCore server
 - partially reconfigure an existing HyperCore server
 
+The role will continue with cluster configuration tasks if one of tasks fail,
+to apply as many changes as possible.
+Whole role will still exit with error.
+
 ## Requirements
 
 - NA

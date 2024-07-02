@@ -1,11 +1,17 @@
 ---
-# input: cluster_config_applied, cluster_config_expected
+# input: cluster_config_applied, cluster_config_expected, cluster_config_role_failure_expected
 
 - name: Apply cluster_config - {{ dbg_suffix }}
-  include_role:
+  ansible.builtin.import_role:
     name: scale_computing.hypercore.cluster_config
   vars:
     scale_computing_hypercore_cluster_config: "{{ cluster_config_applied }}"
+  ignore_errors: "{{ cluster_config_role_failure_expected }}"
+
+- name: Check cluster_config role succeeded/failed
+  ansible.builtin.assert:
+    that:
+      - cluster_config_role_failed == cluster_config_role_failure_expected
 
 # check config is applied, for each setting
 - name: Retrieve cluster_info - {{ dbg_suffix }}
