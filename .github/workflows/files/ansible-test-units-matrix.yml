@@ -1,7 +1,4 @@
 # version_matrix for "ansible-test units"
-- ansible: "stable-2.9"
-  python: "3.8"
-
 - ansible: "stable-2.10"
   python: "3.8"
 - ansible: "stable-2.10"
