@@ -135,6 +135,46 @@
     - ansible.builtin.assert: *test2
 
     # -----------------------------------------------------------
+    - name: Update Syslog server - by host_new, change port
+      scale_computing.hypercore.syslog_server:
+        host: "{{ create_syslog_server.host }}"
+        host_new: "{{ new_host }}"
+        port: 10514
+        state: present
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - result.diff.before != result.diff.after
+    - ansible.builtin.assert: &test_2b
+        that:
+          - result.record != {}
+          - result.record.keys() | sort ==
+            [ 'alert_tag_uuid', 'host', 'latest_task_tag', 'port',
+            'protocol', 'resend_delay', 'silent_period', 'uuid' ]
+          - info.records|length == 1|int
+          - info.records[0].host == "{{ new_host }}"
+          - info.records[0].port == 10514
+          - info.records[0].protocol == "{{ tcp_protocol }}"
+
+    - name: Update Syslog server - by host_new, change port - idempotence
+      scale_computing.hypercore.syslog_server:
+        host: "{{ create_syslog_server.host }}"
+        host_new: "{{ new_host }}"
+        port: 10514
+        state: present
+      register: result
+    - scale_computing.hypercore.syslog_server_info:
+      register: info
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+          - result.diff.before == result.diff.after
+    - ansible.builtin.assert: *test_2b
+
+    # -----------------------------------------------------------
     - name: Delete Syslog server
       scale_computing.hypercore.syslog_server:
         host: "{{ new_host }}"
