@@ -262,6 +262,8 @@ def update_syslog_server(
                 module.params["host_new"], rest_client
             )  # type: ignore
     if not old_syserver_tmp:
+        # Syslog server not found by old or by new host, do nothing.
+        # Maybe module should fail with error instead.
         records_after = SyslogServer.get_state(rest_client)
         return False, {}, records_after, dict(before={}, after={})
 
@@ -277,7 +279,7 @@ def update_syslog_server(
     # Otherwise, update with new parameters
     payload["protocol"] = get_protocol(payload["protocol"])
 
-    old_syserver.update(
+    old_syserver_tmp.update(
         rest_client=rest_client,
         payload=payload,
         check_mode=module.check_mode,
