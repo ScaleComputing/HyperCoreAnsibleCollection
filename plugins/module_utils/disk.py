@@ -83,11 +83,11 @@ class Disk(PayloadMapper):
             slot=self.slot,
             name=self.name,
             disableSnapshotting=self.disable_snapshotting,
-            tieringPriorityFactor=TIERING_PRIORITY_MAPPING_TO_HYPERCORE[
-                self.tiering_priority_factor
-            ]
-            if self.tiering_priority_factor is not None
-            else None,
+            tieringPriorityFactor=(
+                TIERING_PRIORITY_MAPPING_TO_HYPERCORE[self.tiering_priority_factor]
+                if self.tiering_priority_factor is not None
+                else None
+            ),
             mountPoints=self.mount_points,
             readOnly=self.read_only,
         )
@@ -122,12 +122,14 @@ class Disk(PayloadMapper):
                 name=hypercore_data["name"],
                 disable_snapshotting=hypercore_data["disableSnapshotting"],
                 # Hypercore sometimes returns values outside the mapping table, so we set it to default.
-                tiering_priority_factor=TIERING_PRIORITY_MAPPING_FROM_HYPERCORE[
-                    hypercore_data["tieringPriorityFactor"]
-                ]
-                if hypercore_data["tieringPriorityFactor"]
-                in TIERING_PRIORITY_MAPPING_FROM_HYPERCORE
-                else TIERING_PRIORITY_DEFAULT,
+                tiering_priority_factor=(
+                    TIERING_PRIORITY_MAPPING_FROM_HYPERCORE[
+                        hypercore_data["tieringPriorityFactor"]
+                    ]
+                    if hypercore_data["tieringPriorityFactor"]
+                    in TIERING_PRIORITY_MAPPING_FROM_HYPERCORE
+                    else TIERING_PRIORITY_DEFAULT
+                ),
                 mount_points=hypercore_data["mountPoints"],
                 read_only=hypercore_data["readOnly"],
             )

@@ -180,9 +180,7 @@ def build_entry(
     return module_entry, change_needed
 
 
-def modify_smtp_config(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[
+def modify_smtp_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     bool,
     Union[TypedSmtpToAnsible, Dict[Any, Any]],
     Dict[str, Union[TypedSmtpToAnsible, Dict[Any, Any]]],
@@ -286,9 +284,7 @@ def modify_smtp_config(
     return change, record, diff
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     bool,
     Union[TypedSmtpToAnsible, Dict[Any, Any]],
     Dict[str, Union[TypedSmtpToAnsible, Dict[Any, Any]]],

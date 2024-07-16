@@ -31,10 +31,10 @@ class Replication(PayloadMapper):
             query={"uuid": replication_dict["sourceDomainUUID"]},
             rest_client=rest_client,
         )[0]
-        replication_dict[
-            "remote_cluster"
-        ] = RemoteCluster.get_cluster_name_from_replication_connection_uuid(
-            rest_client, replication_dict["connectionUUID"]
+        replication_dict["remote_cluster"] = (
+            RemoteCluster.get_cluster_name_from_replication_connection_uuid(
+                rest_client, replication_dict["connectionUUID"]
+            )
         )
         replication_dict["vm_name"] = virtual_machine.name
         return replication_dict

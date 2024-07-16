@@ -349,21 +349,25 @@ class VM(PayloadMapper):
 
         node_affinity = dict(
             strict_affinity=vm_dict["affinityStrategy"]["strictAffinity"],
-            preferred_node=preferred_node.to_ansible()
-            if preferred_node
-            else dict(
-                node_uuid="",
-                backplane_ip="",
-                lan_ip="",
-                peer_id=None,
+            preferred_node=(
+                preferred_node.to_ansible()
+                if preferred_node
+                else dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                )
             ),  # for vm_node_affinity diff check
-            backup_node=backup_node.to_ansible()
-            if backup_node
-            else dict(
-                node_uuid="",
-                backplane_ip="",
-                lan_ip="",
-                peer_id=None,
+            backup_node=(
+                backup_node.to_ansible()
+                if backup_node
+                else dict(
+                    node_uuid="",
+                    backplane_ip="",
+                    lan_ip="",
+                    peer_id=None,
+                )
             ),  # for vm_node_affinity diff check,
         )
 
@@ -388,9 +392,9 @@ class VM(PayloadMapper):
             attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", ""),
             operating_system=vm_dict["operatingSystem"],
             node_affinity=node_affinity,
-            snapshot_schedule=snapshot_schedule.name
-            if snapshot_schedule
-            else "",  # "" for vm_params diff check
+            snapshot_schedule=(
+                snapshot_schedule.name if snapshot_schedule else ""
+            ),  # "" for vm_params diff check
             snapshot_uuids=vm_dict["snapUUIDs"],
             machine_type=machine_type,
             replication_source_vm_uuid=vm_dict["sourceVirDomainUUID"],
@@ -403,20 +407,24 @@ class VM(PayloadMapper):
             or ansible_dict["cloud_init"]["meta_data"]
         ):
             return dict(
-                userData=str(
-                    base64.b64encode(
-                        bytes(str(ansible_dict["cloud_init"]["user_data"]), "utf-8")
-                    )
-                )[2:-1]
-                if ansible_dict["cloud_init"]["user_data"] is not None
-                else "",
-                metaData=str(
-                    base64.b64encode(
-                        bytes(str(ansible_dict["cloud_init"]["meta_data"]), "utf-8")
-                    )
-                )[2:-1]
-                if ansible_dict["cloud_init"]["meta_data"] is not None
-                else "",
+                userData=(
+                    str(
+                        base64.b64encode(
+                            bytes(str(ansible_dict["cloud_init"]["user_data"]), "utf-8")
+                        )
+                    )[2:-1]
+                    if ansible_dict["cloud_init"]["user_data"] is not None
+                    else ""
+                ),
+                metaData=(
+                    str(
+                        base64.b64encode(
+                            bytes(str(ansible_dict["cloud_init"]["meta_data"]), "utf-8")
+                        )
+                    )[2:-1]
+                    if ansible_dict["cloud_init"]["meta_data"] is not None
+                    else ""
+                ),
             )
         return None
 
@@ -697,9 +705,11 @@ class VM(PayloadMapper):
     def delete_unused_nics_to_hypercore_vm(self, module, rest_client, nic_key):
         changed = False
         ansible_nic_uuid_list = [
-            nic["vlan_new"]
-            if ("vlan_new" in nic.keys() and nic["vlan_new"])
-            else nic["vlan"]
+            (
+                nic["vlan_new"]
+                if ("vlan_new" in nic.keys() and nic["vlan_new"])
+                else nic["vlan"]
+            )
             for nic in module.params[nic_key] or []
         ]
         for nic in self.nic_list:
@@ -1229,9 +1239,11 @@ class ManageVMParams(VM):
             return after
 
         query = {
-            "name": module.params["vm_name_new"]
-            if module.params["vm_name_new"]
-            else module.params["vm_name"]
+            "name": (
+                module.params["vm_name_new"]
+                if module.params["vm_name_new"]
+                else module.params["vm_name"]
+            )
         }
         vm = VM.get_or_fail(query, rest_client)[0]
         if module.params["operating_system"]:
