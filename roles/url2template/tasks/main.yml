@@ -25,9 +25,9 @@
         source: /tmp/{{ url2template_image_filename }}
         state: present
 
-  # TODO - could use a handler to force update virtual disk attached to template only if there is a new download or upload?
-  # ANS - no way to know if downloaded image is different from existing image on HyperCore;
-  # for this HC3 would need to return file content hash.
+    # TODO - could use a handler to force update virtual disk attached to template only if there is a new download or upload?
+    # ANS - no way to know if downloaded image is different from existing image on HyperCore;
+    # for this HC3 would need to return file content hash.
 
     - name: Compute template VM disks - BIOS type
       when: url2template_machine_type in ["BIOS"]
@@ -51,7 +51,7 @@
           - template
           - serial
         memory: "{{ '1 GB' | human_to_bytes }}"
-        vcpu: 0  # makes template vm unbootable - must change cpu on cloned vm
+        vcpu: 0 # makes template vm unbootable - must change cpu on cloned vm
         power_state: stop
         disks: "{{ url2template_vm_disks }}"
         nics:

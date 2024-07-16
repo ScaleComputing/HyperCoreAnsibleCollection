@@ -1,6 +1,6 @@
 ---
 - name: Clone template VM {{ " ".join([template2vm_source_vm_name, "to", template2vm_vm_name]) }}
-#  throttle: 1
+  # throttle: 1
   scale_computing.hypercore.vm_clone:
     vm_name: "{{ template2vm_vm_name }}"
     source_vm_name: "{{ template2vm_source_vm_name }}"

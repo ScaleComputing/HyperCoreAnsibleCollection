@@ -6,7 +6,7 @@
   vars:
     # This variable is used to filter and delete snapshots.
     # All snapshots with 'use_label' will be DELETED.
-    use_label: 'TEST'
+    use_label: TEST
 
   tasks:
   # ------------------------------------------------------

@@ -1,3 +1,4 @@
+---
 - name: Delete "{{ source_vm_name }}"
   scale_computing.hypercore.vm:
     vm_name: "{{ source_vm_name }}"
@@ -17,7 +18,7 @@
     - name: Create new VM "{{ source_vm_name }}"
       scale_computing.hypercore.vm:
         vm_name: "{{ source_vm_name }}"
-        description: "demo VM for testing upgrade on VM clone"
+        description: demo VM for testing upgrade on VM clone
         tags:
           - demo
           - ansible_enable
@@ -40,13 +41,13 @@
           - type: ide_cdrom
             iso_name: "{{ iso_filename }}"
         state: present
-        operating_system: os_other  # os_other or os_windows_server_2012
+        operating_system: os_other # os_other or os_windows_server_2012
         cloud_init:
           user_data: "{{ lookup('template', 'cloud-init-source-vm.yml.j2') }}"
 
     - name: Confirm Ubuntu ISO image autoinstall
       ansible.builtin.pause:
-        prompt: "Please confirm Ubuntu ISO image autoinstall - answer 'yes' in VM console. After press any key to continue"
+        prompt: Please confirm Ubuntu ISO image autoinstall - answer 'yes' in VM console. After press any key to continue
 
     # poweroff in cloud-init is used to signal installation is done
     - name: Wait until VM finishes autoinstall

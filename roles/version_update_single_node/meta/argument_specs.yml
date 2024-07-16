@@ -4,10 +4,7 @@ argument_specs:
     short_description: Update single-node systems
     description:
       - Role version_update_single_node can be use to to update a single-node HyperCore system to a desired HyperCore version.
-      - Role performs following steps during version update -
-          shutdown all running VMs,
-          upgrade cluster,
-          start back VMs that were running before upgrade.
+      - Role performs following steps during version update - shutdown all running VMs, upgrade cluster, start back VMs that were running before upgrade.
     options:
       version_update_single_node_desired_version: &version_update_single_node_desired_version
         description:
@@ -42,8 +39,7 @@ argument_specs:
     short_description: Shutdown running VMs before upgrade
     description:
       - Taskfile shutdown_vms is used to shutdown running VMs.
-      - Input is a list of VMs, as returned by M(scale_computing.hypercore.vm_info) module.
-        The VMs listed as `running` in the list are then shutdown.
+      - Input is a list of VMs, as returned by M(scale_computing.hypercore.vm_info) module. The VMs listed as `running` in the list are then shutdown.
     options:
       version_update_single_node_shutdown_wait_time: *version_update_single_node_shutdown_wait_time
       version_update_single_node_shutdown_vms: &version_update_single_node_shutdown_vms
@@ -79,8 +75,7 @@ argument_specs:
     short_description: Start VMs that were running before upgrade
     description:
       - Taskfile restart_vms is used start VMs that were running before upgrade.
-      - Input is a list of VMs, as returned by M(scale_computing.hypercore.vm_info) module.
-        The VMs listed as `running` in the list are then started.
+      - Input is a list of VMs, as returned by M(scale_computing.hypercore.vm_info) module. The VMs listed as `running` in the list are then started.
     options:
       version_update_single_node_restart_vms: &version_update_single_node_restart_vms
         description:

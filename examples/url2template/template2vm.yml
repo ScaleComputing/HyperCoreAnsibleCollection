@@ -1,5 +1,4 @@
 ---
-
 # Run as
 # ansible-playbook -i localhost, -i examples/url2template/hypercore.yml examples/url2template/template2vm.yml -v
 
@@ -19,7 +18,7 @@
     # do we have ens1 or enp1s0 or something else
     vm_network_iface: ens3
     # DHCP IP address from DHCP
-    vm_network_mode: "dhcp"
+    vm_network_mode: dhcp
     # vm_network_mode: "static"
     # Static IP address
     # vm_network_ip_address: 172.31.6.20

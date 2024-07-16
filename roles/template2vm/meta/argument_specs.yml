@@ -100,8 +100,7 @@ argument_specs:
     short_description: Wait until VM is booted
     description:
       - Wait until VM is booted - e.g. ssh connection can be made.
-      - As new VM(s) were just created on HyperCore, an inventory refresh is made
-        before check if VMs are reachable via ssh.
+      - As new VM(s) were just created on HyperCore, an inventory refresh is made before check if VMs are reachable via ssh.
       - Inventory refresh is needed before each check, to ensure we get DHCP assigned VM IP address.
     options:
       template2vm_wait_vm_boot_tasks_dummy_param:
