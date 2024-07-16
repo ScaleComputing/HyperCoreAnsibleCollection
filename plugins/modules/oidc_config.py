@@ -117,7 +117,7 @@ def ensure_present(
         except UnexpectedAPIResponse as ex:
             if ex.response_status in [500, 502]:
                 module.warn(
-                    f"API misbehaving during reconfiguration, retry {ii+1}/{max_retries}"
+                    f"API misbehaving during reconfiguration, retry {ii + 1}/{max_retries}"
                 )
                 sleep(1)
                 continue
