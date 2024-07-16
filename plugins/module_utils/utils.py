@@ -69,7 +69,6 @@ def transform_query(raw_query, query_map):
 
 
 class PayloadMapper:
-
     """
     Represent abstract class from which each 'endpoint class' will inherit from.
     Every class that will represent module object will (most likely) have to implement those methods.

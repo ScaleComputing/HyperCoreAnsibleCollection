@@ -325,9 +325,7 @@ def delete_syslog_server(
     )  # changed, records, diff
 
 
-def set_syslog_servers(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[
+def set_syslog_servers(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     bool,
     Union[TypedSyslogServerToAnsible, Dict[None, None]],
     List[TypedSyslogServerToAnsible],
@@ -380,9 +378,7 @@ def set_syslog_servers(
     )
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     bool,
     Union[TypedSyslogServerToAnsible, Dict[None, None]],
     List[TypedSyslogServerToAnsible],

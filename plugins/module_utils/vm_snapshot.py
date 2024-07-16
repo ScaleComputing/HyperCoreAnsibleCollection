@@ -154,13 +154,13 @@ class VMSnapshot(PayloadMapper):
         )
         # Timestamps can't be set to None in the body.
         if self.local_retain_until_timestamp:
-            hypercore_dict[
-                "localRetainUntilTimestamp"
-            ] = self.local_retain_until_timestamp
+            hypercore_dict["localRetainUntilTimestamp"] = (
+                self.local_retain_until_timestamp
+            )
         if self.remote_retain_until_timestamp:
-            hypercore_dict[
-                "remoteRetainUntilTimestamp"
-            ] = self.remote_retain_until_timestamp
+            hypercore_dict["remoteRetainUntilTimestamp"] = (
+                self.remote_retain_until_timestamp
+            )
         return hypercore_dict
 
     def to_ansible(self) -> TypedVMSnapshotToAnsible:

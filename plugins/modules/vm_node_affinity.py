@@ -228,16 +228,16 @@ def run(module, rest_client):
     if module.check_mode:
         vm_after.node_affinity = dict(
             strict_affinity=strict_affinity,
-            preferred_node=Node.get_node(
-                {"uuid": preferred_node_uuid}, rest_client
-            ).to_ansible()
-            if preferred_node_uuid != ""
-            else None,
-            backup_node=Node.get_node(
-                {"uuid": backup_node_uuid}, rest_client
-            ).to_ansible()
-            if backup_node_uuid != ""
-            else None,
+            preferred_node=(
+                Node.get_node({"uuid": preferred_node_uuid}, rest_client).to_ansible()
+                if preferred_node_uuid != ""
+                else None
+            ),
+            backup_node=(
+                Node.get_node({"uuid": backup_node_uuid}, rest_client).to_ansible()
+                if backup_node_uuid != ""
+                else None
+            ),
         )
     msg = "Node affinity successfully updated."
     return (
