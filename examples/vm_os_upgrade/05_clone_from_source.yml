@@ -1,3 +1,4 @@
+---
 - name: Create snapshot for source VM
   scale_computing.hypercore.vm_snapshot:
     state: present

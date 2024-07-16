@@ -7,7 +7,7 @@
     # Format: 'YYYY-MM-DD hh:mm:ss'
     # All snapshots older than this date will be deleted.
     # use_date timezone should match the Scale cluster timezone
-    use_date: '1999-05-03 12:52:00'
+    use_date: "1999-05-03 12:52:00"
 
   tasks:
   # ------------------------------------------------------

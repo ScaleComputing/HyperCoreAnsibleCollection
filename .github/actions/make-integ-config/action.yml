@@ -1,29 +1,29 @@
 ---
-name: 'Create ansible-test integration_config.yml'
-description: 'Create ansible-test integration_config.yml'
+name: Create ansible-test integration_config.yml
+description: Create ansible-test integration_config.yml
 inputs:
-  sc_host:  # id of input
-    description: 'SC_HOST environ variable'
+  sc_host: # id of input
+    description: SC_HOST environ variable
     required: true
     # default: 'World'
   # Node with IP .50 is our physical node.
   sc_password_50:
-    description: 'sc_password variable to access physical nodes'
+    description: sc_password variable to access physical nodes
     required: true
   smb_password:
-    description: 'smb_password variable'
+    description: smb_password variable
     required: true
   working_directory:
-    description: 'Path to working directory'
+    description: Path to working directory
     required: true
   oidc_client_secret:
-    description: 'oidc_client_secret'
+    description: oidc_client_secret
     required: true
   oidc_users_0_password:
-    description: 'oidc_users_0_password'
+    description: oidc_users_0_password
     required: true
 runs:
-  using: "composite"
+  using: composite
   steps:
     - run: echo Creating integration-config.yml for sc_host=${{ inputs.sc_host }}.
       shell: bash

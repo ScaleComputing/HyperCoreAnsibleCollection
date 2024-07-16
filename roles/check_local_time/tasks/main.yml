@@ -7,8 +7,8 @@
 
 - name: Assert that local time is in time interval
   ansible.builtin.assert:
-    fail_msg: "Local time for time zone {{ check_local_time_time_zone }} is not in required time interval {{ check_local_time_time_interval }}"
-    success_msg: "Local time for time zone {{ check_local_time_time_zone }} is in required time interval {{ check_local_time_time_interval }}"
+    fail_msg: Local time for time zone {{ check_local_time_time_zone }} is not in required time interval {{ check_local_time_time_interval }}
+    success_msg: Local time for time zone {{ check_local_time_time_zone }} is in required time interval {{ check_local_time_time_interval }}
     that:
       - check_local_time_output.stdout_lines[0] == "True"
   register: check_local_time_result
