@@ -20,8 +20,8 @@ Minimal local test of the new image:
 
 ```
 # git code is at path .../ansible_collections/scale_computing/hypercore
-docker run --rm -it -w /code/ansible_collections/scale_computing/hypercore -v $PWD/../../..:/code quay.io/justinc1_github/scale_ci_integ:9-dev0 bash
+docker run --rm -it -w /code/ansible_collections/scale_computing/hypercore -v $PWD/../../..:/code quay.io/justinc1_github/scale_ci_integ:10-dev0 bash
 git config --global --add safe.directory $PWD
-ansible-test units --local --python 3.10
-ansible-test sanity --local --python 3.10
+ansible-test units --local --python 3.12
+ansible-test sanity --local --python 3.12
 ```

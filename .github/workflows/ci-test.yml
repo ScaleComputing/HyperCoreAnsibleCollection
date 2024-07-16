@@ -10,7 +10,7 @@ jobs:
   mypy:
     name: Type checks (mypy)
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:9
+    container: quay.io/justinc1_github/scale_ci_integ:10
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -27,7 +27,7 @@ jobs:
 
   docs:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:9
+    container: quay.io/justinc1_github/scale_ci_integ:10
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -36,7 +36,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ${{ env.WORKDIR }}
-      - run: apt install -y git make rsync
       - run: make docs
         env:
           ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
@@ -48,7 +47,7 @@ jobs:
 
   sanity-test:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:9
+    container: quay.io/justinc1_github/scale_ci_integ:10
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -61,7 +60,7 @@ jobs:
         # TODO reuse Makefile
       - run: black -t py38 --check --diff --color plugins tests/unit
       - run: flake8 --exclude tests/output/
-      - run: ansible-test sanity --local --python 3.10
+      - run: ansible-test sanity --local --python 3.12
       # We need to install collections used in examples,
       # ansible-lint knows those files are playbooks.
       - run: ansible-galaxy collection install community.crypto
@@ -69,7 +68,7 @@ jobs:
 
   units-test:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:9
+    container: quay.io/justinc1_github/scale_ci_integ:10
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -80,6 +79,6 @@ jobs:
           path: ${{ env.WORKDIR }}
         # Same as "make units"
         # TODO reuse Makefile
-      - run: ansible-test units --local --python 3.10 --coverage
+      - run: ansible-test units --local --python 3.12 --coverage
       - run: ansible-test coverage html --requirements
       - run: ansible-test coverage report --omit 'tests/*' --show-missing

@@ -25,7 +25,7 @@ env:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
-    container: quay.io/justinc1_github/scale_ci_integ:9
+    container: quay.io/justinc1_github/scale_ci_integ:10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -40,7 +40,6 @@ jobs:
       - name: Build Ansible collection docs
         run: |
           cd "$CHECKOUT_PATH"
-          apt update && apt install -y rsync
           make docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
