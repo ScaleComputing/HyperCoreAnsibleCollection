@@ -34,7 +34,7 @@ help:
 .PHONY: format
 format:  ## Format python code with black
 	black -t py38 plugins tests/unit
-	ansible-lint --write
+	ansible-lint --fix
 
 .PHONY: clean
 clean:  ## Remove all auto-generated files
