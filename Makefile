@@ -71,8 +71,7 @@ integration:  ## Run integration tests
 
 .PHONY: docs
 docs:  ## Build collection documentation
-	pip install -r docs.requirements
-	pip install -r docs/requirements.txt
+	pip install -r docs.requirements -r docs/requirements.txt
 	cd docs && ANSIBLE_COLLECTIONS_PATH=${PWD}/../../.. ./build.sh
 
 .PHONY: mypy

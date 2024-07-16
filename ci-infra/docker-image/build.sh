@@ -24,7 +24,7 @@ fi
 THIS_SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 REPO_DIR="$(realpath "$THIS_SCRIPT_DIR/../.." )"
 
-cat "$REPO_DIR"/{docs,test,sanity,mypy}.requirements > all.requirements
+cat "$REPO_DIR"/{docs,test,sanity,mypy}.requirements "$REPO_DIR/docs/requirements.txt" > all.requirements
 # TODO but is ghrc.io feature available/enabled?
 # Or push to quay.io?
 docker build $DOCKER_BUILD_OPT -t "$DOCKER_REGISTRY_REPO:$DOCKER_IMAGE_TAG" .
