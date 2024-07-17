@@ -137,6 +137,26 @@
     cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_smtp is failed) }}"
 
 # -------------------------------------------------------------------
+- name: Set syslog servers
+  scale_computing.hypercore.syslog_server:
+    syslog_servers: "{{ cluster_config_configuration.syslog_servers }}"
+    state: set
+  register: cluster_config_task_status_syslog_server
+  when:
+    - '"syslog_servers" in cluster_config_configuration'
+    - |
+      cluster_config_configuration.syslog_servers or
+      cluster_config_configuration.syslog_servers == []
+  ignore_errors: true
+
+- name: Append to cluster_config_task_statuses
+  ansible.builtin.set_fact:
+    cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_syslog_server] }}"
+    cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_syslog_server is failed) }}"
+
+# -------------------------------------------------------------------
+# The email_alert module is now the only module where cluster_config cannot ignore failure.
+# For that reason it is the last one.
 - name: Reconfigure email alert recipients
   when:
     - '"email_alerts" in cluster_config_configuration'
@@ -169,42 +189,6 @@
 #   ansible.builtin.set_fact:
 #     cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_email_alerts] }}"
 #     cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_email_alerts is failed) }}"
-
-# -------------------------------------------------------------------
-- name: Reconfigure syslog servers
-  when:
-    - '"syslog_servers" in cluster_config_configuration'
-    - |
-      cluster_config_configuration.syslog_servers or
-      cluster_config_configuration.syslog_servers == []
-  block:
-    - name: Get old syslog servers
-      scale_computing.hypercore.syslog_server_info:
-      register: cluster_config_syslog_server_info_result
-
-    - name: Remove old syslog servers
-      scale_computing.hypercore.syslog_server:
-        host: "{{ syslog_server.host }}"
-        state: absent
-      loop: "{{ cluster_config_syslog_server_info_result.records }}"
-      loop_control:
-        loop_var: syslog_server
-      when: syslog_server.host not in (cluster_config_configuration.syslog_servers | map(attribute='host') | list)
-
-    - name: Set new syslog servers
-      scale_computing.hypercore.syslog_server:
-        host: "{{ syslog_server.host }}"
-        port: "{{ syslog_server.port | default(omit) }}"
-        protocol: "{{ syslog_server.protocol | default(omit) }}"
-        state: present
-      loop: "{{ cluster_config_configuration.syslog_servers or [] }}"
-      loop_control:
-        loop_var: syslog_server
-
-# - name: Append to cluster_config_task_statuses
-#   ansible.builtin.set_fact:
-#     cluster_config_task_statuses: "{{ cluster_config_task_statuses + [cluster_config_task_status_syslog_servers] }}"
-#     cluster_config_role_failed: "{{ cluster_config_role_failed or (cluster_config_task_status_syslog_servers is failed) }}"
 
 # -------------------------------------------------------------------
 # - name: Show cluster_config_task_statuses 1
