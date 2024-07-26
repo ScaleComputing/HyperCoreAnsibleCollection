@@ -65,7 +65,7 @@
     shared_secret: "{{ oidc_config.shared_secret_test }}-{{ item }}"
     config_url: "{{ oidc_config.config_url_test }}"
     scopes: "openid+profile"
-  loop: "{{ range(0, 10, 1) | list }}"
+  loop: "{{ range(0, 100, 1) | list }}"
   register: oidc_config_all
 - ansible.builtin.assert:
     that:
