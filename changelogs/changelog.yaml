@@ -269,3 +269,12 @@ releases:
     fragments:
     - 20240508-url2template.yml
     release_date: '2024-05-21'
+  1.6.0:
+    changes:
+      minor_changes:
+      - Role `cluster_config` invokes multiple cluster configuration modules. If one
+        module fails, the role now continues with other modules to apply as many configuration
+        changes as possible. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/322)
+    fragments:
+    - 20240702-cluster-config-fail-late.yml
+    release_date: '2024-08-26'
