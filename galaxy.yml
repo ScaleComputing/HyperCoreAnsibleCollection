@@ -1,7 +1,7 @@
 ---
 namespace: scale_computing
 name: hypercore
-version: 1.6.0-dev
+version: 1.6.0
 readme: README.md
 authors:
   - XLAB Steampunk <steampunk@xlab.si>
