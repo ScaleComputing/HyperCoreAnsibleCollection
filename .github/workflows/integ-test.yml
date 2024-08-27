@@ -86,7 +86,7 @@ jobs:
           - https://10.5.11.200  # HC 9.1.x
           - https://10.5.11.201  # HC 9.2.x
           - https://10.5.11.203  # HC 9.3.x
-          - https://10.5.11.204  # HC 9.4.x
+          - https://10.5.11.205  # HC 9.4.x
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -243,7 +243,7 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used in "uses:"
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          sc_host: https://10.5.11.204
+          sc_host: https://10.5.11.205
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
           smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
@@ -276,7 +276,7 @@ jobs:
           - https://10.5.11.200
           - https://10.5.11.201
           - https://10.5.11.203
-          - https://10.5.11.204
+          - https://10.5.11.205
     secrets: inherit
     uses: ./.github/workflows/z_ansible-test.yml
     with:
@@ -296,7 +296,7 @@ jobs:
           - https://10.5.11.200
           - https://10.5.11.201
           - https://10.5.11.203
-          - https://10.5.11.204
+          - https://10.5.11.205
     secrets: inherit
     uses: ./.github/workflows/z_ansible-test.yml
     with:

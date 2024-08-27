@@ -234,9 +234,9 @@ sc_config:
       cluster_name:
         is_writable: True
 
-  https://10.5.11.204:
+  https://10.5.11.205:
     <<: *base_cfg
-    ci_system_name: vsns204
+    ci_system_name: vsns205
     sc_username: admin
     sc_password: admin
     sc_replication_dest_host: ""
@@ -244,13 +244,13 @@ sc_config:
     sc_replication_dest_username: ""
     sc_replication_dest_password: ""
     cluster:
-      name: VSNS204
+      name: VSNS205
     support_tunnel:
       open: true
       code: "4426"
     smtp:
       <<: *base_smtp
-      from_address: VSNS204@scalecomputing.com
+      from_address: VSNS205@scalecomputing.com
     version_update:
       magic_allow_string: "oh-no-no"
       vm_shutdown_restart_allow_string: "allow-vm-shutdown-restart-test"
