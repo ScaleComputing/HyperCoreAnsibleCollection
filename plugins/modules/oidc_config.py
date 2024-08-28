@@ -104,6 +104,7 @@ def ensure_present(
     oidc_obj_ansible = Oidc.from_ansible(module.params)
     # If we get "502 bad gateway" during reconfiguration, we need to retry.
     max_retries = 10
+
     for ii in range(max_retries):
         try:
             oidc_obj = Oidc.get(rest_client)
@@ -123,7 +124,23 @@ def ensure_present(
                 continue
             else:
                 raise
-    updated_oidc = Oidc.get(rest_client)
+    # module.warn(f"API during reconfiguration ii={ii}")
+
+    for ii in range(max_retries):
+        try:
+            updated_oidc = Oidc.get(rest_client)
+            break
+        except UnexpectedAPIResponse as ex:
+            if ex.response_status in [500, 502]:
+                module.warn(
+                    f"API misbehaving after reconfiguration, retry {ii + 1}/{max_retries}"
+                )
+                sleep(1)
+                continue
+            else:
+                raise
+    # module.warn(f"API after reconfiguration ii={ii}")
+
     after = updated_oidc.to_ansible() if updated_oidc else None
     # We always sent POST or PATCH, so it is always changed=True
     return True, after, dict(before=before, after=after)
