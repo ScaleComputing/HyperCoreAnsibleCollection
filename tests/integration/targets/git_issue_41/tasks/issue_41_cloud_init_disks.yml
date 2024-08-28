@@ -65,7 +65,7 @@
       - vm_created.record.0.disks.2.type == "ide_cdrom"
       - vm_created.record.0.disks.2.disk_slot == 1
       # VM with "uuid": "e640e784-606f-4b96-9de2-31970e0a13e8" has ISO with "iso_name": "cloud-init-e640e784.iso"
-      - '"{{ vm_created.record.0.disks.2.iso_name }}" == "cloud-init-{{ (vm_created.record.0.uuid | split("-")) [0] }}.iso"'
+      - vm_created.record.0.disks.2.iso_name == "cloud-init-" + (vm_created.record.0.uuid | split("-") | first) + ".iso"
       - vm_created.record.0.disks.1.type == "ide_cdrom"
       - vm_created.record.0.disks.1.disk_slot == 0
       - vm_created.record.0.disks.1.iso_name == ""
@@ -135,7 +135,7 @@
       - vm_created_2.record.0.nics.1.type == "virtio"
       - vm_created_2.record.0.disks.2.type == "ide_cdrom"
       - vm_created_2.record.0.disks.2.disk_slot == 1
-      - '"{{ vm_created_2.record.0.disks.2.iso_name }}" == "cloud-init-{{ (vm_created_2.record.0.uuid | split("-")) [0] }}.iso"'
+      - vm_created_2.record.0.disks.2.iso_name == "cloud-init-" + (vm_created_2.record.0.uuid | split("-") | first) + ".iso"
       - vm_created_2.record.0.disks.1.type == "ide_cdrom"
       - vm_created_2.record.0.disks.1.disk_slot == 0
       - vm_created_2.record.0.disks.1.iso_name == ""
@@ -170,7 +170,7 @@
       - vm_created.record.0.nics.1.type == "virtio"
       - vm_created.record.0.disks.2.type == "ide_cdrom"    # This stays, module logic should recognize this is cloud_init IDE from the disk name.
       - vm_created.record.0.disks.2.disk_slot == 1
-      - '"{{ vm_created.record.0.disks.2.iso_name }}" == "cloud-init-{{ (vm_created.record.0.uuid | split("-")) [0] }}.iso"'
+      - vm_created.record.0.disks.2.iso_name == "cloud-init-" + (vm_created.record.0.uuid | split("-") | first) + ".iso"
       - vm_created.record.0.disks.1.type == "ide_cdrom"
       - vm_created.record.0.disks.1.disk_slot == 0
       - vm_created.record.0.disks.1.iso_name == ""
@@ -230,7 +230,7 @@
       - vm_created.record.0.nics.1.type == "virtio"
       - vm_created.record.0.disks.2.type == "ide_cdrom"
       - vm_created.record.0.disks.2.disk_slot == 1
-      - '"{{ vm_created.record.0.disks.2.iso_name }}" == "cloud-init-{{ (vm_created.record.0.uuid | split("-")) [0] }}.iso"'
+      - vm_created.record.0.disks.2.iso_name == "cloud-init-" + (vm_created.record.0.uuid | split("-") | first) + ".iso"
       - vm_created.record.0.disks.1.type == "ide_cdrom"
       - vm_created.record.0.disks.1.disk_slot == 0
       - vm_created.record.0.disks.1.iso_name == ""
@@ -264,7 +264,7 @@
       - vm_created_2.record.0.nics.1.type == "virtio"
       - vm_created_2.record.0.disks.2.type == "ide_cdrom"
       - vm_created_2.record.0.disks.2.disk_slot == 1
-      - '"{{ vm_created_2.record.0.disks.2.iso_name }}" == "cloud-init-{{ (vm_created_2.record.0.uuid | split("-")) [0] }}.iso"'
+      - vm_created_2.record.0.disks.2.iso_name == "cloud-init-" + (vm_created_2.record.0.uuid | split("-") | first) + ".iso"
       - vm_created_2.record.0.disks.1.type == "ide_cdrom"
       - vm_created_2.record.0.disks.1.disk_slot == 0
       - vm_created_2.record.0.disks.1.iso_name == ""
@@ -324,7 +324,7 @@
       - vm_created_2.record.0.nics.1.type == "virtio"
       - vm_created_2.record.0.disks.2.type == "ide_cdrom"
       - vm_created_2.record.0.disks.2.disk_slot == 1
-      - '"{{ vm_created_2.record.0.disks.2.iso_name }}" == "cloud-init-{{ (vm_created_2.record.0.uuid | split("-")) [0] }}.iso"'
+      - vm_created_2.record.0.disks.2.iso_name == "cloud-init-" + (vm_created_2.record.0.uuid | split("-") | first) + ".iso"
       - vm_created_2.record.0.disks.1.type == "ide_cdrom"
       - vm_created_2.record.0.disks.1.disk_slot == 0
       - vm_created_2.record.0.disks.1.iso_name == ""
