@@ -92,10 +92,44 @@ Github CI jobs require some infrastructure:
 - Configured github secrets.
   - In many cases, password is stored in github secrets, but corresponding username is not
 
+## Required CI services/infrastructure
+
 Some tests need additional infrastructure
 - SMB server for testing VM import/export
 - NTP server for testing NTP configuration
 - OIDC client and test username/password to test OIDC login.
+
+### CI SMB server
+
+Existing SMB server is reused.
+It was setup by ScaleComnputing for demo purposes (for potentional customers).
+
+Details:
+
+- IP 10.5.11.39 (see `tests/integration/integration_config.yml.j2`)
+- CI tests should use only `/cidata` and subdirectories
+
+### CI NTP server
+
+NTP server is running on VM with github runner.
+It is a regular systemd service - `systemctl status chrony`.
+
+Details:
+
+- IP 10.5.11.5
+
+### CI OIDC client
+
+ScaleComnputing (Dave) created a test user in Azure.
+See `tests/integration/integration_config.yml.j2` and GitHub CI vars/secrets.
+
+Details:
+
+- We need to periodically reset password, it expires (every 3 months or something).
+  Visit https://login.microsoftonline.com/, login as xlabciuser@scalemsdnscalecomputing.onmicrosoft.com.
+  After password change:
+  - every developer need to update local integration_config.yml
+  - update github secret `OIDC_USERS_0_PASSWORD`
 
 # Development
 
