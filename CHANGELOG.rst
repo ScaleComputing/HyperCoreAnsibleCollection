@@ -4,6 +4,14 @@ Scale\_Computing.Hypercore Release Notes
 
 .. contents:: Topics
 
+v1.6.0
+======
+
+Minor Changes
+-------------
+
+- Role `cluster_config` invokes multiple cluster configuration modules. If one module fails, the role now continues with other modules to apply as many configuration changes as possible. (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/322)
+
 v1.5.0
 ======
 
