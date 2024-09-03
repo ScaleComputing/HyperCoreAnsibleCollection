@@ -5,65 +5,67 @@ on:
   push:
     tags:
       - "v*.*.*"
+    branches:
+      - publish-to-automation-hub-v1.6.0
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup python 🐍
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install dependencies 👽
-        run: python -m pip install ansible-core yq rst-to-myst
+  # release:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Setup python 🐍
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.10"
+  #     - name: Install dependencies 👽
+  #       run: python -m pip install ansible-core yq rst-to-myst
 
-      - name: Verify release 🗒️
-        env:
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          echo "::warning::TODO: confirm tests pass for this commit"
-          tag_version="${TAG_NAME##*v}"
-          version="$(yq -r .version galaxy.yml)"
-          if [[ ${tag_version} != ${version} ]]; then
-            echo "::error file=galaxy.yml::🔴 Tag version '${tag_version}' does not match galaxy.yml version '${version}'"
-            exit 1
-          fi
-          echo "::notice::🟢 Version number verified: '$version'"
+  #     - name: Verify release 🗒️
+  #       env:
+  #         TAG_NAME: ${{ github.ref_name }}
+  #       run: |
+  #         echo "::warning::TODO: confirm tests pass for this commit"
+  #         tag_version="${TAG_NAME##*v}"
+  #         version="$(yq -r .version galaxy.yml)"
+  #         if [[ ${tag_version} != ${version} ]]; then
+  #           echo "::error file=galaxy.yml::🔴 Tag version '${tag_version}' does not match galaxy.yml version '${version}'"
+  #           exit 1
+  #         fi
+  #         echo "::notice::🟢 Version number verified: '$version'"
 
-      - name: Build 🛠️
-        run: ansible-galaxy collection build -v --force .
+  #     - name: Build 🛠️
+  #       run: ansible-galaxy collection build -v --force .
 
-      - name: Prepare release notes 📓
-        env:
-          CHANGELOG_URL: "${{ format('{0}/{1}/blob/{2}/CHANGELOG.rst', github.server_url, github.repository, github.ref_name) }}"
-          REF_NAME: "${{ github.ref_name }}"
-        run: |
-          rst2myst stream --no-sphinx CHANGELOG.rst | csplit - "/^## ${REF_NAME}/" '/^## v.*/'
-          mv xx01 release_notes.md
-          echo "See also: [CHANGELOG](${CHANGELOG_URL}#${REF_NAME//./-})" >>release_notes.md
+  #     - name: Prepare release notes 📓
+  #       env:
+  #         CHANGELOG_URL: "${{ format('{0}/{1}/blob/{2}/CHANGELOG.rst', github.server_url, github.repository, github.ref_name) }}"
+  #         REF_NAME: "${{ github.ref_name }}"
+  #       run: |
+  #         rst2myst stream --no-sphinx CHANGELOG.rst | csplit - "/^## ${REF_NAME}/" '/^## v.*/'
+  #         mv xx01 release_notes.md
+  #         echo "See also: [CHANGELOG](${CHANGELOG_URL}#${REF_NAME//./-})" >>release_notes.md
 
-      - name: Release 🛸
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            *.tar.gz
-          body_path: release_notes.md
-          fail_on_unmatched_files: true
-          generate_release_notes: true
+  #     - name: Release 🛸
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           *.tar.gz
+  #         body_path: release_notes.md
+  #         fail_on_unmatched_files: true
+  #         generate_release_notes: true
 
-  publish-to-galaxy:
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Publish to Ansible Galaxy 🌌
-        uses: ansible/ansible-publish-action@v1.0.0
-        with:
-          api_key: ${{ secrets.GALAXY_API_KEY }}
+  # publish-to-galaxy:
+  #   needs: release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Publish to Ansible Galaxy 🌌
+  #       uses: ansible/ansible-publish-action@v1.0.0
+  #       with:
+  #         api_key: ${{ secrets.GALAXY_API_KEY }}
 
   publish-to-automation-platform:
-    needs: release
+    # needs: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +79,6 @@ jobs:
           api_key: ${{ secrets.AUTOMATION_HUB_API_KEY }}
           api_server: automation_hub
 
-  publish-docs:
-    needs: release
-    uses: ./.github/workflows/static.yml
+  # publish-docs:
+  #   needs: release
+  #   uses: ./.github/workflows/static.yml
