@@ -71,13 +71,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Publish to Ansible Automation Platform 🌌
         uses: ansible/ansible-publish-action@v1.0.0
-        env:
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL: https://console.redhat.com/api/automation-hub/
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_AUTH_URL: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_API_KEY }}
         with:
           api_key: ${{ secrets.AUTOMATION_HUB_API_KEY }}
-          api_server: automation_hub
+          api_server: https://console.redhat.com/api/automation-hub/
 
   # publish-docs:
   #   needs: release
