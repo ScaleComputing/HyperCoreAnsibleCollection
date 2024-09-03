@@ -3,66 +3,41 @@ name: Release and Publish
 
 on:
   push:
-    tags:
-      - "v*.*.*"
 
 jobs:
-  release:
+  publish:
     runs-on: ubuntu-latest
+    name: Automation Hub release
     steps:
       - uses: actions/checkout@v4
-      - name: Setup python 🐍
-        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-      - name: Install dependencies 👽
-        run: python -m pip install ansible-core yq rst-to-myst
-
-      - name: Verify release 🗒️
-        env:
-          TAG_NAME: ${{ github.ref_name }}
+          ref: v1.6.0
+      - name: Build the collection
+        run: ansible-galaxy collection build -v --force
+      - name: Publish the collection on Automation Hub
         run: |
-          echo "::warning::TODO: confirm tests pass for this commit"
-          tag_version="${TAG_NAME##*v}"
-          version="$(yq -r .version galaxy.yml)"
-          if [[ ${tag_version} != ${version} ]]; then
-            echo "::error file=galaxy.yml::🔴 Tag version '${tag_version}' does not match galaxy.yml version '${version}'"
-            exit 1
-          fi
-          echo "::notice::🟢 Version number verified: '$version'"
+          set -euo pipefail
+          TARBALL=$(ls -1 ./*.tar.gz)
 
-      - name: Build 🛠️
-        run: ansible-galaxy collection build -v --force .
+          # cat << EOF > ansible.cfg
+          #
+          # [galaxy]
+          # server_list = rh_automation_hub
+          #
+          # [galaxy_server.rh_automation_hub]
+          # url=$ANSIBLE_GALAXY_SERVER_RH_AUTOMATION_HUB_URL
+          # auth_url=$ANSIBLE_GALAXY_SERVER_RH_AUTOMATION_HUB_AUTH_URL
+          # client_id=$ANSIBLE_GALAXY_SERVER_RH_AUTOMATION_HUB_CLIENT_ID
+          # token=$ANSIBLE_GALAXY_SERVER_RH_AUTOMATION_HUB_TOKEN
+          #
+          # EOF
 
-      - name: Prepare release notes 📓
+          ansible-galaxy -vvv collection publish "${TARBALL}"
+
+          # rm ansible.cfg
         env:
-          CHANGELOG_URL: "${{ format('{0}/{1}/blob/{2}/CHANGELOG.rst', github.server_url, github.repository, github.ref_name) }}"
-          REF_NAME: "${{ github.ref_name }}"
-        run: |
-          rst2myst stream --no-sphinx CHANGELOG.rst | csplit - "/^## ${REF_NAME}/" '/^## v.*/'
-          mv xx01 release_notes.md
-          echo "See also: [CHANGELOG](${CHANGELOG_URL}#${REF_NAME//./-})" >>release_notes.md
-
-      - name: Release 🛸
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            *.tar.gz
-          body_path: release_notes.md
-          fail_on_unmatched_files: true
-          generate_release_notes: true
-
-  publish:
-    needs: release
-    uses: ansible/ansible-content-actions/.github/workflows/release.yaml@v0.1.1
-    with:
-      galaxy_publish: true
-      ah_publish: true
-      environment: release
-    secrets:
-      ah_token: ${{ secrets.AUTOMATION_HUB_API_KEY }}
-      ansible_galaxy_api_key: ${{ secrets.GALAXY_API_KEY }}
-
-  publish-docs:
-    needs: release
-    uses: ./.github/workflows/static.yml
+          ANSIBLE_GALAXY_SERVER_LIST: rh_automation_hub
+          ANSIBLE_GALAXY_SERVER_RH_AUTOMATION_HUB_URL: https://console.redhat.com/api/automation-hub/
+          ANSIBLE_GALAXY_SERVER_RH_AUTOMATION_HUB_AUTH_URL: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+          ANSIBLE_GALAXY_SERVER_RH_AUTOMATION_HUB_CLIENT_ID: de38c20f-fe69-466e-a9bc-21ddf1724cd9
+          ANSIBLE_GALAXY_SERVER_RH_AUTOMATION_HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_API_KEY }}
