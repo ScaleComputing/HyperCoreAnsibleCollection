@@ -52,30 +52,14 @@ jobs:
           fail_on_unmatched_files: true
           generate_release_notes: true
 
-  publish-to-galaxy:
+  publish:
     needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Publish to Ansible Galaxy 🌌
-        uses: ansible/ansible-publish-action@v1.0.0
-        with:
-          api_key: ${{ secrets.GALAXY_API_KEY }}
-
-  publish-to-automation-platform:
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Publish to Ansible Automation Platform 🌌
-        uses: ansible/ansible-publish-action@v1.0.0
-        env:
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_URL: https://console.redhat.com/api/automation-hub/
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_AUTH_URL: https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
-          ANSIBLE_GALAXY_SERVER_AUTOMATION_HUB_TOKEN: ${{ secrets.AUTOMATION_HUB_API_KEY }}
-        with:
-          api_key: ${{ secrets.AUTOMATION_HUB_API_KEY }}
-          api_server: automation_hub
+    uses: ansible/ansible-content-actions/.github/workflows/release.yaml@main
+    with:
+      environment: release
+    secrets:
+      ah_token: ${{ secrets.AUTOMATION_HUB_API_KEY }}
+      ansible_galaxy_api_key: ${{ secrets.GALAXY_API_KEY }}
 
   publish-docs:
     needs: release
