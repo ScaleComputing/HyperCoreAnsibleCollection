@@ -24,7 +24,7 @@ jobs:
   ansible_test:
     name: ansible-test
     runs-on: [ self-hosted2 ]
-    container: quay.io/justinc1_github/scale_ci_integ:10
+    container: quay.io/justinc1_github/scale_ci_integ:11
     env:
       DEBIAN_FRONTEND: noninteractive
     defaults:
