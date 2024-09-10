@@ -73,7 +73,7 @@ jobs:
   # to delay integ-test until integration-prepare-env finishes.
   integration-prepare-env:
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:10
+    container: quay.io/justinc1_github/scale_ci_integ:11
     env:
       ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
     defaults:
@@ -109,7 +109,7 @@ jobs:
 
   integ-matrix:
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:10
+    container: quay.io/justinc1_github/scale_ci_integ:11
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -140,7 +140,7 @@ jobs:
     needs:
       - integ-matrix
     runs-on: [ubuntu-latest]
-    container: quay.io/justinc1_github/scale_ci_integ:10
+    container: quay.io/justinc1_github/scale_ci_integ:11
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -168,7 +168,7 @@ jobs:
     needs:
       - integ-seq-matrix
     runs-on: [ ubuntu-latest ]
-    container: quay.io/justinc1_github/scale_ci_integ:10
+    container: quay.io/justinc1_github/scale_ci_integ:11
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
@@ -203,7 +203,7 @@ jobs:
       - integ-seq-run
     if: "(!cancelled())  && (needs.examples-matrix.result=='success')"
     runs-on: [ self-hosted2 ]
-    container: quay.io/justinc1_github/scale_ci_integ:10
+    container: quay.io/justinc1_github/scale_ci_integ:11
     env:
       ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
       DEBIAN_FRONTEND: noninteractive
@@ -322,7 +322,7 @@ jobs:
   replica_cleanup:
     needs: []
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:10
+    container: quay.io/justinc1_github/scale_ci_integ:11
     env:
       ANSIBLE_COLLECTIONS_PATH: $GITHUB_WORKSPACE/work-dir
     defaults:
@@ -349,7 +349,7 @@ jobs:
   smb_cleanup:
     needs: []
     runs-on: [self-hosted2]
-    container: quay.io/justinc1_github/scale_ci_integ:10
+    container: quay.io/justinc1_github/scale_ci_integ:11
     defaults:
       run:
         working-directory: ${{ env.WORKDIR }}
