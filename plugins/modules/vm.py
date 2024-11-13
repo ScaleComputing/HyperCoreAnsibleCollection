@@ -20,9 +20,9 @@ description:
   - Use this module to create, update or delete a VM. When creating or
     updating a VM, setting the disks, network nics and boot order is possible.
 
-  - Module tries to remove disks from a running VM.
-    If disk cannot be removed from running VM,
-    then VM will be shutdown, disk will be removed, and VM is started back.
+  - Some changes cannot be applied to a running VM.
+    This includes CPU count change, memory change and (in some cases) disk remove.
+    In this cases VM is shutdown, change is applied, and VM is started back.
   - VM has C(shutdown_timeout) time to respond to shutdown request.
     If VM is not shutoff within I(shutdown_timeout),
     then a force shutdown will be issued if C(force_reboot=True).
