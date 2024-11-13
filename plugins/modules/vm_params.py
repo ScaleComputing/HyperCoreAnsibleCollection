@@ -18,6 +18,13 @@ short_description: Manage VM's parameters
 description:
   - Use vm_params to update VM's name, description, tags, memory, number of CPUs or change VM's power state.
   - Can also be used to assign a snapshot schedule to the VM.
+
+  - Some changes cannot be applied to a running VM.
+    This includes CPU count change and memory change.
+    In this cases VM is shutdown, change is applied, and VM is started back.
+  - VM has C(shutdown_timeout) time to respond to shutdown request.
+    If VM is not shutoff within I(shutdown_timeout),
+    then a force shutdown will be issued if C(force_reboot=True).
 version_added: 1.0.0
 extends_documentation_fragment:
   - scale_computing.hypercore.cluster_instance
@@ -43,12 +50,10 @@ options:
   memory:
     description:
       - Amount of memory reserved, in bytes.
-      - May only be modified if VM is in C(SHUTOFF) or C(CRASHED) state.
     type: int
   vcpu:
     description:
       - Number of allotted virtual CPUs.
-      - May only be modified if VM is in C(SHUTOFF) or C(CRASHED) state.
     type: int
   power_state:
     description:
