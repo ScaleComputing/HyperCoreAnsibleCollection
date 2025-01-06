@@ -1569,6 +1569,18 @@ class ManageVMDisks:
                         module, rest_client, iso, uuid, attach=True
                     )
                     changed = True
+                else:
+                    # Empty CD-ROM is requested. Detach ISO if needed.
+                    if ansible_existing_disk:
+                        name = ansible_existing_disk["iso_name"]  #
+                        existing_iso = ISO.get_by_name(
+                            dict(name=name), rest_client, must_exist=False
+                        )
+                        if existing_iso:
+                            cls.iso_image_management(
+                                module, rest_client, existing_iso, uuid, attach=False
+                            )
+                            changed = True
             else:
                 if ansible_existing_disk:
                     existing_disk = Disk.from_ansible(ansible_existing_disk)
