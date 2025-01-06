@@ -16,8 +16,12 @@ options:
   cloud_init:
     description:
       - Configuration to be used by cloud-init (Linux) or cloudbase-init (Windows).
-      - When non-empty will create an extra ISO device attached to VirDomain as a NoCloud datasource.
+      - When non-empty will create an extra ISO device attached to VM as a NoCloud datasource.
       - There has to be cloud-config comment present at the beginning of cloud_init file or raw yaml.
+      - The cloud-init configuration is applied only during the initial creation of a VM
+        (whether through provisioning, cloning, or importing).
+        It is not applied to an existing VM.
+        This is consistent with the behavior of the HyperCore appliance.
     required: false
     type: dict
     default: {}
