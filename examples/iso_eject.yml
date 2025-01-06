@@ -1,0 +1,66 @@
+---
+- name: Eject ISO image from VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vm_name: demo-vm
+    iso_url: http://tinycorelinux.net/13.x/x86/release/TinyCore-current.iso
+    iso_filename: "{{ iso_url | split('/') | last }}"
+
+  tasks:
+    # ------------------------------------------------------
+    - name: Prepare ISO
+      block:
+        - name: Download ISO from URL - {{ iso_filename }}
+          ansible.builtin.get_url:
+            url: "{{ iso_url }}"
+            dest: /tmp/{{ iso_filename }}
+            mode: "0644"
+
+        - name: Upload ISO to HyperCore - {{ iso_filename }}
+          scale_computing.hypercore.iso:
+            name: "{{ iso_filename }}"
+            source: /tmp/{{ iso_filename }}
+            state: present
+
+    # ------------------------------------------------------
+    - name: Create VM {{ vm_name }}
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        memory: "{{ '1 GB' | human_to_bytes }}"
+        vcpu: 2
+        disks:
+          # - type: virtio_disk
+          #   disk_slot: 0
+          #   size: "{{ '10 GB' | human_to_bytes }}"
+          - type: ide_cdrom
+            disk_slot: 0
+            iso_name: "{{ iso_filename }}"
+        nics: []
+        state: present
+        power_state: shutdown
+        operating_system: os_other
+
+    - &vm_info
+      name: VM info
+      block:
+        - name: Get VM state
+          scale_computing.hypercore.vm_info:
+            vm_name: "{{ vm_name }}"
+          register: vm_info
+
+        - name: Show VM disks
+          ansible.builtin.debug:
+            var: vm_info.records.0.disks
+
+    - name: Detach ISO from VM, leave empty CD-ROM, {{ vm_name }}
+      scale_computing.hypercore.vm_disk:
+        vm_name: "{{ vm_name }}"
+        items:
+          - disk_slot: 0
+            type: ide_cdrom
+            iso_name: ""
+        state: present
+
+    - *vm_info
