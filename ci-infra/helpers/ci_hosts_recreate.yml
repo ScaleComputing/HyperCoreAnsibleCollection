@@ -1,0 +1,64 @@
+---
+# On CI physical HyperCore host run multiple VSNS CI HyperCore hosts.
+# The VSNS needs a periodic "refresh". Seems like after many many API calls,
+# the VSNS API gets slow. Daily CI integration test last for 8 hours instead of 1..2 hours.
+# Refresh means remove old VSNS, and create new from VSNS template VM.
+# VSNS template VMs were prepared manually
+
+- name: Recreate CI VSNS test hosts/VMs
+  hosts: localhost
+  connection: local
+  # gather_facts: false
+  vars:
+    vsns_spec_all:
+      vsns914-ci:
+        source: vsns914-template
+        ip: 10.5.11.200
+      vsns9213-ci:
+        source: vsns9213-template
+        ip: 10.5.11.201
+      # vsns931-ci:  # not used
+      #   source: vsns931-template
+      #   ip: 10.5.11.202
+      # vsns935-ci:  # no template VM
+      #   source: ?
+      #   ip: 10.5.11.203
+      vsns940-ci:
+        # Is not used in CI tests
+        source: vsns940-template
+        ip: 10.5.11.204
+      vsns9417-ci:
+        source: vsns9417-template
+        ip: 10.5.11.205
+
+  tasks:
+    # ------------------------------------------------------
+    - name: Show info
+      ansible.builtin.debug:
+        msg: source_vm={{ source_vm }} dest_vm={{ dest_vm }} ip={{ vm_ip }} url=https://{{ vm_ip }}
+      loop: "{{ vsns_spec_all.keys() }}"
+      loop_control:
+        loop_var: dest_vm
+      vars:
+        source_vm: "{{ vsns_spec_all[dest_vm].source }}"
+        vm_ip: "{{ vsns_spec_all[dest_vm].ip }}"
+
+    - name: Recreate CI VSNSs
+      loop: "{{ vsns_spec_all.keys() }}"
+      loop_control:
+        loop_var: dest_vm
+      vars:
+        source_vm: "{{ vsns_spec_all[dest_vm].source }}"
+        vm_ip: "{{ vsns_spec_all[dest_vm].ip }}"
+      ansible.builtin.include_tasks:
+        file: ci_hosts_recreate_one.yml
+
+    - name: Show URLs
+      ansible.builtin.debug:
+        msg: source_vm={{ source_vm }} dest_vm={{ dest_vm }} ip={{ vm_ip }} url=https://{{ vm_ip }}
+      loop: "{{ vsns_spec_all.keys() }}"
+      loop_control:
+        loop_var: dest_vm
+      vars:
+        source_vm: "{{ vsns_spec_all[dest_vm].source }}"
+        vm_ip: "{{ vsns_spec_all[dest_vm].ip }}"

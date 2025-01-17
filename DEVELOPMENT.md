@@ -200,3 +200,14 @@ Steps:
    - ensure ip address is added to entraAD (azure) app registration for OIDC integration (ask Dave if needed)
       - "app_display_name": "Scale Computing HC3",
       - "app_id": "d2298ec0-0596-49d2-9554-840a2fe20603",
+
+## Reset VSNS test cluster
+
+After enough testing VSNS test clusters get slow.
+CI integration testing takes say 8 hours instead of 1 hour.
+At that time we recreate VSNS from template VM.
+Run:
+
+```bash
+ansible-playbook ci-infra/helpers/ci_hosts_recreate.yml -v
+```
