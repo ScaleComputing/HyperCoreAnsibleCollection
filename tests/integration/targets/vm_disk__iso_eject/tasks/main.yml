@@ -1,0 +1,223 @@
+---
+- environment:
+    SC_HOST: "{{ sc_host }}"
+    SC_USERNAME: "{{ sc_config[sc_host].sc_username }}"
+    SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
+    SC_TIMEOUT: "{{ sc_timeout }}"
+  vars:
+    vm_name: vm-integration--vm_disk--iso-eject
+
+  block:
+    # ------------------------------------------------------
+    - &delete_vm
+      name: Delete the test VM - "{{ vm_name }}"
+      scale_computing.hypercore.vm: &vm-delete
+        vm_name: "{{ vm_name }}"
+        state: absent
+        memory: 536870912
+        vcpu: 2
+      register: result
+
+    # ------------------------------------------------------
+    # The file should be already created by prepare_iso.yml
+    - name: Get integration-test.iso info
+      scale_computing.hypercore.iso_info:
+        name: "integration-test.iso"
+      register: uploaded_iso_info
+    - ansible.builtin.assert:
+        that:
+          - uploaded_iso_info.records | length == 1
+          - uploaded_iso_info.records.0.size == 356352
+
+    # ------------------------------------------------------
+    - name: Create the test VM - "{{ vm_name }}"
+      scale_computing.hypercore.vm:
+        vm_name: "{{ vm_name }}"
+        description: Demo VM
+        tags:
+          - "Integration test"
+        memory: 536870912
+        vcpu: 2
+        power_state: shutdown
+        state: present
+        disks:
+          - disk_slot: 0
+            type: virtio_disk
+            size: "{{ '2 GB' | human_to_bytes }}"
+          - disk_slot: 0
+            type: ide_disk
+            size: "{{ '3 GB' | human_to_bytes }}"
+        nics: [ ]
+        machine_type: BIOS
+      register: result
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is changed
+
+    # ------------------------------------------------------
+    - &attach_iso
+      name: Attach ISO onto the new CD-ROM device
+      scale_computing.hypercore.vm_disk:
+        vm_name: "{{ vm_name }}"
+        items:
+          - disk_slot: 1
+            type: ide_cdrom
+            iso_name: "integration-test.iso"
+        state: present
+      register: result
+    - &vm_info
+      name: Get VM info
+      scale_computing.hypercore.vm_info:
+        vm_name: "{{ vm_name }}"
+      register: vm
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is changed
+    - &assert__vm_disk__iso_attached
+      ansible.builtin.assert:
+        that:
+          - result.record | length == 3
+          - result.record.0.type == "virtio_disk"
+          - result.record.0.disk_slot == 0
+          - result.record.0.size == 2147483648
+          - result.record.1.type == "ide_disk"
+          - result.record.1.disk_slot == 0
+          - result.record.1.size == 3221225472
+          - result.record.2.type == "ide_cdrom"
+          - result.record.2.disk_slot == 1
+          - result.record.2.iso_name == "integration-test.iso"
+    - &assert__vm__iso_attached
+      ansible.builtin.assert:
+        that:
+          - vm is succeeded
+          - vm is not changed
+          - vm.records.0.disks | length == 3
+          - vm.records.0.disks.0
+          - vm.records.0.disks.0.type == "virtio_disk"
+          - vm.records.0.disks.0.disk_slot == 0
+          - vm.records.0.disks.0.size == 2147483648
+          - vm.records.0.disks.1.type == "ide_disk"
+          - vm.records.0.disks.1.disk_slot == 0
+          - vm.records.0.disks.1.size == 3221225472
+          - vm.records.0.disks.2.type == "ide_cdrom"
+          - vm.records.0.disks.2.disk_slot == 1
+          - vm.records.0.disks.2.iso_name == "integration-test.iso"
+
+    # idempotency
+    - *attach_iso
+    - *vm_info
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is not changed
+    - *assert__vm_disk__iso_attached
+    - *assert__vm__iso_attached
+
+    # ------------------------------------------------------
+    - &eject_iso
+      name: Eject ISO, leave empty CD-ROM device
+      scale_computing.hypercore.vm_disk:
+        vm_name: "{{ vm_name }}"
+        items:
+          - disk_slot: 1
+            type: ide_cdrom
+            iso_name: ""
+        state: present
+      register: result
+    - *vm_info
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is changed
+    - &assert__vm_disk__iso_eject
+      ansible.builtin.assert:
+        that:
+          - result.record | length == 3
+          - result.record.0.type == "virtio_disk"
+          - result.record.0.disk_slot == 0
+          - result.record.0.size == 2147483648
+          - result.record.1.type == "ide_disk"
+          - result.record.1.disk_slot == 0
+          - result.record.1.size == 3221225472
+          - result.record.2.type == "ide_cdrom"
+          - result.record.2.disk_slot == 1
+          - result.record.2.iso_name == ""
+    - &assert__vm__iso_eject
+      ansible.builtin.assert:
+        that:
+          - vm is succeeded
+          - vm is not changed
+          - vm.records.0.disks | length == 3
+          - vm.records.0.disks.0.type == "virtio_disk"
+          - vm.records.0.disks.0.disk_slot == 0
+          - vm.records.0.disks.0.size == 2147483648
+          - vm.records.0.disks.1.type == "ide_disk"
+          - vm.records.0.disks.1.disk_slot == 0
+          - vm.records.0.disks.1.size == 3221225472
+          - vm.records.0.disks.2.type == "ide_cdrom"
+          - vm.records.0.disks.2.disk_slot == 1
+          - vm.records.0.disks.2.iso_name == ""
+
+    # idempotency
+    - *eject_iso
+    - *vm_info
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is not changed
+    - *assert__vm_disk__iso_eject
+    - *assert__vm__iso_eject
+
+    # ------------------------------------------------------
+    - &remove_iso
+      name: Remove CD-ROM device
+      scale_computing.hypercore.vm_disk:
+        vm_name: "{{ vm_name }}"
+        items:
+          - disk_slot: 1
+            type: ide_cdrom
+            # iso_name: ""
+        state: absent
+      register: result
+    - *vm_info
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is changed
+    - &assert__vm_disk__iso_remove
+      ansible.builtin.assert:
+        that:
+          - result.record | length == 2
+          - result.record.0.type == "virtio_disk"
+          - result.record.0.disk_slot == 0
+          - result.record.0.size == 2147483648
+          - result.record.1.type == "ide_disk"
+          - result.record.1.disk_slot == 0
+          - result.record.1.size == 3221225472
+    - &assert__vm__iso_remove
+      ansible.builtin.assert:
+        that:
+          - vm is succeeded
+          - vm is not changed
+          - vm.records.0.disks | length == 2
+          - vm.records.0.disks.0.type == "virtio_disk"
+          - vm.records.0.disks.0.disk_slot == 0
+          - vm.records.0.disks.0.size == 2147483648
+          - vm.records.0.disks.1.type == "ide_disk"
+          - vm.records.0.disks.1.disk_slot == 0
+          - vm.records.0.disks.1.size == 3221225472
+
+    # idempotency
+    - *remove_iso
+    - *vm_info
+    - ansible.builtin.assert:
+        that:
+          - result is succeeded
+          - result is not changed
+    - *assert__vm_disk__iso_remove
+    - *assert__vm__iso_remove
+
+    # ------------------------------------------------------
+    - *delete_vm

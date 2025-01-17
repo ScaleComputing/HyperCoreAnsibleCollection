@@ -180,7 +180,7 @@ EXAMPLES = r"""
   scale_computing.hypercore.vm_disk:
     vm_name: demo-vm
     items:
-      - name: CentOS-Stream-9-latest-x86_64-dvd1.iso
+      - iso_name: CentOS-Stream-9-latest-x86_64-dvd1.iso
         disk_slot: 0
         type: ide_cdrom
     state: present
@@ -189,7 +189,7 @@ EXAMPLES = r"""
   scale_computing.hypercore.vm_disk:
     vm_name: demo-vm
     items:
-      - name: CentOS-Stream-9-latest-x86_64-dvd1.iso
+      - iso_name: CentOS-Stream-9-latest-x86_64-dvd1.iso
         disk_slot: 0
         type: ide_cdrom
     state: absent
