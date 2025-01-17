@@ -1,6 +1,6 @@
 ---
 # ----------------------------------Setup------------------------------------------------------------------------
-- name: Delete virtual disk files if exist
+- name: Delete virtual disks
   scale_computing.hypercore.virtual_disk:
     state: absent
     name: "{{ item }}"
@@ -27,14 +27,15 @@
       - virtual_disk_file.results.0.records|length==0
       - virtual_disk_file.results.1.records|length==0
 
-- name: Generate virtual disk file qcow2
+- name: Generate virtual disk files
   ansible.builtin.shell:
-    cmd: qemu-img create -f qcow2 xlab-ci-test-VD.qcow2 10M
-  register: generated_img
-
-- name: Generate virtual disk file vmdk
-  ansible.builtin.shell:
-    cmd: qemu-img create -f vmdk xlab-ci-test-VD.vmdk 10M
+    cmd: |
+      qemu-img create -f raw xlab-ci-test-VD.raw 10M
+      # HC3 has some problems with very small/empty disk images.
+      # Run mkfs to populate image.
+      mkfs.ext4 xlab-ci-test-VD.raw
+      qemu-img convert -c -O qcow2 xlab-ci-test-VD.raw xlab-ci-test-VD.qcow2
+      qemu-img convert -c -O vmdk xlab-ci-test-VD.raw xlab-ci-test-VD.vmdk
   register: generated_img
 
 # ----------------------------------Job------------------------------------------------------------------------
@@ -172,7 +173,7 @@
       - "{{ virtual_disk_file.records.0.uuid == uploaded_virtual_disk.record.uuid }}"
 
 # ----------------------------------Job------------------------------------------------------------------------
-- name: Delete virtual disk file .qcow2
+- name: Delete virtual disk .qcow2
   scale_computing.hypercore.virtual_disk:
     state: absent
     name: xlab-ci-test-VD.qcow2
@@ -194,7 +195,7 @@
       - virtual_disk_file.records | length == 0
 
 # ----------------------------------Idempotence check----------------------------------------------------------
-- name: Delete virtual disk file .qcow2 - IDEMPOTENCE
+- name: Delete virtual disk .qcow2 - IDEMPOTENCE
   scale_computing.hypercore.virtual_disk:
     state: absent
     name: xlab-ci-test-VD.qcow2
@@ -217,7 +218,7 @@
       - virtual_disk_file.records | length == 0
 
 # ----------------------------------Job------------------------------------------------------------------------
-- name: Delete virtual disk file .vmdk
+- name: Delete virtual disk .vmdk
   scale_computing.hypercore.virtual_disk:
     state: absent
     name: xlab-ci-test-VD.vmdk
@@ -239,7 +240,7 @@
       - virtual_disk_file.records | length == 0
 
 # ----------------------------------Idempotence check----------------------------------------------------------
-- name: Delete virtual disk file .vmdk - IDEMPOTENCE
+- name: Delete virtual disk .vmdk - IDEMPOTENCE
   scale_computing.hypercore.virtual_disk:
     state: absent
     name: xlab-ci-test-VD.vmdk
