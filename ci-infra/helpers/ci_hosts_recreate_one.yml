@@ -1,0 +1,51 @@
+---
+- name: Show input params
+  ansible.builtin.debug:
+    msg: source_vm={{ source_vm }} dest_vm={{ dest_vm }} vm_ip={{ vm_ip }} url=https://{{ vm_ip }}
+
+- name: Source VM info
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ source_vm }}"
+  register: source_vm_result
+
+- name: Fail if source VM is not present
+  ansible.builtin.assert:
+    that:
+      - source_vm_result.records | length == 1
+    fail_msg: "Source VM {{ source_vm }} does not exist."
+
+- name: Old VM info
+  scale_computing.hypercore.vm_info:
+    vm_name: "{{ dest_vm }}"
+  register: vm_result
+
+- name: Force-shutdown old VM if exists
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ dest_vm }}"
+    power_state: stop
+    force_reboot: true
+    shutdown_timeout: 10
+  when: vm_result.records | length
+
+- name: Delete old VM
+  scale_computing.hypercore.vm:
+    vm_name: "{{ dest_vm }}"
+    state: absent
+
+- name: Clone template VM
+  scale_computing.hypercore.vm_clone:
+    vm_name: "{{ dest_vm }}"
+    source_vm_name: "{{ source_vm }}"
+    preserve_mac_address: true
+
+- name: Set VM resources
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ dest_vm }}"
+    description: "https://{{ vm_ip }} created={{ ansible_date_time.date }}"
+    vcpu: 8
+    memory: "{{ '16 GB' | human_to_bytes }}"
+
+- name: Start VM
+  scale_computing.hypercore.vm_params:
+    vm_name: "{{ dest_vm }}"
+    power_state: start
