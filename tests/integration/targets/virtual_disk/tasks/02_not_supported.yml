@@ -1,7 +1,12 @@
 ---
 - name: Generate virtual disk file qcow2
   ansible.builtin.shell:
-    cmd: qemu-img create -f qcow2 xlab-ci-test-VD.qcow2 10M
+    cmd: |
+      qemu-img create -f raw xlab-ci-test-VD.raw 10M
+      # HC3 has some problems with very small/empty disk images.
+      # Run mkfs to populate image.
+      mkfs.ext4 xlab-ci-test-VD.raw
+      qemu-img convert -c -O qcow2 xlab-ci-test-VD.raw xlab-ci-test-VD.qcow2
   register: generated_img
 
 - name: Create virtual disk, must fail
