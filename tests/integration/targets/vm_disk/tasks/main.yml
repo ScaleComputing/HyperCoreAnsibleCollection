@@ -33,6 +33,16 @@
           - result is succeeded
           - result is changed
 
+    - &vminfo
+      name: Get VM vm-integration-test-disks info
+      scale_computing.hypercore.vm_info:
+        vm_name: vm-integration-test-disks
+      register: vminfo
+    - &check_vminfo_nodisk
+      ansible.builtin.assert:
+        that:
+          - vminfo.records.0.disks == []
+
     - name: Create virtio disk in slot 0 with 5GB space
       scale_computing.hypercore.vm_disk: &create-virtio-disk
         vm_name: vm-integration-test-disks
@@ -54,6 +64,18 @@
           - result.record.0.tiering_priority_factor == 4
           - result.record.0.cache_mode == "none"
           - result.record.0.disable_snapshotting == false
+    - *vminfo
+    - &check_vminfo_5gb
+      ansible.builtin.assert:
+        that:
+          - vminfo.records.0.disks | length == 1
+          - vminfo.records.0.disks.0.type == "virtio_disk"
+          - vminfo.records.0.disks.0.disk_slot == 0
+          - vminfo.records.0.disks.0.size == 5368709120
+          - vminfo.records.0.disks.0.iso_name == ""
+          - vminfo.records.0.disks.0.tiering_priority_factor == 4
+          - vminfo.records.0.disks.0.cache_mode == "none"
+          - vminfo.records.0.disks.0.disable_snapshotting == false
 
     - name: Create virtio disk in slot 0 with 5GB space (test idempotence)
       scale_computing.hypercore.vm_disk: *create-virtio-disk
@@ -62,6 +84,8 @@
         that:
           - result is succeeded
           - result is not changed
+    - *vminfo
+    - *check_vminfo_5gb
 
     - name: Resize the disk to 10GB
       scale_computing.hypercore.vm_disk: &resize-disk
@@ -84,6 +108,18 @@
           - result.record.0.tiering_priority_factor == 4
           - result.record.0.cache_mode == "none"
           - result.record.0.disable_snapshotting == false
+    - *vminfo
+    - &check_vminfo_10gb
+      ansible.builtin.assert:
+        that:
+          - vminfo.records.0.disks | length == 1
+          - vminfo.records.0.disks.0.type == "virtio_disk"
+          - vminfo.records.0.disks.0.disk_slot == 0
+          - vminfo.records.0.disks.0.size == 10737418240
+          - vminfo.records.0.disks.0.iso_name == ""
+          - vminfo.records.0.disks.0.tiering_priority_factor == 4
+          - vminfo.records.0.disks.0.cache_mode == "none"
+          - vminfo.records.0.disks.0.disable_snapshotting == false
 
     - name: Resize the disk to 10GB (idempotence)
       scale_computing.hypercore.vm_disk: *resize-disk
@@ -91,6 +127,8 @@
     - ansible.builtin.assert:
         that:
           - result is not changed
+    - *vminfo
+    - *check_vminfo_10gb
 
     - name: Update existing disk - resize, change type of the disk and cache_mode
       scale_computing.hypercore.vm_disk:
@@ -113,11 +151,23 @@
           - result.record | length == 1
           - result.record.0.type == "ide_disk"
           - result.record.0.disk_slot == 0
-          - result.record.0.size == 10737418240,
+          - result.record.0.size == 11918534246
           - result.record.0.iso_name == ""
           - result.record.0.tiering_priority_factor == 4
           - result.record.0.cache_mode == "writeback"
           - result.record.0.disable_snapshotting == false
+    - *vminfo
+    - &check_vminfo_ide10gb
+      ansible.builtin.assert:
+        that:
+          - vminfo.records.0.disks | length == 1
+          - vminfo.records.0.disks.0.type == "ide_disk"
+          - vminfo.records.0.disks.0.disk_slot == 0
+          - vminfo.records.0.disks.0.size == 11918534246
+          - vminfo.records.0.disks.0.iso_name == ""
+          - vminfo.records.0.disks.0.tiering_priority_factor == 4
+          - vminfo.records.0.disks.0.cache_mode == "writeback"
+          - vminfo.records.0.disks.0.disable_snapshotting == false
 
     - name: Remove the previously updated disk
       scale_computing.hypercore.vm_disk:
@@ -132,6 +182,8 @@
           - result is succeeded
           - result is changed
           - result.record | length == 0
+    - *vminfo
+    - *check_vminfo_nodisk
 
     # The file should be already created by prepare_iso.yml
     - name: Get integration-test.iso info
@@ -168,6 +220,18 @@
           - result.record.0.type == "ide_cdrom"
           - result.record.0.disk_slot == 0
           - result.record.0.iso_name == "integration-test-disk.iso"
+    - *vminfo
+    - &check_vminfo_cdromfull
+      ansible.builtin.assert:
+        that:
+          - vminfo.records.0.disks | length == 1
+          - vminfo.records.0.disks.0.type == "ide_cdrom"
+          - vminfo.records.0.disks.0.disk_slot == 0
+          - vminfo.records.0.disks.0.size == 356352
+          - vminfo.records.0.disks.0.iso_name == "integration-test-disk.iso"
+          - vminfo.records.0.disks.0.tiering_priority_factor == 4
+          - vminfo.records.0.disks.0.cache_mode == "none"
+          - vminfo.records.0.disks.0.disable_snapshotting == false
 
     - name: Assert that ISO image is mounted on vm-integration-test-disks
       scale_computing.hypercore.iso_info:
@@ -192,6 +256,8 @@
           - result is succeeded
           - result is changed
           - result.record == []
+    - *vminfo
+    - *check_vminfo_nodisk
 
     - name: Assert that ISO image isn't mounted on vm-integration-test-disks anymore
       scale_computing.hypercore.iso_info:
@@ -224,6 +290,18 @@
           - result.record.0.tiering_priority_factor == 4
           - result.record.0.cache_mode == "none"
           - result.record.0.disable_snapshotting == false
+    - *vminfo
+    - &check_vminfo_virtio_5gb_s1
+      ansible.builtin.assert:
+        that:
+          - vminfo.records.0.disks | length == 1
+          - vminfo.records.0.disks.0.type == "virtio_disk"
+          - vminfo.records.0.disks.0.disk_slot == 1
+          - vminfo.records.0.disks.0.size == 5368709120
+          - vminfo.records.0.disks.0.iso_name == ""
+          - vminfo.records.0.disks.0.tiering_priority_factor == 4
+          - vminfo.records.0.disks.0.cache_mode == "none"
+          - vminfo.records.0.disks.0.disable_snapshotting == false
 
     - name: Set empty CD-ROM
       scale_computing.hypercore.vm_disk:
@@ -243,6 +321,18 @@
           - result.record.0.disk_slot == 0
           - result.record.0.size == 0  # size is always 0 when creating CD-ROM
           - result.record.0.iso_name == ""
+    - *vminfo
+    - &check_vminfo_cdempty
+      ansible.builtin.assert:
+        that:
+          - vminfo.records.0.disks | length == 1
+          - vminfo.records.0.disks.0.type == "ide_cdrom"
+          - vminfo.records.0.disks.0.disk_slot == 0
+          - vminfo.records.0.disks.0.size == 0
+          - vminfo.records.0.disks.0.iso_name == ""
+          - vminfo.records.0.disks.0.tiering_priority_factor == 4
+          - vminfo.records.0.disks.0.cache_mode == "none"
+          - vminfo.records.0.disks.0.disable_snapshotting == false
 
     - name: Force remove all disks
       scale_computing.hypercore.vm_disk:
@@ -256,6 +346,8 @@
           - result is succeeded
           - result is changed
           - result.record == []
+    - *vminfo
+    - *check_vminfo_nodisk
 
     - name: Delete the VM on which the tests were performed
       scale_computing.hypercore.vm: *vm-delete
