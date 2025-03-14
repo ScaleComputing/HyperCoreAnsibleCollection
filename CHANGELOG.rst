@@ -4,6 +4,14 @@ Scale\_Computing.Hypercore Release Notes
 
 .. contents:: Topics
 
+v1.6.1
+======
+
+Bugfixes
+--------
+
+- Fix ISO eject (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/commit/1e26405f9bc34887a6d9f00b2edd7148ec940727)
+
 v1.6.0
 ======
 

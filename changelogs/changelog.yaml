@@ -278,3 +278,10 @@ releases:
     fragments:
     - 20240702-cluster-config-fail-late.yml
     release_date: '2024-08-26'
+  1.6.1:
+    changes:
+      bugfixes:
+      - Fix ISO eject (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/commit/1e26405f9bc34887a6d9f00b2edd7148ec940727)
+    fragments:
+    - 20250131-fix-iso-eject.yml
+    release_date: '2025-03-14'

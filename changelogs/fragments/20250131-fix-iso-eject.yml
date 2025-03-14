@@ -1,0 +1,4 @@
+---
+bugfixes:
+- Fix ISO eject
+  (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/commit/1e26405f9bc34887a6d9f00b2edd7148ec940727)
