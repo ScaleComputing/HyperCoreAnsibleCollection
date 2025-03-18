@@ -31,12 +31,15 @@
   ansible.builtin.shell:
     cmd: |
       qemu-img create -f raw xlab-ci-test-VD.raw 10M
-      # HC3 has some problems with very small/empty disk images.
+      # dd bs=1M count=10 if=/dev/zero of=xlab-ci-test-VD.raw
+      # HC3 v9.4.21.216168 has some problems with very small/empty qcow2 disk images.
       # Run mkfs to populate image.
+      # Update: maybe `qemu-img convert -c` compress option is a problem
       mkfs.ext4 xlab-ci-test-VD.raw
-      qemu-img convert -c -O qcow2 xlab-ci-test-VD.raw xlab-ci-test-VD.qcow2
-      qemu-img convert -c -O vmdk xlab-ci-test-VD.raw xlab-ci-test-VD.vmdk
-  register: generated_img
+      qemu-img convert -O qcow2 xlab-ci-test-VD.raw xlab-ci-test-VD.qcow2
+      # Empty vmdk image seems to be OK
+      # But non-empty image with ext4 filesystem is a problem.
+      qemu-img create -f vmdk xlab-ci-test-VD.vmdk 10M
 
 # ----------------------------------Job------------------------------------------------------------------------
 - name: Upload virtual disk file .qcow2

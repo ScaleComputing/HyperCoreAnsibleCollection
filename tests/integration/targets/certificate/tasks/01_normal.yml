@@ -12,6 +12,7 @@
       community.crypto.get_certificate:
         host: "{{ sc_host | replace('https://','') | replace('http://','') }}"
         port: 443
+        asn1_base64: True
       delegate_to: localhost
       run_once: true
       register: default_cert_info
@@ -59,6 +60,7 @@
       community.crypto.get_certificate:
         host: "{{ sc_host | replace('https://','') | replace('http://','') }}"
         port: 443
+        asn1_base64: True
       delegate_to: localhost
       run_once: true
       register: uploaded_cert_info

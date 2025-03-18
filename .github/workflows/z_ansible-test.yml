@@ -63,8 +63,8 @@ jobs:
         shell: bash
         run: |
           [ "$X_GITHUB_SKIP_TEST" == "1" ] && exit 0
-          pip install ansible-core~=2.16.0
-          ansible-galaxy collection install community.crypto
+          pip install -U ansible-core  # ~=2.16.0
+          ansible-galaxy collection install community.general community.crypto --force
           ansible-galaxy collection list
       # ${{ env.WORKDIR }} cannot be used in "uses:"
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config

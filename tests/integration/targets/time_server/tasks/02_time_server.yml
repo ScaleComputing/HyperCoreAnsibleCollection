@@ -8,7 +8,7 @@
     # We need 2 NTP servers.
     # Set them up per ci-infra/ntp-chrony/Readme.md.
     time_server_a: 10.5.11.5
-    time_server_b: 10.5.11.7
+    time_server_b: 10.5.11.75
     actual_uuid: timesource_guid
 
   block:
