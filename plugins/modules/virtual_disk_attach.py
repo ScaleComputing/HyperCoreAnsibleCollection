@@ -83,7 +83,7 @@ options:
         description:
           - Regenerate the disk ID, e.g. GPT UUID or MBR signature.
         type: bool
-        default: True
+        default: False
 """
 
 
@@ -263,7 +263,7 @@ def main() -> None:
                         default=4,
                     ),
                     read_only=dict(type="bool", default=False),
-                    regenerate_disk_id=dict(type="bool", default=True),
+                    regenerate_disk_id=dict(type="bool", default=False),
                 ),
             ),
         ),
