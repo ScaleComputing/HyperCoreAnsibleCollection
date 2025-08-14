@@ -2,7 +2,7 @@
 
 Create python venv and clone code.
 
-```
+```bash
 mkdir -p ansible_collections/scale_computing/
 cd ansible_collections/scale_computing/
 
