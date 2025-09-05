@@ -14,6 +14,11 @@
     #    greater than 0, is a newer snapshot
 
   block:
+    - name: Delete VMs before test
+      include_tasks: helper_api_vm_snapshot_delete_all.yml
+      vars:
+        vms_number: "{{ number_of_snapshot_testing_vms }}"
+
     - name: Create VMs
       include_tasks: helper_api_vm_snapshot_create.yml
       vars:
@@ -31,6 +36,7 @@
       vars:
         test_vms_number: "{{ number_of_snapshot_testing_vms }}"
   always:
-    - include_tasks: helper_api_vm_snapshot_delete_all.yml
+    - name: Delete VMs after test
+      include_tasks: helper_api_vm_snapshot_delete_all.yml
       vars:
         vms_number: "{{ number_of_snapshot_testing_vms }}"

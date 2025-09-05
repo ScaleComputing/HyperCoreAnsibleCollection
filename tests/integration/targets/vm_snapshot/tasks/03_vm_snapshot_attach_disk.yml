@@ -13,6 +13,7 @@
     slot_b: 0  # vm_2, ide_disk
 
     force_reboot: true  # allow forced vm shutdown
+    shutdown_timeout: 10
 
     # disk size gets rounded by HC3:
     #   0.1 GB to 107374182 B
@@ -83,6 +84,7 @@
         source_disk_type: virtio_disk
         source_disk_slot: 1
         force_reboot: "{{ force_reboot }}"
+        shutdown_timeout: "{{ shutdown_timeout }}"
       register: result
     - ansible.builtin.debug:
         var: result
@@ -128,6 +130,7 @@
         source_disk_type: virtio_disk
         source_disk_slot: 1
         force_reboot: "{{ force_reboot }}"
+        shutdown_timeout: "{{ shutdown_timeout }}"
       register: result
     - ansible.builtin.debug:
         var: result
@@ -157,7 +160,7 @@
         source_disk_type: virtio_disk
         source_disk_slot: 1
         force_reboot: "{{ force_reboot }}"
-        shutdown_timeout: 10  # For faster testing. VM has no OS, so it cannot react to ACPI shutdown.
+        shutdown_timeout: "{{ shutdown_timeout }}" # For faster testing. VM has no OS, so it cannot react to ACPI shutdown.
       register: result
     - ansible.builtin.debug:
         var: result
@@ -201,6 +204,7 @@
         source_disk_type: virtio_disk
         source_disk_slot: 1
         force_reboot: "{{ force_reboot }}"
+        shutdown_timeout: "{{ shutdown_timeout }}"
       register: result
     - ansible.builtin.debug:
         var: result
@@ -231,6 +235,7 @@
         source_disk_type: virtio_disk
         source_disk_slot: 1
         force_reboot: "{{ force_reboot }}"
+        shutdown_timeout: "{{ shutdown_timeout }}"
       register: result
     - ansible.builtin.debug:
         var: result
@@ -270,6 +275,7 @@
         source_disk_type: virtio_disk
         source_disk_slot: 1
         force_reboot: "{{ force_reboot }}"
+        shutdown_timeout: "{{ shutdown_timeout }}"
       register: result
     - ansible.builtin.debug:
         var: result
