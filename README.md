@@ -26,6 +26,7 @@ This collection has been tested against following HyperCore cluster versions:
 - v9.2.13.211102
 - v9.3.5.212852
 - v9.4.17.215487
+- v9.5.5.219383
 
 # Installation
 
