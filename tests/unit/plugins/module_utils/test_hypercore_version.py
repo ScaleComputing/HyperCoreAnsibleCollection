@@ -278,18 +278,8 @@ class TestUpdate:
         assert update1 != update2
 
     def test_apply_update(self, rest_client):
-        update = Update(
-            uuid="9.2.11.210763",
-            description="9.1.11 General Availability",
-            change_log="...Please allow between 20-40 minutes per node for the update to complete...",
-            build_id=210763,
-            major_version=9,
-            minor_version=2,
-            revision=11,
-            timestamp=0,
-        )
-
-        update.apply(rest_client)
+        new_icos_version = "9.2.11.210763"
+        Update.apply_update(rest_client, new_icos_version)
 
         rest_client.create_record.assert_called_with(
             "/rest/v1/Update/9.2.11.210763/apply", payload=None, check_mode=False
