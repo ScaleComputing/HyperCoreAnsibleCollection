@@ -3,22 +3,26 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from ansible.module_utils.basic import AnsibleModule
-from ..module_utils.typed_classes import (
-    TypedVirtualDiskFromAnsible,
-    TypedVirtualDiskToAnsible,
-    TypedTaskTag,
-)
-from typing import Dict, List, Any, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from .rest_client import RestClient
-from ..module_utils.utils import PayloadMapper
+from ansible.module_utils.basic import AnsibleModule
+
 from ..module_utils import errors
+from ..module_utils.typed_classes import TypedTaskTag
+from ..module_utils.typed_classes import TypedVirtualDiskFromAnsible
+from ..module_utils.typed_classes import TypedVirtualDiskToAnsible
+from ..module_utils.utils import PayloadMapper
+from .rest_client import RestClient
 
 REQUEST_TIMEOUT_TIME = 3600
 

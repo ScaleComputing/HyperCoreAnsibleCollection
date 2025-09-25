@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -289,15 +291,15 @@ vm_rebooted:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments
-from ..module_utils.errors import ScaleComputingError
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
-from ..module_utils.vm import ManageVMDisks, compute_params_disk_slot
-from ..module_utils.task_tag import TaskTag
 from ..module_utils.disk import Disk
+from ..module_utils.errors import ScaleComputingError
 from ..module_utils.iso import ISO
+from ..module_utils.rest_client import RestClient
+from ..module_utils.task_tag import TaskTag
 from ..module_utils.utils import filter_dict
-
+from ..module_utils.vm import ManageVMDisks
+from ..module_utils.vm import compute_params_disk_slot
 
 MODULE_PATH = "scale_computing.hypercore.vm_disk"
 

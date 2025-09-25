@@ -20,7 +20,6 @@ import select
 import socket
 import time
 
-
 FORMAT = "%(asctime)-15s %(levelname)-10s %(message)s"
 logging.basicConfig(format=FORMAT)
 LOGGER = logging.getLogger()

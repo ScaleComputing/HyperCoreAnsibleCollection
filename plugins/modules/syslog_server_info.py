@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -92,14 +94,16 @@ records:
 """
 
 
+from typing import List
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import errors, arguments
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.syslog_server import SyslogServer
 from ..module_utils.typed_classes import TypedSyslogServerToAnsible
-from typing import List
 
 
 def run(rest_client: RestClient) -> List[TypedSyslogServerToAnsible]:

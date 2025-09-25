@@ -3,20 +3,25 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import PayloadMapper, get_query
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Union
+
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
-from ..module_utils.typed_classes import (
-    TypedTaskTag,
-    TypedSmtpToAnsible,
-    TypedSmtpFromAnsible,
-)
-from typing import Union, Any, Dict, Optional
+from ..module_utils.typed_classes import TypedSmtpFromAnsible
+from ..module_utils.typed_classes import TypedSmtpToAnsible
+from ..module_utils.typed_classes import TypedTaskTag
+from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import get_query
 
 
 class SMTP(PayloadMapper):

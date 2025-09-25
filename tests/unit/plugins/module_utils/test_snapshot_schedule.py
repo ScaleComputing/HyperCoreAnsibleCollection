@@ -1,18 +1,15 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.snapshot_schedule import (
-    SnapshotSchedule,
-    Recurrence,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.snapshot_schedule import Recurrence
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.snapshot_schedule import SnapshotSchedule
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,

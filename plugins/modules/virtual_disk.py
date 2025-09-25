@@ -3,7 +3,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -89,27 +91,25 @@ record:
       sample: 7983b298-c37a-4c99-8dfe-b2952e81b092
 """
 
-from ansible.module_utils.basic import AnsibleModule
-from typing import Tuple, Optional
 import os
 import time
+from typing import Optional
+from typing import Tuple
 
-from ..module_utils.typed_classes import (
-    TypedVirtualDiskToAnsible,
-    TypedDiff,
-    TypedTaskTag,
-)
-from ..module_utils import errors, arguments
+from ansible.module_utils.basic import AnsibleModule
+
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
+from ..module_utils.hypercore_version import HyperCoreVersion
 from ..module_utils.rest_client import RestClient
-from ..module_utils.utils import is_changed
-from ..module_utils.virtual_disk import VirtualDisk
 from ..module_utils.state import State
 from ..module_utils.task_tag import TaskTag
-
-from ..module_utils.hypercore_version import (
-    HyperCoreVersion,
-)
+from ..module_utils.typed_classes import TypedDiff
+from ..module_utils.typed_classes import TypedTaskTag
+from ..module_utils.typed_classes import TypedVirtualDiskToAnsible
+from ..module_utils.utils import is_changed
+from ..module_utils.virtual_disk import VirtualDisk
 
 HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"
 

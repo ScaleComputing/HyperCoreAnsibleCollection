@@ -3,7 +3,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -134,13 +136,17 @@ look_for_ansible_disable: true
 # }
 """
 
-from ansible.plugins.inventory import BaseInventoryPlugin, Constructable, Cacheable
-import yaml
 import logging
+import os
+
+import yaml
+from ansible.plugins.inventory import BaseInventoryPlugin
+from ansible.plugins.inventory import Cacheable
+from ansible.plugins.inventory import Constructable
+
 from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-import os
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)

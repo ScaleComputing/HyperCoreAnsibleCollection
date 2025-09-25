@@ -3,30 +3,33 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
+import enum
 import json
 import os
 import ssl
-from typing import Any, Optional, Union
 from io import BufferedReader
-import enum
+from typing import Any
+from typing import Optional
+from typing import Union
 
+from ansible.module_utils.six.moves.urllib.error import HTTPError
+from ansible.module_utils.six.moves.urllib.error import URLError
+from ansible.module_utils.six.moves.urllib.parse import quote
+from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.urls import Request
 
-from .errors import (
-    AuthError,
-    ScaleComputingError,
-    UnexpectedAPIResponse,
-    ApiResponseNotJson,
-)
 from ..module_utils.typed_classes import TypedClusterInstance
-
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.six.moves.urllib.parse import urlencode, quote
+from .errors import ApiResponseNotJson
+from .errors import AuthError
+from .errors import ScaleComputingError
+from .errors import UnexpectedAPIResponse
 
 DEFAULT_HEADERS = dict(Accept="application/json")
 

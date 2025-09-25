@@ -3,22 +3,26 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from .rest_client import RestClient
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
-from ..module_utils.utils import PayloadMapper, get_query
 from ..module_utils.task_tag import TaskTag
-
-from ..module_utils.typed_classes import (
-    TypedTaskTag,
-    TypedSyslogServerToAnsible,
-    TypedSyslogServerFromAnsible,
-)
-from typing import List, Union, Any, Dict, Optional
+from ..module_utils.typed_classes import TypedSyslogServerFromAnsible
+from ..module_utils.typed_classes import TypedSyslogServerToAnsible
+from ..module_utils.typed_classes import TypedTaskTag
+from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import get_query
+from .rest_client import RestClient
 
 protocols = {"SYSLOG_PROTOCOL_TCP": "tcp", "SYSLOG_PROTOCOL_UDP": "udp"}
 

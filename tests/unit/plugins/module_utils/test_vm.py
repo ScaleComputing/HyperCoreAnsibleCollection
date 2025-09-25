@@ -1,30 +1,23 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import (
-    VM,
-    ManageVMParams,
-    ManageVMDisks,
-    ManageVMNics,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import (
-    ScaleComputingError,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.disk import Disk
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.iso import ISO
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.snapshot_schedule import (
-    SnapshotSchedule,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.disk import Disk
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import ScaleComputingError
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.iso import ISO
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.snapshot_schedule import SnapshotSchedule
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import ManageVMDisks
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import ManageVMNics
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import ManageVMParams
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,

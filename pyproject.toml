@@ -80,3 +80,33 @@ disable_error_code = ["no-untyped-def", "no-untyped-call", "assignment", "type-a
 target-version = ["py38"]
 # exclude - a regex like 'plugins/inventory/hypercore.py|second.py'
 exclude = 'plugins/inventory/hypercore.py'
+
+[tool.isort]
+profile = "black"
+force_single_line = true
+line_length = 120
+
+src_paths = [
+    "plugins",
+    "tests/unit",
+    "tests/integration",
+]
+
+#sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "ANSIBLE_CORE", "ANSIBLE_AMAZON_AWS", "ANSIBLE_COMMUNITY_AWS", "LOCALFOLDER"]
+#known_third_party = ["botocore", "boto3"]
+known_ansible_core = ["ansible"]
+#known_ansible_amazon_aws = ["ansible_collections.amazon.aws"]
+#known_ansible_community_aws = ["ansible_collections.community.aws"]
+
+[tool.flynt]
+transform-joins = true
+#exclude = [
+#    "ec2_metadata_facts",
+#]
+
+[tool.flake8]
+# E123, E125 skipped as they are invalid PEP-8.
+show-source = true
+ignore = ["E123", "E125", "E203", "E402", "E501", "E741", "F401", "F811", "F841", "W503"]
+max-line-length = 160
+builtins = "_"

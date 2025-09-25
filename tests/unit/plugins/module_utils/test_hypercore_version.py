@@ -3,28 +3,24 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-import sys
-import pytest
 import json
+import sys
 
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import (
-    HyperCoreVersion,
-    Version,
-    VersionSpecSimple,
-    VersionSpec,
-    Update,
-    UpdateStatus,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
-    Response,
-)
+import pytest
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import Response
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import HyperCoreVersion
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import Update
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import UpdateStatus
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import Version
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import VersionSpec
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import VersionSpecSimple
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,

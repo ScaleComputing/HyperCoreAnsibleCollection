@@ -4,36 +4,39 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import base64
-from time import sleep, time
-from typing import Dict, Any, Optional, List
+from time import sleep
+from time import time
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from ..module_utils.errors import DeviceNotUnique
-from ..module_utils.rest_client import RestClient
-from ..module_utils.nic import Nic, NicType
-from ..module_utils.disk import Disk
-from ..module_utils.node import Node
-from ..module_utils.iso import ISO
-from ..module_utils.utils import (
-    PayloadMapper,
-    filter_dict,
-    transform_query,
-    is_superset,
-)
-from ..module_utils.state import NicState
-from ..module_utils.utils import (
-    get_query,
-    filter_results,
-)
-from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
-from ..module_utils.snapshot_schedule import SnapshotSchedule
+from ..module_utils.disk import Disk
+from ..module_utils.errors import DeviceNotUnique
 from ..module_utils.hypercore_version import HyperCoreVersion
+from ..module_utils.iso import ISO
+from ..module_utils.nic import Nic
+from ..module_utils.nic import NicType
+from ..module_utils.node import Node
+from ..module_utils.rest_client import RestClient
+from ..module_utils.snapshot_schedule import SnapshotSchedule
+from ..module_utils.state import NicState
+from ..module_utils.task_tag import TaskTag
+from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import filter_dict
+from ..module_utils.utils import filter_results
+from ..module_utils.utils import get_query
+from ..module_utils.utils import is_superset
+from ..module_utils.utils import transform_query
 
 # HyperCore state (ansible power_state) are a state machine.
 # We have states and actions to move between states.

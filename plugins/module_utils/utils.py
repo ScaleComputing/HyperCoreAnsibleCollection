@@ -3,25 +3,26 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
+
 from abc import abstractmethod
 
 __metaclass__ = type
 
 import uuid
+from typing import Any
+from typing import Union
 
 from ..module_utils.errors import InvalidUuidFormatError
-from typing import Union, Any
-from ..module_utils.typed_classes import (
-    TypedTaskTag,
-    TypedRegistrationToAnsible,
-    TypedOidcToAnsible,
-    TypedCertificateToAnsible,
-    TypedVirtualDiskToAnsible,
-    TypedVMSnapshotToAnsible,
-)
-
+from ..module_utils.typed_classes import TypedCertificateToAnsible
+from ..module_utils.typed_classes import TypedOidcToAnsible
+from ..module_utils.typed_classes import TypedRegistrationToAnsible
+from ..module_utils.typed_classes import TypedTaskTag
+from ..module_utils.typed_classes import TypedVirtualDiskToAnsible
+from ..module_utils.typed_classes import TypedVMSnapshotToAnsible
 
 MIN_PYTHON_VERSION = (3, 8)
 
