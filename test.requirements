@@ -3,5 +3,6 @@ pytest==8.2.2
 pytest-xdist==3.6.1
 pytest-mock==3.14.0
 pytest-forked==1.6.0
-ansible-lint==24.7.0
+ansible-lint==25.1.2
 isort
+pylint
