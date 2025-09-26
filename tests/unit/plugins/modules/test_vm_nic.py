@@ -118,9 +118,7 @@ class TestEnsureAbsent:
         # rest_client.list_records.return_value = [self._get_empty_test_vm()]
         vm_before = VM.from_hypercore(self._get_empty_test_vm(), rest_client)
         # rest_client.create_record.return_value = {"taskTag": "1234"}
-        results = vm_nic.ensure_absent(
-            module=module, rest_client=rest_client, vm_before=vm_before
-        )
+        results = vm_nic.ensure_absent(module=module, rest_client=rest_client, vm_before=vm_before)
         assert results == (False, [], {"before": [], "after": []})
 
     def test_ensure_absent_when_change(self, create_module, rest_client, mocker):
@@ -155,9 +153,7 @@ class TestEnsureAbsent:
         vm_before = VM.from_hypercore(self._get_test_vm(), rest_client)
         rest_client.get_record.return_value = {"state": "COMPLETED"}
         # rest_client.create_record.return_value = {"taskTag": "1234"}
-        results = vm_nic.ensure_absent(
-            module=module, rest_client=rest_client, vm_before=vm_before
-        )
+        results = vm_nic.ensure_absent(module=module, rest_client=rest_client, vm_before=vm_before)
         assert results == (
             True,
             [None, None],
@@ -188,9 +184,7 @@ class TestEnsureAbsent:
 class TestMain:
     def test_minimal_set_of_params(self, run_main_with_reboot, mocker):
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             state="present",
             vm_name=dict(
                 type="str",

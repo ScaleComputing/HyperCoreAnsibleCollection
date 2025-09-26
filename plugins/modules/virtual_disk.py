@@ -118,9 +118,7 @@ def read_disk_file(module: AnsibleModule) -> int:
     try:
         file_size = os.path.getsize(module.params["source"])
     except FileNotFoundError:
-        raise errors.ScaleComputingError(
-            f"Disk file {module.params['source']} not found."
-        )
+        raise errors.ScaleComputingError(f"Disk file {module.params['source']} not found.")
     return file_size
 
 
@@ -131,9 +129,7 @@ def wait_task_and_get_updated(
     must_exist: bool = False,
 ) -> Optional[TypedVirtualDiskToAnsible]:
     TaskTag.wait_task(rest_client, task)
-    updated_disk = VirtualDisk.get_by_name(
-        rest_client, name=module.params["name"], must_exist=must_exist
-    )
+    updated_disk = VirtualDisk.get_by_name(rest_client, name=module.params["name"], must_exist=must_exist)
     return updated_disk.to_ansible() if updated_disk else None
 
 
@@ -150,9 +146,7 @@ def ensure_present(
     else:
         file_size = read_disk_file(module)
         if not file_size:
-            raise errors.ScaleComputingError(
-                f"Invalid size for file: {module.params['source']}"
-            )
+            raise errors.ScaleComputingError(f"Invalid size for file: {module.params['source']}")
         task = VirtualDisk.send_upload_request(rest_client, file_size, module)
         after = wait_task_and_get_updated(rest_client, module, task, must_exist=False)
         return is_changed(before, after), after, dict(before=before, after=after)
@@ -183,9 +177,7 @@ def ensure_absent(
 
 
 # Virtual disk can only be created or deleted; No update actions available.
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedVirtualDiskToAnsible], TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedVirtualDiskToAnsible], TypedDiff]:
     virtual_disk_obj = VirtualDisk.get_by_name(rest_client, name=module.params["name"])
     if module.params["state"] == State.present:
         return ensure_present(module, rest_client, virtual_disk_obj)

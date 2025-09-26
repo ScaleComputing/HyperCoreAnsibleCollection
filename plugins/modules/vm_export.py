@@ -97,9 +97,7 @@ from ..module_utils.vm import VM
 
 
 def run(module, rest_client):
-    virtual_machine_obj = VM.get_or_fail(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )[0]
+    virtual_machine_obj = VM.get_or_fail(query={"name": module.params["vm_name"]}, rest_client=rest_client)[0]
     try:
         task = virtual_machine_obj.export_vm(rest_client, module.params)
         TaskTag.wait_task(rest_client, task)

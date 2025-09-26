@@ -169,9 +169,7 @@ def build_entry_list(
     )
 
 
-def modify_dns_config(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, dict, dict]:
+def modify_dns_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
     # GET method to get the DNS Config by UUID
     dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
 
@@ -194,9 +192,7 @@ def modify_dns_config(
 
     # Otherwise, continue with modifying the configuration
     before = dns_config.to_ansible()
-    old_state = DNSConfig.get_state(
-        rest_client
-    )  # get the state of DNS config before modification
+    old_state = DNSConfig.get_state(rest_client)  # get the state of DNS config before modification
 
     # Set action according to specified state param
     action = "create"

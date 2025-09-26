@@ -589,12 +589,8 @@ class TestVM:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         hypercore_dict = rest_client.list_records.return_value[0]
-        actual = VM.from_hypercore(
-            vm_dict=hypercore_dict, rest_client=rest_client
-        ).to_hypercore(hcversion)
-        results = VM.get_or_fail(
-            query={"name": "XLAB_test_vm"}, rest_client=rest_client
-        )[0].to_hypercore(hcversion)
+        actual = VM.from_hypercore(vm_dict=hypercore_dict, rest_client=rest_client).to_hypercore(hcversion)
+        results = VM.get_or_fail(query={"name": "XLAB_test_vm"}, rest_client=rest_client)[0].to_hypercore(hcversion)
         assert results == actual
 
     def test_get_or_fail_when_fail(self, rest_client):
@@ -930,9 +926,7 @@ class TestNic:
             rest_client,
         )
 
-    def test_delete_unused_nics_to_hypercore_vm_when_no_delete(
-        self, create_module, rest_client, mocker
-    ):
+    def test_delete_unused_nics_to_hypercore_vm_when_no_delete(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -975,18 +969,12 @@ class TestNic:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         rest_client.list_records.return_value = [vm_dict]
-        virtual_machine = VM.get(
-            query={"name": module.params["vm_name"]}, rest_client=rest_client
-        )[0]
+        virtual_machine = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)[0]
         nic_key = "items"
-        results = virtual_machine.delete_unused_nics_to_hypercore_vm(
-            module, rest_client, nic_key
-        )
+        results = virtual_machine.delete_unused_nics_to_hypercore_vm(module, rest_client, nic_key)
         assert results is False
 
-    def test_delete_unused_nics_to_hypercore_vm_when_one_nic_deleted(
-        self, create_module, rest_client, mocker
-    ):
+    def test_delete_unused_nics_to_hypercore_vm_when_one_nic_deleted(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1046,18 +1034,12 @@ class TestNic:
             "taskTag": "1234",
             "state": "COMPLETED",
         }
-        virtual_machine = VM.get(
-            query={"name": module.params["vm_name"]}, rest_client=rest_client
-        )[0]
+        virtual_machine = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)[0]
         nic_key = "items"
-        results = virtual_machine.delete_unused_nics_to_hypercore_vm(
-            module, rest_client, nic_key
-        )
+        results = virtual_machine.delete_unused_nics_to_hypercore_vm(module, rest_client, nic_key)
         assert results is True
 
-    def test_delete_unused_nics_to_hypercore_vm_when_multiple_nic_deleted(
-        self, create_module, rest_client, mocker
-    ):
+    def test_delete_unused_nics_to_hypercore_vm_when_multiple_nic_deleted(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1129,13 +1111,9 @@ class TestNic:
             {"taskTag": "1234"},
             {"taskTag": "5678"},
         ]
-        virtual_machine = VM.get(
-            query={"name": module.params["vm_name"]}, rest_client=rest_client
-        )[0]
+        virtual_machine = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)[0]
         nic_key = "items"
-        results = virtual_machine.delete_unused_nics_to_hypercore_vm(
-            module, rest_client, nic_key
-        )
+        results = virtual_machine.delete_unused_nics_to_hypercore_vm(module, rest_client, nic_key)
         assert results is True
 
     def test_find_nic_vlan(self, rest_client, mocker):
@@ -1185,9 +1163,7 @@ class TestNic:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
         virtual_machine = self._get_test_vm(rest_client, mocker)
-        results = virtual_machine.find_nic(
-            mac="12-34-56-78-CD", mac_new="12-34-56-78-AB"
-        )
+        results = virtual_machine.find_nic(mac="12-34-56-78-CD", mac_new="12-34-56-78-AB")
         assert results[0].vlan == 2
         assert results[0].mac == "12-34-56-78-CD"
         assert results[0].uuid == "6456f2hj-6u9a-90ff-6g91-7jeahgf47aab"
@@ -1215,13 +1191,7 @@ class TestVMExport:
         results = VM.create_export_or_import_vm_payload(ansible_dict, None, True)
         assert results == dict(
             target=dict(
-                pathURI="smb://"
-                + "username"
-                + ":"
-                + "password"
-                + "@"
-                + "10.5.11.170"
-                + "/user",
+                pathURI="smb://" + "username" + ":" + "password" + "@" + "10.5.11.170" + "/user",
                 definitionFileName="my_file.xml",
             ),
             template=dict(),
@@ -1300,13 +1270,7 @@ class TestVMImport:
         results = VM.create_export_or_import_vm_payload(ansible_dict, None, False)
         assert results == dict(
             source=dict(
-                pathURI="smb://"
-                + "username"
-                + ":"
-                + "password"
-                + "@"
-                + "10.5.11.170"
-                + "/user",
+                pathURI="smb://" + "username" + ":" + "password" + "@" + "10.5.11.170" + "/user",
                 definitionFileName="my_file.xml",
             ),
             template=dict(name="this-vm-name"),
@@ -1485,9 +1449,7 @@ class TestVMClone:
             ["original_tag", "original_tag2"],
             {"userData": "something", "metaData": "else"},
             preserve_mac_address=True,
-            source_nics=[
-                Nic.from_ansible(dict(type="virtio", mac="11:00:00:00:00:10", vlan=10))
-            ],
+            source_nics=[Nic.from_ansible(dict(type="virtio", mac="11:00:00:00:00:10", vlan=10))],
             source_snapshot_uuid="",
         )
         assert results == {
@@ -1562,9 +1524,7 @@ class TestVMClone:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
-        virtual_machine = VM.get_or_fail(
-            query={"name": "XLAB-test-vm-clone"}, rest_client=rest_client
-        )[0]
+        virtual_machine = VM.get_or_fail(query={"name": "XLAB-test-vm-clone"}, rest_client=rest_client)[0]
         results = virtual_machine.clone_vm(rest_client, ansible_dict)
         assert results == {"taskTag": "1234"}
 
@@ -1610,9 +1570,7 @@ class TestVMClone:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
-        virtual_machine = VM.get_or_fail(
-            query={"name": "XLAB-test-vm-clone"}, rest_client=rest_client
-        )[0]
+        virtual_machine = VM.get_or_fail(query={"name": "XLAB-test-vm-clone"}, rest_client=rest_client)[0]
         results = virtual_machine.clone_vm(rest_client, ansible_dict)
         assert results == {"taskTag": "1234"}
 
@@ -2032,9 +1990,7 @@ class TestManageVMParams:
             vcpu=2,
             snapshot_schedule="",
         )
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.TaskTag.wait_task"
-        )
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.TaskTag.wait_task")
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.get_or_fail"
         ).return_value = [
@@ -2053,9 +2009,7 @@ class TestManageVMParams:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
-        changed, diff, changed_parameters = ManageVMParams.set_vm_params(
-            module, rest_client, vm_before, []
-        )
+        changed, diff, changed_parameters = ManageVMParams.set_vm_params(module, rest_client, vm_before, [])
 
         assert changed is True
         assert diff == {
@@ -2122,9 +2076,7 @@ class TestManageVMParams:
             snapshot_schedule="",
         )
 
-        changed, diff, changed_parameters = ManageVMParams.set_vm_params(
-            module, rest_client, vm_before, []
-        )
+        changed, diff, changed_parameters = ManageVMParams.set_vm_params(module, rest_client, vm_before, [])
 
         assert changed is False
         assert diff == {
@@ -2392,9 +2344,7 @@ class TestManageVMDisks:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
-        result = ManageVMDisks._create_block_device(
-            module, rest_client, vm, desired_disk
-        )
+        result = ManageVMDisks._create_block_device(module, rest_client, vm, desired_disk)
         rest_client.create_record.assert_called_with(
             "/rest/v1/VirDomainBlockDevice",
             {
@@ -2434,9 +2384,7 @@ class TestManageVMDisks:
         )
         uuid = "disk_id"
         attach = True
-        result = ManageVMDisks.iso_image_management(
-            module, rest_client, iso, uuid, attach
-        )
+        result = ManageVMDisks.iso_image_management(module, rest_client, iso, uuid, attach)
         rest_client.update_record.assert_called_with(
             "/rest/v1/VirDomainBlockDevice/disk_id",
             dict(
@@ -2468,9 +2416,7 @@ class TestManageVMDisks:
         )
         uuid = "disk_id"
         attach = False
-        result = ManageVMDisks.iso_image_management(
-            module, rest_client, iso, uuid, attach
-        )
+        result = ManageVMDisks.iso_image_management(module, rest_client, iso, uuid, attach)
         rest_client.update_record.assert_called_with(
             "/rest/v1/VirDomainBlockDevice/disk_id",
             dict(
@@ -2528,9 +2474,7 @@ class TestManageVMDisks:
             "state": "COMPLETED",
         }
         vm = VM(name="vm-name", memory=42, vcpu=2, uuid="id", power_state="shutdown")
-        ManageVMDisks._update_block_device(
-            module, rest_client, desired_disk, existing_disk, vm
-        )
+        ManageVMDisks._update_block_device(module, rest_client, desired_disk, existing_disk, vm)
         rest_client.update_record.assert_called_with(
             "/rest/v1/VirDomainBlockDevice/id",
             {
@@ -2549,9 +2493,7 @@ class TestManageVMDisks:
             False,
         )
 
-    def test_delete_not_used_disks_no_deletion(
-        self, create_module, rest_client, mocker
-    ):
+    def test_delete_not_used_disks_no_deletion(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -2622,9 +2564,7 @@ class TestManageVMDisks:
         rest_client.delete_record.assert_not_called()
         assert not changed
 
-    def test_delete_not_used_disks_deletion(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_delete_not_used_disks_deletion(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -2702,9 +2642,7 @@ class TestManageVMDisks:
         )
         assert changed
 
-    def test_force_remove_all_disks_disks_present(
-        self, create_module, rest_client, mocker
-    ):
+    def test_force_remove_all_disks_disks_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -2775,9 +2713,7 @@ class TestManageVMDisks:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.wait_shutdown"
         ).return_value = True
-        result = ManageVMDisks._force_remove_all_disks(
-            module, rest_client, vm, disks_before
-        )
+        result = ManageVMDisks._force_remove_all_disks(module, rest_client, vm, disks_before)
         assert result == (
             True,
             [],
@@ -2802,9 +2738,7 @@ class TestManageVMDisks:
             False,
         )
 
-    def test_force_remove_all_disks_items_not_empty_list(
-        self, create_module, rest_client
-    ):
+    def test_force_remove_all_disks_items_not_empty_list(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -2821,9 +2755,7 @@ class TestManageVMDisks:
         with pytest.raises(ScaleComputingError, match="force"):
             ManageVMDisks._force_remove_all_disks(module, rest_client, vm, disks_before)
 
-    def test_ensure_present_create_new_disk(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_create_new_disk(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -2916,9 +2848,7 @@ class TestManageVMDisks:
         ).return_value = True
         module_path = "scale_computing.hypercore.vm_disk"
         vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
-        results = ManageVMDisks.ensure_present_or_set(
-            module, rest_client, module_path, vm_before
-        )
+        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path, vm_before)
         assert results == (
             True,
             [
@@ -2957,9 +2887,7 @@ class TestManageVMDisks:
             False,
         )
 
-    def test_ensure_present_update_test_idempotency(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_present_update_test_idempotency(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -3059,9 +2987,7 @@ class TestManageVMDisks:
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
         vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
-        results = ManageVMDisks.ensure_present_or_set(
-            module, rest_client, module_path, vm_before
-        )
+        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path, vm_before)
         assert results == (
             False,
             [
@@ -3114,9 +3040,7 @@ class TestManageVMDisks:
             False,
         )
 
-    def test_ensure_present_update_record(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_update_record(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -3223,9 +3147,7 @@ class TestManageVMDisks:
         ).return_value = True
         module_path = "scale_computing.hypercore.vm_disk"
         vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
-        results = ManageVMDisks.ensure_present_or_set(
-            module, rest_client, module_path, vm_before
-        )
+        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path, vm_before)
         assert results == (
             True,
             [
@@ -3278,9 +3200,7 @@ class TestManageVMDisks:
             False,
         )
 
-    def test_ensure_present_attach_iso_cdrom_existing(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_attach_iso_cdrom_existing(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -3394,9 +3314,7 @@ class TestManageVMDisks:
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
         vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
-        results = ManageVMDisks.ensure_present_or_set(
-            module, rest_client, module_path, vm_before
-        )
+        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path, vm_before)
         assert results == (
             True,
             [
@@ -3449,9 +3367,7 @@ class TestManageVMDisks:
             False,
         )
 
-    def test_ensure_present_attach_iso_cdrom_absent(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_attach_iso_cdrom_absent(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -3557,9 +3473,7 @@ class TestManageVMDisks:
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
         vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
-        results = ManageVMDisks.ensure_present_or_set(
-            module, rest_client, module_path, vm_before
-        )
+        results = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path, vm_before)
         assert results == (
             True,
             [
@@ -3600,9 +3514,7 @@ class TestManageVMDisks:
 
     # ensure_present uses only a subset of code of ensure_set. So not testing ensure set again, setting the created
     # disks to empty list as this is tested in this class in methods above already
-    def test_ensure_set_force_remove_disks(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_set_force_remove_disks(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -3667,9 +3579,7 @@ class TestManageVMDisks:
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
         vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
-        result = ManageVMDisks.ensure_present_or_set(
-            module, rest_client, module_path, vm_before
-        )
+        result = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path, vm_before)
         assert result == (
             True,
             [],
@@ -3694,9 +3604,7 @@ class TestManageVMDisks:
             False,
         )
 
-    def test_ensure_set_remove_unused_disk(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_set_remove_unused_disk(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -3828,9 +3736,7 @@ class TestManageVMDisks:
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_disk"
         vm_before, disks_before = ManageVMDisks.get_vm_by_name(module, rest_client)
-        result = ManageVMDisks.ensure_present_or_set(
-            module, rest_client, module_path, vm_before
-        )
+        result = ManageVMDisks.ensure_present_or_set(module, rest_client, module_path, vm_before)
 
         assert result == (
             True,
@@ -3955,9 +3861,7 @@ class TestManageVMNics:
         )
         nic_dict = nic
         rest_client.get_record.return_value = nic_dict
-        results = ManageVMNics.get_by_uuid(
-            rest_client=rest_client, nic_uuid="my-nic-uuid"
-        )
+        results = ManageVMNics.get_by_uuid(rest_client=rest_client, nic_uuid="my-nic-uuid")
         nic_dict = Nic.from_hypercore(nic_dict).to_hypercore()
         assert results.to_hypercore() == nic_dict
 
@@ -4157,9 +4061,7 @@ class TestManageVMNics:
             [Nic.from_hypercore(new_nic).to_ansible()],
         )
 
-    def test_send_delete_nic_request_to_hypercore(
-        self, rest_client, create_module, mocker
-    ):
+    def test_send_delete_nic_request_to_hypercore(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -4384,9 +4286,7 @@ class TestManageVMNics:
             "ipv4Addresses": ["10.0.0.1", "10.0.0.2"],
         }
 
-    def test_ensure_present_or_set_when_no_change_and_state_set(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_no_change_and_state_set(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -4418,9 +4318,7 @@ class TestManageVMNics:
         )
         assert results == (False, [], {"before": [], "after": []})
 
-    def test_ensure_present_or_set_when_no_change_and_state_present(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_no_change_and_state_present(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -4453,9 +4351,7 @@ class TestManageVMNics:
         assert results == (False, [], {"before": [], "after": []})
 
     @pytest.mark.skip("todo")
-    def test_ensure_present_or_set_when_changed_create_nics_and_state_set(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_changed_create_nics_and_state_set(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -4490,9 +4386,7 @@ class TestManageVMNics:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
-        results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
-        )
+        results = ManageVMNics.ensure_present_or_set(module=module, rest_client=rest_client, module_path=module_path)
 
         assert results == (
             True,
@@ -4539,9 +4433,7 @@ class TestManageVMNics:
         )
 
     @pytest.mark.skip("todo")
-    def test_ensure_present_or_set_when_changed_create_nics_and_state_present(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_changed_create_nics_and_state_present(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -4576,9 +4468,7 @@ class TestManageVMNics:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
-        results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
-        )
+        results = ManageVMNics.ensure_present_or_set(module=module, rest_client=rest_client, module_path=module_path)
 
         assert results == (
             True,
@@ -4625,9 +4515,7 @@ class TestManageVMNics:
         )
 
     @pytest.mark.skip("how to mockup Node.get_node?")
-    def test_ensure_present_or_set_when_changed_delete_all_and_state_set(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_changed_delete_all_and_state_set(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -4663,9 +4551,7 @@ class TestManageVMNics:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
-        results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
-        )
+        results = ManageVMNics.ensure_present_or_set(module=module, rest_client=rest_client, module_path=module_path)
 
         assert results == (
             True,
@@ -4695,9 +4581,7 @@ class TestManageVMNics:
         )
 
     @pytest.mark.skip("todo")
-    def test_ensure_present_or_set_when_changed_nic_type_and_state_present(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_changed_nic_type_and_state_present(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -4738,9 +4622,7 @@ class TestManageVMNics:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
-        results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
-        )
+        results = ManageVMNics.ensure_present_or_set(module=module, rest_client=rest_client, module_path=module_path)
 
         assert results == (
             True,
@@ -4804,9 +4686,7 @@ class TestManageVMNics:
         )
 
     @pytest.mark.skip("todo")
-    def test_ensure_present_or_set_when_changed_nic_type_and_state_set(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_changed_nic_type_and_state_set(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -4847,9 +4727,7 @@ class TestManageVMNics:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
-        results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
-        )
+        results = ManageVMNics.ensure_present_or_set(module=module, rest_client=rest_client, module_path=module_path)
 
         assert results == (
             True,
@@ -4913,9 +4791,7 @@ class TestManageVMNics:
         )
 
     @pytest.mark.skip("todo")
-    def test_ensure_present_or_set_when_changed_nic_vlan_and_state_present(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_changed_nic_vlan_and_state_present(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -4956,9 +4832,7 @@ class TestManageVMNics:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
-        results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
-        )
+        results = ManageVMNics.ensure_present_or_set(module=module, rest_client=rest_client, module_path=module_path)
 
         assert results == (
             True,
@@ -5022,9 +4896,7 @@ class TestManageVMNics:
         )
 
     @pytest.mark.skip("todo")
-    def test_ensure_present_or_set_when_changed_nic_vlan_and_state_set(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_changed_nic_vlan_and_state_set(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -5068,9 +4940,7 @@ class TestManageVMNics:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
-        results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
-        )
+        results = ManageVMNics.ensure_present_or_set(module=module, rest_client=rest_client, module_path=module_path)
 
         assert results == (
             True,
@@ -5134,9 +5004,7 @@ class TestManageVMNics:
         )
 
     @pytest.mark.skip("todo")
-    def test_ensure_present_or_set_when_changed_nic_mac_and_state_present(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_changed_nic_mac_and_state_present(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -5177,9 +5045,7 @@ class TestManageVMNics:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
-        results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
-        )
+        results = ManageVMNics.ensure_present_or_set(module=module, rest_client=rest_client, module_path=module_path)
 
         assert results == (
             True,
@@ -5243,9 +5109,7 @@ class TestManageVMNics:
         )
 
     @pytest.mark.skip("todo")
-    def test_ensure_present_or_set_when_changed_nic_mac_and_state_set(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_present_or_set_when_changed_nic_mac_and_state_set(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -5286,9 +5150,7 @@ class TestManageVMNics:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.do_shutdown_steps"
         ).return_value = None
         module_path = "scale_computing.hypercore.vm_nic"
-        results = ManageVMNics.ensure_present_or_set(
-            module=module, rest_client=rest_client, module_path=module_path
-        )
+        results = ManageVMNics.ensure_present_or_set(module=module, rest_client=rest_client, module_path=module_path)
 
         assert results == (
             True,

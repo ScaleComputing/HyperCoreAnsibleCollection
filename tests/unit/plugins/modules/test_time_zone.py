@@ -39,9 +39,7 @@ class TestModifyTimeZone:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0", username="admin", password="admin"
-                ),
+                cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
                 zone=param_zone,
             )
         )
@@ -52,9 +50,7 @@ class TestModifyTimeZone:
             zone=rc_time_zone,
             latest_task_tag={},
         )
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.time_zone.TimeZone.get_state"
-        )
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.module_utils.time_zone.TimeZone.get_state")
         rest_client.create_record.return_value = {
             "taskTag": 123,
         }
@@ -86,9 +82,7 @@ class TestModifyTimeZone:
 
             time_zone.modify_time_zone(module, rest_client)
 
-    def test_modify_time_zone_unsupported_zone(
-        self, create_module, rest_client, mocker
-    ):
+    def test_modify_time_zone_unsupported_zone(self, create_module, rest_client, mocker):
         with pytest.raises(errors.ScaleComputingError):
             module = create_module(
                 params=dict(

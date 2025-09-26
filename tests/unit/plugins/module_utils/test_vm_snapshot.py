@@ -245,9 +245,7 @@ class TestVMSnapshot:
     # =============================
 
     def test_hypercore_disk_to_ansible(self):
-        hypercore_disk_to_ansible = VMSnapshot.hypercore_disk_to_ansible(
-            self.disk_hypercore
-        )
+        hypercore_disk_to_ansible = VMSnapshot.hypercore_disk_to_ansible(self.disk_hypercore)
         assert hypercore_disk_to_ansible == self.disk_ansible
 
     def test_get_vm_disk_info_by_uuid(self, rest_client):

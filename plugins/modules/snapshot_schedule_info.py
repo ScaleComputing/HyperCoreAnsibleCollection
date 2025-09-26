@@ -92,9 +92,7 @@ def run(module, rest_client):
     query = get_query(module.params, "name", ansible_hypercore_map=dict(name="name"))
     return [
         SnapshotSchedule.from_hypercore(hypercore_dict).to_ansible()
-        for hypercore_dict in rest_client.list_records(
-            "/rest/v1/VirDomainSnapshotSchedule", query
-        )
+        for hypercore_dict in rest_client.list_records("/rest/v1/VirDomainSnapshotSchedule", query)
     ]
 
 

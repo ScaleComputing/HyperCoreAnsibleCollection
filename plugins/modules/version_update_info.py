@@ -179,11 +179,7 @@ def run(
         for hypercore_dict in rest_client.list_records("/rest/v1/Update")
     ]
     if records:
-        records.sort(
-            key=operator.itemgetter(
-                "major_version", "minor_version", "revision", "build_id"
-            )
-        )
+        records.sort(key=operator.itemgetter("major_version", "minor_version", "revision", "build_id"))
         return records, records[0], records[-1]
     return records, None, None
 

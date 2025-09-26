@@ -104,12 +104,8 @@ class Registration(PayloadMapper):
         return rest_client.create_record("/rest/v1/Registration", payload, False)
 
     def send_delete_request(self, rest_client: RestClient) -> TypedTaskTag:
-        return rest_client.delete_record(
-            "/rest/v1/Registration/registration_guid", False
-        )
+        return rest_client.delete_record("/rest/v1/Registration/registration_guid", False)
 
     def send_update_request(self, rest_client: RestClient) -> TypedTaskTag:
         payload = self.to_hypercore()
-        return rest_client.update_record(
-            "/rest/v1/Registration/registration_guid", payload, False
-        )
+        return rest_client.update_record("/rest/v1/Registration/registration_guid", payload, False)

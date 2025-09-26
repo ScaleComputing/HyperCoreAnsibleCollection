@@ -891,9 +891,7 @@ SUPPORTED_ZONES = [
 
 
 # Remove implementation not needed
-def modify_time_zone(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, dict, dict]:
+def modify_time_zone(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
     # GET method to get the Time Server by UUID
     time_zone = TimeZone.get_by_uuid(module.params, rest_client)
 
@@ -913,9 +911,7 @@ def modify_time_zone(
 
     # Otherwise, continue with modifying the configuration
     before = time_zone.to_ansible()
-    old_state = TimeZone.get_state(
-        rest_client=rest_client
-    )  # get the state of Time Server before modification
+    old_state = TimeZone.get_state(rest_client=rest_client)  # get the state of Time Server before modification
 
     # Init return values and return if no changes were made
     change, record, diff = (

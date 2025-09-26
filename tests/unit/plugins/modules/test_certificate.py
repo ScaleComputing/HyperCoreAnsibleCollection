@@ -24,9 +24,7 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_params_certificate(self, run_main) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             private_key="this_key",
             certificate="this_certificate",
         )
@@ -42,9 +40,7 @@ class TestMain:
 
 
 class TestRun:
-    def test_run_with_present_certificate(
-        self, create_module, rest_client, mocker
-    ) -> None:
+    def test_run_with_present_certificate(self, create_module, rest_client, mocker) -> None:
         module = create_module(
             params=dict(
                 cluster_instance=dict(

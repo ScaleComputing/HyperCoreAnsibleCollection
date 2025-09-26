@@ -128,9 +128,7 @@ class SMTP(PayloadMapper):
         must_exist: bool = False,
     ) -> Optional[SMTP]:
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/AlertSMTPConfig", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/AlertSMTPConfig", query, must_exist=must_exist)
         if hypercore_dict is None:
             return None
         smtp_config_from_hypercore = SMTP.from_hypercore(hypercore_dict)
@@ -138,9 +136,7 @@ class SMTP(PayloadMapper):
 
     # This method is being tested with integration tests (dns_config_info)
     @classmethod
-    def get_state(
-        cls, rest_client: RestClient
-    ) -> Union[TypedSmtpToAnsible, dict[Any, Any]]:
+    def get_state(cls, rest_client: RestClient) -> Union[TypedSmtpToAnsible, dict[Any, Any]]:
         state = [
             SMTP.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
             for hypercore_dict in rest_client.list_records("/rest/v1/AlertSMTPConfig/")

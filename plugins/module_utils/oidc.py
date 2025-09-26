@@ -97,6 +97,4 @@ class Oidc(PayloadMapper):
 
     def send_update_request(self, rest_client: RestClient) -> TypedTaskTag:
         payload = self.to_hypercore()
-        return rest_client.update_record(
-            "/rest/v1/OIDCConfig/oidcconfig_uuid", payload, False
-        )
+        return rest_client.update_record("/rest/v1/OIDCConfig/oidcconfig_uuid", payload, False)

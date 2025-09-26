@@ -123,9 +123,7 @@ def ensure_present(
             break
         except UnexpectedAPIResponse as ex:
             if ex.response_status in [500, 502]:
-                module.warn(
-                    f"API misbehaving during reconfiguration, retry {ii + 1}/{max_retries}"
-                )
+                module.warn(f"API misbehaving during reconfiguration, retry {ii + 1}/{max_retries}")
                 sleep(1)
                 continue
             raise
@@ -137,9 +135,7 @@ def ensure_present(
             break
         except UnexpectedAPIResponse as ex:
             if ex.response_status in [500, 502]:
-                module.warn(
-                    f"API misbehaving after reconfiguration, retry {ii + 1}/{max_retries}"
-                )
+                module.warn(f"API misbehaving after reconfiguration, retry {ii + 1}/{max_retries}")
                 sleep(1)
                 continue
             raise
@@ -150,9 +146,7 @@ def ensure_present(
     return True, after, dict(before=before, after=after)
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedOidcToAnsible], TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedOidcToAnsible], TypedDiff]:
     return ensure_present(module, rest_client)
 
 

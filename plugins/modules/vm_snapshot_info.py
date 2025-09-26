@@ -161,9 +161,7 @@ from ..module_utils.typed_classes import TypedVMSnapshotToAnsible
 from ..module_utils.vm_snapshot import VMSnapshot
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> List[TypedVMSnapshotToAnsible]:
+def run(module: AnsibleModule, rest_client: RestClient) -> List[TypedVMSnapshotToAnsible]:
     filtered = VMSnapshot.filter_snapshots_by_params(module.params, rest_client)
     return filtered
 

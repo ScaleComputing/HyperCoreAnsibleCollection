@@ -41,9 +41,7 @@ def validate_uuid(value):
         raise InvalidUuidFormatError(value)
 
 
-def get_query(
-    query_filter: dict[Any, Any], *field_names: str, ansible_hypercore_map: dict[Any, Any]
-):
+def get_query(query_filter: dict[Any, Any], *field_names: str, ansible_hypercore_map: dict[Any, Any]):
     """
     Wrapps filter_dict and transform_ansible_to_hypercore_query. Prefer to use 'get_query' over filter_dict
     even if there's no mapping between hypercore and ansible columns for the sake of verbosity and consistency

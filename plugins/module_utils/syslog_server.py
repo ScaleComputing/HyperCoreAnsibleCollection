@@ -132,9 +132,7 @@ class SyslogServer(PayloadMapper):
         must_exist: bool = False,
     ) -> Optional[SyslogServer]:
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/AlertSyslogTarget", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/AlertSyslogTarget", query, must_exist=must_exist)
         if hypercore_dict is None:
             return None
         syslog_server_from_hypercore = cls.from_hypercore(hypercore_dict)
@@ -147,9 +145,7 @@ class SyslogServer(PayloadMapper):
         rest_client: RestClient,
         must_exist: bool = False,
     ) -> Optional[SyslogServer]:
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/AlertSyslogTarget", {"host": host}, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/AlertSyslogTarget", {"host": host}, must_exist=must_exist)
         if hypercore_dict is None:
             return None
 
@@ -193,9 +189,7 @@ class SyslogServer(PayloadMapper):
     ) -> List[SyslogServer]:
         syslog_servers = [
             cls.from_hypercore(hypercore_data=hypercore_dict)
-            for hypercore_dict in rest_client.list_records(
-                "/rest/v1/AlertSyslogTarget/"
-            )
+            for hypercore_dict in rest_client.list_records("/rest/v1/AlertSyslogTarget/")
         ]
         syslog_servers.sort()
         return syslog_servers
@@ -216,9 +210,7 @@ class SyslogServer(PayloadMapper):
         payload: Dict[Any, Any],
         check_mode: bool = False,
     ) -> SyslogServer:
-        task_tag = rest_client.create_record(
-            "/rest/v1/AlertSyslogTarget/", payload, check_mode
-        )
+        task_tag = rest_client.create_record("/rest/v1/AlertSyslogTarget/", payload, check_mode)
         TaskTag.wait_task(rest_client, task_tag)
         syslog_server = cls.get_by_uuid(
             dict(uuid=task_tag["createdUUID"]),
@@ -235,9 +227,7 @@ class SyslogServer(PayloadMapper):
         payload: Dict[Any, Any],
         check_mode: bool = False,
     ) -> None:
-        task_tag = rest_client.update_record(
-            f"/rest/v1/AlertSyslogTarget/{self.uuid}", payload, check_mode
-        )
+        task_tag = rest_client.update_record(f"/rest/v1/AlertSyslogTarget/{self.uuid}", payload, check_mode)
         TaskTag.wait_task(rest_client, task_tag)
 
     def delete(
@@ -245,7 +235,5 @@ class SyslogServer(PayloadMapper):
         rest_client: RestClient,
         check_mode: bool = False,
     ) -> None:
-        task_tag = rest_client.delete_record(
-            f"/rest/v1/AlertSyslogTarget/{self.uuid}", check_mode
-        )
+        task_tag = rest_client.delete_record(f"/rest/v1/AlertSyslogTarget/{self.uuid}", check_mode)
         TaskTag.wait_task(rest_client, task_tag)

@@ -41,9 +41,7 @@ class TaskTag:
             return
 
         while True:
-            task_status = rest_client.get_record(
-                f"/rest/v1/TaskTag/{task['taskTag']}", query={}
-            )
+            task_status = rest_client.get_record(f"/rest/v1/TaskTag/{task['taskTag']}", query={})
             if task_status is None:  # No such task_status is found
                 break
             if task_status.get("state", "") in (
@@ -59,9 +57,7 @@ class TaskTag:
             sleep(1)
 
     @staticmethod
-    def get_task_status(
-        rest_client: RestClient, task: Optional[TypedTaskTag]
-    ) -> Optional[Dict[Any, Any]]:
+    def get_task_status(rest_client: RestClient, task: Optional[TypedTaskTag]) -> Optional[Dict[Any, Any]]:
         if not task:
             return None
         if not isinstance(task, dict):
@@ -70,7 +66,5 @@ class TaskTag:
             raise errors.ScaleComputingError("taskTag is not in task dictionary.")
         if not task["taskTag"]:
             return None
-        task_status: Optional[Dict[Any, Any]] = rest_client.get_record(
-            f"/rest/v1/TaskTag/{task['taskTag']}", query={}
-        )
+        task_status: Optional[Dict[Any, Any]] = rest_client.get_record(f"/rest/v1/TaskTag/{task['taskTag']}", query={})
         return task_status if task_status else None

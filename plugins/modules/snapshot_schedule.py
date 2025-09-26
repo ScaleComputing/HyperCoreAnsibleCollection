@@ -151,16 +151,11 @@ def ensure_present(module, rest_client):
     if snapshot_schedule_before:
         before = snapshot_schedule_before.to_ansible()
         snapshot_schedule_desired = SnapshotSchedule.from_ansible(module.params)
-        if (
-            snapshot_schedule_desired.recurrences
-            != snapshot_schedule_before.recurrences
-        ):
+        if snapshot_schedule_desired.recurrences != snapshot_schedule_before.recurrences:
             # If desired and recurrence rules before differ, snapshot schedule has to be updated
             rest_client.update_record(
                 f"/rest/v1/VirDomainSnapshotSchedule/{snapshot_schedule_before.uuid}",
-                snapshot_schedule_before.create_patch_payload(
-                    module.params["recurrences"]
-                ),
+                snapshot_schedule_before.create_patch_payload(module.params["recurrences"]),
                 module.check_mode,
             )
             changed = True

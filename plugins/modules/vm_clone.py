@@ -118,9 +118,7 @@ def check_snapshot_list(module: AnsibleModule, snapshot_list: list) -> None:
         )
 
 
-def get_snapshot(
-    module: AnsibleModule, rest_client: RestClient, virtual_machine_obj: VM
-) -> AnsibleModule:
+def get_snapshot(module: AnsibleModule, rest_client: RestClient, virtual_machine_obj: VM) -> AnsibleModule:
     snapshot_list = []
     # Get snapshot from uuid.
     if module.params["source_snapshot_uuid"]:
@@ -158,9 +156,7 @@ def run(module, rest_client):
         )
 
     # Get Source VM, fail if not found.
-    virtual_machine_obj = VM.get_or_fail(
-        query={"name": module.params["source_vm_name"]}, rest_client=rest_client
-    )[0]
+    virtual_machine_obj = VM.get_or_fail(query={"name": module.params["source_vm_name"]}, rest_client=rest_client)[0]
 
     if module.params["source_snapshot_label"] or module.params["source_snapshot_uuid"]:
         module = get_snapshot(module, rest_client, virtual_machine_obj)
@@ -192,9 +188,7 @@ def main():
                 type="str",
                 required=True,
             ),
-            tags=dict(  # We give user a chance to add aditional tags here.
-                type="list", elements="str"
-            ),
+            tags=dict(type="list", elements="str"),  # We give user a chance to add aditional tags here.
             cloud_init=dict(
                 type="dict",
                 default={},

@@ -33,10 +33,8 @@ class Replication(PayloadMapper):
             query={"uuid": replication_dict["sourceDomainUUID"]},
             rest_client=rest_client,
         )[0]
-        replication_dict["remote_cluster"] = (
-            RemoteCluster.get_cluster_name_from_replication_connection_uuid(
-                rest_client, replication_dict["connectionUUID"]
-            )
+        replication_dict["remote_cluster"] = RemoteCluster.get_cluster_name_from_replication_connection_uuid(
+            rest_client, replication_dict["connectionUUID"]
         )
         replication_dict["vm_name"] = virtual_machine.name
         return replication_dict
@@ -55,12 +53,7 @@ class Replication(PayloadMapper):
         )
         if not record:
             return []
-        return [
-            cls.from_hypercore(
-                hypercore_data=cls._replication(rest_client, replication)
-            )
-            for replication in record
-        ]
+        return [cls.from_hypercore(hypercore_data=cls._replication(rest_client, replication)) for replication in record]
 
     @classmethod
     def from_hypercore(cls, hypercore_data):
@@ -94,13 +87,8 @@ class Replication(PayloadMapper):
             query=None,
         )
         if not records:
-            raise errors.ClusterConnectionNotFound(
-                "replication.py - find_available_cluster_connection_or_fail()"
-            )
-        if (
-            "remote_cluster" in ansible_dict
-            and ansible_dict["remote_cluster"] is not None
-        ):
+            raise errors.ClusterConnectionNotFound("replication.py - find_available_cluster_connection_or_fail()")
+        if "remote_cluster" in ansible_dict and ansible_dict["remote_cluster"] is not None:
             # Try to find the correct cluster connection
             for cluster_connection in records:
                 if (
@@ -117,10 +105,7 @@ class Replication(PayloadMapper):
             "sourceDomainUUID": self.vm_uuid,
             "connectionUUID": self.connection_uuid,
         }
-        if (
-            self.state == ReplicationState.enabled
-            or self.state == ReplicationState.reenabled
-        ):
+        if self.state == ReplicationState.enabled or self.state == ReplicationState.reenabled:
             replication_dict["enable"] = True
         elif self.state == ReplicationState.disabled:
             replication_dict["enable"] = False

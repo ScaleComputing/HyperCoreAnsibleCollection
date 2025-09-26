@@ -99,9 +99,7 @@ class TestModifySyslogServer:
             check_mode=False,
         )
 
-        changed, record, records, diff = syslog_server.create_syslog_server(
-            module, rest_client
-        )
+        changed, record, records, diff = syslog_server.create_syslog_server(module, rest_client)
         SyslogServer.create = mock.create_autospec(SyslogServer.create)
         syslog_server.create_syslog_server(module, rest_client)
 
@@ -121,9 +119,7 @@ class TestModifySyslogServer:
             ("0.0.0.0", "0.0.0.0", 42, "tcp", ("0.0.0.0", 42, "tcp")),
         ],
     )
-    def test_build_update_payload(
-        self, create_module, host, host_new, port, protocol, expected
-    ):
+    def test_build_update_payload(self, create_module, host, host_new, port, protocol, expected):
         module = create_module(
             params=dict(
                 cluster_instance=self.cluster_instance,
@@ -340,16 +336,12 @@ class TestModifySyslogServer:
 
         called_with_dict = dict(
             rest_client=rest_client,
-            payload=dict(
-                host=expected_host, port=expected_port, protocol=expected_protocol
-            ),
+            payload=dict(host=expected_host, port=expected_port, protocol=expected_protocol),
             check_mode=False,
         )
 
         SyslogServer.update = mock.create_autospec(SyslogServer.update)
-        changed, record, records, diff = syslog_server.update_syslog_server(
-            rc_syslog_server, module, rest_client
-        )
+        changed, record, records, diff = syslog_server.update_syslog_server(rc_syslog_server, module, rest_client)
         if not rc_syslog_server:
             old_payload = None
         else:
@@ -362,9 +354,7 @@ class TestModifySyslogServer:
         if (not old_payload) or called_with_dict.get("payload") == old_payload:
             SyslogServer.update.assert_not_called()
         else:
-            SyslogServer.update.assert_called_once_with(
-                rc_syslog_server, **called_with_dict
-            )
+            SyslogServer.update.assert_called_once_with(rc_syslog_server, **called_with_dict)
 
         print("record:", record)
         print("records:", records)
@@ -428,16 +418,12 @@ class TestModifySyslogServer:
             check_mode=False,
         )
 
-        changed, record, records, diff = syslog_server.delete_syslog_server(
-            rc_syslog_server, module, rest_client
-        )
+        changed, record, records, diff = syslog_server.delete_syslog_server(rc_syslog_server, module, rest_client)
 
         SyslogServer.delete = mock.create_autospec(SyslogServer.delete)
         syslog_server.delete_syslog_server(rc_syslog_server, module, rest_client)
         if rc_syslog_server:
-            SyslogServer.delete.assert_called_once_with(
-                rc_syslog_server, **called_with_dict
-            )
+            SyslogServer.delete.assert_called_once_with(rc_syslog_server, **called_with_dict)
         else:
             SyslogServer.delete.assert_not_called()
 

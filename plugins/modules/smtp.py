@@ -224,22 +224,12 @@ def modify_smtp_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[
 
     # Otherwise, continue with modifying the configuration
     before = smtp.to_ansible()
-    old_state = smtp.get_state(
-        rest_client
-    )  # get the state of SMTP config before modification
+    old_state = smtp.get_state(rest_client)  # get the state of SMTP config before modification
 
-    new_smtp_server, new_smtp_server_change_needed = build_entry(
-        before.get("server"), module.params["server"]
-    )
-    new_port, new_port_change_needed = build_entry(
-        before.get("port"), module.params["port"]
-    )
-    new_use_ssl, new_use_ssl_change_needed = build_entry(
-        before.get("use_ssl"), module.params["use_ssl"]
-    )
-    new_auth_user, new_auth_user_change_needed = build_entry(
-        before.get("auth_user"), module.params["auth_user"]
-    )
+    new_smtp_server, new_smtp_server_change_needed = build_entry(before.get("server"), module.params["server"])
+    new_port, new_port_change_needed = build_entry(before.get("port"), module.params["port"])
+    new_use_ssl, new_use_ssl_change_needed = build_entry(before.get("use_ssl"), module.params["use_ssl"])
+    new_auth_user, new_auth_user_change_needed = build_entry(before.get("auth_user"), module.params["auth_user"])
     new_auth_password, new_auth_password_change_needed = build_entry(
         before.get("auth_password"), module.params["auth_password"]
     )

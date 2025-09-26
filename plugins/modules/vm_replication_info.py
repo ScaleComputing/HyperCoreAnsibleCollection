@@ -81,13 +81,10 @@ from ..module_utils.vm import VM
 def run(module, rest_client):
     if not module.params["vm_name"]:
         records = [
-            replication_obj.to_ansible()
-            for replication_obj in Replication.get(rest_client=rest_client, query=None)
+            replication_obj.to_ansible() for replication_obj in Replication.get(rest_client=rest_client, query=None)
         ]
     else:
-        virtual_machine_obj_list = VM.get_or_fail(
-            query={"name": module.params["vm_name"]}, rest_client=rest_client
-        )
+        virtual_machine_obj_list = VM.get_or_fail(query={"name": module.params["vm_name"]}, rest_client=rest_client)
         replication_list = Replication.get(
             query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
             rest_client=rest_client,

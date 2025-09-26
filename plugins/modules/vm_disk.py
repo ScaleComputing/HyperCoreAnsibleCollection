@@ -325,9 +325,7 @@ def ensure_absent(module, rest_client):
             if name:
                 # Detach the ISO image
                 iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
-                ManageVMDisks.iso_image_management(
-                    module, rest_client, iso, uuid, attach=False
-                )
+                ManageVMDisks.iso_image_management(module, rest_client, iso, uuid, attach=False)
         # Remove the disk
         if existing_disk.needs_reboot("delete"):
             vm_before.do_shutdown_steps(module, rest_client)

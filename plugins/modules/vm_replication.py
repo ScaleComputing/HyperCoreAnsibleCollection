@@ -100,9 +100,7 @@ def ensure_enabled_or_reenabled(module, rest_client):
     changed = False
     before = None
     after = None
-    virtual_machine_obj_list = VM.get_or_fail(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )
+    virtual_machine_obj_list = VM.get_or_fail(query={"name": module.params["vm_name"]}, rest_client=rest_client)
     existing_replication_obj_list = Replication.get(
         rest_client=rest_client,
         query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
@@ -110,15 +108,13 @@ def ensure_enabled_or_reenabled(module, rest_client):
     if existing_replication_obj_list:  # Update existing
         if (
             module.params["remote_cluster"] is None
-            or existing_replication_obj_list[0].remote_cluster
-            == module.params["remote_cluster"]
+            or existing_replication_obj_list[0].remote_cluster == module.params["remote_cluster"]
         ) and existing_replication_obj_list[0].state != ReplicationState.enabled:
             before = existing_replication_obj_list[0].to_ansible()
             existing_replication_obj_list[0].state = ReplicationState.enabled
             data = existing_replication_obj_list[0].to_hypercore()
             rest_client.update_record(
-                endpoint="/rest/v1/VirDomainReplication/"
-                + existing_replication_obj_list[0].replication_uuid,
+                endpoint="/rest/v1/VirDomainReplication/" + existing_replication_obj_list[0].replication_uuid,
                 payload=data,
                 check_mode=False,
             )
@@ -129,23 +125,18 @@ def ensure_enabled_or_reenabled(module, rest_client):
             changed = True
         elif (
             module.params["remote_cluster"] is not None
-            and existing_replication_obj_list[0].remote_cluster
-            != module.params["remote_cluster"]
+            and existing_replication_obj_list[0].remote_cluster != module.params["remote_cluster"]
         ):
             raise errors.ReplicationNotUnique(virtual_machine_obj_list[0].name)
     else:  # Create replication
-        cluster_connection = Replication.find_available_cluster_connection_or_fail(
-            rest_client, module.params
-        )
+        cluster_connection = Replication.find_available_cluster_connection_or_fail(rest_client, module.params)
         new_replication_obj = Replication.from_ansible(
             ansible_data=module.params,
             virtual_machine_obj=virtual_machine_obj_list[0],
             cluster_connection=cluster_connection,
         )
         data = new_replication_obj.to_hypercore()
-        response = rest_client.create_record(
-            endpoint="/rest/v1/VirDomainReplication", payload=data, check_mode=False
-        )
+        response = rest_client.create_record(endpoint="/rest/v1/VirDomainReplication", payload=data, check_mode=False)
         TaskTag.wait_task(rest_client=rest_client, task=response)
         after = Replication.get(
             rest_client=rest_client,
@@ -163,23 +154,17 @@ def ensure_disabled(module, rest_client):
     changed = False
     after = None
     before = None
-    virtual_machine_obj_list = VM.get_or_fail(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )
+    virtual_machine_obj_list = VM.get_or_fail(query={"name": module.params["vm_name"]}, rest_client=rest_client)
     existing_replication_obj_list = Replication.get(
         rest_client=rest_client,
         query={"sourceDomainUUID": virtual_machine_obj_list[0].uuid},
     )
-    if (
-        existing_replication_obj_list
-        and existing_replication_obj_list[0].state != ReplicationState.disabled
-    ):
+    if existing_replication_obj_list and existing_replication_obj_list[0].state != ReplicationState.disabled:
         before = existing_replication_obj_list[0].to_ansible()
         existing_replication_obj_list[0].state = ReplicationState.disabled
         data = existing_replication_obj_list[0].to_hypercore()
         rest_client.update_record(
-            endpoint="/rest/v1/VirDomainReplication/"
-            + existing_replication_obj_list[0].replication_uuid,
+            endpoint="/rest/v1/VirDomainReplication/" + existing_replication_obj_list[0].replication_uuid,
             payload=data,
             check_mode=False,
         )

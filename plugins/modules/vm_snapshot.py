@@ -163,9 +163,7 @@ from ..module_utils.vm import VM
 from ..module_utils.vm_snapshot import VMSnapshot
 
 
-def get_snapshot(
-    module: AnsibleModule, rest_client: RestClient, vm_object: VM
-) -> List[TypedVMSnapshotToAnsible]:
+def get_snapshot(module: AnsibleModule, rest_client: RestClient, vm_object: VM) -> List[TypedVMSnapshotToAnsible]:
     # Get snapshot by uuid first if parameter exists.
     if module.params["uuid"]:
         snapshot_list = VMSnapshot.get_snapshots_by_query(
@@ -227,9 +225,7 @@ def ensure_absent(
         return False, before, dict(before=before, after=before)
 
     # Send delete request.
-    task = VMSnapshot.send_delete_request(
-        rest_client, snapshot_list[0]["snapshot_uuid"]
-    )
+    task = VMSnapshot.send_delete_request(rest_client, snapshot_list[0]["snapshot_uuid"])
     TaskTag.wait_task(rest_client, task)
 
     # Get after from API, check snapshot was deleted.
@@ -240,9 +236,7 @@ def ensure_absent(
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedVMSnapshotToAnsible], TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedVMSnapshotToAnsible], TypedDiff]:
     vm_object: VM = VM.get_by_name(module.params, rest_client, must_exist=True)  # type: ignore
     snapshot_list = get_snapshot(module, rest_client, vm_object)
 

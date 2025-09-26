@@ -82,11 +82,7 @@ from ..module_utils.typed_classes import TypedTaskTag
 
 
 def get_certificate(module: AnsibleModule) -> str:
-    host = (
-        module.params["cluster_instance"]["host"]
-        .replace("https://", "")
-        .replace("http://", "")
-    )
+    host = module.params["cluster_instance"]["host"].replace("https://", "").replace("http://", "")
     cert = ssl.get_server_certificate((host, 443))
     return cert
 
@@ -113,32 +109,24 @@ def ensure_present(
             TaskTag.wait_task(rest_client, task)
             break
         except ConnectionRefusedError:
-            module.warn(
-                f"retry {ii}/{max_retries}, ConnectionRefusedError - ignore and continue"
-            )
+            module.warn(f"retry {ii}/{max_retries}, ConnectionRefusedError - ignore and continue")
             sleep(2)
             continue
         except ConnectionResetError:
-            module.warn(
-                f"retry {ii}/{max_retries}, ConnectionResetError - ignore and continue"
-            )
+            module.warn(f"retry {ii}/{max_retries}, ConnectionResetError - ignore and continue")
             sleep(2)
             continue
         except (ssl.SSLEOFError, ssl.SSLZeroReturnError, ssl.SSLSyscallError) as ex:
             # Ignore "EOF occurred in violation of protocol (_ssl.c:997)"
             # Alternative message "TLS/SSL connection has been closed (EOF) (_ssl.c:1129)".
-            module.warn(
-                f"retry {ii}/{max_retries}, SSL error {ex.__class__.__name__} - ignore and continue"
-            )
+            module.warn(f"retry {ii}/{max_retries}, SSL error {ex.__class__.__name__} - ignore and continue")
             sleep(2)
             continue
     after: TypedCertificateToAnsible = dict(certificate=get_certificate(module))
     return True, after, dict(before=before, after=after)
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedCertificateToAnsible], TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedCertificateToAnsible], TypedDiff]:
     return ensure_present(module, rest_client)
 
 

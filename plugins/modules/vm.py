@@ -433,21 +433,15 @@ def _set_boot_order(module, rest_client, vm, existing_boot_order):
 
 
 def _set_disks(module, rest_client, vm_before: VM):
-    return ManageVMDisks.ensure_present_or_set(
-        module, rest_client, MODULE_PATH, vm_before
-    )
+    return ManageVMDisks.ensure_present_or_set(module, rest_client, MODULE_PATH, vm_before)
 
 
 def _set_nics(module, rest_client, vm_before: VM):
-    return ManageVMNics.ensure_present_or_set(
-        module, rest_client, MODULE_PATH, vm_before
-    )
+    return ManageVMNics.ensure_present_or_set(module, rest_client, MODULE_PATH, vm_before)
 
 
 def _set_vm_params(module, rest_client, vm, param_subset: List[str]):
-    changed_params, diff, changed_parameters = ManageVMParams.set_vm_params(
-        module, rest_client, vm, param_subset
-    )
+    changed_params, diff, changed_parameters = ManageVMParams.set_vm_params(module, rest_client, vm, param_subset)
     return changed_params, changed_parameters
 
 
@@ -463,17 +457,13 @@ def ensure_present(module, rest_client):
         )
         changed_disks = _set_disks(module, rest_client, vm_before)
         changed_nics = _set_nics(module, rest_client, vm_before)
-        changed_order = _set_boot_order(
-            module, rest_client, vm_before, existing_boot_order
-        )
+        changed_order = _set_boot_order(module, rest_client, vm_before, existing_boot_order)
         # Set vm params
         # ManageVMParams.set_vm_params has to be executed only after setting the boot order,
         # since boot order cannot be set when the vm is running.
         # set_vm_params updates VM's name, description, tags, memory, number of CPU,
         # changed the power state and/or assigns the snapshot schedule to the VM
-        changed_params_2, changed_parameters_2 = _set_vm_params(
-            module, rest_client, vm_before, param_subset=[]
-        )
+        changed_params_2, changed_parameters_2 = _set_vm_params(module, rest_client, vm_before, param_subset=[])
         changed = any(
             (
                 changed_order,
@@ -505,9 +495,7 @@ def ensure_present(module, rest_client):
         _set_boot_order(module, rest_client, vm_created, existing_boot_order)
         # Set power state
         if module.params["power_state"] != "shutdown":
-            vm_created.update_vm_power_state(
-                module, rest_client, module.params["power_state"], False
-            )
+            vm_created.update_vm_power_state(module, rest_client, module.params["power_state"], False)
         changed = True
         name_field = "vm_name"
         was_vm_rebooted = False
@@ -529,9 +517,7 @@ def ensure_absent(module, rest_client):
         if vm._power_state != "shutdown":  # First, shut it off and then delete
             # TODO ==shutdown or ==stopped ??
             vm.update_vm_power_state(module, rest_client, "stop", False)
-        task_tag = rest_client.delete_record(
-            f"/rest/v1/VirDomain/{vm.uuid}", module.check_mode
-        )
+        task_tag = rest_client.delete_record(f"/rest/v1/VirDomain/{vm.uuid}", module.check_mode)
         TaskTag.wait_task(rest_client, task_tag)
         output = vm.to_ansible()
         return True, [output], dict(before=output, after=None), reboot
@@ -543,9 +529,7 @@ def check_params(module, rest_client):
     ansible_machine_type = module.params.get("machine_type")
     if ansible_machine_type:
         hcversion = HyperCoreVersion(rest_client)
-        hypercore_machine_type = VmMachineType.from_ansible_to_hypercore(
-            ansible_machine_type, hcversion
-        )
+        hypercore_machine_type = VmMachineType.from_ansible_to_hypercore(ansible_machine_type, hcversion)
         if not hypercore_machine_type:
             msg = f"machine_type={ansible_machine_type} is not supported on HyperCore version {hcversion.version}."
             module.fail_json(msg=msg)

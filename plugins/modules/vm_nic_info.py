@@ -93,9 +93,7 @@ from ..module_utils.vm import VM
 
 
 def run(module, rest_client):
-    virtual_machine = VM.get_or_fail(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )[0]
+    virtual_machine = VM.get_or_fail(query={"name": module.params["vm_name"]}, rest_client=rest_client)[0]
     if not module.params["vlan"]:
         return False, [nic.to_ansible() for nic in virtual_machine.nic_list]
     return False, [virtual_machine.find_nic(module.params["vlan"])[0].to_ansible()]

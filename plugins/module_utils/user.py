@@ -59,9 +59,7 @@ class User(PayloadMapper):
             username=self.username,
             full_name=self.full_name,
             roles=[
-                Role.get_role_from_uuid(
-                    role_uuid, rest_client, must_exist=False
-                ).to_ansible()
+                Role.get_role_from_uuid(role_uuid, rest_client, must_exist=False).to_ansible()
                 for role_uuid in self.role_uuids
             ],
             session_limit=self.session_limit,
@@ -85,22 +83,14 @@ class User(PayloadMapper):
         )
 
     @classmethod
-    def get_user_from_uuid(
-        cls, user_uuid, rest_client: RestClient, must_exist: bool = False
-    ) -> Optional[User]:
-        hypercore_dict = rest_client.get_record(
-            f"/rest/v1/User/{user_uuid}", must_exist=must_exist
-        )
+    def get_user_from_uuid(cls, user_uuid, rest_client: RestClient, must_exist: bool = False) -> Optional[User]:
+        hypercore_dict = rest_client.get_record(f"/rest/v1/User/{user_uuid}", must_exist=must_exist)
         user = cls.from_hypercore(hypercore_dict)
         return user
 
     @classmethod
-    def get_user_from_username(
-        cls, username, rest_client: RestClient, must_exist: bool = False
-    ) -> Optional[User]:
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/User", {"username": username}, must_exist=must_exist
-        )
+    def get_user_from_username(cls, username, rest_client: RestClient, must_exist: bool = False) -> Optional[User]:
+        hypercore_dict = rest_client.get_record("/rest/v1/User", {"username": username}, must_exist=must_exist)
         user = cls.from_hypercore(hypercore_dict)
         return user
 
@@ -112,9 +102,7 @@ class User(PayloadMapper):
         #     "createdUUID": ""
         # }
 
-    def update(
-        self, rest_client: RestClient, payload, check_mode: bool = False
-    ) -> None:
+    def update(self, rest_client: RestClient, payload, check_mode: bool = False) -> None:
         rest_client.update_record(f"/rest/v1/User/{self.uuid}", payload, check_mode)
         # returned:
         # {
@@ -125,9 +113,7 @@ class User(PayloadMapper):
     @classmethod
     def create(cls, rest_client: RestClient, payload, check_mode=False) -> User:
         task_tag = rest_client.create_record("/rest/v1/User", payload, check_mode)
-        user = cls.get_user_from_uuid(
-            task_tag["createdUUID"], rest_client, must_exist=True
-        )
+        user = cls.get_user_from_uuid(task_tag["createdUUID"], rest_client, must_exist=True)
         return user  # type: ignore # user is never None
         # returned
         # {

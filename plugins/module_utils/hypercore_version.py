@@ -42,14 +42,8 @@ class HyperCoreVersion:
     def version(self) -> str:
         if not self._version:
             record = self._rest_client.get_record("/rest/v1/Cluster")
-            if (
-                record is None
-                or "icosVersion" not in record
-                or not isinstance(record["icosVersion"], str)
-            ):
-                raise AssertionError(
-                    "HyperCore version not found in REST API response."
-                )
+            if record is None or "icosVersion" not in record or not isinstance(record["icosVersion"], str):
+                raise AssertionError("HyperCore version not found in REST API response.")
             self._version = record["icosVersion"]
         return self._version
 
@@ -182,9 +176,7 @@ class Update(PayloadMapper):
         pass
 
     @classmethod
-    def from_hypercore(
-        cls, hypercore_data: Optional[dict[Any, Any]]
-    ) -> Optional[Update]:
+    def from_hypercore(cls, hypercore_data: Optional[dict[Any, Any]]) -> Optional[Update]:
         if not hypercore_data:
             return None
         return cls(
@@ -243,9 +235,7 @@ class Update(PayloadMapper):
     ) -> Optional[Update]:
         # api has a bug - the endpoint "/rest/v1/Update/{uuid}" returns a list of all available updates (and uuid can actually be anything),
         # that is why query is used
-        update = rest_client.get_record(
-            f"/rest/v1/Update/{uuid}", query=dict(uuid=uuid), must_exist=must_exist
-        )
+        update = rest_client.get_record(f"/rest/v1/Update/{uuid}", query=dict(uuid=uuid), must_exist=must_exist)
         return cls.from_hypercore(update)
 
     @classmethod
@@ -255,9 +245,7 @@ class Update(PayloadMapper):
         version: str,
         check_mode: bool = False,
     ) -> TypedTaskTag:
-        return rest_client.create_record(
-            f"/rest/v1/Update/{version}/apply", payload=None, check_mode=check_mode
-        )
+        return rest_client.create_record(f"/rest/v1/Update/{version}/apply", payload=None, check_mode=check_mode)
 
 
 class UpdateStatus(PayloadMapper):
@@ -300,9 +288,7 @@ class UpdateStatus(PayloadMapper):
             to_build=hypercore_data["updateStatus"].get("toBuild"),
             to_version=hypercore_data["updateStatus"].get("toVersion"),
             percent=hypercore_data["updateStatus"].get("percent"),
-            update_status_details=hypercore_data["updateStatus"]["status"].get(
-                "statusdetails"
-            ),
+            update_status_details=hypercore_data["updateStatus"]["status"].get("statusdetails"),
             usernotes=hypercore_data["updateStatus"]["status"].get("usernotes"),
         )
 

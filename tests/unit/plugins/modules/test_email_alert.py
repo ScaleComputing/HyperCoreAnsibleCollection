@@ -230,9 +230,7 @@ class TestModifyEmailAlert:
             if update_email == email_on_client or email == email_new:
                 EmailAlert.update.assert_not_called()
             else:
-                EmailAlert.update.assert_called_once_with(
-                    rc_email_alert, **called_with_dict
-                )
+                EmailAlert.update.assert_called_once_with(rc_email_alert, **called_with_dict)
 
             assert changed == expected_return[0]
             assert record == expected_return[1]
@@ -322,10 +320,7 @@ class TestModifyEmailAlert:
         email_alert.delete_email_alert(module, rest_client)
         assert EmailAlert.delete.call_count == len(rc_email_alerts)
         EmailAlert.delete.assert_has_calls(
-            [
-                call(rc_email_alert, **called_with_dict)
-                for rc_email_alert in rc_email_alerts
-            ]
+            [call(rc_email_alert, **called_with_dict) for rc_email_alert in rc_email_alerts]
         )
         assert changed == expected_return[0]
         assert record == expected_return[1]
@@ -347,9 +342,7 @@ class TestModifyEmailAlert:
             ),
         ],
     )
-    def test_send_test(
-        self, create_module, rest_client, task_wait, mocker, rc_email_alert, email
-    ):
+    def test_send_test(self, create_module, rest_client, task_wait, mocker, rc_email_alert, email):
         module = create_module(
             params=dict(
                 cluster_instance=self.cluster_instance,

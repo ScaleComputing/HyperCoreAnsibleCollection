@@ -67,9 +67,7 @@ class TestSyslogServer:
         assert self.syslog_server.to_hypercore() == self.to_hypercore_dict
 
     def test_syslog_server_from_hypercore_dict_not_empty(self):
-        syslog_server_from_hypercore = SyslogServer.from_hypercore(
-            self.from_hypercore_dict
-        )
+        syslog_server_from_hypercore = SyslogServer.from_hypercore(self.from_hypercore_dict)
         assert self.syslog_server == syslog_server_from_hypercore
 
     def test_syslog_server_from_hypercore_dict_empty(self):
@@ -94,9 +92,7 @@ class TestSyslogServer:
         ansible_dict = dict(
             uuid="test",
         )
-        syslog_server_from_hypercore = SyslogServer.get_by_uuid(
-            ansible_dict, rest_client
-        )
+        syslog_server_from_hypercore = SyslogServer.get_by_uuid(ansible_dict, rest_client)
         assert syslog_server_from_hypercore == self.syslog_server
 
     def test_get_state(self, rest_client):
@@ -144,21 +140,11 @@ class TestSyslogServer:
             protocol="udp",
             alert_tag_uuid="alert_tag_uuid-a2",
         )
-        a3 = SyslogServer(
-            host="1.0.0.10", port=10514, protocol="udp", resend_delay=12345
-        )
-        a4 = SyslogServer(
-            host="1.0.0.10", port=10514, protocol="udp", silent_period=123456
-        )
-        a5 = SyslogServer(
-            host="1.0.0.10", port=10514, protocol="udp", latest_task_tag=TaskTag()
-        )
-        task_tag = dict(
-            createdUUID="latest_task_tag-createdUUID", taskTag="taskTag-112233"
-        )
-        a6 = SyslogServer(
-            host="1.0.0.10", port=10514, protocol="udp", latest_task_tag=task_tag
-        )
+        a3 = SyslogServer(host="1.0.0.10", port=10514, protocol="udp", resend_delay=12345)
+        a4 = SyslogServer(host="1.0.0.10", port=10514, protocol="udp", silent_period=123456)
+        a5 = SyslogServer(host="1.0.0.10", port=10514, protocol="udp", latest_task_tag=TaskTag())
+        task_tag = dict(createdUUID="latest_task_tag-createdUUID", taskTag="taskTag-112233")
+        a6 = SyslogServer(host="1.0.0.10", port=10514, protocol="udp", latest_task_tag=task_tag)
 
         assert ss.is_equivalent(a0)
         assert ss.is_equivalent(a1)

@@ -20,9 +20,7 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_minimal_set_of_params(self, run_main) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             client_id="this_client",
             scopes="this_scopes",
             shared_secret="this_shared_secret",
@@ -40,9 +38,7 @@ class TestMain:
 
     def test_maximum_set_of_params(self, run_main) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             client_id="this_client",
             scopes="this_scopes",
             shared_secret="this_shared_secret",
@@ -106,9 +102,7 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag.TaskTag.wait_task"
         ).return_value = {}
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get"
-        ).side_effect = [
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get").side_effect = [
             None,
             Oidc(
                 client_id="this_client",
@@ -160,9 +154,7 @@ class TestEnsurePresent:
         # mocker.patch(
         #     "ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get"
         # ).return_value = {}
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get"
-        ).side_effect = [
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc.Oidc.get").side_effect = [
             Oidc(
                 client_id="cid",
                 certificate="",

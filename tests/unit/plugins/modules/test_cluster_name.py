@@ -26,9 +26,7 @@ class TestMain:
             ),
             name_new="updated_name",
         )
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.cluster_name.HyperCoreVersion"
-        )
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.cluster_name.HyperCoreVersion")
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.cluster_name.HyperCoreVersion.verify"
         )

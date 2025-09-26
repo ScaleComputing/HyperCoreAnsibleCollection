@@ -25,9 +25,7 @@ pytestmark = pytest.mark.skipif(
 class TestRun:
     def setup_method(self):
         self.params = dict(
-            cluster_instance=dict(
-                host="https://0.0.0.0", username="admin", password="admin"
-            ),
+            cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
             vm_name=None,
             serial=None,
             label=None,
@@ -110,47 +108,28 @@ class TestRun:
             replication=True,
         )
 
-        result = vm_snapshot_info.run(module, rest_client)[
-            0
-        ]  # this is safe, since these tests only have one snapshot
+        result = vm_snapshot_info.run(module, rest_client)[0]  # this is safe, since these tests only have one snapshot
 
         result_sorted_block_devices = [
-            dict(sorted(bd.items(), key=lambda item: item[0]))
-            for bd in result["vm"]["disks"]
+            dict(sorted(bd.items(), key=lambda item: item[0])) for bd in result["vm"]["disks"]
         ]
         expected_sorted_block_devices = [
-            dict(sorted(bd.items(), key=lambda item: item[0]))
-            for bd in expected["vm"]["disks"]
+            dict(sorted(bd.items(), key=lambda item: item[0])) for bd in expected["vm"]["disks"]
         ]
 
         assert result["snapshot_uuid"] == expected["snapshot_uuid"]
         assert result["vm"]["name"] == expected["vm"]["name"]
         assert result["vm"]["uuid"] == expected["vm"]["uuid"]
-        assert (
-            result["vm"]["snapshot_serial_number"]
-            == expected["vm"]["snapshot_serial_number"]
-        )
+        assert result["vm"]["snapshot_serial_number"] == expected["vm"]["snapshot_serial_number"]
         assert result_sorted_block_devices == expected_sorted_block_devices
         assert result["device_snapshots"] == expected["device_snapshots"]
         assert result["timestamp"] == expected["timestamp"]
         assert result["label"] == expected["label"]
         assert result["type"] == expected["type"]
-        assert (
-            result["automated_trigger_timestamp"]
-            == expected["automated_trigger_timestamp"]
-        )
-        assert (
-            result["local_retain_until_timestamp"]
-            == expected["local_retain_until_timestamp"]
-        )
-        assert (
-            result["remote_retain_until_timestamp"]
-            == expected["remote_retain_until_timestamp"]
-        )
-        assert (
-            result["block_count_diff_from_serial_number"]
-            == expected["block_count_diff_from_serial_number"]
-        )
+        assert result["automated_trigger_timestamp"] == expected["automated_trigger_timestamp"]
+        assert result["local_retain_until_timestamp"] == expected["local_retain_until_timestamp"]
+        assert result["remote_retain_until_timestamp"] == expected["remote_retain_until_timestamp"]
+        assert result["block_count_diff_from_serial_number"] == expected["block_count_diff_from_serial_number"]
         assert result["replication"] == expected["replication"]
 
     def test_run_record_absent(self, create_module, rest_client):

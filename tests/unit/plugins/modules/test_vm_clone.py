@@ -21,9 +21,7 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_minimal_set_of_params(self, run_main_info):
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             vm_name=dict(
                 type="str",
                 required=True,
@@ -166,9 +164,7 @@ class TestRun:
             "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone.",
         )
 
-    def test_run_when_VM_cloned_with_tag_and_cloud_init(
-        self, rest_client, create_module, mocker
-    ):
+    def test_run_when_VM_cloned_with_tag_and_cloud_init(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

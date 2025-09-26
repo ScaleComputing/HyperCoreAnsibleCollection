@@ -192,9 +192,7 @@ class TestRun:
 class TestMain:
     def test_minimal_set_of_params(self, run_main_info):
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             vm_name=dict(
                 type="str",
                 required=False,

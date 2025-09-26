@@ -76,9 +76,7 @@ class DNSConfig(PayloadMapper):
     @classmethod
     def get_by_uuid(cls, ansible_dict, rest_client, must_exist=False):
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/DNSConfig", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/DNSConfig", query, must_exist=must_exist)
         dns_config_from_hypercore = DNSConfig.from_hypercore(hypercore_dict)
         return dns_config_from_hypercore
 

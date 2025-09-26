@@ -178,9 +178,7 @@ class TestModifySMTP:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0", username="admin", password="admin"
-                ),
+                cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
                 server=server_param,
                 port=port_param,
                 use_ssl=use_ssl_param,
@@ -202,9 +200,7 @@ class TestModifySMTP:
             from_address=rc_from_address,
             latest_task_tag={},
         )
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.module_utils.smtp.SMTP.get_state"
-        )
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.module_utils.smtp.SMTP.get_state")
         rest_client.create_record.return_value = {
             "taskTag": 123,
         }
@@ -227,15 +223,11 @@ class TestModifySMTP:
         else:
             rest_client.update_record.assert_not_called()
 
-    def test_modify_smtp_config_missing_config(
-        self, create_module, rest_client, mocker
-    ):
+    def test_modify_smtp_config_missing_config(self, create_module, rest_client, mocker):
         with pytest.raises(errors.ScaleComputingError):
             module = create_module(
                 params=dict(
-                    cluster_instance=dict(
-                        host="https://0.0.0.0", username="admin", password="admin"
-                    ),
+                    cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
                     server="test.com",
                     port=25,
                     use_ssl=True,

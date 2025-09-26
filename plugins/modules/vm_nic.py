@@ -229,17 +229,13 @@ def ensure_absent(module, rest_client, vm_before: VM):
 
 
 def run(module, rest_client):
-    virtual_machine_obj_list = VM.get(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )
+    virtual_machine_obj_list = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)
     if len(virtual_machine_obj_list) == 0:
         # VM absent, might be typo in vm_name
         module.fail_json(f"VM with name={module.params['vm_name']} not found.")
     vm_before = virtual_machine_obj_list[0]
     if module.params["state"] in [NicState.present, NicState.set]:
-        changed, records, diff = ManageVMNics.ensure_present_or_set(
-            module, rest_client, MODULE_PATH, vm_before
-        )
+        changed, records, diff = ManageVMNics.ensure_present_or_set(module, rest_client, MODULE_PATH, vm_before)
     else:
         changed, records, diff = ensure_absent(module, rest_client, vm_before)
     vm_before.vm_power_up(module, rest_client)

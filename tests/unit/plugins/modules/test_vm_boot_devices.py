@@ -22,9 +22,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestEnsureAbsent:
-    def test_ensure_absent_no_source_object_present(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_absent_no_source_object_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -182,9 +180,7 @@ class TestEnsureAbsent:
             False,
         )
 
-    def test_ensure_absent_uuid_not_in_boot_devices(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_absent_uuid_not_in_boot_devices(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -292,9 +288,7 @@ class TestEnsureAbsent:
         rest_client.update_record.assert_not_called()
         assert result == (False, [], {"after": [], "before": []}, False)
 
-    def test_ensure_absent_update_successful(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_absent_update_successful(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -435,9 +429,7 @@ class TestEnsureAbsent:
 
 
 class TestEnsurePresent:
-    def test_ensure_present_no_source_object_present(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_present_no_source_object_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -545,9 +537,7 @@ class TestEnsurePresent:
         rest_client.update_record.assert_not_called()
         assert result == (False, [], {"after": [], "before": []}, False)
 
-    def test_ensure_present_item_first(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_item_first(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -867,9 +857,7 @@ class TestEnsurePresent:
             False,
         )
 
-    def test_ensure_present_item_not_first_boot_order_updated(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_item_not_first_boot_order_updated(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1025,9 +1013,7 @@ class TestEnsurePresent:
 
 
 class TestEnsureSet:
-    def test_ensure_set_no_source_object_present(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_set_no_source_object_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1135,9 +1121,7 @@ class TestEnsureSet:
         rest_client.update_record.assert_not_called()
         assert result == (False, [], {"after": [], "before": []}, False)
 
-    def test_ensure_set_source_object_present(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_set_source_object_present(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

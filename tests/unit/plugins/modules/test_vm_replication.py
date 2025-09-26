@@ -22,9 +22,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestEnabledOrReenabled:
-    def test_ensure_enabled_or_reenabled_when_replication_not_exist(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_enabled_or_reenabled_when_replication_not_exist(self, rest_client, create_module, mocker):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -102,9 +100,7 @@ class TestEnabledOrReenabled:
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (True, after, {"before": None, "after": after})
 
-    def test_ensure_enabled_or_reenabled_when_replication_exists_change_state(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_enabled_or_reenabled_when_replication_exists_change_state(self, rest_client, create_module, mocker):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -188,9 +184,7 @@ class TestEnabledOrReenabled:
         results = vm_replication.ensure_enabled_or_reenabled(module, rest_client)
         assert results == (True, after, {"before": before, "after": after})
 
-    def test_ensure_enabled_or_reenabled_when_replication_exists_no_changes(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_enabled_or_reenabled_when_replication_exists_no_changes(self, rest_client, create_module, mocker):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -258,9 +252,7 @@ class TestEnabledOrReenabled:
 
 
 class TestDisabled:
-    def test_ensure_disabled_replication_not_exists(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_disabled_replication_not_exists(self, rest_client, create_module, mocker):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -307,9 +299,7 @@ class TestDisabled:
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
 
-    def test_ensure_disabled_replication_exists_state_not_changed(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_disabled_replication_exists_state_not_changed(self, rest_client, create_module, mocker):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -356,9 +346,7 @@ class TestDisabled:
         results = vm_replication.ensure_disabled(module, rest_client)
         assert results == (False, None, {"before": None, "after": None})
 
-    def test_ensure_disabled_replication_exists_state_changed(
-        self, rest_client, create_module, mocker
-    ):
+    def test_ensure_disabled_replication_exists_state_changed(self, rest_client, create_module, mocker):
         vm_dict = {
             "uuid": "7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             "nodeUUID": "",
@@ -446,9 +434,7 @@ class TestDisabled:
 class TestMain:
     def test_minimal_set_of_params(self, run_main):
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             state="enabled",
             vm_name=dict(
                 type="str",

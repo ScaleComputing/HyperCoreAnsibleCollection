@@ -85,9 +85,7 @@ class TestEnsureAbsent:
 
 
 class TestEnsurePresent:
-    def test_ensure_present_iso_image_present(
-        self, create_module, rest_client, os_stat, task_wait
-    ):
+    def test_ensure_present_iso_image_present(self, create_module, rest_client, os_stat, task_wait):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -155,9 +153,7 @@ class TestEnsurePresent:
             },
         )
 
-    def test_ensure_present_iso_image_present_ready_for_insert_true(
-        self, create_module, rest_client
-    ):
+    def test_ensure_present_iso_image_present_ready_for_insert_true(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

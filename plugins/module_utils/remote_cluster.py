@@ -72,12 +72,8 @@ class RemoteCluster(PayloadMapper):
         )
 
     @classmethod
-    def get_cluster_name_from_replication_connection_uuid(
-        cls, rest_client, connection_uuid
-    ):
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/RemoteClusterConnection", {"uuid": connection_uuid}
-        )
+    def get_cluster_name_from_replication_connection_uuid(cls, rest_client, connection_uuid):
+        hypercore_dict = rest_client.get_record("/rest/v1/RemoteClusterConnection", {"uuid": connection_uuid})
         if hypercore_dict is None:
             return None
         record = cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()

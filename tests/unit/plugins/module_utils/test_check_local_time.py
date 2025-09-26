@@ -52,16 +52,12 @@ class TestCheckLocalTime:
             ("22:00-12:31", "True"),
         ],
     )
-    def test_is_local_time_in_time_interval(
-        self, time_interval, expected_result, capfd
-    ):
+    def test_is_local_time_in_time_interval(self, time_interval, expected_result, capfd):
         local_time = datetime.datetime.now()
         local_time_constant = local_time.replace(hour=12, minute=30)
 
         start_time, end_time = check_local_time.get_time_interval(time_interval)
-        check_local_time.is_local_time_in_time_interval(
-            local_time_constant, start_time, end_time
-        )
+        check_local_time.is_local_time_in_time_interval(local_time_constant, start_time, end_time)
         result, err = capfd.readouterr()
 
         assert result.strip() == expected_result  # strip removes "\n"

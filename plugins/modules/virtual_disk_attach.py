@@ -192,17 +192,15 @@ def is_slot_available(module: AnsibleModule, vm: VM) -> Tuple[bool, Optional[Dis
     return True, None
 
 
-def create_payload(
-    module: AnsibleModule, vm: VM, virtual_disk: VirtualDisk
-) -> Dict[Any, Any]:
+def create_payload(module: AnsibleModule, vm: VM, virtual_disk: VirtualDisk) -> Dict[Any, Any]:
     payload = {}
     payload["options"] = dict(
         regenerateDiskID=module.params["disk"]["regenerate_disk_id"],
         readOnly=module.params["disk"]["read_only"],
     )
-    payload["template"] = Disk.from_ansible(  # type: ignore
-        module.params["disk"]
-    ).post_and_patch_payload(vm, existing_disk=None)
+    payload["template"] = Disk.from_ansible(module.params["disk"]).post_and_patch_payload(  # type: ignore
+        vm, existing_disk=None
+    )
     payload["template"].pop("readOnly")
     # get() does not work, since key is always present
     if module.params["disk"]["size"]:
@@ -214,9 +212,7 @@ def create_payload(
     return payload
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedDiskToAnsible], TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedDiskToAnsible], TypedDiff]:
     vm = VM.get_by_name(module.params, rest_client)
     slot_available, disk = is_slot_available(module, vm)  # type: ignore
     if not slot_available:
@@ -225,9 +221,7 @@ def run(
             disk.to_ansible(),  # type: ignore
             dict(before=disk.to_ansible(), after=disk.to_ansible()),  # type: ignore
         )
-    virtual_disk = VirtualDisk.get_by_name(
-        rest_client, name=module.params["name"], must_exist=True
-    )
+    virtual_disk = VirtualDisk.get_by_name(rest_client, name=module.params["name"], must_exist=True)
     payload = create_payload(module, vm, virtual_disk)  # type: ignore
     task_tag = virtual_disk.attach_to_vm(rest_client, payload)  # type: ignore
     TaskTag.wait_task(rest_client, task_tag)
@@ -260,9 +254,7 @@ def main() -> None:
                     ),
                     disk_slot=dict(type="int", required=True),
                     size=dict(type="int"),
-                    cache_mode=dict(
-                        type="str", choices=["none", "writeback", "writethrough"]
-                    ),
+                    cache_mode=dict(type="str", choices=["none", "writeback", "writethrough"]),
                     disable_snapshotting=dict(type="bool"),
                     tiering_priority_factor=dict(
                         type="int",

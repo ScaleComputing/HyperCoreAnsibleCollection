@@ -34,9 +34,7 @@ class TestMain:
                 "presen",
                 (
                     False,
-                    {
-                        "msg": "value of state must be one of: present, absent, got: presen"
-                    },
+                    {"msg": "value of state must be one of: present, absent, got: presen"},
                 ),
             ),
             (
@@ -202,9 +200,7 @@ class TestMain:
                 "absen",
                 (
                     False,
-                    {
-                        "msg": "value of state must be one of: present, absent, got: absen"
-                    },
+                    {"msg": "value of state must be one of: present, absent, got: absen"},
                 ),
             ),
             (
@@ -375,9 +371,7 @@ class TestMain:
         expected_result,
     ) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             name=file_name_test,
             source=file_location_test,
             state=state_test,
@@ -478,9 +472,7 @@ class TestRun:
     ) -> None:
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://my.host.name", username="user", password="pass"
-                ),
+                cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
                 name="foobar.qcow2",
                 source="c:/somewhere/foobar.qcow2",
                 state=state_test,
@@ -1155,9 +1147,7 @@ class TestEnsurePresent:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://my.host.name", username="user", password="pass"
-                ),
+                cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
                 name="foobar.qcow2",
                 source="c:/somewhere/foobar.qcow2",
                 state="present",
@@ -1166,9 +1156,7 @@ class TestEnsurePresent:
         # Does virtual_disk exist on cluster or not.
         cluster_before_virtual_disk_obj = None
         if cluster_before_virtual_disk_dict:
-            cluster_before_virtual_disk_obj = VirtualDisk.from_hypercore(
-                cluster_before_virtual_disk_dict
-            )
+            cluster_before_virtual_disk_obj = VirtualDisk.from_hypercore(cluster_before_virtual_disk_dict)
         else:
             # Mock read_disk_file(); returns a tuple() with file content and file size.
             mocker.patch(
@@ -1183,9 +1171,7 @@ class TestEnsurePresent:
         # Mock wait_task_and_get_updated(); Performs wait_task and returns updated virtual disk.
         cluster_after_virtual_disk = None
         if cluster_after_virtual_disk_dict:
-            cluster_after_virtual_disk = VirtualDisk.from_hypercore(
-                cluster_after_virtual_disk_dict
-            ).to_ansible()
+            cluster_after_virtual_disk = VirtualDisk.from_hypercore(cluster_after_virtual_disk_dict).to_ansible()
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.virtual_disk.wait_task_and_get_updated"
         ).return_value = cluster_after_virtual_disk
@@ -1195,13 +1181,9 @@ class TestEnsurePresent:
                 ScaleComputingError,
                 match=f"Invalid size for file: {module.params['source']}",
             ):
-                virtual_disk.ensure_present(
-                    module, rest_client, cluster_before_virtual_disk_obj
-                )
+                virtual_disk.ensure_present(module, rest_client, cluster_before_virtual_disk_obj)
         else:
-            result = virtual_disk.ensure_present(
-                module, rest_client, cluster_before_virtual_disk_obj
-            )
+            result = virtual_disk.ensure_present(module, rest_client, cluster_before_virtual_disk_obj)
             assert isinstance(result, tuple)
             assert result == expected_result
 
@@ -1354,9 +1336,7 @@ class TestEnsureAbsent:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://my.host.name", username="user", password="pass"
-                ),
+                cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
                 name="foobar.qcow2",
                 source="c:/somewhere/foobar.qcow2",
                 state="absent",
@@ -1365,9 +1345,7 @@ class TestEnsureAbsent:
         # Does virtual_disk exist on cluster or not.
         cluster_before_virtual_disk_obj = None
         if cluster_before_virtual_disk_dict:
-            cluster_before_virtual_disk_obj = VirtualDisk.from_hypercore(
-                cluster_before_virtual_disk_dict
-            )
+            cluster_before_virtual_disk_obj = VirtualDisk.from_hypercore(cluster_before_virtual_disk_dict)
 
         # Mock send_delete_request(); returns empty task tag.
         mocker.patch(
@@ -1377,16 +1355,12 @@ class TestEnsureAbsent:
         # Mock wait_task_and_get_updated(); Performs wait_task and returns updated virtual disk.
         cluster_after_virtual_disk = None
         if cluster_after_virtual_disk_dict:
-            cluster_after_virtual_disk = VirtualDisk.from_hypercore(
-                cluster_after_virtual_disk_dict
-            ).to_ansible()
+            cluster_after_virtual_disk = VirtualDisk.from_hypercore(cluster_after_virtual_disk_dict).to_ansible()
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.virtual_disk.wait_task_and_get_updated"
         ).return_value = cluster_after_virtual_disk
 
-        result = virtual_disk.ensure_absent(
-            module, rest_client, cluster_before_virtual_disk_obj
-        )
+        result = virtual_disk.ensure_absent(module, rest_client, cluster_before_virtual_disk_obj)
         assert isinstance(result, tuple)
         assert result == expected_result
 
@@ -1586,9 +1560,7 @@ class TestWaitTaskAndGetUpdated:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://my.host.name", username="user", password="pass"
-                ),
+                cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
                 name="foobar.qcow2",
                 source="c:/somewhere/foobar.qcow2",
                 state="present",
@@ -1609,9 +1581,7 @@ class TestWaitTaskAndGetUpdated:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.virtual_disk.VirtualDisk.get_by_name"
         ).return_value = updated_virtual_disk_obj
 
-        result = virtual_disk.wait_task_and_get_updated(
-            rest_client, module, task, must_exist
-        )
+        result = virtual_disk.wait_task_and_get_updated(rest_client, module, task, must_exist)
         assert result == expected_result
 
 
@@ -1665,9 +1635,7 @@ class TestReadDiskFile:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://my.host.name", username="user", password="pass"
-                ),
+                cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
                 name="foobar.qcow2",
                 source=file_location,
                 state="present",

@@ -16,9 +16,7 @@ from ..module_utils.utils import get_query
 
 class ISO(PayloadMapper):
     # Variables in ISO are written in ansible-native format
-    def __init__(
-        self, name, uuid=None, size=-1, mounts=None, ready_for_insert=False, path=None
-    ):
+    def __init__(self, name, uuid=None, size=-1, mounts=None, ready_for_insert=False, path=None):
         if mounts is None:
             mounts = []
         self.uuid = uuid
@@ -47,10 +45,7 @@ class ISO(PayloadMapper):
             uuid=hypercore_data["uuid"],
             name=hypercore_data["name"],
             size=hypercore_data["size"],
-            mounts=[
-                dict(vm_uuid=mount["vmUUID"], vm_name=mount["vmName"])
-                for mount in hypercore_data["mounts"]
-            ],
+            mounts=[dict(vm_uuid=mount["vmUUID"], vm_name=mount["vmName"]) for mount in hypercore_data["mounts"]],
             ready_for_insert=hypercore_data["readyForInsert"],
             path=hypercore_data["path"],
         )
@@ -95,11 +90,7 @@ class ISO(PayloadMapper):
         return super().__str__()
 
     def build_iso_post_paylaod(self):
-        return {
-            key: value
-            for key, value in self.to_hypercore().items()
-            if key in ("name", "size", "readyForInsert")
-        }
+        return {key: value for key, value in self.to_hypercore().items() if key in ("name", "size", "readyForInsert")}
 
     @classmethod
     def get_by_name(cls, ansible_dict, rest_client, must_exist=False):
@@ -108,9 +99,7 @@ class ISO(PayloadMapper):
         the record exists. If there is no record with such name, None is returned.
         """
         query = get_query(ansible_dict, "name", ansible_hypercore_map=dict(name="name"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/ISO", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/ISO", query, must_exist=must_exist)
         iso_from_hypercore = ISO.from_hypercore(hypercore_dict)
         return iso_from_hypercore
 

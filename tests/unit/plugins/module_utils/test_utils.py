@@ -29,9 +29,7 @@ class TestFilterDict:
         assert {} == utils.filter_dict(dict(a=None), "a")
 
     def test_selecting_a_subset_skip_none_values(self):
-        assert dict(a=1, c="str") == utils.filter_dict(
-            dict(a=1, b=2, c="str", d=None), "a", "c", "d"
-        )
+        assert dict(a=1, c="str") == utils.filter_dict(dict(a=1, b=2, c="str", d=None), "a", "c", "d")
 
 
 class TestTransformQuery:
@@ -90,6 +88,4 @@ class TestIsSuperset:
 
 class TestFilterResults:
     def test_filter_results(self):
-        assert utils.filter_results(
-            [dict(a=1), dict(b=1), dict(a=1, b=2)], dict(a=1)
-        ) == [dict(a=1), dict(a=1, b=2)]
+        assert utils.filter_results([dict(a=1), dict(b=1), dict(a=1, b=2)], dict(a=1)) == [dict(a=1), dict(a=1, b=2)]

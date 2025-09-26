@@ -93,9 +93,7 @@ from ..module_utils.virtual_disk import VirtualDisk
 HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> List[TypedVirtualDiskToAnsible]:
+def run(module: AnsibleModule, rest_client: RestClient) -> List[TypedVirtualDiskToAnsible]:
     query = get_query(module.params, "name", ansible_hypercore_map=dict(name="name"))
     return VirtualDisk.get_state(rest_client, query)
 

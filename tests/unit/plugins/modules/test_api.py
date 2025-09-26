@@ -26,9 +26,7 @@ class TestGetMethod:
         ("list_records_raw_return"),
         [([dict(name="record1"), dict(name="record2")]), (dict(name="record1"))],
     )
-    def test_get_method_record_present(
-        self, create_module, rest_client, list_records_raw_return
-    ):
+    def test_get_method_record_present(self, create_module, rest_client, list_records_raw_return):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

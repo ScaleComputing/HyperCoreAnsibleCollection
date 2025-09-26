@@ -79,9 +79,7 @@ class VMNotFound(ScaleComputingError):
 
 class ReplicationNotUnique(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = (
-            f"There is already a replication on - {data} - virtual machine"
-        )
+        self.message = f"There is already a replication on - {data} - virtual machine"
         super(ReplicationNotUnique, self).__init__(self.message)
 
 
@@ -93,9 +91,7 @@ class ClusterConnectionNotFound(ScaleComputingError):
 
 class SMBServerNotFound(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "SMB server is either not connected or not in the same network - {0}".format(
-            data
-        )
+        self.message = "SMB server is either not connected or not in the same network - {0}".format(data)
         super(SMBServerNotFound, self).__init__(self.message)
 
 

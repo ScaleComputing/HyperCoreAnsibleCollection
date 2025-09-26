@@ -60,9 +60,7 @@ class TestVirtualDisk:
             self.virtual_disk.to_hypercore()
 
     def test_virtual_disk_from_hypercore_dict_not_empty(self):
-        virtual_disk_from_hypercore = VirtualDisk.from_hypercore(
-            self.from_hypercore_dict
-        )
+        virtual_disk_from_hypercore = VirtualDisk.from_hypercore(self.from_hypercore_dict)
         assert self.virtual_disk == virtual_disk_from_hypercore
 
     # def test_virtual_disk_from_hypercore_dict_empty(self):
@@ -571,9 +569,7 @@ class TestGetByName:
                 ScaleComputingError,
                 match=f"Virtual disk {virtual_disk_dict_from_api['name']} has multiple instances and is not unique.",
             ):
-                VirtualDisk.get_by_name(
-                    rest_client, virtual_disk_dict_from_api["name"], must_exist
-                )
+                VirtualDisk.get_by_name(rest_client, virtual_disk_dict_from_api["name"], must_exist)
         else:
             # Mock rest_client
             rest_client.list_records.return_value = [virtual_disk_dict_from_api]
@@ -663,9 +659,7 @@ class TestSendUploadRequest:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://my.host.name", username="user", password="pass"
-                ),
+                cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
                 name=file_name,
                 source=file_source,
                 state="present",
@@ -754,24 +748,18 @@ class TestSendDeleteRequest:
             ),
             # Missing UUID exception
             (
-                VirtualDisk(
-                    uuid="", name="", block_size="", size="", replication_factor=""
-                ),
+                VirtualDisk(uuid="", name="", block_size="", size="", replication_factor=""),
                 True,
                 None,
             ),
             (
-                VirtualDisk(
-                    uuid=None, name="", block_size="", size="", replication_factor=""
-                ),
+                VirtualDisk(uuid=None, name="", block_size="", size="", replication_factor=""),
                 True,
                 None,
             ),
         ],
     )
-    def test_send_delete_request_virtual_disk(
-        self, rest_client, virtual_disk, expected_exception, expected_result
-    ):
+    def test_send_delete_request_virtual_disk(self, rest_client, virtual_disk, expected_exception, expected_result):
         if expected_exception:
             with pytest.raises(
                 ScaleComputingError,

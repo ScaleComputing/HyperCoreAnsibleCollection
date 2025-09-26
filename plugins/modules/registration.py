@@ -148,9 +148,7 @@ def ensure_absent(
     return is_changed(before, after), after, dict(before=before, after=after)
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedRegistrationToAnsible], TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedRegistrationToAnsible], TypedDiff]:
     registration_obj = Registration.get(rest_client)
     if module.params["state"] == State.present:
         return ensure_present(module, rest_client, registration_obj)

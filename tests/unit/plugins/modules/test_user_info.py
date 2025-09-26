@@ -153,9 +153,7 @@ class TestRun:
 
         result = user_info.run(module, rest_client)
 
-        rest_client.list_records.assert_called_with(
-            "/rest/v1/User", {"username": "admin"}
-        )
+        rest_client.list_records.assert_called_with("/rest/v1/User", {"username": "admin"})
         assert result == [
             {
                 "fullname": "admin",

@@ -78,9 +78,7 @@ class TimeZone(PayloadMapper):
     @classmethod
     def get_by_uuid(cls, ansible_dict, rest_client, must_exist=False):
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/TimeZone", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/TimeZone", query, must_exist=must_exist)
         time_zone_from_hypercore = TimeZone.from_hypercore(hypercore_dict)
         return time_zone_from_hypercore
 

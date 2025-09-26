@@ -114,9 +114,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedUpdateToAnsible
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedUpdateToAnsible], Dict[Any, Any]]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedUpdateToAnsible], Dict[Any, Any]]:
     cluster = Cluster.get(rest_client)
     new_icos_version = module.params["icos_version"]
     if cluster.icos_version == new_icos_version:

@@ -62,21 +62,13 @@ class Role(PayloadMapper):
         )
 
     @classmethod
-    def get_role_from_uuid(
-        cls, role_uuid: str, rest_client: RestClient, must_exist: bool = False
-    ) -> Optional[Role]:
-        hypercore_dict = rest_client.get_record(
-            f"/rest/v1/Role/{role_uuid}", must_exist=must_exist
-        )
+    def get_role_from_uuid(cls, role_uuid: str, rest_client: RestClient, must_exist: bool = False) -> Optional[Role]:
+        hypercore_dict = rest_client.get_record(f"/rest/v1/Role/{role_uuid}", must_exist=must_exist)
         role = cls.from_hypercore(hypercore_dict)
         return role
 
     @classmethod
-    def get_role_from_name(
-        cls, role_name: str, rest_client: RestClient, must_exist: bool = False
-    ) -> Optional[Role]:
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/Role", {"name": role_name}, must_exist=must_exist
-        )
+    def get_role_from_name(cls, role_name: str, rest_client: RestClient, must_exist: bool = False) -> Optional[Role]:
+        hypercore_dict = rest_client.get_record("/rest/v1/Role", {"name": role_name}, must_exist=must_exist)
         role = cls.from_hypercore(hypercore_dict)
         return role

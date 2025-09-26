@@ -25,9 +25,7 @@ pytestmark = pytest.mark.skipif(
 
 class TestTableListRecords:
     def test_empty_response(self, client):
-        client.get.return_value = Response(
-            200, '{"result": []}', {"X-Total-Count": "0"}
-        )
+        client.get.return_value = Response(200, '{"result": []}', {"X-Total-Count": "0"})
         t = rest_client.RestClient(client)
 
         records = t.list_records("my_table")
@@ -36,9 +34,7 @@ class TestTableListRecords:
         client.get.assert_called_once_with(path="my_table", timeout=None)
 
     def test_non_empty_response(self, client):
-        client.get.return_value = Response(
-            200, '{"result": [{"a": 3, "b": "sys_id"}]}', {"X-Total-Count": "1"}
-        )
+        client.get.return_value = Response(200, '{"result": [{"a": 3, "b": "sys_id"}]}', {"X-Total-Count": "1"})
         t = rest_client.RestClient(client)
 
         records = t.list_records("my_table")
@@ -46,9 +42,7 @@ class TestTableListRecords:
         assert records == ["result"]
 
     def test_query_passing(self, client):
-        client.get.return_value = Response(
-            200, '{"result": []}', {"X-Total-Count": "0"}
-        )
+        client.get.return_value = Response(200, '{"result": []}', {"X-Total-Count": "0"})
         t = rest_client.RestClient(client)
 
         t.list_records("my_table", dict(a="b"))
@@ -61,9 +55,7 @@ class TestTableListRecords:
 
 class TestTableListRecordsRaw:
     def test_empty_response(self, client):
-        client.get.return_value = Response(
-            200, '{"result": []}', {"X-Total-Count": "0"}
-        )
+        client.get.return_value = Response(200, '{"result": []}', {"X-Total-Count": "0"})
         t = rest_client.RestClient(client)
 
         records = t.list_records_raw("my_table")
@@ -72,9 +64,7 @@ class TestTableListRecordsRaw:
         client.get.assert_called_once_with(path="my_table", timeout=None)
 
     def test_non_empty_response(self, client):
-        client.get.return_value = Response(
-            200, '{"result": [{"a": 3, "b": "sys_id"}]}', {"X-Total-Count": "1"}
-        )
+        client.get.return_value = Response(200, '{"result": [{"a": 3, "b": "sys_id"}]}', {"X-Total-Count": "1"})
         t = rest_client.RestClient(client)
 
         records = t.list_records_raw("my_table")
@@ -84,17 +74,13 @@ class TestTableListRecordsRaw:
 
 class TestTableGetRecord:
     def test_zero_matches(self, client):
-        client.get.return_value = Response(
-            200, '{"result": []}', {"X-Total-Count": "0"}
-        )
+        client.get.return_value = Response(200, '{"result": []}', {"X-Total-Count": "0"})
         t = rest_client.RestClient(client)
 
         assert t.get_record("my_table", dict(our="query")) is None
 
     def test_zero_matches_fail(self, client):
-        client.get.return_value = Response(
-            200, '{"result": []}', {"X-Total-Count": "0"}
-        )
+        client.get.return_value = Response(200, '{"result": []}', {"X-Total-Count": "0"})
         t = rest_client.RestClient(client)
 
         with pytest.raises(errors.ScaleComputingError, match="No"):
@@ -156,9 +142,7 @@ class TestTableUpdateRecord:
 
 class TestTableDeleteRecord:
     def test_normal_mode(self, client):
-        client.delete.return_value = Response(
-            204, '{"result": {"a": 3, "b": "sys_id"}}'
-        )
+        client.delete.return_value = Response(204, '{"result": {"a": 3, "b": "sys_id"}}')
         t = rest_client.RestClient(client)
 
         t.delete_record("my_table/id", check_mode=False)

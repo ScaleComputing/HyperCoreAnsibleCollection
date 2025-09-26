@@ -102,14 +102,10 @@ class TestSupportTunnel:
 
         SupportTunnel.open_tunnel(module, client)
 
-        client.get.assert_called_with(
-            "/support-api/open", query={"code": 4422, "user": "mock_username"}
-        )
+        client.get.assert_called_with("/support-api/open", query={"code": 4422, "user": "mock_username"})
 
     def test_close_tunnel(self, client):
         client.get.return_value = Response(status=200, data="")
         SupportTunnel.close_tunnel(client)
 
-        client.get.assert_called_with(
-            "/support-api/close", query={"user": "mock_username"}
-        )
+        client.get.assert_called_with("/support-api/close", query={"user": "mock_username"})

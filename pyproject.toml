@@ -80,6 +80,7 @@ disable_error_code = ["no-untyped-def", "no-untyped-call", "assignment", "type-a
 target-version = ["py38"]
 # exclude - a regex like 'plugins/inventory/hypercore.py|second.py'
 exclude = 'plugins/inventory/hypercore.py'
+line_length = 120
 
 [tool.isort]
 profile = "black"

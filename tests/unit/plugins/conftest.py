@@ -129,9 +129,7 @@ def run_main(mocker):
             return e.success, e.result
         assert False, "Module is not calling exit_json or fail_json."
 
-    mocker.patch.multiple(
-        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
-    )
+    mocker.patch.multiple(basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock)
     return runner
 
 
@@ -157,9 +155,7 @@ def run_main_with_reboot(mocker):
             return e.success, e.result
         assert False, "Module is not calling exit_json or fail_json."
 
-    mocker.patch.multiple(
-        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
-    )
+    mocker.patch.multiple(basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock)
     return runner
 
 
@@ -185,9 +181,7 @@ def run_main_with_record_and_records(mocker):
             return e.success, e.result
         assert False, "Module is not calling exit_json or fail_json."
 
-    mocker.patch.multiple(
-        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
-    )
+    mocker.patch.multiple(basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock)
     return runner
 
 
@@ -213,9 +207,7 @@ def run_main_info(mocker):
             return e.success, e.result
         assert False, "Module is not calling exit_json or fail_json."
 
-    mocker.patch.multiple(
-        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
-    )
+    mocker.patch.multiple(basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock)
     return runner
 
 

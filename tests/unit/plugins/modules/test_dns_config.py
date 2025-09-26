@@ -144,9 +144,7 @@ class TestModifyDNSConfig:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0", username="admin", password="admin"
-                ),
+                cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
                 search_domains=search_domains,
                 dns_servers=dns_servers,
                 state=state,
@@ -169,9 +167,7 @@ class TestModifyDNSConfig:
 
         called_with_dict = dict(
             endpoint="/rest/v1/DNSConfig/test",
-            payload=dict(
-                searchDomains=expected_search_domains, serverIPs=expected_server_ips
-            ),
+            payload=dict(searchDomains=expected_search_domains, serverIPs=expected_server_ips),
             check_mode=False,
         )
         dns_config.modify_dns_config(module, rest_client)
@@ -189,9 +185,7 @@ class TestModifyDNSConfig:
         with pytest.raises(errors.ScaleComputingError):
             module = create_module(
                 params=dict(
-                    cluster_instance=dict(
-                        host="https://0.0.0.0", username="admin", password="admin"
-                    ),
+                    cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
                     search_domains=[],
                     dns_servers=[],
                     state="set",

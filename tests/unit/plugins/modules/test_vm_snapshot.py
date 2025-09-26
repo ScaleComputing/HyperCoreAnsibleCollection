@@ -105,9 +105,7 @@ class TestMain:
         expected_result,
     ) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             vm_name=vm_name,
             label=label,
             retain_for=retain_for,
@@ -163,9 +161,7 @@ class TestRun:
     ) -> None:
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://my.host.name", username="user", password="pass"
-                ),
+                cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
                 vm_name="this-VM",
                 label="this-label",
                 retain_for=30,
@@ -258,9 +254,7 @@ class TestEnsurePresent:
         # Mock module
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://my.host.name", username="user", password="pass"
-                ),
+                cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
                 vm_name="this-VM",
                 label=label,
                 retain_for=None,
@@ -286,9 +280,7 @@ class TestEnsurePresent:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot.VMSnapshot.get_snapshots_by_query"
         ).return_value = after
 
-        result = vm_snapshot.ensure_present(
-            module, rest_client, vm_object, snapshot_list
-        )
+        result = vm_snapshot.ensure_present(module, rest_client, vm_object, snapshot_list)
 
         print(result)
         print("\n")
@@ -318,9 +310,7 @@ class TestEnsureAbsent:
                     True,
                     None,
                     dict(
-                        before=dict(
-                            vm_name="this-vm", label="this-label", snapshot_uuid="123"
-                        ),
+                        before=dict(vm_name="this-vm", label="this-label", snapshot_uuid="123"),
                         after=None,
                     ),
                 ),
@@ -340,9 +330,7 @@ class TestEnsureAbsent:
         # Mock module
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://my.host.name", username="user", password="pass"
-                ),
+                cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
                 vm_name="this-VM",
                 label=label,
                 retain_for=None,
@@ -368,9 +356,7 @@ class TestEnsureAbsent:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot.VMSnapshot.get_snapshots_by_query"
         ).return_value = after
 
-        result = vm_snapshot.ensure_absent(
-            module, rest_client, vm_object, snapshot_list
-        )
+        result = vm_snapshot.ensure_absent(module, rest_client, vm_object, snapshot_list)
         print(result, expected_result)
         assert isinstance(result, tuple)
         assert result == expected_result

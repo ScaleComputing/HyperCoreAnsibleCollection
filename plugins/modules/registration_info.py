@@ -74,9 +74,7 @@ from ..module_utils.rest_client import CachedRestClient
 from ..module_utils.typed_classes import TypedRegistrationToAnsible
 
 
-def run(
-    module: AnsibleModule, rest_client: CachedRestClient
-) -> Optional[TypedRegistrationToAnsible]:
+def run(module: AnsibleModule, rest_client: CachedRestClient) -> Optional[TypedRegistrationToAnsible]:
     registration_list = rest_client.list_records("/rest/v1/Registration")
     if registration_list:
         return Registration.from_hypercore(registration_list[0]).to_ansible()

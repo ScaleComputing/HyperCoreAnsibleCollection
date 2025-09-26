@@ -59,15 +59,11 @@ class Response:
     # Response(raw_resp) would be simpler.
     # How is this used in other projects? Jure?
     # Maybe we need/want both.
-    def __init__(
-        self, status: int, data: Any, headers: Optional[dict[Any, Any]] = None
-    ):
+    def __init__(self, status: int, data: Any, headers: Optional[dict[Any, Any]] = None):
         self.status = status
         self.data = data
         # [('h1', 'v1'), ('H2', 'V2')] -> {'h1': 'v1', 'h2': 'V2'}
-        self.headers = (
-            dict((k.lower(), v) for k, v in dict(headers).items()) if headers else {}
-        )
+        self.headers = dict((k.lower(), v) for k, v in dict(headers).items()) if headers else {}
 
         self._json = None
 
@@ -92,8 +88,7 @@ class Client:
     ):
         if not (host or "").startswith(("https://", "http://")):
             raise ScaleComputingError(
-                "Invalid instance host value: '{0}'. "
-                "Value must start with 'https://' or 'http://'".format(host)
+                "Invalid instance host value: '{0}'. " "Value must start with 'https://' or 'http://'".format(host)
             )
 
         self.host = host
@@ -213,23 +208,14 @@ class Client:
         except URLError as e:
             # TODO: Add other errors here; we need to handle them in modules.
             # TimeoutError is handled in the rest_client
-            if (
-                e.args
-                and isinstance(e.args, tuple)
-                and isinstance(e.args[0], ConnectionRefusedError)
-            ):
+            if e.args and isinstance(e.args, tuple) and isinstance(e.args[0], ConnectionRefusedError):
                 raise ConnectionRefusedError(e.reason)
-            elif (
-                e.args
-                and isinstance(e.args, tuple)
-                and isinstance(e.args[0], ConnectionResetError)
-            ):
+            elif e.args and isinstance(e.args, tuple) and isinstance(e.args[0], ConnectionResetError):
                 raise ConnectionResetError(e.reason)
             elif (
                 e.args
                 and isinstance(e.args, tuple)
-                and type(e.args[0])
-                in [ssl.SSLEOFError, ssl.SSLZeroReturnError, ssl.SSLSyscallError]
+                and type(e.args[0]) in [ssl.SSLEOFError, ssl.SSLZeroReturnError, ssl.SSLSyscallError]
             ):
                 raise type(e.args[0])(e)
             raise ScaleComputingError(e.reason)
@@ -247,9 +233,7 @@ class Client:
     ) -> Response:
         # Make sure we only have one kind of payload
         if data is not None and binary_data is not None:
-            raise AssertionError(
-                "Cannot have JSON and binary payload in a single request."
-            )
+            raise AssertionError("Cannot have JSON and binary payload in a single request.")
         escaped_path = quote(path.strip("/"))
         if escaped_path:
             escaped_path = "/" + escaped_path
@@ -268,9 +252,7 @@ class Client:
             )
         elif binary_data is not None:
             headers["Content-type"] = "application/octet-stream"
-            return self._request(
-                method, url, data=binary_data, headers=headers, timeout=timeout
-            )
+            return self._request(method, url, data=binary_data, headers=headers, timeout=timeout)
         return self._request(method, url, data=data, headers=headers, timeout=timeout)
 
     def get(

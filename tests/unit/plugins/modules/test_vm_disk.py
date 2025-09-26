@@ -102,9 +102,7 @@ class TestEnsureAbsent:
             False,
         )
 
-    def test_ensure_absent_delete_record(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_absent_delete_record(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -217,9 +215,7 @@ class TestEnsureAbsent:
             False,
         )
 
-    def test_ensure_absent_cdrom_name_in_desired_disk_and_query(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_absent_cdrom_name_in_desired_disk_and_query(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

@@ -31,9 +31,7 @@ class SupportTunnel(PayloadMapper):
         pass
 
     @classmethod
-    def from_hypercore(
-        cls, hypercore_data: dict[str, Union[int, bool, None]]
-    ) -> SupportTunnel:
+    def from_hypercore(cls, hypercore_data: dict[str, Union[int, bool, None]]) -> SupportTunnel:
         # There is no None check since get_record is not used (support_tunnel's api behaves different)
         if not hypercore_data["tunnelOpen"]:
             open_flag = False
@@ -52,9 +50,7 @@ class SupportTunnel(PayloadMapper):
             code=self.code,
         )
 
-    def __eq__(
-        self, other: object
-    ) -> bool:  # object instead of SupportTunnel to make mypy happy
+    def __eq__(self, other: object) -> bool:  # object instead of SupportTunnel to make mypy happy
         """
         One support_tunnel is equal to another if it has all attributes exactly the same.
         This method is used only in tests.

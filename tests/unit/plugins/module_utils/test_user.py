@@ -75,12 +75,8 @@ class TestUser:
         ansible_dict = dict(
             full_name="fullname",
             roles=[
-                dict(
-                    name="Cluster Settings", uuid="38b346c6-a626-444b-b6ab-92ecd671afc0"
-                ),
-                dict(
-                    name="Cluster Shutdown", uuid="7224a2bd-5a08-4b99-a0de-9977089c66a4"
-                ),
+                dict(name="Cluster Settings", uuid="38b346c6-a626-444b-b6ab-92ecd671afc0"),
+                dict(name="Cluster Shutdown", uuid="7224a2bd-5a08-4b99-a0de-9977089c66a4"),
             ],
             session_limit=0,
             username="username",

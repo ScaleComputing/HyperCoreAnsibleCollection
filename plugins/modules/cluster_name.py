@@ -82,9 +82,7 @@ from ..module_utils.typed_classes import TypedDiff
 HYPERCORE_VERSION_REQUIREMENTS = ">=9.1.21 <9.2.0 || >=9.2.11"
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, TypedClusterToAnsible, TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, TypedClusterToAnsible, TypedDiff]:
     cluster = Cluster.get(rest_client)
     if cluster.name == module.params["name_new"]:
         return (

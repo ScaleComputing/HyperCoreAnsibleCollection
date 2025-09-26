@@ -55,9 +55,7 @@ class TestRun:
             }
         ]
 
-    def test_run_records_present_without_selected_cluster(
-        self, create_module, rest_client
-    ):
+    def test_run_records_present_without_selected_cluster(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

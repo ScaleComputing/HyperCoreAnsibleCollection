@@ -150,9 +150,7 @@ from ..module_utils.vm import VM
 
 
 def run(module, rest_client):
-    virtual_machine_obj_list = VM.get(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )
+    virtual_machine_obj_list = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)
     if len(virtual_machine_obj_list) > 0:
         return False, f"Virtual machine - {module.params['vm_name']} - already exists."
     task = VM.import_vm(rest_client, module.params)
@@ -160,9 +158,7 @@ def run(module, rest_client):
     task_status = TaskTag.get_task_status(rest_client, task)
     if task_status and task_status.get("state", "") == "COMPLETE":
         return True, f"Virtual machine - {module.params['vm_name']} - import complete."
-    raise errors.ScaleComputingError(
-        f"There was a problem during import of {module.params['vm_name']}, import failed."
-    )
+    raise errors.ScaleComputingError(f"There was a problem during import of {module.params['vm_name']}, import failed.")
 
 
 def main():

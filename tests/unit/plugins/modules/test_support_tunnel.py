@@ -56,10 +56,7 @@ class TestMain:
         success, result = run_main(support_tunnel, params)
 
         assert success is False
-        assert (
-            "state is present but all of the following are missing: code"
-            in result["msg"]
-        )
+        assert "state is present but all of the following are missing: code" in result["msg"]
 
     def test_fail(self, run_main):
         success, result = run_main(support_tunnel)

@@ -57,9 +57,7 @@ class TestIsSlotAvailable:
             (5, (True, None)),
         ],
     )
-    def test_is_slot_available(
-        self, create_module, disk_slot, expected_result, virtual_machine
-    ):
+    def test_is_slot_available(self, create_module, disk_slot, expected_result, virtual_machine):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -73,9 +71,7 @@ class TestIsSlotAvailable:
             )
         )
 
-        assert expected_result == virtual_disk_attach.is_slot_available(
-            module, virtual_machine
-        )
+        assert expected_result == virtual_disk_attach.is_slot_available(module, virtual_machine)
 
 
 class TestCreatePayload:
@@ -102,9 +98,7 @@ class TestCreatePayload:
             )
         )
 
-        payload = virtual_disk_attach.create_payload(
-            module, virtual_machine, virtual_disk
-        )
+        payload = virtual_disk_attach.create_payload(module, virtual_machine, virtual_disk)
 
         assert payload == dict(
             options={"regenerateDiskID": False, "readOnly": True},
@@ -119,9 +113,7 @@ class TestCreatePayload:
             },
         )
 
-    def test_create_payload_min_params(
-        self, create_module, virtual_machine, virtual_disk
-    ):
+    def test_create_payload_min_params(self, create_module, virtual_machine, virtual_disk):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -144,9 +136,7 @@ class TestCreatePayload:
             )
         )
 
-        payload = virtual_disk_attach.create_payload(
-            module, virtual_machine, virtual_disk
-        )
+        payload = virtual_disk_attach.create_payload(module, virtual_machine, virtual_disk)
 
         assert payload == dict(
             options={

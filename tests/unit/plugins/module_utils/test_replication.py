@@ -121,9 +121,7 @@ class TestCreateFromHypercore:
         replication_obj = Replication.from_hypercore(hypercore_data)
         assert replication_obj.vm_uuid == hypercore_data["sourceDomainUUID"]
         assert replication_obj.replication_uuid == hypercore_data["uuid"]
-        assert replication_obj.state == Replication.handle_state(
-            hypercore_data["enable"]
-        )
+        assert replication_obj.state == Replication.handle_state(hypercore_data["enable"])
         assert replication_obj.connection_uuid == hypercore_data["connectionUUID"]
         assert replication_obj.vm_name == "test-vm"
         assert replication_obj.remote_cluster == "remote-cluster-name"

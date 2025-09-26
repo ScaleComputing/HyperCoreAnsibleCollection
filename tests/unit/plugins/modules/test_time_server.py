@@ -39,9 +39,7 @@ class TestModifyTimeServer:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0", username="admin", password="admin"
-                ),
+                cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
                 source=param_source,
             )
         )
@@ -73,9 +71,7 @@ class TestModifyTimeServer:
         else:
             rest_client.update_record.assert_not_called()
 
-    def test_modify_time_server_missing_config(
-        self, create_module, rest_client, mocker
-    ):
+    def test_modify_time_server_missing_config(self, create_module, rest_client, mocker):
         with pytest.raises(errors.ScaleComputingError):
             module = create_module(
                 params=dict(

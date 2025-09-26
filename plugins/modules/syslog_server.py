@@ -208,9 +208,7 @@ def get_protocol(protocol: str) -> str:
 
 def create_syslog_server(
     module: AnsibleModule, rest_client: RestClient
-) -> Tuple[
-    bool, TypedSyslogServerToAnsible, List[TypedSyslogServerToAnsible], TypedDiff
-]:
+) -> Tuple[bool, TypedSyslogServerToAnsible, List[TypedSyslogServerToAnsible], TypedDiff]:
     protocol = get_protocol(module.params["protocol"])
 
     # If that syslog server already exists, it will not be created again (no duplicates)
@@ -234,9 +232,7 @@ def create_syslog_server(
     )  # changed, records, diff
 
 
-def build_update_payload(
-    module: AnsibleModule, syslog_server: SyslogServer
-) -> Dict[Any, Any]:
+def build_update_payload(module: AnsibleModule, syslog_server: SyslogServer) -> Dict[Any, Any]:
     payload = dict(
         host=syslog_server.host,
         port=syslog_server.port,
@@ -244,10 +240,7 @@ def build_update_payload(
     )
     if module.params["host_new"] and syslog_server.host != module.params["host_new"]:
         payload["host"] = module.params["host_new"]
-    if (
-        module.params["port"] != DEFAULT_PORT
-        and module.params["port"] != syslog_server.port
-    ):
+    if module.params["port"] != DEFAULT_PORT and module.params["port"] != syslog_server.port:
         payload["port"] = module.params["port"]
     if module.params["protocol"]:
         protocol = get_protocol(module.params["protocol"])
@@ -256,9 +249,7 @@ def build_update_payload(
     return payload
 
 
-def update_syslog_server(
-    old_syserver: SyslogServer, module: AnsibleModule, rest_client: RestClient
-) -> Tuple[
+def update_syslog_server(old_syserver: SyslogServer, module: AnsibleModule, rest_client: RestClient) -> Tuple[
     bool,
     Union[TypedSyslogServerToAnsible, Dict[None, None]],
     List[TypedSyslogServerToAnsible],
@@ -267,9 +258,7 @@ def update_syslog_server(
     old_syserver_tmp = old_syserver
     if not old_syserver:
         if module.params["host_new"]:
-            old_syserver_tmp = SyslogServer.get_by_host(
-                module.params["host_new"], rest_client
-            )  # type: ignore
+            old_syserver_tmp = SyslogServer.get_by_host(module.params["host_new"], rest_client)  # type: ignore
     if not old_syserver_tmp:
         # Syslog server not found by old or by new host, do nothing.
         # Maybe module should fail with error instead.
@@ -294,9 +283,7 @@ def update_syslog_server(
         check_mode=module.check_mode,
     )
 
-    new_syserver = SyslogServer.get_by_host(
-        host=payload["host"], rest_client=rest_client
-    )
+    new_syserver = SyslogServer.get_by_host(host=payload["host"], rest_client=rest_client)
     after = new_syserver.to_ansible()  # type: ignore
 
     records_after = SyslogServer.get_state(rest_client)
@@ -344,9 +331,7 @@ def set_syslog_servers(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     Just ensure first N servers match what is requested by syslog_servers module param.
     """
     old_hc3_syslog_servers = SyslogServer.get_all(rest_client)
-    ansible_syslog_servers = [
-        SyslogServer.from_ansible(ss) for ss in module.params["syslog_servers"]
-    ]
+    ansible_syslog_servers = [SyslogServer.from_ansible(ss) for ss in module.params["syslog_servers"]]
     ansible_syslog_servers.sort()
     changed = False
     for ii, ansible_syslog_server in enumerate(ansible_syslog_servers):
@@ -397,9 +382,7 @@ def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     if state == "set":
         return set_syslog_servers(module, rest_client)
 
-    syslog_server = SyslogServer.get_by_host(
-        host=module.params["host"], rest_client=rest_client
-    )
+    syslog_server = SyslogServer.get_by_host(host=module.params["host"], rest_client=rest_client)
     if state == "present":
         if syslog_server or module.params["host_new"] is not None:
             return update_syslog_server(syslog_server, module, rest_client)  # type: ignore

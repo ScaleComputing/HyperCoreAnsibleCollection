@@ -84,9 +84,7 @@ class TestSnapshotSchedule:
             ],
         )
 
-        snapshot_schedule_from_hypercore = SnapshotSchedule.from_hypercore(
-            hypercore_dict
-        )
+        snapshot_schedule_from_hypercore = SnapshotSchedule.from_hypercore(hypercore_dict)
         assert snapshot_schedule == snapshot_schedule_from_hypercore
 
     def test_snapshot_schedule_from_hypercore_dict_empty(self):
@@ -210,10 +208,7 @@ class TestSnapshotSchedule:
             recurrences=[],
         )
 
-        assert (
-            SnapshotSchedule.get_by_name(ansible_dict, rest_client)
-            == snapshot_schedule_image
-        )
+        assert SnapshotSchedule.get_by_name(ansible_dict, rest_client) == snapshot_schedule_image
 
 
 class TestRecurrence:

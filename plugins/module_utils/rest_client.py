@@ -71,14 +71,10 @@ class RestClient:
         records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)
         if len(records) > 1:
             raise errors.ScaleComputingError(
-                "{0} records from endpoint {1} match the {2} query.".format(
-                    len(records), endpoint, query
-                )
+                "{0} records from endpoint {1} match the {2} query.".format(len(records), endpoint, query)
             )
         if must_exist and not records:
-            raise errors.ScaleComputingError(
-                f"No records from endpoint {endpoint} match the {query} query."
-            )
+            raise errors.ScaleComputingError(f"No records from endpoint {endpoint} match the {query} query.")
         return records[0] if records else None
 
     def create_record(
@@ -91,9 +87,7 @@ class RestClient:
         if check_mode:
             return utils.MOCKED_TASK_TAG
         try:
-            response: TypedTaskTag = self.client.post(
-                endpoint, payload, query=_query(), timeout=timeout
-            ).json
+            response: TypedTaskTag = self.client.post(endpoint, payload, query=_query(), timeout=timeout).json
         except TimeoutError as e:
             raise errors.ScaleTimeoutError(e)
         return response
@@ -109,16 +103,12 @@ class RestClient:
         if check_mode:
             return utils.MOCKED_TASK_TAG
         try:
-            response: TypedTaskTag = self.client.patch(
-                endpoint, payload, query=_query(), timeout=timeout
-            ).json
+            response: TypedTaskTag = self.client.patch(endpoint, payload, query=_query(), timeout=timeout).json
         except TimeoutError as e:
             raise errors.ScaleTimeoutError(e)
         return response
 
-    def delete_record(
-        self, endpoint: str, check_mode: bool, timeout: Optional[float] = None
-    ) -> TypedTaskTag:
+    def delete_record(self, endpoint: str, check_mode: bool, timeout: Optional[float] = None) -> TypedTaskTag:
         # No action is possible when deleting a record
         if check_mode:
             return utils.MOCKED_TASK_TAG

@@ -144,9 +144,7 @@ def attach_disk(
     # source
     source_snapshot_uuid = module.params["source_snapshot_uuid"]
     source_disk_type = module.params["source_disk_type"]
-    source_disk_slot = int(
-        module.params["source_disk_slot"]
-    )  # the higher the index, the newer the disk
+    source_disk_slot = int(module.params["source_disk_slot"])  # the higher the index, the newer the disk
 
     # Get destination VM object
     vm_object = VM.get_by_name(module.params, rest_client, must_exist=True)
@@ -154,15 +152,11 @@ def attach_disk(
         raise errors.ScaleComputingError("VM named '" + vm_name + "' doesn't exist.")
 
     # =============== IMPLEMENTATION ===================
-    vm_snapshot_hypercore = VMSnapshot.get_snapshot_by_uuid(
-        source_snapshot_uuid, rest_client
-    )
+    vm_snapshot_hypercore = VMSnapshot.get_snapshot_by_uuid(source_snapshot_uuid, rest_client)
 
     # if the desired snapshot (with source_snapshot_uuid) doesn't exist, raise an error.
     if vm_snapshot_hypercore is None:
-        raise errors.ScaleComputingError(
-            "Snapshot with uuid='" + source_snapshot_uuid + "' doesn't exist."
-        )
+        raise errors.ScaleComputingError("Snapshot with uuid='" + source_snapshot_uuid + "' doesn't exist.")
 
     vm_snapshot = vm_snapshot_hypercore.to_ansible()
 
@@ -189,9 +183,7 @@ def attach_disk(
     # First power off the destination VM
     vm_object.do_shutdown_steps(module, rest_client)  # type: ignore
 
-    source_disk_info = VMSnapshot.get_snapshot_disk(
-        vm_snapshot, slot=source_disk_slot, _type=source_disk_type
-    )
+    source_disk_info = VMSnapshot.get_snapshot_disk(vm_snapshot, slot=source_disk_slot, _type=source_disk_type)
 
     # build a payload according to /rest/v1/VirDomainBlockDevice/{uuid}/clone documentation
     payload = dict(
@@ -218,9 +210,7 @@ def attach_disk(
     )
 
     TaskTag.wait_task(rest_client, create_task_tag)
-    created_disk = VMSnapshot.get_vm_disk_info_by_uuid(
-        create_task_tag["createdUUID"], rest_client
-    )
+    created_disk = VMSnapshot.get_vm_disk_info_by_uuid(create_task_tag["createdUUID"], rest_client)
 
     # Restart the previously running VM (destination)
     vm_object.vm_power_up(module, rest_client)  # type: ignore
@@ -237,9 +227,7 @@ def attach_disk(
     )
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff, bool]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff, bool]:
     return attach_disk(module, rest_client)
 
 

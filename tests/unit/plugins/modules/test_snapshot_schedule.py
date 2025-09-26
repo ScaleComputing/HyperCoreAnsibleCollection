@@ -57,9 +57,7 @@ class TestEnsureAbsent:
 
 
 class TestEnsurePresent:
-    def test_ensure_present_snapshot_schedule_record_present_no_update(
-        self, create_module, rest_client
-    ):
+    def test_ensure_present_snapshot_schedule_record_present_no_update(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -103,9 +101,7 @@ class TestEnsurePresent:
             },
         )
 
-    def test_ensure_present_snapshot_schedule_record_updated(
-        self, create_module, rest_client
-    ):
+    def test_ensure_present_snapshot_schedule_record_updated(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -157,9 +153,7 @@ class TestEnsurePresent:
             },
         )
 
-    def test_ensure_present_snapshot_schedule_image_absent(
-        self, create_module, rest_client
-    ):
+    def test_ensure_present_snapshot_schedule_image_absent(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

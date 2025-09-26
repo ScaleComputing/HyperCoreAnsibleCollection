@@ -20,9 +20,7 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_minimal_set_of_params(self, run_main_info):
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             vm_name=dict(
                 type="str",
                 required=True,
@@ -144,9 +142,7 @@ class TestRun:
             "Virtual machine - XLAB-test-vm - import complete.",
         )
 
-    def test_run_when_imported_VM_already_exists(
-        self, create_module, rest_client, mocker
-    ):
+    def test_run_when_imported_VM_already_exists(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -202,9 +198,7 @@ class TestRun:
             f"Virtual machine - {module.params['vm_name']} - already exists.",
         )
 
-    def test_run_when_imported_VM_not_exists_but_import_failed(
-        self, create_module, rest_client
-    ):
+    def test_run_when_imported_VM_not_exists_but_import_failed(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
