@@ -230,8 +230,8 @@ def modify_dns_config(
     # update_record method uses method PATCH,
     # create_record method uses method POST.
     # [ NOTE: PUT method is not allowed on DNS Config ]
-    task_tag = getattr(rest_client, "{0}_record".format(action))(
-        endpoint="{0}/{1}".format("/rest/v1/DNSConfig", dns_config.uuid),
+    task_tag = getattr(rest_client, f"{action}_record")(
+        endpoint=f"/rest/v1/DNSConfig/{dns_config.uuid}",
         payload=dict(searchDomains=new_search_domains, serverIPs=new_dns_servers),
         check_mode=module.check_mode,
     )

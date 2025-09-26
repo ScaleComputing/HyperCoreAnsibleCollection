@@ -77,9 +77,7 @@ class RestClient:
             )
         if must_exist and not records:
             raise errors.ScaleComputingError(
-                "No records from endpoint {0} match the {1} query.".format(
-                    endpoint, query
-                )
+                f"No records from endpoint {endpoint} match the {query} query."
             )
         return records[0] if records else None
 

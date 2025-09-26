@@ -157,9 +157,7 @@ def ensure_present(module, rest_client):
         ):
             # If desired and recurrence rules before differ, snapshot schedule has to be updated
             rest_client.update_record(
-                "{0}/{1}".format(
-                    "/rest/v1/VirDomainSnapshotSchedule", snapshot_schedule_before.uuid
-                ),
+                f"/rest/v1/VirDomainSnapshotSchedule/{snapshot_schedule_before.uuid}",
                 snapshot_schedule_before.create_patch_payload(
                     module.params["recurrences"]
                 ),
@@ -185,9 +183,7 @@ def ensure_absent(module, rest_client):
     if snapshot_schedule:
         # No task tag is returned with DELETE on "/rest/v1/VirDomainSnapshotSchedule/{uuid}"
         task = rest_client.delete_record(
-            "{0}/{1}".format(
-                "/rest/v1/VirDomainSnapshotSchedule", snapshot_schedule.uuid
-            ),
+            f"/rest/v1/VirDomainSnapshotSchedule/{snapshot_schedule.uuid}",
             module.check_mode,
         )
         if task["taskTag"] == "":

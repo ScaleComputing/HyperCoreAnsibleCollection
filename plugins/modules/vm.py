@@ -530,7 +530,7 @@ def ensure_absent(module, rest_client):
             # TODO ==shutdown or ==stopped ??
             vm.update_vm_power_state(module, rest_client, "stop", False)
         task_tag = rest_client.delete_record(
-            "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid), module.check_mode
+            f"/rest/v1/VirDomain/{vm.uuid}", module.check_mode
         )
         TaskTag.wait_task(rest_client, task_tag)
         output = vm.to_ansible()

@@ -66,7 +66,7 @@ class Role(PayloadMapper):
         cls, role_uuid: str, rest_client: RestClient, must_exist: bool = False
     ) -> Optional[Role]:
         hypercore_dict = rest_client.get_record(
-            "/rest/v1/Role/{0}".format(role_uuid), must_exist=must_exist
+            f"/rest/v1/Role/{role_uuid}", must_exist=must_exist
         )
         role = cls.from_hypercore(hypercore_dict)
         return role

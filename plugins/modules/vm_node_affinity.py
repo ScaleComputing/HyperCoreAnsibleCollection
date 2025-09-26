@@ -224,7 +224,7 @@ def run(module, rest_client):
             "backupNodeUUID": backup_node_uuid,
         }
     }
-    endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
+    endpoint = f"/rest/v1/VirDomain/{vm.uuid}"
     task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
     TaskTag.wait_task(rest_client, task_tag)
     vm_after = VM.get_by_name(module.params, rest_client, must_exist=True)

@@ -132,7 +132,7 @@ def modify_time_server(
     # Set the task tag:
     # update_record -> PATCH
     update_task_tag = rest_client.update_record(
-        endpoint="{0}/{1}".format("/rest/v1/TimeSource", time_server.uuid),
+        endpoint=f"/rest/v1/TimeSource/{time_server.uuid}",
         payload=dict(host=new_time_server_source),
         check_mode=module.check_mode,
     )

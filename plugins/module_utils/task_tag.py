@@ -42,7 +42,7 @@ class TaskTag:
 
         while True:
             task_status = rest_client.get_record(
-                "{0}/{1}".format("/rest/v1/TaskTag", task["taskTag"]), query={}
+                f"/rest/v1/TaskTag/{task['taskTag']}", query={}
             )
             if task_status is None:  # No such task_status is found
                 break
@@ -71,6 +71,6 @@ class TaskTag:
         if not task["taskTag"]:
             return None
         task_status: Optional[Dict[Any, Any]] = rest_client.get_record(
-            "{0}/{1}".format("/rest/v1/TaskTag", task["taskTag"]), query={}
+            f"/rest/v1/TaskTag/{task['taskTag']}", query={}
         )
         return task_status if task_status else None

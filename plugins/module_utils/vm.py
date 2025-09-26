@@ -809,9 +809,7 @@ class VM(PayloadMapper):
         filtered_results = filter_results(results, query)
         if len(filtered_results) > 1:
             raise errors.ScaleComputingError(
-                "{0} isn't uniquely identifyed by {1} in the VM.".format(
-                    object_type, query
-                )
+                f"{object_type} isn't uniquely identifyed by {query} in the VM."
             )
         return filtered_results[0] if filtered_results else None
 
@@ -843,7 +841,7 @@ class VM(PayloadMapper):
         # uuid is vm's uuid. boot_order is the desired order we want to set to boot devices
         vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
-            "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid),
+            f"/rest/v1/VirDomain/{vm.uuid}",
             dict(bootDevices=boot_order),
             module.check_mode,
         )
@@ -1297,7 +1295,7 @@ class ManageVMParams(VM):
 
         if changed:
             payload = ManageVMParams._build_payload(module, rest_client)
-            endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
+            endpoint = f"/rest/v1/VirDomain/{vm.uuid}"
             task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
             TaskTag.wait_task(rest_client, task_tag)
 
@@ -1396,7 +1394,7 @@ class ManageVMDisks:
         # If false, it means you're detaching an image.
         payload = iso.attach_iso_payload() if attach else iso.detach_iso_payload()
         task_tag = rest_client.update_record(
-            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
+            f"/rest/v1/VirDomainBlockDevice/{uuid}",
             payload,
             module.check_mode,
         )
@@ -1412,7 +1410,7 @@ class ManageVMDisks:
         if existing_disk.needs_reboot("update", desired_disk):
             vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
-            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
+            f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
             payload,
             module.check_mode,
         )
@@ -1446,9 +1444,7 @@ class ManageVMDisks:
                 if existing_disk.needs_reboot("delete"):
                     vm.do_shutdown_steps(module, rest_client)
                 task_tag = rest_client.delete_record(
-                    "{0}/{1}".format(
-                        "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
-                    ),
+                    f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
                     module.check_mode,
                 )
                 try:
@@ -1468,9 +1464,7 @@ class ManageVMDisks:
                     # shutdown and retry remove
                     vm.do_shutdown_steps(module, rest_client)
                     task_tag = rest_client.delete_record(
-                        "{0}/{1}".format(
-                            "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
-                        ),
+                        f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
                         module.check_mode,
                     )
                     TaskTag.wait_task(rest_client, task_tag, module.check_mode)
@@ -1507,7 +1501,7 @@ class ManageVMDisks:
         # Delete all disks
         for existing_disk in vm.disks:
             task_tag = rest_client.delete_record(
-                "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
+                f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
                 module.check_mode,
             )
             TaskTag.wait_task(rest_client, task_tag, module.check_mode)

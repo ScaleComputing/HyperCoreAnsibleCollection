@@ -277,7 +277,7 @@ def modify_smtp_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     # Set the task tag
     # update_record -> PATCH
     update_task_tag = rest_client.update_record(
-        endpoint="{0}/{1}".format("/rest/v1/AlertSMTPConfig", smtp.uuid),
+        endpoint=f"/rest/v1/AlertSMTPConfig/{smtp.uuid}",
         payload=payload,
         check_mode=module.check_mode,
     )

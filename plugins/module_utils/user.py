@@ -89,7 +89,7 @@ class User(PayloadMapper):
         cls, user_uuid, rest_client: RestClient, must_exist: bool = False
     ) -> Optional[User]:
         hypercore_dict = rest_client.get_record(
-            "/rest/v1/User/{0}".format(user_uuid), must_exist=must_exist
+            f"/rest/v1/User/{user_uuid}", must_exist=must_exist
         )
         user = cls.from_hypercore(hypercore_dict)
         return user

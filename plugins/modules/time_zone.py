@@ -932,7 +932,7 @@ def modify_time_zone(
     # Set the task tag:
     # update_record -> PATCH
     update_task_tag = rest_client.update_record(
-        endpoint="{0}/{1}".format("/rest/v1/TimeZone", time_zone.uuid),
+        endpoint=f"/rest/v1/TimeZone/{time_zone.uuid}",
         payload=dict(timeZone=new_time_zone_entry),
         check_mode=module.check_mode,
     )

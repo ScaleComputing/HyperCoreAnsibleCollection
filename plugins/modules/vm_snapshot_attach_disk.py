@@ -212,9 +212,7 @@ def attach_disk(
     )
 
     create_task_tag = rest_client.create_record(
-        endpoint="/rest/v1/VirDomainBlockDevice/{0}/clone".format(
-            source_disk_info["uuid"]
-        ),
+        endpoint=f"/rest/v1/VirDomainBlockDevice/{source_disk_info['uuid']}/clone",
         payload=payload,
         check_mode=module.check_mode,
     )
