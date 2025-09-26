@@ -53,7 +53,7 @@ TIERING_PRIORITY_DEFAULT = 4
 class Disk(PayloadMapper):
     def __init__(
         self,
-        type,
+        disk_type,
         slot,
         uuid=None,
         vm_uuid=None,
@@ -67,7 +67,7 @@ class Disk(PayloadMapper):
     ):
         self.uuid = uuid
         self.vm_uuid = vm_uuid
-        self.type = type
+        self.type = disk_type
         self.cache_mode = cache_mode
         self.size = size
         self.slot = slot
@@ -118,7 +118,7 @@ class Disk(PayloadMapper):
             return cls(
                 uuid=hypercore_data["uuid"],
                 vm_uuid=hypercore_data["virDomainUUID"],
-                type=hypercore_data["type"].lower(),
+                disk_type=hypercore_data["type"].lower(),
                 cache_mode=hypercore_data["cacheMode"].lower(),
                 size=hypercore_data["capacity"],
                 slot=hypercore_data["slot"],
@@ -156,7 +156,7 @@ class Disk(PayloadMapper):
         else:
             size = None
         return cls(
-            type=disk_type,
+            disk_type=disk_type,
             slot=ansible_data["disk_slot"],
             size=size,
             cache_mode=ansible_data.get("cache_mode", None),

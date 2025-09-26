@@ -38,7 +38,7 @@ class VMSnapshot(PayloadMapper):
         device_snapshots: Optional[List[Dict[Any, Any]]] = None,
         timestamp: Optional[int] = None,
         label: Optional[str] = None,
-        type: Optional[str] = None,
+        snapshot_type: Optional[str] = None,
         automated_trigger_timestamp: Optional[int] = None,
         local_retain_until_timestamp: Optional[float] = None,
         remote_retain_until_timestamp: Optional[float] = None,
@@ -53,7 +53,7 @@ class VMSnapshot(PayloadMapper):
         self.device_snapshots = device_snapshots if device_snapshots is not None else []
         self.timestamp = timestamp
         self.label = label
-        self.type = type
+        self.type = snapshot_type
         self.automated_trigger_timestamp = automated_trigger_timestamp
         self.local_retain_until_timestamp = local_retain_until_timestamp
         self.remote_retain_until_timestamp = remote_retain_until_timestamp
@@ -134,7 +134,7 @@ class VMSnapshot(PayloadMapper):
             ],
             timestamp=hypercore_data["timestamp"],
             label=hypercore_data["label"],
-            type=hypercore_data["type"],
+            snapshot_type=hypercore_data["type"],
             automated_trigger_timestamp=hypercore_data["automatedTriggerTimestamp"],
             local_retain_until_timestamp=hypercore_data["localRetainUntilTimestamp"],
             remote_retain_until_timestamp=hypercore_data["remoteRetainUntilTimestamp"],

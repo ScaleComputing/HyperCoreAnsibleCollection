@@ -164,7 +164,7 @@ from ..module_utils.iso import ISO
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
 
-"""
+__COMMENT = """
 ISO_TIMEOUT_TIME is timeout for ISO data upload.
 Currently, assume we have 4.7 GB ISO and speed 1 MB/s -> 4700 seconds.
 Rounded to 3600.

@@ -74,7 +74,7 @@ class TestVMSnapshot:
             device_snapshots=self.device_snapshots,
             timestamp=123,
             label="snapshot",
-            type="USER",
+            snapshot_type="USER",
             automated_trigger_timestamp=111,
             local_retain_until_timestamp=222,
             remote_retain_until_timestamp=333,
@@ -193,7 +193,7 @@ class TestVMSnapshot:
             vm=vm_snapshot_from_ansible.vm,
             device_snapshots=vm_snapshot_from_ansible.device_snapshots,
             label=vm_snapshot_from_ansible.label,
-            type=vm_snapshot_from_ansible.type,
+            snapshot_type=vm_snapshot_from_ansible.type,
         )
 
     def test_get_snapshot_by_uuid(self, rest_client):

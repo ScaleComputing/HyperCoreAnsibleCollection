@@ -416,7 +416,7 @@ class TestVM:
             description="desc",
             disks=[
                 Disk(
-                    type="virtio_disk",
+                    disk_type="virtio_disk",
                     slot=0,
                     cache_mode="none",
                     size=4200,
@@ -428,7 +428,7 @@ class TestVM:
                     read_only=False,
                 ),
                 Disk(
-                    type="ide_cdrom",
+                    disk_type="ide_cdrom",
                     slot=1,
                     cache_mode="none",
                     size=4200,
@@ -473,7 +473,7 @@ class TestVM:
             description="desc",
             disks=[
                 Disk(
-                    type="virtio_disk",
+                    disk_type="virtio_disk",
                     slot=1,
                     cache_mode="none",
                     size=4200,
@@ -485,7 +485,7 @@ class TestVM:
                     read_only=False,
                 ),
                 Disk(
-                    type="ide_cdrom",
+                    disk_type="ide_cdrom",
                     slot=1,
                     cache_mode="none",
                     size=4200,
@@ -517,7 +517,7 @@ class TestVM:
             description="desc",
             disks=[
                 Disk(
-                    type="virtio_disk",
+                    disk_type="virtio_disk",
                     slot=0,
                     cache_mode="none",
                     size=4200,
@@ -529,7 +529,7 @@ class TestVM:
                     read_only=False,
                 ),
                 Disk(
-                    type="virtio_disk",
+                    disk_type="virtio_disk",
                     slot=0,
                     cache_mode="none",
                     size=4200,
@@ -1376,7 +1376,7 @@ class TestVMImport:
             description="desc",
             disks=[
                 Disk(
-                    type="virtio_disk",
+                    disk_type="virtio_disk",
                     slot=0,
                     uuid="id",
                     vm_uuid="vm-id",
@@ -2292,7 +2292,7 @@ class TestManageVMDisks:
             description="desc",
             disks=[
                 Disk(
-                    type="virtio_disk",
+                    disk_type="virtio_disk",
                     slot=0,
                     uuid="id",
                     vm_uuid="vm-id",
@@ -2372,7 +2372,7 @@ class TestManageVMDisks:
         )
         vm = VM(name="vm-name", memory=42, vcpu=2, uuid="id", power_state="shutdown")
         desired_disk = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             uuid="id",
             vm_uuid="vm-id",
@@ -2494,7 +2494,7 @@ class TestManageVMDisks:
         )
 
         existing_disk = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             uuid="id",
             vm_uuid="vm-id",
@@ -2508,7 +2508,7 @@ class TestManageVMDisks:
         )
 
         desired_disk = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             uuid="id",
             vm_uuid="vm-id",
@@ -2723,7 +2723,7 @@ class TestManageVMDisks:
             description="desc",
             disks=[
                 Disk(
-                    type="virtio_disk",
+                    disk_type="virtio_disk",
                     slot=0,
                     uuid="id",
                     vm_uuid="vm-id",

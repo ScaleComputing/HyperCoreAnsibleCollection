@@ -45,11 +45,11 @@ class TestResponseInit:
         resp = client.Response(
             200,
             '{"a": ["b", "c"], "d": 1}',
-            headers=[("Content-type", "applcation/json")],
+            headers=[("Content-type", "application/json")],
         )
 
         assert resp.status == 200
-        assert resp.headers == {"content-type": "applcation/json"}
+        assert resp.headers == {"content-type": "application/json"}
         assert resp.data == '{"a": ["b", "c"], "d": 1}'
         assert resp.json == {"a": ["b", "c"], "d": 1}
 
@@ -60,17 +60,17 @@ class TestResponseInit:
         assert resp.headers == {}
         assert resp.data == "Not Found"
         with pytest.raises(errors.ApiResponseNotJson):
-            resp.json
+            resp.json  # pylint: disable=pointless-statement
 
     def test_json_is_cached(self, mocker):
         json_mock = mocker.patch.object(client, "json")
         resp = client.Response(
             200,
             '{"a": ["b", "c"], "d": 1}',
-            headers=[("Content-type", "applcation/json")],
+            headers=[("Content-type", "application/json")],
         )
-        resp.json
-        resp.json
+        resp.json  # pylint: disable=pointless-statement
+        resp.json  # pylint: disable=pointless-statement
 
         assert json_mock.loads.call_count == 1
 

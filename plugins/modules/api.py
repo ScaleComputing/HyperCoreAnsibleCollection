@@ -251,7 +251,7 @@ def delete_record(module, rest_client):
     return False, dict()
 
 
-"""
+__COMMENT = """
 PUT_TIMEOUT_TIME was copied from the iso module for ISO data upload.
 Currently, assume we have 4.7 GB ISO and speed 1 MB/s -> 4700 seconds.
 Rounded to 3600.

@@ -24,6 +24,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def virtual_machine():
     return VM(
@@ -31,11 +32,12 @@ def virtual_machine():
         name="vm_name",
         memory=1024,
         vcpu=4,
-        disks=[Disk(type="virtio_disk", slot=0), Disk(type="virtio_disk", slot=1)],
+        disks=[Disk(disk_type="virtio_disk", slot=0), Disk(disk_type="virtio_disk", slot=1)],
         power_state="stopped",
     )
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def virtual_disk():
     return VirtualDisk(
@@ -51,7 +53,7 @@ class TestIsSlotAvailable:
     @pytest.mark.parametrize(
         "disk_slot, expected_result",
         [
-            (1, (False, Disk(type="virtio_disk", slot=1))),
+            (1, (False, Disk(disk_type="virtio_disk", slot=1))),
             (5, (True, None)),
         ],
     )

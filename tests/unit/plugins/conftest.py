@@ -90,20 +90,20 @@ def fail_json_mock(self, **result):
     raise AnsibleRunEnd(False, result)
 
 
-def run_mock(module, client, another_client=None):
+def run_mock(module, _client, _another_client=None):
     return False, {}, dict(before={}, after={})
 
 
-def run_mock_with_reboot(module, client, another_client=None):
+def run_mock_with_reboot(module, _client, _another_client=None):
     return False, {}, dict(before={}, after={}), False
 
 
 # for syslog_server module
-def run_mock_with_record_and_records(module, client, another_client=None):
+def run_mock_with_record_and_records(module, _client, _another_client=None):
     return False, {}, [], dict(before={}, after={})
 
 
-def run_mock_info(module, client, another_client=None):
+def run_mock_info(module, _client, _another_client=None):
     return False, []
 
 

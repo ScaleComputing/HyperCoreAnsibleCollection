@@ -128,8 +128,7 @@ def ensure_present(
                 )
                 sleep(1)
                 continue
-            else:
-                raise
+            raise
     # module.warn(f"API during reconfiguration ii={ii}")
 
     for ii in range(max_retries):
@@ -143,8 +142,7 @@ def ensure_present(
                 )
                 sleep(1)
                 continue
-            else:
-                raise
+            raise
     # module.warn(f"API after reconfiguration ii={ii}")
 
     after = updated_oidc.to_ansible() if updated_oidc else None

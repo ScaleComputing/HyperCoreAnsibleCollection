@@ -22,8 +22,8 @@ from ..module_utils.utils import PayloadMapper
 
 
 class SupportTunnel(PayloadMapper):
-    def __init__(self, open: bool, code: Optional[int]):
-        self.open = open
+    def __init__(self, open_flag: bool, code: Optional[int]):
+        self.open = open_flag
         self.code = code
 
     @classmethod
@@ -36,12 +36,12 @@ class SupportTunnel(PayloadMapper):
     ) -> SupportTunnel:
         # There is no None check since get_record is not used (support_tunnel's api behaves different)
         if not hypercore_data["tunnelOpen"]:
-            open = False
+            open_flag = False
             code = None
         else:
-            open = True
+            open_flag = True
             code = hypercore_data["tunnelOpen"]
-        return cls(open=open, code=code)
+        return cls(open_flag=open_flag, code=code)
 
     def to_hypercore(self) -> Any:
         pass

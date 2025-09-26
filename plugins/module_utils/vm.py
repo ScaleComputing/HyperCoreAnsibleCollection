@@ -176,8 +176,8 @@ class VmMachineType:
         # and use machineTypeKeyword if present.
         if "machineTypeKeyword" in vm_dict:
             _map_hypercore_machine_type_keyword_to_ansible = {
-                cls._map_ansible_to_hypercore_machine_type_keyword[k]: k
-                for k in cls._map_ansible_to_hypercore_machine_type_keyword
+                hypercore_value: ansible_value
+                for ansible_value, hypercore_value in cls._map_ansible_to_hypercore_machine_type_keyword.items()
             }
             # "machineTypeKeyword" is available in HyperCore 9.3 or later
             return _map_hypercore_machine_type_keyword_to_ansible.get(

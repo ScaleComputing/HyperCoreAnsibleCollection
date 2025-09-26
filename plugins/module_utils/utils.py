@@ -42,23 +42,23 @@ def validate_uuid(value):
 
 
 def get_query(
-    input: dict[Any, Any], *field_names: str, ansible_hypercore_map: dict[Any, Any]
+    query_filter: dict[Any, Any], *field_names: str, ansible_hypercore_map: dict[Any, Any]
 ):
     """
     Wrapps filter_dict and transform_ansible_to_hypercore_query. Prefer to use 'get_query' over filter_dict
     even if there's no mapping between hypercore and ansible columns for the sake of verbosity and consistency
     """
-    ansible_query = filter_dict(input, *field_names)
+    ansible_query = filter_dict(query_filter, *field_names)
     hypercore_query = transform_query(ansible_query, ansible_hypercore_map)
     return hypercore_query
 
 
-def filter_dict(input, *field_names):
+def filter_dict(query_filter, *field_names):
     output = {}
     for field_name in field_names:
-        if field_name not in input:
+        if field_name not in query_filter:
             continue
-        value = input[field_name]
+        value = query_filter[field_name]
         if value is not None:
             output[field_name] = value
     return output

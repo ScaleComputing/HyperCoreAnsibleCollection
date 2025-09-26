@@ -104,9 +104,9 @@ class TestNic:
             ipv4_addresses=["10.0.0.10", "10.0.1.10"],
         )
 
-        for kk in expected_data.keys():
+        for kk, vv in expected_data.items():
             assert kk in ansible_data.keys()
-            assert expected_data[kk] == ansible_data[kk]
+            assert vv == ansible_data[kk]
         assert expected_data.keys() == ansible_data.keys()
         # assert below detects a difference, but does not tell back which key/value is problem.
         assert expected_data == ansible_data

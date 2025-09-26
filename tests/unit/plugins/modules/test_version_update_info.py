@@ -76,7 +76,7 @@ class TestRun:
             },
         ]
 
-        records, next, latest = version_update_info.run(rest_client)
+        records, next_version, latest_version = version_update_info.run(rest_client)
 
         assert records == [
             {
@@ -130,7 +130,7 @@ class TestRun:
                 "timestamp": 1676920067,
             },
         ]
-        assert next == {
+        assert next_version == {
             "uuid": "9.2.11.210763",
             "description": "description",
             "change_log": "change log",
@@ -140,7 +140,7 @@ class TestRun:
             "revision": 11,
             "timestamp": 1676920067,
         }
-        assert latest == {
+        assert latest_version == {
             "uuid": "10.2.11.210763",
             "description": "description",
             "change_log": "change log",
@@ -154,8 +154,8 @@ class TestRun:
     def test_run_no_records(self, rest_client):
         rest_client.list_records.return_value = []
 
-        records, next, latest = version_update_info.run(rest_client)
+        records, next_version, latest_version = version_update_info.run(rest_client)
 
         assert records == []
-        assert next is None
-        assert latest is None
+        assert next_version is None
+        assert latest_version is None

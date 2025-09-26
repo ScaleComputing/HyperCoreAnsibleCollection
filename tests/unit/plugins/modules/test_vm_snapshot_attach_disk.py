@@ -77,7 +77,7 @@ class TestAttachDisk:
             ],
             timestamp=123,
             label="snapshot",
-            type="USER",
+            snapshot_type="USER",
             automated_trigger_timestamp=111,
             local_retain_until_timestamp=222,
             remote_retain_until_timestamp=333,

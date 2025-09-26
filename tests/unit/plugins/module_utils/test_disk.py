@@ -35,7 +35,7 @@ class TestDisk:
         )
 
         disk = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             cache_mode="none",
             size=4200,
@@ -67,7 +67,7 @@ class TestDisk:
         )
 
         disk = Disk(
-            type="virtio-disk",
+            disk_type="virtio-disk",
             slot=0,
             cache_mode="none",
             size=4200,
@@ -84,7 +84,7 @@ class TestDisk:
 
     def test_disk_from_hypercore_dict_not_empty_success(self):
         disk = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             uuid="id",
             vm_uuid="vm-id",
@@ -137,7 +137,7 @@ class TestDisk:
 
     def test_disk_to_hypercore(self):
         disk = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             uuid="id",
             vm_uuid="vm-id",
@@ -181,7 +181,7 @@ class TestDisk:
         )
 
         disk = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             uuid="id",
             vm_uuid="vm-id",
@@ -199,7 +199,7 @@ class TestDisk:
 
     def test_equal(self):
         disk1 = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             uuid="id",
             vm_uuid="vm-id",
@@ -213,7 +213,7 @@ class TestDisk:
         )
 
         disk2 = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             uuid="id",
             vm_uuid="vm-id",
@@ -238,7 +238,7 @@ class TestDisk:
         )
 
         disk = Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             cache_mode="none",
             size=4200,
@@ -271,7 +271,7 @@ class TestDisk:
         )
 
         disk = Disk(
-            type="nvram",
+            disk_type="nvram",
             slot=-1,
             cache_mode="none",
             size=4200,
@@ -304,7 +304,7 @@ class TestDisk:
         )
 
         disk = Disk(
-            type="nvram",
+            disk_type="nvram",
             slot=-1,
             cache_mode="none",
             size=4200,
@@ -313,7 +313,7 @@ class TestDisk:
             read_only=False,
         )
         existing_disk = Disk(
-            type="nvram",
+            disk_type="nvram",
             slot=-1,
             cache_mode="none",
             size=540672,
@@ -345,7 +345,7 @@ class TestDisk:
         )
 
         disk = Disk(
-            type="vtpm",
+            disk_type="vtpm",
             slot=-1,
             cache_mode="none",
             size=4200,
@@ -378,7 +378,7 @@ class TestDisk:
         )
 
         disk = Disk(
-            type="vtpm",
+            disk_type="vtpm",
             slot=-1,
             cache_mode="none",
             size=4200,
@@ -387,7 +387,7 @@ class TestDisk:
             read_only=False,
         )
         existing_disk = Disk(
-            type="vtpm",
+            disk_type="vtpm",
             slot=-1,
             cache_mode="none",
             size=4100,
@@ -433,7 +433,7 @@ class TestDisk:
         )
 
         assert disk == Disk(
-            type="virtio_disk",
+            disk_type="virtio_disk",
             slot=0,
             uuid="disk_uuid",
             vm_uuid="vm-id",

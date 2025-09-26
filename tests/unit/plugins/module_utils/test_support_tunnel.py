@@ -25,7 +25,7 @@ pytestmark = pytest.mark.skipif(
 class TestSupportTunnel:
     def test_support_tunnel_from_hypercore(self):
         support_tunnel = SupportTunnel(
-            open=True,
+            open_flag=True,
             code=4422,
         )
 
@@ -38,7 +38,7 @@ class TestSupportTunnel:
 
     def test_support_tunnel_from_hypercore_false(self):
         support_tunnel = SupportTunnel(
-            open=False,
+            open_flag=False,
             code=None,
         )
 
@@ -50,21 +50,21 @@ class TestSupportTunnel:
         assert support_tunnel == support_tunnel_from_hypercore
 
     def test_support_tunnel_to_ansible(self):
-        support_tunnel = SupportTunnel(open=True, code=4422)
+        support_tunnel = SupportTunnel(open_flag=True, code=4422)
 
         ansible_dict = dict(open=True, code=4422)
 
         assert support_tunnel.to_ansible() == ansible_dict
 
     def test_support_tunnel_equal_true(self):
-        support_tunnel1 = SupportTunnel(open=True, code=4422)
-        support_tunnel2 = SupportTunnel(open=True, code=4422)
+        support_tunnel1 = SupportTunnel(open_flag=True, code=4422)
+        support_tunnel2 = SupportTunnel(open_flag=True, code=4422)
 
         assert support_tunnel1 == support_tunnel2
 
     def test_support_tunnel_equal_false(self):
-        support_tunnel1 = SupportTunnel(open=True, code=4422)
-        support_tunnel2 = SupportTunnel(open=False, code=None)
+        support_tunnel1 = SupportTunnel(open_flag=True, code=4422)
+        support_tunnel2 = SupportTunnel(open_flag=False, code=None)
 
         assert support_tunnel1 != support_tunnel2
 
