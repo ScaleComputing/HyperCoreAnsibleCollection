@@ -140,6 +140,7 @@ import logging
 import os
 
 import yaml
+
 from ansible.plugins.inventory import BaseInventoryPlugin
 from ansible.plugins.inventory import Cacheable
 from ansible.plugins.inventory import Constructable

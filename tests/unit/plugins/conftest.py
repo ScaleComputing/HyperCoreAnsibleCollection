@@ -14,13 +14,14 @@ import os
 from unittest.mock import MagicMock
 
 import pytest
-from ansible.module_utils import basic
-from ansible.module_utils._text import to_bytes
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import Client
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import HyperCoreVersion
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.rest_client import RestClient
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag import TaskTag
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
+
+from ansible.module_utils import basic
+from ansible.module_utils._text import to_bytes
 
 
 @pytest.fixture

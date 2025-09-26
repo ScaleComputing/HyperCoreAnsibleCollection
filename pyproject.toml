@@ -94,6 +94,7 @@ src_paths = [
 ]
 
 #sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "ANSIBLE_CORE", "ANSIBLE_AMAZON_AWS", "ANSIBLE_COMMUNITY_AWS", "LOCALFOLDER"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "ANSIBLE_CORE", "LOCALFOLDER"]
 #known_third_party = ["botocore", "boto3"]
 known_ansible_core = ["ansible"]
 #known_ansible_amazon_aws = ["ansible_collections.amazon.aws"]

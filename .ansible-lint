@@ -9,3 +9,4 @@ exclude_paths:
   - examples/vm_os_upgrade/main.yml
   - .github/workflows
   - changelogs
+  - .tox

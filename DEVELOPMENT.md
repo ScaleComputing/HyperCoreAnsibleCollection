@@ -147,6 +147,18 @@ sanity:  ## Run sanity tests
 units:  ## Run unit tests
 ```
 
+Tox based testing was added as we want to use linters from ansible-network/github_actions.
+Sample commands :
+
+```
+tox list
+tox -e ansible-sanity
+tox -m lint
+tox -e flake8-lint,pylint
+tox -e black,flake8  # will reformat code
+tox -e ansible2.18-py312-with_constraints
+```
+
 If you want to run tests with a single python version (e.g. not with whole test matrix), use:
 
 ```

@@ -8,6 +8,7 @@ child-pipeline-gitlab-ci.yml
 # developer instance, including credentials
 tests/integration/integration_config.yml
 tests/integration/inventory
+collections
 
 docs/build
 docs/source/modules
