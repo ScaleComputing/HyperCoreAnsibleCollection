@@ -156,6 +156,14 @@ Usecases include:
 <!--end Role name list-->
 
 
+## Release Notes and Roadmap
+
+Changelog is available at [changelog.yaml](https://github.com/ScaleComputing/HyperCoreAnsibleCollection/blob/main/changelogs/changelog.yaml).
+
+## License Information
+
+Collection is published under [GNU GPL v3 license](https://github.com/ScaleComputing/HyperCoreAnsibleCollection/blob/main/LICENSE).
+
 # Examples
 
 The [examples](https://github.com/ScaleComputing/HyperCoreAnsibleCollection/tree/main/examples)
