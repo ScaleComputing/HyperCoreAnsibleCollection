@@ -71,7 +71,7 @@ class RestClient:
         records = self.list_records(endpoint=endpoint, query=query, timeout=timeout)
         if len(records) > 1:
             raise errors.ScaleComputingError(
-                "{0} records from endpoint {1} match the {2} query.".format(len(records), endpoint, query)
+                f"{len(records)} records from endpoint {endpoint} match the {query} query."
             )
         if must_exist and not records:
             raise errors.ScaleComputingError(f"No records from endpoint {endpoint} match the {query} query.")

@@ -88,7 +88,7 @@ class Client:
     ):
         if not (host or "").startswith(("https://", "http://")):
             raise ScaleComputingError(
-                "Invalid instance host value: '{0}'. " "Value must start with 'https://' or 'http://'".format(host)
+                f"Invalid instance host value: '{host}'. Value must start with 'https://' or 'http://'"
             )
 
         self.host = host
