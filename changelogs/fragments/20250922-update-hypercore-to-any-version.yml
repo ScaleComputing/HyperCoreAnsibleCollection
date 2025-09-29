@@ -1,0 +1,4 @@
+---
+major_changes:
+  - Support HyperCore update to arbitrary version, even if it is not listed under available updates.
+    (https://github.com/ScaleComputing/HyperCoreAnsibleCollection/pull/364)

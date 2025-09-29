@@ -20,6 +20,12 @@ class AuthError(ScaleComputingError):
     pass
 
 
+class InvalidModuleParam(ScaleComputingError):
+    def __init__(self, message: str):
+        self.message = message
+        super(InvalidModuleParam, self).__init__(self.message)
+
+
 class UnexpectedAPIResponse(ScaleComputingError):
     def __init__(self, response: Request):
         self.message = "Unexpected response - {0} {1}".format(

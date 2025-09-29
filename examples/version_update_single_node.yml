@@ -7,7 +7,8 @@
   check_mode: true
 
   vars:
-    desired_version: 9.2.22.212325
+    desired_version: 9.5.5.219383
+    force_update: false
 
   tasks:
     - name: Show desired_version
@@ -36,3 +37,4 @@
         name: scale_computing.hypercore.version_update_single_node
       vars:
         version_update_single_node_desired_version: "{{ desired_version }}"
+        version_update_single_node_force_update: "{{ force_update }}"

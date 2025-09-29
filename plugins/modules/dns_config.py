@@ -135,6 +135,7 @@ def build_entry_list(
     if module_entry_list is None:
         return api_entry_list, False
 
+    new_entry_list = []  # make pylint happy
     if module_entry_list is not None:
         if state == "set":
             new_entry_list = module_entry_list

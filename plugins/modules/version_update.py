@@ -30,6 +30,12 @@ options:
       - Hypercore version update to be installed on the cluster.
     type: str
     required: true
+  force_update:
+    description:
+      - Upgrade the HyperCore cluster to the requested version,
+        even if requested version is not listed under available versions of the HyperCore cluster.
+    type: bool
+    default: false
 notes:
   - C(check_mode) is not supported.
 """
@@ -51,15 +57,19 @@ record:
   type: dict
   contains:
     uuid:
-      description: Unique identifier in format major_version.minor_version.revision.build_id
+      description: Unique identifier in format major_version.minor_version.revision.build_id.
       type: str
       sample: 9.2.11.210763
     description:
-      description: Human-readable name for the update
+      description: |
+        Human-readable name for the update.
+        Empty if I(force_update=true).
       type: str
       sample: 9.2.11 General Availability
     change_log:
-      description: Description of all changes that are in this update, in HTML format
+      description: |
+        Description of all changes that are in this update, in HTML format.
+        Empty if I(force_update=true).
       type: str
       sample: ...Please allow between 20-40 minutes per node for the update to complete...
     build_id:
@@ -79,7 +89,9 @@ record:
       type: int
       sample: 11
     timestamp:
-      description: Unix timestamp when the update was released
+      description: |
+        Unix timestamp when the update was released.
+        Value of 0 is returned if I(force_update=true).
       type: int
       sample: 0
 """
@@ -99,7 +111,8 @@ def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Optional[TypedUpdateToAnsible], Dict[Any, Any]]:
     cluster = Cluster.get(rest_client)
-    if cluster.icos_version == module.params["icos_version"]:
+    new_icos_version = module.params["icos_version"]
+    if cluster.icos_version == new_icos_version:
         return (
             False,
             None,
@@ -108,14 +121,33 @@ def run(
                 after=dict(icos_version=cluster.icos_version),
             ),
         )
-    update = Update.get(rest_client, module.params["icos_version"], must_exist=True)
-    update.apply(rest_client)  # type: ignore
+    update = None
+    if module.params["force_update"]:
+        if len(new_icos_version.split(".")) != 4:
+            msg = f"HyperCore version must be in format 'major_version.minor_version.revision.build_id' - value {new_icos_version} is not valid."
+            raise errors.InvalidModuleParam(msg)
+        update = Update(
+            uuid=new_icos_version,
+            description="",
+            change_log="",
+            build_id=new_icos_version.split(".")[3],
+            major_version=new_icos_version.split(".")[0],
+            minor_version=new_icos_version.split(".")[1],
+            revision=new_icos_version.split(".")[2],
+            timestamp=0,
+        )
+    else:
+        # check the requested version is listed under available versions
+        update = Update.get(rest_client, new_icos_version, must_exist=True)
+    if not isinstance(update, Update):
+        raise AssertionError("update is not of type Update")  # mypy helper
+    Update.apply_update(rest_client, new_icos_version)
     return (
         True,
-        update.to_ansible(),  # type: ignore
+        update.to_ansible(),
         dict(
             before=dict(icos_version=cluster.icos_version),
-            after=dict(icos_version=update.uuid),  # type: ignore
+            after=dict(icos_version=new_icos_version),
         ),
     )
 
@@ -126,6 +158,7 @@ def main() -> None:
         argument_spec=dict(
             arguments.get_spec("cluster_instance"),
             icos_version=dict(type="str", required=True),
+            force_update=dict(type="bool", default=False),
         ),
     )
 

@@ -245,9 +245,15 @@ class Update(PayloadMapper):
         )
         return cls.from_hypercore(update)
 
-    def apply(self, rest_client: RestClient, check_mode: bool = False) -> TypedTaskTag:
+    @classmethod
+    def apply_update(
+        cls: type["Update"],
+        rest_client: RestClient,
+        version: str,
+        check_mode: bool = False,
+    ) -> TypedTaskTag:
         return rest_client.create_record(
-            f"/rest/v1/Update/{self.uuid}/apply", payload=None, check_mode=check_mode
+            f"/rest/v1/Update/{version}/apply", payload=None, check_mode=check_mode
         )
 
 
