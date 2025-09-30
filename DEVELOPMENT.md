@@ -109,6 +109,38 @@ Details:
 - IP 10.5.11.39 (see `tests/integration/integration_config.yml.j2`)
 - CI tests should use only `/cidata` and subdirectories
 
+#### Local SMB server
+
+Use `ci-infra/smb-server/compose.yml` to start a local SMB server.
+The HyperCore cluster needs to have access to the SMB server.
+Execute the commands on machine that is accessible to HyperCore cluster -
+e.g. VM on the HyperCore NUC.
+
+Usage:
+
+```bash
+cd ci-infra/smb-server/
+docker compose up
+
+# test it works
+smbclient "//IP_ADDRESS/Home" -U "alice%alipass" -D "/" -c "ls"
+smbclient "//IP_ADDRESS/Home" -U "alice%alipass" -D "/" -c "put compose.yml"
+smbclient "//IP_ADDRESS/Home" -U "alice%alipass" -D "/" -c "ls"
+```
+
+To use this SMB server in `ansible-test integration ...`,
+set in `tests/integration/integration_config.yml`:
+
+```yaml
+smb_server: "IP_ADDRESS"
+smb_share: "/home"
+smb_username: "alice"
+smb_password: "alipass"
+```
+
+Notice - windows SMB server username is `;administrator`, it starts with `;`.
+This Samba SMB server username does not start with `;`.
+
 ### CI NTP server
 
 NTP server is running on VM with github runner.

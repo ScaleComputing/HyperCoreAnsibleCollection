@@ -10,3 +10,4 @@ exclude_paths:
   - .github/workflows
   - changelogs
   - .tox
+  - ci-infra/smb-server/compose.yml
