@@ -278,10 +278,10 @@ def main():
     )
 
     try:
-        client = Client.get_client(module.params["cluster_instance"])
-        rest_client = RestClient(client)
-        changed, msg, diff = run(module, rest_client)
-        module.exit_json(changed=changed, msg=msg, diff=diff)
+        with Client.get_client(module.params["cluster_instance"]) as client:
+            rest_client = RestClient(client)
+            changed, msg, diff = run(module, rest_client)
+            module.exit_json(changed=changed, msg=msg, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

@@ -66,9 +66,9 @@ def main() -> None:
     )
 
     try:
-        client = Client.get_client(module.params["cluster_instance"])
-        record = run(client)
-        module.exit_json(record=record)
+        with Client.get_client(module.params["cluster_instance"]) as client:
+            record = run(client)
+            module.exit_json(record=record)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

@@ -15,6 +15,7 @@ import json
 import os
 import ssl
 from io import BufferedReader
+from types import TracebackType
 from typing import Any
 from typing import Optional
 from typing import Union
@@ -139,6 +140,33 @@ class Client:
             timeout=self.timeout,
         )
         return dict(Cookie=f"sessionID={resp.json['sessionID']}")
+
+    def _logout(self) -> None:
+        if not self._auth_header:
+            return
+        headers = {
+            "Accept": "application/json",
+            "Content-type": "application/json",
+        }
+        self._request(
+            "POST",
+            f"{self.host}/rest/v1/logout",
+            # data=json.dumps({}),
+            headers=headers,
+            timeout=self.timeout,
+        )
+        self._auth_header = None
+
+    def __enter__(self) -> Client:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        exc_traceback: TracebackType | None,
+    ) -> None:
+        self._logout()
 
     def _request(
         self,
