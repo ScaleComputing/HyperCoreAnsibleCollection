@@ -3,21 +3,18 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import (
-    ManageVMNics,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import ManageVMNics
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -107,9 +104,9 @@ class TestNic:
             ipv4_addresses=["10.0.0.10", "10.0.1.10"],
         )
 
-        for kk in expected_data.keys():
+        for kk, vv in expected_data.items():
             assert kk in ansible_data.keys()
-            assert expected_data[kk] == ansible_data[kk]
+            assert vv == ansible_data[kk]
         assert expected_data.keys() == ansible_data.keys()
         # assert below detects a difference, but does not tell back which key/value is problem.
         assert expected_data == ansible_data

@@ -3,22 +3,19 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.dns_config import (
-    DNSConfig,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.dns_config import DNSConfig
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import dns_config
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -147,9 +144,7 @@ class TestModifyDNSConfig:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0", username="admin", password="admin"
-                ),
+                cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
                 search_domains=search_domains,
                 dns_servers=dns_servers,
                 state=state,
@@ -172,9 +167,7 @@ class TestModifyDNSConfig:
 
         called_with_dict = dict(
             endpoint="/rest/v1/DNSConfig/test",
-            payload=dict(
-                searchDomains=expected_search_domains, serverIPs=expected_server_ips
-            ),
+            payload=dict(searchDomains=expected_search_domains, serverIPs=expected_server_ips),
             check_mode=False,
         )
         dns_config.modify_dns_config(module, rest_client)
@@ -192,9 +185,7 @@ class TestModifyDNSConfig:
         with pytest.raises(errors.ScaleComputingError):
             module = create_module(
                 params=dict(
-                    cluster_instance=dict(
-                        host="https://0.0.0.0", username="admin", password="admin"
-                    ),
+                    cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
                     search_domains=[],
                     dns_servers=[],
                     state="set",

@@ -3,12 +3,15 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import PayloadMapper, get_query
 from ..module_utils import errors
+from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import get_query
 
 
 # ------------------------------------------
@@ -67,9 +70,7 @@ class TimeServer(PayloadMapper):
     @classmethod
     def get_by_uuid(cls, ansible_dict, rest_client, must_exist=False):
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/TimeSource", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/TimeSource", query, must_exist=must_exist)
         time_server_from_hypercore = TimeServer.from_hypercore(hypercore_dict)
         return time_server_from_hypercore
 

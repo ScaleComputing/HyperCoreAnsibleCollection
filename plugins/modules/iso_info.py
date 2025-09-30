@@ -5,7 +5,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -92,11 +94,12 @@ records:
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import errors, arguments
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
+from ..module_utils.iso import ISO
 from ..module_utils.rest_client import RestClient
 from ..module_utils.utils import get_query
-from ..module_utils.iso import ISO
 
 
 def run(module, rest_client):

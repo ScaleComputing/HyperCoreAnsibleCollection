@@ -4,16 +4,19 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import PayloadMapper
+from typing import Any
+from typing import Optional
+
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedRoleToAnsible
-
-from typing import Any, Optional
+from ..module_utils.utils import PayloadMapper
 
 
 class Role(PayloadMapper):
@@ -59,21 +62,13 @@ class Role(PayloadMapper):
         )
 
     @classmethod
-    def get_role_from_uuid(
-        cls, role_uuid: str, rest_client: RestClient, must_exist: bool = False
-    ) -> Optional[Role]:
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/Role/{0}".format(role_uuid), must_exist=must_exist
-        )
+    def get_role_from_uuid(cls, role_uuid: str, rest_client: RestClient, must_exist: bool = False) -> Optional[Role]:
+        hypercore_dict = rest_client.get_record(f"/rest/v1/Role/{role_uuid}", must_exist=must_exist)
         role = cls.from_hypercore(hypercore_dict)
         return role
 
     @classmethod
-    def get_role_from_name(
-        cls, role_name: str, rest_client: RestClient, must_exist: bool = False
-    ) -> Optional[Role]:
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/Role", {"name": role_name}, must_exist=must_exist
-        )
+    def get_role_from_name(cls, role_name: str, rest_client: RestClient, must_exist: bool = False) -> Optional[Role]:
+        hypercore_dict = rest_client.get_record("/rest/v1/Role", {"name": role_name}, must_exist=must_exist)
         role = cls.from_hypercore(hypercore_dict)
         return role

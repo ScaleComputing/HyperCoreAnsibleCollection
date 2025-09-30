@@ -3,22 +3,19 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.time_server import (
-    TimeServer,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.time_server import TimeServer
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import time_server
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -42,9 +39,7 @@ class TestModifyTimeServer:
     ):
         module = create_module(
             params=dict(
-                cluster_instance=dict(
-                    host="https://0.0.0.0", username="admin", password="admin"
-                ),
+                cluster_instance=dict(host="https://0.0.0.0", username="admin", password="admin"),
                 source=param_source,
             )
         )
@@ -76,9 +71,7 @@ class TestModifyTimeServer:
         else:
             rest_client.update_record.assert_not_called()
 
-    def test_modify_time_server_missing_config(
-        self, create_module, rest_client, mocker
-    ):
+    def test_modify_time_server_missing_config(self, create_module, rest_client, mocker):
         with pytest.raises(errors.ScaleComputingError):
             module = create_module(
                 params=dict(

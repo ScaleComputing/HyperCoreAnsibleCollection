@@ -1,17 +1,16 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.user import User
-from ansible_collections.scale_computing.hypercore.plugins.modules import user
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.role import Role
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.user import User
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.modules import user
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,

@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -84,17 +86,21 @@ record:
       sample: openid+profile
 """
 
+from time import sleep
+from typing import Optional
+from typing import Tuple
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import arguments, errors
-from ..module_utils.errors import UnexpectedAPIResponse
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
+from ..module_utils.errors import UnexpectedAPIResponse
 from ..module_utils.oidc import Oidc
-from ..module_utils.typed_classes import TypedOidcToAnsible, TypedDiff
+from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
-from typing import Tuple, Optional
-from time import sleep
+from ..module_utils.typed_classes import TypedDiff
+from ..module_utils.typed_classes import TypedOidcToAnsible
 
 
 def ensure_present(
@@ -117,13 +123,10 @@ def ensure_present(
             break
         except UnexpectedAPIResponse as ex:
             if ex.response_status in [500, 502]:
-                module.warn(
-                    f"API misbehaving during reconfiguration, retry {ii + 1}/{max_retries}"
-                )
+                module.warn(f"API misbehaving during reconfiguration, retry {ii + 1}/{max_retries}")
                 sleep(1)
                 continue
-            else:
-                raise
+            raise
     # module.warn(f"API during reconfiguration ii={ii}")
 
     for ii in range(max_retries):
@@ -132,13 +135,10 @@ def ensure_present(
             break
         except UnexpectedAPIResponse as ex:
             if ex.response_status in [500, 502]:
-                module.warn(
-                    f"API misbehaving after reconfiguration, retry {ii + 1}/{max_retries}"
-                )
+                module.warn(f"API misbehaving after reconfiguration, retry {ii + 1}/{max_retries}")
                 sleep(1)
                 continue
-            else:
-                raise
+            raise
     # module.warn(f"API after reconfiguration ii={ii}")
 
     after = updated_oidc.to_ansible() if updated_oidc else None
@@ -146,9 +146,7 @@ def ensure_present(
     return True, after, dict(before=before, after=after)
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedOidcToAnsible], TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedOidcToAnsible], TypedDiff]:
     return ensure_present(module, rest_client)
 
 

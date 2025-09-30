@@ -3,20 +3,17 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.modules import (
-    version_update_info,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.modules import version_update_info
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -79,7 +76,7 @@ class TestRun:
             },
         ]
 
-        records, next, latest = version_update_info.run(rest_client)
+        records, next_version, latest_version = version_update_info.run(rest_client)
 
         assert records == [
             {
@@ -133,7 +130,7 @@ class TestRun:
                 "timestamp": 1676920067,
             },
         ]
-        assert next == {
+        assert next_version == {
             "uuid": "9.2.11.210763",
             "description": "description",
             "change_log": "change log",
@@ -143,7 +140,7 @@ class TestRun:
             "revision": 11,
             "timestamp": 1676920067,
         }
-        assert latest == {
+        assert latest_version == {
             "uuid": "10.2.11.210763",
             "description": "description",
             "change_log": "change log",
@@ -157,8 +154,8 @@ class TestRun:
     def test_run_no_records(self, rest_client):
         rest_client.list_records.return_value = []
 
-        records, next, latest = version_update_info.run(rest_client)
+        records, next_version, latest_version = version_update_info.run(rest_client)
 
         assert records == []
-        assert next is None
-        assert latest is None
+        assert next_version is None
+        assert latest_version is None

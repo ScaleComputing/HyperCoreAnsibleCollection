@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -478,12 +480,14 @@ record:
 """
 
 from typing import Tuple
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils.task_tag import TaskTag
-from ..module_utils import arguments, errors
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
+from ..module_utils.task_tag import TaskTag
 from ..module_utils.time_zone import TimeZone
 
 # List is based on date_time_zonespec.csv.
@@ -887,9 +891,7 @@ SUPPORTED_ZONES = [
 
 
 # Remove implementation not needed
-def modify_time_zone(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, dict, dict]:
+def modify_time_zone(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
     # GET method to get the Time Server by UUID
     time_zone = TimeZone.get_by_uuid(module.params, rest_client)
 
@@ -909,9 +911,7 @@ def modify_time_zone(
 
     # Otherwise, continue with modifying the configuration
     before = time_zone.to_ansible()
-    old_state = TimeZone.get_state(
-        rest_client=rest_client
-    )  # get the state of Time Server before modification
+    old_state = TimeZone.get_state(rest_client=rest_client)  # get the state of Time Server before modification
 
     # Init return values and return if no changes were made
     change, record, diff = (
@@ -928,7 +928,7 @@ def modify_time_zone(
     # Set the task tag:
     # update_record -> PATCH
     update_task_tag = rest_client.update_record(
-        endpoint="{0}/{1}".format("/rest/v1/TimeZone", time_zone.uuid),
+        endpoint=f"/rest/v1/TimeZone/{time_zone.uuid}",
         payload=dict(timeZone=new_time_zone_entry),
         check_mode=module.check_mode,
     )

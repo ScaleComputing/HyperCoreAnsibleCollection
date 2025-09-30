@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -60,20 +62,19 @@ record:
       sample: 056789987
 """
 
-from ansible.module_utils.basic import AnsibleModule
-
-from ..module_utils import arguments, errors
-from ..module_utils.client import Client
-from ..module_utils.registration import Registration
-from ..module_utils.typed_classes import TypedRegistrationToAnsible
-from ..module_utils.rest_client import CachedRestClient
-
 from typing import Optional
 
+from ansible.module_utils.basic import AnsibleModule
 
-def run(
-    module: AnsibleModule, rest_client: CachedRestClient
-) -> Optional[TypedRegistrationToAnsible]:
+from ..module_utils import arguments
+from ..module_utils import errors
+from ..module_utils.client import Client
+from ..module_utils.registration import Registration
+from ..module_utils.rest_client import CachedRestClient
+from ..module_utils.typed_classes import TypedRegistrationToAnsible
+
+
+def run(module: AnsibleModule, rest_client: CachedRestClient) -> Optional[TypedRegistrationToAnsible]:
     registration_list = rest_client.list_records("/rest/v1/Registration")
     if registration_list:
         return Registration.from_hypercore(registration_list[0]).to_ansible()

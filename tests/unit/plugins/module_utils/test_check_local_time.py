@@ -3,25 +3,23 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-import sys
-import pytest
 import datetime
+import sys
 
-from ansible_collections.scale_computing.hypercore.roles.check_local_time.files import (
-    check_local_time,
-)
+import pytest
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.roles.check_local_time.files import check_local_time
 
 # from ansible_collections.scale_computing.hypercore.plugins.module_utils import (
 #     check_local_time,
 # )
 
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -54,16 +52,12 @@ class TestCheckLocalTime:
             ("22:00-12:31", "True"),
         ],
     )
-    def test_is_local_time_in_time_interval(
-        self, time_interval, expected_result, capfd
-    ):
+    def test_is_local_time_in_time_interval(self, time_interval, expected_result, capfd):
         local_time = datetime.datetime.now()
         local_time_constant = local_time.replace(hour=12, minute=30)
 
         start_time, end_time = check_local_time.get_time_interval(time_interval)
-        check_local_time.is_local_time_in_time_interval(
-            local_time_constant, start_time, end_time
-        )
+        check_local_time.is_local_time_in_time_interval(local_time_constant, start_time, end_time)
         result, err = capfd.readouterr()
 
         assert result.strip() == expected_result  # strip removes "\n"

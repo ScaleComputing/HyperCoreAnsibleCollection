@@ -3,7 +3,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -161,19 +163,24 @@ record:
 """
 
 
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Tuple
+
 from ansible.module_utils.basic import AnsibleModule
-from typing import Tuple, Optional, Any, Dict
 
-from ..module_utils.typed_classes import TypedDiff, TypedDiskToAnsible
-from ..module_utils import errors, arguments
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
-from ..module_utils.virtual_disk import VirtualDisk
 from ..module_utils.disk import Disk
-from ..module_utils.task_tag import TaskTag
-from ..module_utils.vm import VM
 from ..module_utils.hypercore_version import HyperCoreVersion
-
+from ..module_utils.rest_client import RestClient
+from ..module_utils.task_tag import TaskTag
+from ..module_utils.typed_classes import TypedDiff
+from ..module_utils.typed_classes import TypedDiskToAnsible
+from ..module_utils.virtual_disk import VirtualDisk
+from ..module_utils.vm import VM
 
 HYPERCORE_VERSION_REQUIREMENTS = ">=9.2.10"
 
@@ -185,17 +192,15 @@ def is_slot_available(module: AnsibleModule, vm: VM) -> Tuple[bool, Optional[Dis
     return True, None
 
 
-def create_payload(
-    module: AnsibleModule, vm: VM, virtual_disk: VirtualDisk
-) -> Dict[Any, Any]:
+def create_payload(module: AnsibleModule, vm: VM, virtual_disk: VirtualDisk) -> Dict[Any, Any]:
     payload = {}
     payload["options"] = dict(
         regenerateDiskID=module.params["disk"]["regenerate_disk_id"],
         readOnly=module.params["disk"]["read_only"],
     )
-    payload["template"] = Disk.from_ansible(  # type: ignore
-        module.params["disk"]
-    ).post_and_patch_payload(vm, existing_disk=None)
+    payload["template"] = Disk.from_ansible(module.params["disk"]).post_and_patch_payload(  # type: ignore
+        vm, existing_disk=None
+    )
     payload["template"].pop("readOnly")
     # get() does not work, since key is always present
     if module.params["disk"]["size"]:
@@ -207,9 +212,7 @@ def create_payload(
     return payload
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedDiskToAnsible], TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedDiskToAnsible], TypedDiff]:
     vm = VM.get_by_name(module.params, rest_client)
     slot_available, disk = is_slot_available(module, vm)  # type: ignore
     if not slot_available:
@@ -218,9 +221,7 @@ def run(
             disk.to_ansible(),  # type: ignore
             dict(before=disk.to_ansible(), after=disk.to_ansible()),  # type: ignore
         )
-    virtual_disk = VirtualDisk.get_by_name(
-        rest_client, name=module.params["name"], must_exist=True
-    )
+    virtual_disk = VirtualDisk.get_by_name(rest_client, name=module.params["name"], must_exist=True)
     payload = create_payload(module, vm, virtual_disk)  # type: ignore
     task_tag = virtual_disk.attach_to_vm(rest_client, payload)  # type: ignore
     TaskTag.wait_task(rest_client, task_tag)
@@ -253,9 +254,7 @@ def main() -> None:
                     ),
                     disk_slot=dict(type="int", required=True),
                     size=dict(type="int"),
-                    cache_mode=dict(
-                        type="str", choices=["none", "writeback", "writethrough"]
-                    ),
+                    cache_mode=dict(type="str", choices=["none", "writeback", "writethrough"]),
                     disable_snapshotting=dict(type="bool"),
                     tiering_priority_factor=dict(
                         type="int",

@@ -3,20 +3,17 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.modules import (
-    vm_boot_devices,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.modules import vm_boot_devices
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -25,9 +22,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestEnsureAbsent:
-    def test_ensure_absent_no_source_object_present(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_absent_no_source_object_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -185,9 +180,7 @@ class TestEnsureAbsent:
             False,
         )
 
-    def test_ensure_absent_uuid_not_in_boot_devices(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_absent_uuid_not_in_boot_devices(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -295,9 +288,7 @@ class TestEnsureAbsent:
         rest_client.update_record.assert_not_called()
         assert result == (False, [], {"after": [], "before": []}, False)
 
-    def test_ensure_absent_update_successful(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_absent_update_successful(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -438,9 +429,7 @@ class TestEnsureAbsent:
 
 
 class TestEnsurePresent:
-    def test_ensure_present_no_source_object_present(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_present_no_source_object_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -548,9 +537,7 @@ class TestEnsurePresent:
         rest_client.update_record.assert_not_called()
         assert result == (False, [], {"after": [], "before": []}, False)
 
-    def test_ensure_present_item_first(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_item_first(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -870,9 +857,7 @@ class TestEnsurePresent:
             False,
         )
 
-    def test_ensure_present_item_not_first_boot_order_updated(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_item_not_first_boot_order_updated(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1028,9 +1013,7 @@ class TestEnsurePresent:
 
 
 class TestEnsureSet:
-    def test_ensure_set_no_source_object_present(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_set_no_source_object_present(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -1138,9 +1121,7 @@ class TestEnsureSet:
         rest_client.update_record.assert_not_called()
         assert result == (False, [], {"after": [], "before": []}, False)
 
-    def test_ensure_set_source_object_present(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_set_source_object_present(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

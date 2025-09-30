@@ -3,16 +3,19 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import PayloadMapper
-from ..module_utils.role import Role
-from ..module_utils.rest_client import RestClient
-from ..module_utils.typed_classes import TypedUserToAnsible
 from typing import Optional
+
+from ..module_utils.rest_client import RestClient
+from ..module_utils.role import Role
+from ..module_utils.typed_classes import TypedUserToAnsible
+from ..module_utils.utils import PayloadMapper
 
 
 class User(PayloadMapper):
@@ -56,9 +59,7 @@ class User(PayloadMapper):
             username=self.username,
             full_name=self.full_name,
             roles=[
-                Role.get_role_from_uuid(
-                    role_uuid, rest_client, must_exist=False
-                ).to_ansible()
+                Role.get_role_from_uuid(role_uuid, rest_client, must_exist=False).to_ansible()
                 for role_uuid in self.role_uuids
             ],
             session_limit=self.session_limit,
@@ -82,22 +83,14 @@ class User(PayloadMapper):
         )
 
     @classmethod
-    def get_user_from_uuid(
-        cls, user_uuid, rest_client: RestClient, must_exist: bool = False
-    ) -> Optional[User]:
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/User/{0}".format(user_uuid), must_exist=must_exist
-        )
+    def get_user_from_uuid(cls, user_uuid, rest_client: RestClient, must_exist: bool = False) -> Optional[User]:
+        hypercore_dict = rest_client.get_record(f"/rest/v1/User/{user_uuid}", must_exist=must_exist)
         user = cls.from_hypercore(hypercore_dict)
         return user
 
     @classmethod
-    def get_user_from_username(
-        cls, username, rest_client: RestClient, must_exist: bool = False
-    ) -> Optional[User]:
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/User", {"username": username}, must_exist=must_exist
-        )
+    def get_user_from_username(cls, username, rest_client: RestClient, must_exist: bool = False) -> Optional[User]:
+        hypercore_dict = rest_client.get_record("/rest/v1/User", {"username": username}, must_exist=must_exist)
         user = cls.from_hypercore(hypercore_dict)
         return user
 
@@ -109,9 +102,7 @@ class User(PayloadMapper):
         #     "createdUUID": ""
         # }
 
-    def update(
-        self, rest_client: RestClient, payload, check_mode: bool = False
-    ) -> None:
+    def update(self, rest_client: RestClient, payload, check_mode: bool = False) -> None:
         rest_client.update_record(f"/rest/v1/User/{self.uuid}", payload, check_mode)
         # returned:
         # {
@@ -122,9 +113,7 @@ class User(PayloadMapper):
     @classmethod
     def create(cls, rest_client: RestClient, payload, check_mode=False) -> User:
         task_tag = rest_client.create_record("/rest/v1/User", payload, check_mode)
-        user = cls.get_user_from_uuid(
-            task_tag["createdUUID"], rest_client, must_exist=True
-        )
+        user = cls.get_user_from_uuid(task_tag["createdUUID"], rest_client, must_exist=True)
         return user  # type: ignore # user is never None
         # returned
         # {

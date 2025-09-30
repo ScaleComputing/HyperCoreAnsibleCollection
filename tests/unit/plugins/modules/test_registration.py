@@ -1,18 +1,15 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.registration import Registration
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import registration
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.registration import (
-    Registration,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -23,9 +20,7 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_minimal_set_of_params(self, run_main) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             state="present",
         )
 
@@ -40,9 +35,7 @@ class TestMain:
 
     def test_maximum_set_of_params(self, run_main) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             state="present",
             company_name="this_company",
             contact="this_contact",
@@ -60,9 +53,7 @@ class TestMain:
 
 
 class TestRun:
-    def test_run_with_present_registration(
-        self, create_module, rest_client, mocker
-    ) -> None:
+    def test_run_with_present_registration(self, create_module, rest_client, mocker) -> None:
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -83,9 +74,7 @@ class TestRun:
         assert isinstance(results, tuple)
         assert results == (True, {}, {})
 
-    def test_run_with_absent_registration(
-        self, create_module, rest_client, mocker
-    ) -> None:
+    def test_run_with_absent_registration(self, create_module, rest_client, mocker) -> None:
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -108,9 +97,7 @@ class TestRun:
 
 
 class TestEnsurePresent:
-    def test_ensure_present_when_create_registration(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_present_when_create_registration(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -135,9 +122,7 @@ class TestEnsurePresent:
         assert isinstance(result, tuple)
         assert result == (False, None, {"before": None, "after": None})
 
-    def test_ensure_present_when_update_registration(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_present_when_update_registration(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -177,9 +162,7 @@ class TestEnsurePresent:
 
 
 class TestEnsureAbsent:
-    def test_ensure_absent_when_exist_registration(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_absent_when_exist_registration(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -216,9 +199,7 @@ class TestEnsureAbsent:
             },
         )
 
-    def test_ensure_absent_when_not_exist_registration(
-        self, create_module, rest_client, mocker
-    ):
+    def test_ensure_absent_when_not_exist_registration(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

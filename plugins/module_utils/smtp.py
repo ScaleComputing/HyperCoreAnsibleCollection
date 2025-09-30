@@ -3,20 +3,25 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import PayloadMapper, get_query
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Union
+
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
-from ..module_utils.typed_classes import (
-    TypedTaskTag,
-    TypedSmtpToAnsible,
-    TypedSmtpFromAnsible,
-)
-from typing import Union, Any, Dict, Optional
+from ..module_utils.typed_classes import TypedSmtpFromAnsible
+from ..module_utils.typed_classes import TypedSmtpToAnsible
+from ..module_utils.typed_classes import TypedTaskTag
+from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import get_query
 
 
 class SMTP(PayloadMapper):
@@ -123,9 +128,7 @@ class SMTP(PayloadMapper):
         must_exist: bool = False,
     ) -> Optional[SMTP]:
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/AlertSMTPConfig", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/AlertSMTPConfig", query, must_exist=must_exist)
         if hypercore_dict is None:
             return None
         smtp_config_from_hypercore = SMTP.from_hypercore(hypercore_dict)
@@ -133,9 +136,7 @@ class SMTP(PayloadMapper):
 
     # This method is being tested with integration tests (dns_config_info)
     @classmethod
-    def get_state(
-        cls, rest_client: RestClient
-    ) -> Union[TypedSmtpToAnsible, dict[Any, Any]]:
+    def get_state(cls, rest_client: RestClient) -> Union[TypedSmtpToAnsible, dict[Any, Any]]:
         state = [
             SMTP.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
             for hypercore_dict in rest_client.list_records("/rest/v1/AlertSMTPConfig/")

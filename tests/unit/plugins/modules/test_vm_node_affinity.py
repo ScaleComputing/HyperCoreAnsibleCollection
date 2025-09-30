@@ -1,20 +1,17 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.modules import (
-    vm_node_affinity,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.node import Node
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.node import Node
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
+from ansible_collections.scale_computing.hypercore.plugins.modules import vm_node_affinity
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -65,9 +62,7 @@ class TestGetNodeUuid:
             ),
         ]
 
-        preferred_node_uuid = vm_node_affinity.get_node_uuid(
-            module, "preferred_node", rest_client
-        )
+        preferred_node_uuid = vm_node_affinity.get_node_uuid(module, "preferred_node", rest_client)
 
         assert preferred_node_uuid == "preferred_node_uuid"
 
@@ -96,9 +91,7 @@ class TestGetNodeUuid:
             ),
         )
 
-        preferred_node_uuid = vm_node_affinity.get_node_uuid(
-            module, "preferred_node", rest_client
-        )
+        preferred_node_uuid = vm_node_affinity.get_node_uuid(module, "preferred_node", rest_client)
 
         assert preferred_node_uuid == ""
 
@@ -122,12 +115,8 @@ class TestGetNodeUuid:
             ),
         )
 
-        preferred_node_uuid = vm_node_affinity.get_node_uuid(
-            module, "preferred_node", rest_client
-        )
-        backup_node_uuid = vm_node_affinity.get_node_uuid(
-            module, "backup_node", rest_client
-        )
+        preferred_node_uuid = vm_node_affinity.get_node_uuid(module, "preferred_node", rest_client)
+        backup_node_uuid = vm_node_affinity.get_node_uuid(module, "backup_node", rest_client)
 
         assert preferred_node_uuid is None
         assert backup_node_uuid is None
@@ -202,9 +191,7 @@ class TestGetNodeUuid:
         assert preferred_node_uuid == "preferred_node_uuid"
         assert backup_node_uuid == "backup_node_uuid"
 
-    def test_set_parameters_for_payload_nodes_not_provided(
-        self, create_module, rest_client, mocker
-    ):
+    def test_set_parameters_for_payload_nodes_not_provided(self, create_module, rest_client, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -257,9 +244,7 @@ class TestGetNodeUuid:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.get_node_uuid"
         ).side_effect = [None, None]
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.Node.get_node"
-        )
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.Node.get_node")
 
         (
             strict_affinity,
@@ -300,9 +285,7 @@ class TestRun:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.set_parameters_for_payload"
         ).return_value = (True, "preferred_node_uuid", "backup_node_uuid")
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.TaskTag.wait_task"
-        )
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.TaskTag.wait_task")
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm_node_affinity.VM.get_by_name"
         ).return_value = VM(
@@ -405,10 +388,7 @@ class TestRun:
         with pytest.raises(errors.VMInvalidParams) as exc:
             vm_node_affinity.run(module, rest_client)
 
-        assert (
-            "Invalid set of parameters - strict affinity set to true and nodes not provided."
-            in str(exc.value)
-        )
+        assert "Invalid set of parameters - strict affinity set to true and nodes not provided." in str(exc.value)
 
     def test_run_no_change(self, create_module, rest_client, mocker):
         module = create_module(

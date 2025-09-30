@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -182,13 +184,14 @@ vm_rebooted:
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import arguments, errors
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
-from ..module_utils.vm import VM, ManageVMNics
 from ..module_utils.nic import Nic
+from ..module_utils.rest_client import RestClient
 from ..module_utils.state import NicState
-
+from ..module_utils.vm import VM
+from ..module_utils.vm import ManageVMNics
 
 MODULE_PATH = "scale_computing.hypercore.vm_nic"
 
@@ -226,17 +229,13 @@ def ensure_absent(module, rest_client, vm_before: VM):
 
 
 def run(module, rest_client):
-    virtual_machine_obj_list = VM.get(
-        query={"name": module.params["vm_name"]}, rest_client=rest_client
-    )
+    virtual_machine_obj_list = VM.get(query={"name": module.params["vm_name"]}, rest_client=rest_client)
     if len(virtual_machine_obj_list) == 0:
         # VM absent, might be typo in vm_name
         module.fail_json(f"VM with name={module.params['vm_name']} not found.")
     vm_before = virtual_machine_obj_list[0]
     if module.params["state"] in [NicState.present, NicState.set]:
-        changed, records, diff = ManageVMNics.ensure_present_or_set(
-            module, rest_client, MODULE_PATH, vm_before
-        )
+        changed, records, diff = ManageVMNics.ensure_present_or_set(module, rest_client, MODULE_PATH, vm_before)
     else:
         changed, records, diff = ensure_absent(module, rest_client, vm_before)
     vm_before.vm_power_up(module, rest_client)

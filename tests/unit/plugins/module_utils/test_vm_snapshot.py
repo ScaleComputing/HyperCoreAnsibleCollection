@@ -3,22 +3,19 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-import sys
-
-import pytest
 import datetime
+import sys
 from datetime import date
 
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import (
-    VMSnapshot,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+import pytest
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import VMSnapshot
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -77,7 +74,7 @@ class TestVMSnapshot:
             device_snapshots=self.device_snapshots,
             timestamp=123,
             label="snapshot",
-            type="USER",
+            snapshot_type="USER",
             automated_trigger_timestamp=111,
             local_retain_until_timestamp=222,
             remote_retain_until_timestamp=333,
@@ -196,7 +193,7 @@ class TestVMSnapshot:
             vm=vm_snapshot_from_ansible.vm,
             device_snapshots=vm_snapshot_from_ansible.device_snapshots,
             label=vm_snapshot_from_ansible.label,
-            type=vm_snapshot_from_ansible.type,
+            snapshot_type=vm_snapshot_from_ansible.type,
         )
 
     def test_get_snapshot_by_uuid(self, rest_client):
@@ -248,9 +245,7 @@ class TestVMSnapshot:
     # =============================
 
     def test_hypercore_disk_to_ansible(self):
-        hypercore_disk_to_ansible = VMSnapshot.hypercore_disk_to_ansible(
-            self.disk_hypercore
-        )
+        hypercore_disk_to_ansible = VMSnapshot.hypercore_disk_to_ansible(self.disk_hypercore)
         assert hypercore_disk_to_ansible == self.disk_ansible
 
     def test_get_vm_disk_info_by_uuid(self, rest_client):

@@ -1,15 +1,14 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -18,9 +17,7 @@ pytestmark = pytest.mark.skipif(
 
 
 class TestEnsureAbsent:
-    def test_ensure_absent_record_present_power_state_shutdown(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_absent_record_present_power_state_shutdown(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -156,9 +153,7 @@ class TestEnsureAbsent:
             False,
         )
 
-    def test_ensure_absent_record_present_power_state_not_shutdown(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_absent_record_present_power_state_not_shutdown(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -332,9 +327,7 @@ class TestEnsureAbsent:
 
 
 class TestEnsurePresent:
-    def test_ensure_present_create_record(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_create_record(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -505,9 +498,7 @@ class TestEnsurePresent:
             False,
         )
 
-    def test_ensure_present_update_record_manage_vm_params(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_update_record_manage_vm_params(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -609,18 +600,18 @@ class TestEnsurePresent:
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.VM.get_by_name"
         ).side_effect = [vm_b]
 
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
-        ).side_effect = [
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params").side_effect = [
             (False, False),  # first machine_type - no change
             (True, True),  # second memory changes
         ]
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
-        ).return_value = (True, True)
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics"
-        ).return_value = (True, True)
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks").return_value = (
+            True,
+            True,
+        )
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics").return_value = (
+            True,
+            True,
+        )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
         ).return_value = (False, False)
@@ -734,9 +725,7 @@ class TestEnsurePresent:
         )
         assert expected_result == result
 
-    def test_ensure_present_update_record_no_changes(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_update_record_no_changes(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -810,26 +799,21 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
-        ).return_value = (False, {})
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
-        ).return_value = False
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params").return_value = (
+            False,
+            {},
+        )
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks").return_value = False
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
         ).return_value = False
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics"
-        ).return_value = False
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics").return_value = False
 
         result = vm.ensure_present(module, rest_client)
         changed = result[0]
         assert not changed
 
-    def test_ensure_present_updated_boot_order(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_present_updated_boot_order(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -955,18 +939,21 @@ class TestEnsurePresent:
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params"
-        ).return_value = (False, False)
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks"
-        ).return_value = (True, True)
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_vm_params").return_value = (
+            False,
+            False,
+        )
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_disks").return_value = (
+            True,
+            True,
+        )
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_boot_order"
         ).return_value = (True, True)
-        mocker.patch(
-            "ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics"
-        ).return_value = (False, False)
+        mocker.patch("ansible_collections.scale_computing.hypercore.plugins.modules.vm._set_nics").return_value = (
+            False,
+            False,
+        )
 
         result = vm.ensure_present(module, rest_client)
         assert result == (

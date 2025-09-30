@@ -3,21 +3,27 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import PayloadMapper
+from typing import Any
+from typing import Optional
+from typing import Union
+
 from ansible.module_utils.basic import AnsibleModule
+
 from ..module_utils.client import Client
 from ..module_utils.typed_classes import TypedSupportTunnelToAnsible
-from typing import Any, Union, Optional
+from ..module_utils.utils import PayloadMapper
 
 
 class SupportTunnel(PayloadMapper):
-    def __init__(self, open: bool, code: Optional[int]):
-        self.open = open
+    def __init__(self, open_flag: bool, code: Optional[int]):
+        self.open = open_flag
         self.code = code
 
     @classmethod
@@ -25,17 +31,15 @@ class SupportTunnel(PayloadMapper):
         pass
 
     @classmethod
-    def from_hypercore(
-        cls, hypercore_data: dict[str, Union[int, bool, None]]
-    ) -> SupportTunnel:
+    def from_hypercore(cls, hypercore_data: dict[str, Union[int, bool, None]]) -> SupportTunnel:
         # There is no None check since get_record is not used (support_tunnel's api behaves different)
         if not hypercore_data["tunnelOpen"]:
-            open = False
+            open_flag = False
             code = None
         else:
-            open = True
+            open_flag = True
             code = hypercore_data["tunnelOpen"]
-        return cls(open=open, code=code)
+        return cls(open_flag=open_flag, code=code)
 
     def to_hypercore(self) -> Any:
         pass
@@ -46,9 +50,7 @@ class SupportTunnel(PayloadMapper):
             code=self.code,
         )
 
-    def __eq__(
-        self, other: object
-    ) -> bool:  # object instead of SupportTunnel to make mypy happy
+    def __eq__(self, other: object) -> bool:  # object instead of SupportTunnel to make mypy happy
         """
         One support_tunnel is equal to another if it has all attributes exactly the same.
         This method is used only in tests.

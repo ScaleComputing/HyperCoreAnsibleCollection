@@ -3,30 +3,33 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
+import enum
 import json
 import os
 import ssl
-from typing import Any, Optional, Union
 from io import BufferedReader
-import enum
+from typing import Any
+from typing import Optional
+from typing import Union
 
+from ansible.module_utils.six.moves.urllib.error import HTTPError
+from ansible.module_utils.six.moves.urllib.error import URLError
+from ansible.module_utils.six.moves.urllib.parse import quote
+from ansible.module_utils.six.moves.urllib.parse import urlencode
 from ansible.module_utils.urls import Request
 
-from .errors import (
-    AuthError,
-    ScaleComputingError,
-    UnexpectedAPIResponse,
-    ApiResponseNotJson,
-)
 from ..module_utils.typed_classes import TypedClusterInstance
-
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.six.moves.urllib.parse import urlencode, quote
+from .errors import ApiResponseNotJson
+from .errors import AuthError
+from .errors import ScaleComputingError
+from .errors import UnexpectedAPIResponse
 
 DEFAULT_HEADERS = dict(Accept="application/json")
 
@@ -56,15 +59,11 @@ class Response:
     # Response(raw_resp) would be simpler.
     # How is this used in other projects? Jure?
     # Maybe we need/want both.
-    def __init__(
-        self, status: int, data: Any, headers: Optional[dict[Any, Any]] = None
-    ):
+    def __init__(self, status: int, data: Any, headers: Optional[dict[Any, Any]] = None):
         self.status = status
         self.data = data
         # [('h1', 'v1'), ('H2', 'V2')] -> {'h1': 'v1', 'h2': 'V2'}
-        self.headers = (
-            dict((k.lower(), v) for k, v in dict(headers).items()) if headers else {}
-        )
+        self.headers = dict((k.lower(), v) for k, v in dict(headers).items()) if headers else {}
 
         self._json = None
 
@@ -89,8 +88,7 @@ class Client:
     ):
         if not (host or "").startswith(("https://", "http://")):
             raise ScaleComputingError(
-                "Invalid instance host value: '{0}'. "
-                "Value must start with 'https://' or 'http://'".format(host)
+                f"Invalid instance host value: '{host}'. Value must start with 'https://' or 'http://'"
             )
 
         self.host = host
@@ -202,9 +200,7 @@ class Client:
             # Wrong username/password, or expired access token
             if e.code == 401:
                 raise AuthError(
-                    "Failed to authenticate with the instance: {0} {1}".format(
-                        e.code, e.reason
-                    ),
+                    f"Failed to authenticate with the instance: {e.code} {e.reason}",
                 )
             # Other HTTP error codes do not necessarily mean errors.
             # This is for the caller to decide.
@@ -212,23 +208,14 @@ class Client:
         except URLError as e:
             # TODO: Add other errors here; we need to handle them in modules.
             # TimeoutError is handled in the rest_client
-            if (
-                e.args
-                and isinstance(e.args, tuple)
-                and isinstance(e.args[0], ConnectionRefusedError)
-            ):
+            if e.args and isinstance(e.args, tuple) and isinstance(e.args[0], ConnectionRefusedError):
                 raise ConnectionRefusedError(e.reason)
-            elif (
-                e.args
-                and isinstance(e.args, tuple)
-                and isinstance(e.args[0], ConnectionResetError)
-            ):
+            elif e.args and isinstance(e.args, tuple) and isinstance(e.args[0], ConnectionResetError):
                 raise ConnectionResetError(e.reason)
             elif (
                 e.args
                 and isinstance(e.args, tuple)
-                and type(e.args[0])
-                in [ssl.SSLEOFError, ssl.SSLZeroReturnError, ssl.SSLSyscallError]
+                and type(e.args[0]) in [ssl.SSLEOFError, ssl.SSLZeroReturnError, ssl.SSLSyscallError]
             ):
                 raise type(e.args[0])(e)
             raise ScaleComputingError(e.reason)
@@ -246,15 +233,13 @@ class Client:
     ) -> Response:
         # Make sure we only have one kind of payload
         if data is not None and binary_data is not None:
-            raise AssertionError(
-                "Cannot have JSON and binary payload in a single request."
-            )
+            raise AssertionError("Cannot have JSON and binary payload in a single request.")
         escaped_path = quote(path.strip("/"))
         if escaped_path:
             escaped_path = "/" + escaped_path
-        url = "{0}{1}".format(self.host, escaped_path)
+        url = f"{self.host}{escaped_path}"
         if query:
-            url = "{0}?{1}".format(url, urlencode(query))
+            url = f"{url}?{urlencode(query)}"
         headers = dict(headers or DEFAULT_HEADERS, **self.auth_header)
         if data is not None:
             headers["Content-type"] = "application/json"
@@ -267,9 +252,7 @@ class Client:
             )
         elif binary_data is not None:
             headers["Content-type"] = "application/octet-stream"
-            return self._request(
-                method, url, data=binary_data, headers=headers, timeout=timeout
-            )
+            return self._request(method, url, data=binary_data, headers=headers, timeout=timeout)
         return self._request(method, url, data=data, headers=headers, timeout=timeout)
 
     def get(

@@ -4,36 +4,39 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import base64
-from time import sleep, time
-from typing import Dict, Any, Optional, List
+from time import sleep
+from time import time
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from ..module_utils.errors import DeviceNotUnique
-from ..module_utils.rest_client import RestClient
-from ..module_utils.nic import Nic, NicType
-from ..module_utils.disk import Disk
-from ..module_utils.node import Node
-from ..module_utils.iso import ISO
-from ..module_utils.utils import (
-    PayloadMapper,
-    filter_dict,
-    transform_query,
-    is_superset,
-)
-from ..module_utils.state import NicState
-from ..module_utils.utils import (
-    get_query,
-    filter_results,
-)
-from ..module_utils.task_tag import TaskTag
 from ..module_utils import errors
-from ..module_utils.snapshot_schedule import SnapshotSchedule
+from ..module_utils.disk import Disk
+from ..module_utils.errors import DeviceNotUnique
 from ..module_utils.hypercore_version import HyperCoreVersion
+from ..module_utils.iso import ISO
+from ..module_utils.nic import Nic
+from ..module_utils.nic import NicType
+from ..module_utils.node import Node
+from ..module_utils.rest_client import RestClient
+from ..module_utils.snapshot_schedule import SnapshotSchedule
+from ..module_utils.state import NicState
+from ..module_utils.task_tag import TaskTag
+from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import filter_dict
+from ..module_utils.utils import filter_results
+from ..module_utils.utils import get_query
+from ..module_utils.utils import is_superset
+from ..module_utils.utils import transform_query
 
 # HyperCore state (ansible power_state) are a state machine.
 # We have states and actions to move between states.
@@ -79,9 +82,7 @@ VM_PAYLOAD_KEYS = [
     "operatingSystem",
 ]
 
-VM_DEVICE_QUERY_MAPPING_ANSIBLE = dict(
-    disk_slot="disk_slot", nic_vlan="vlan", iso_name="iso_name"
-)
+VM_DEVICE_QUERY_MAPPING_ANSIBLE = dict(disk_slot="disk_slot", nic_vlan="vlan", iso_name="iso_name")
 
 DISK_TYPES_HYPERCORE = [
     "IDE_DISK",
@@ -152,9 +153,7 @@ class VmMachineType:
     }
 
     @classmethod
-    def from_ansible_to_hypercore(
-        cls, ansible_machine_type: str, hcversion: HyperCoreVersion
-    ) -> str:
+    def from_ansible_to_hypercore(cls, ansible_machine_type: str, hcversion: HyperCoreVersion) -> str:
         # Empty string is returned if ansible_machine_type cannot bve used with give HyperCore version.
         if not ansible_machine_type:
             return ""
@@ -173,13 +172,11 @@ class VmMachineType:
         # and use machineTypeKeyword if present.
         if "machineTypeKeyword" in vm_dict:
             _map_hypercore_machine_type_keyword_to_ansible = {
-                cls._map_ansible_to_hypercore_machine_type_keyword[k]: k
-                for k in cls._map_ansible_to_hypercore_machine_type_keyword
+                hypercore_value: ansible_value
+                for ansible_value, hypercore_value in cls._map_ansible_to_hypercore_machine_type_keyword.items()
             }
             # "machineTypeKeyword" is available in HyperCore 9.3 or later
-            return _map_hypercore_machine_type_keyword_to_ansible.get(
-                vm_dict["machineTypeKeyword"], ""
-            )
+            return _map_hypercore_machine_type_keyword_to_ansible.get(vm_dict["machineTypeKeyword"], "")
         return cls._map_hypercore_to_ansible.get(vm_dict["machineType"], "")
 
     @classmethod
@@ -251,12 +248,8 @@ class VM(PayloadMapper):
         self.machine_type = machine_type
         self.replication_source_vm_uuid = replication_source_vm_uuid
 
-        power_state_values = list(FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE.values()) + [
-            None
-        ]
-        power_action_values = list(FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION.keys()) + [
-            None
-        ]
+        power_state_values = list(FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE.values()) + [None]
+        power_action_values = list(FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION.keys()) + [None]
         if power_state not in power_state_values:
             raise AssertionError(f"Unknown VM power_state={power_state}")
         if power_action not in power_action_values:
@@ -265,14 +258,10 @@ class VM(PayloadMapper):
         # VM.from_ansible() will get only power_action
         if power_state and power_action:
             # is bug, or is this useful?
-            raise AssertionError(
-                f"Both power_state={power_state} and power_action={power_action} are set"
-            )
+            raise AssertionError(f"Both power_state={power_state} and power_action={power_action} are set")
         if power_state is None and power_action is None:
             # is bug, or is this useful?
-            raise AssertionError(
-                f"Neither power_state={power_state} nor power_action={power_action} is set"
-            )
+            raise AssertionError(f"Neither power_state={power_state} nor power_action={power_action} is set")
         self._power_state = power_state
         self._power_action = power_action
         if power_state and power_action is None:
@@ -322,9 +311,7 @@ class VM(PayloadMapper):
             memory=vm_dict["memory"],
             vcpu=vm_dict["vcpu"],
             nics=[Nic.from_ansible(ansible_data=nic) for nic in vm_dict["nics"] or []],
-            disks=[
-                Disk.from_ansible(disk_dict) for disk_dict in vm_dict["disks"] or []
-            ],
+            disks=[Disk.from_ansible(disk_dict) for disk_dict in vm_dict["disks"] or []],
             boot_devices=vm_dict.get("boot_devices", []),
             attach_guest_tools_iso=vm_dict["attach_guest_tools_iso"] or False,
             operating_system=vm_dict.get("operating_system"),
@@ -385,16 +372,12 @@ class VM(PayloadMapper):
             power_state=FROM_HYPERCORE_TO_ANSIBLE_POWER_STATE[vm_dict["state"]],
             vcpu=vm_dict["numVCPU"],
             nics=[Nic.from_hypercore(hypercore_data=nic) for nic in vm_dict["netDevs"]],
-            disks=[
-                Disk.from_hypercore(disk_dict) for disk_dict in vm_dict["blockDevs"]
-            ],
+            disks=[Disk.from_hypercore(disk_dict) for disk_dict in vm_dict["blockDevs"]],
             boot_devices=cls.get_vm_device_list(vm_dict),
             attach_guest_tools_iso=vm_dict.get("attachGuestToolsISO", ""),
             operating_system=vm_dict["operatingSystem"],
             node_affinity=node_affinity,
-            snapshot_schedule=(
-                snapshot_schedule.name if snapshot_schedule else ""
-            ),  # "" for vm_params diff check
+            snapshot_schedule=(snapshot_schedule.name if snapshot_schedule else ""),  # "" for vm_params diff check
             snapshot_uuids=vm_dict["snapUUIDs"],
             machine_type=machine_type,
             replication_source_vm_uuid=vm_dict["sourceVirDomainUUID"],
@@ -403,25 +386,16 @@ class VM(PayloadMapper):
     @classmethod
     def create_cloud_init_payload(cls, ansible_dict):
         if "cloud_init" in ansible_dict.keys() and (
-            ansible_dict["cloud_init"]["user_data"]
-            or ansible_dict["cloud_init"]["meta_data"]
+            ansible_dict["cloud_init"]["user_data"] or ansible_dict["cloud_init"]["meta_data"]
         ):
             return dict(
                 userData=(
-                    str(
-                        base64.b64encode(
-                            bytes(str(ansible_dict["cloud_init"]["user_data"]), "utf-8")
-                        )
-                    )[2:-1]
+                    str(base64.b64encode(bytes(str(ansible_dict["cloud_init"]["user_data"]), "utf-8")))[2:-1]
                     if ansible_dict["cloud_init"]["user_data"] is not None
                     else ""
                 ),
                 metaData=(
-                    str(
-                        base64.b64encode(
-                            bytes(str(ansible_dict["cloud_init"]["meta_data"]), "utf-8")
-                        )
-                    )[2:-1]
+                    str(base64.b64encode(bytes(str(ansible_dict["cloud_init"]["meta_data"]), "utf-8")))[2:-1]
                     if ansible_dict["cloud_init"]["meta_data"] is not None
                     else ""
                 ),
@@ -466,9 +440,7 @@ class VM(PayloadMapper):
             data["snapUUID"] = source_snapshot_uuid
         if clone_name:
             data["template"]["name"] = clone_name
-        if (
-            ansible_tags or hypercore_tags
-        ):  # Cloned VM does not retain tags from the original
+        if ansible_tags or hypercore_tags:  # Cloned VM does not retain tags from the original
             for tag in ansible_tags or []:
                 if tag not in hypercore_tags:
                     hypercore_tags.append(tag)
@@ -494,10 +466,7 @@ class VM(PayloadMapper):
         )
         if not record:
             return []
-        return [
-            cls.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client)
-            for virtual_machine in record
-        ]
+        return [cls.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client) for virtual_machine in record]
 
     @classmethod
     def get_or_fail(cls, query, rest_client):  # if vm is not found, raise exception
@@ -507,10 +476,7 @@ class VM(PayloadMapper):
         )
         if not record:
             raise errors.VMNotFound(query)
-        return [
-            cls.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client)
-            for virtual_machine in record
-        ]
+        return [cls.from_hypercore(vm_dict=virtual_machine, rest_client=rest_client) for virtual_machine in record]
 
     @classmethod
     def get_by_name(
@@ -526,12 +492,8 @@ class VM(PayloadMapper):
         """
         # name_field won't be equal to "vm_name" in case of updating the vm.
         # In that case, it's going to be equal to vm_name_new.
-        query = get_query(
-            ansible_dict, name_field, ansible_hypercore_map={name_field: "name"}
-        )
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/VirDomain", query, must_exist=must_exist
-        )
+        query = get_query(ansible_dict, name_field, ansible_hypercore_map={name_field: "name"})
+        hypercore_dict = rest_client.get_record("/rest/v1/VirDomain", query, must_exist=must_exist)
         vm_from_hypercore = cls.from_hypercore(hypercore_dict, rest_client)
         return vm_from_hypercore
 
@@ -550,9 +512,7 @@ class VM(PayloadMapper):
             )
         vm = vm_old_name or vm_new_name
         if must_exist and vm is None:
-            raise errors.VMNotFound(
-                f"vm_name={ansible_dict['vm_name']} or vm_name_new={ansible_dict['vm_name_new']}"
-            )
+            raise errors.VMNotFound(f"vm_name={ansible_dict['vm_name']} or vm_name_new={ansible_dict['vm_name_new']}")
         return vm
 
     @classmethod
@@ -592,9 +552,7 @@ class VM(PayloadMapper):
             )
 
         if self.machine_type and hcversion.verify("<9.3.0"):
-            vm_dict["machineType"] = VmMachineType.from_ansible_to_hypercore(
-                self.machine_type, hcversion
-            )
+            vm_dict["machineType"] = VmMachineType.from_ansible_to_hypercore(self.machine_type, hcversion)
 
         return vm_dict
 
@@ -611,9 +569,7 @@ class VM(PayloadMapper):
             nics=[nic.to_ansible() for nic in self.nic_list],
             tags=self.tags,
             uuid=self.uuid,
-            boot_devices=[
-                boot_device.to_ansible() for boot_device in self.boot_devices
-            ],
+            boot_devices=[boot_device.to_ansible() for boot_device in self.boot_devices],
             attach_guest_tools_iso=self.attach_guest_tools_iso,
             node_affinity=self.node_affinity,
             snapshot_schedule=self.snapshot_schedule,
@@ -661,9 +617,7 @@ class VM(PayloadMapper):
         hcversion = HyperCoreVersion(rest_client)
         payload = self.to_hypercore(hcversion)
         VM._post_vm_payload_set_disks(payload, rest_client)
-        payload["netDevs"] = [
-            filter_dict(nic, *nic.keys()) for nic in payload["netDevs"]
-        ]
+        payload["netDevs"] = [filter_dict(nic, *nic.keys()) for nic in payload["netDevs"]]
         payload["bootDevices"] = []
         dom = filter_dict(payload, *VM_PAYLOAD_KEYS)
         cloud_init_payload = VM.create_cloud_init_payload(ansible_dict)
@@ -672,11 +626,7 @@ class VM(PayloadMapper):
         options = dict(attachGuestToolsISO=payload["attachGuestToolsISO"])
         if hcversion.verify(">=9.3.0"):
             if self.machine_type:
-                machine_type_keyword = (
-                    VmMachineType.from_ansible_to_hypercore_machine_type_keyword(
-                        self.machine_type
-                    )
-                )
+                machine_type_keyword = VmMachineType.from_ansible_to_hypercore_machine_type_keyword(self.machine_type)
                 options.update(dict(machineTypeKeyword=machine_type_keyword))
         return dict(dom=dom, options=options)
 
@@ -705,11 +655,7 @@ class VM(PayloadMapper):
     def delete_unused_nics_to_hypercore_vm(self, module, rest_client, nic_key):
         changed = False
         ansible_nic_uuid_list = [
-            (
-                nic["vlan_new"]
-                if ("vlan_new" in nic.keys() and nic["vlan_new"])
-                else nic["vlan"]
-            )
+            (nic["vlan_new"] if ("vlan_new" in nic.keys() and nic["vlan_new"]) else nic["vlan"])
             for nic in module.params[nic_key] or []
         ]
         for nic in self.nic_list:
@@ -805,18 +751,12 @@ class VM(PayloadMapper):
         # Type is type of the device, for example disk or nic
         filtered_results = filter_results(results, query)
         if len(filtered_results) > 1:
-            raise errors.ScaleComputingError(
-                "{0} isn't uniquely identifyed by {1} in the VM.".format(
-                    object_type, query
-                )
-            )
+            raise errors.ScaleComputingError(f"{object_type} isn't uniquely identifyed by {query} in the VM.")
         return filtered_results[0] if filtered_results else None
 
     @staticmethod
     def get_vm_device_ansible_query(desired_vm_device_ansible):
-        vm_device_raw_query = filter_dict(
-            desired_vm_device_ansible, "disk_slot", "nic_vlan", "iso_name"
-        )
+        vm_device_raw_query = filter_dict(desired_vm_device_ansible, "disk_slot", "nic_vlan", "iso_name")
         return transform_query(vm_device_raw_query, VM_DEVICE_QUERY_MAPPING_ANSIBLE)
 
     def get_vm_device(self, desired_vm_object):
@@ -840,15 +780,13 @@ class VM(PayloadMapper):
         # uuid is vm's uuid. boot_order is the desired order we want to set to boot devices
         vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
-            "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid),
+            f"/rest/v1/VirDomain/{vm.uuid}",
             dict(bootDevices=boot_order),
             module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag)
 
-    def set_boot_devices(
-        self, boot_items, module, rest_client, previous_boot_order, changed=False
-    ):
+    def set_boot_devices(self, boot_items, module, rest_client, previous_boot_order, changed=False):
         desired_boot_order = self.set_boot_devices_order(boot_items)
         if desired_boot_order != previous_boot_order:
             VM.update_boot_device_order(module, rest_client, self, desired_boot_order)
@@ -860,14 +798,10 @@ class VM(PayloadMapper):
         """Helper to modules vm_boot_devices and vm."""
         vm = cls.get_by_name(ansible_dict, rest_client, must_exist=True)
         boot_devices_uuid = vm.get_boot_device_order()
-        boot_devices_ansible = [
-            boot_device.to_ansible() for boot_device in vm.boot_devices
-        ]
+        boot_devices_ansible = [boot_device.to_ansible() for boot_device in vm.boot_devices]
         return vm, boot_devices_uuid, boot_devices_ansible
 
-    def update_vm_power_state(
-        self, module, rest_client, desired_power_action, ignore_repeated_request: bool
-    ):
+    def update_vm_power_state(self, module, rest_client, desired_power_action, ignore_repeated_request: bool):
         """Sets the power state to what is stored in self.power_state"""
 
         # desired_power_action must be present in FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION's keys
@@ -889,33 +823,23 @@ class VM(PayloadMapper):
         # keep a record what was done
         if desired_power_action == "start":
             if self._was_start_tried:
-                return assert_or_ignore_repeated_request(
-                    "VM _was_start_tried already set"
-                )
+                return assert_or_ignore_repeated_request("VM _was_start_tried already set")
             self._was_start_tried = True
         if desired_power_action == "shutdown":
             if self._was_nice_shutdown_tried:
-                return assert_or_ignore_repeated_request(
-                    "VM _was_nice_shutdown_tried already set"
-                )
+                return assert_or_ignore_repeated_request("VM _was_nice_shutdown_tried already set")
             self._was_nice_shutdown_tried = True
         if desired_power_action == "stop":
             if self._was_force_shutdown_tried:
-                return assert_or_ignore_repeated_request(
-                    "VM _was_force_shutdown_tried already set"
-                )
+                return assert_or_ignore_repeated_request("VM _was_force_shutdown_tried already set")
             self._was_force_shutdown_tried = True
         if desired_power_action == "reboot":
             if self._was_reboot_tried:
-                return assert_or_ignore_repeated_request(
-                    "VM _was_reboot_tried already set"
-                )
+                return assert_or_ignore_repeated_request("VM _was_reboot_tried already set")
             self._was_reboot_tried = True
         if desired_power_action == "reset":
             if self._was_reset_tried:
-                return assert_or_ignore_repeated_request(
-                    "VM _was_reset_tried already set"
-                )
+                return assert_or_ignore_repeated_request("VM _was_reset_tried already set")
             self._was_reset_tried = True
 
         try:
@@ -924,9 +848,7 @@ class VM(PayloadMapper):
                 [
                     dict(
                         virDomainUUID=self.uuid,
-                        actionType=FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION[
-                            desired_power_action
-                        ],
+                        actionType=FROM_ANSIBLE_TO_HYPERCORE_POWER_ACTION[desired_power_action],
                         cause="INTERNAL",
                     )
                 ],
@@ -953,9 +875,7 @@ class VM(PayloadMapper):
         all_vm_devices = vm_hypercore_dict["netDevs"] + vm_hypercore_dict["blockDevs"]
         vm_device_list = []
         for vm_device_uuid in vm_hypercore_dict["bootDevices"]:
-            vm_device_hypercore = cls.filter_specific_objects(
-                all_vm_devices, {"uuid": vm_device_uuid}, "Disk or nic"
-            )
+            vm_device_hypercore = cls.filter_specific_objects(all_vm_devices, {"uuid": vm_device_uuid}, "Disk or nic")
             if vm_device_hypercore["type"] in DISK_TYPES_HYPERCORE:
                 vm_device_list.append(Disk.from_hypercore(vm_device_hypercore))
             else:  # The device is Nic
@@ -985,13 +905,9 @@ class VM(PayloadMapper):
         # forces a VM power off, only if force_shutdown is true from ansbile.
         # Returns True if successful, False if unsuccessful
         if "force_reboot" not in module.params:
-            raise errors.ScaleComputingError(
-                "Force shutdown is not supported by this module."
-            )
+            raise errors.ScaleComputingError("Force shutdown is not supported by this module.")
         # Get fresh VM data, in case vm_params changed power state.
-        vm_fresh_data = rest_client.get_record(
-            f"/rest/v1/VirDomain/{self.uuid}", must_exist=True
-        )
+        vm_fresh_data = rest_client.get_record(f"/rest/v1/VirDomain/{self.uuid}", must_exist=True)
         if vm_fresh_data["state"] in ["SHUTOFF", "SHUTDOWN"]:
             return True
         if module.params["force_reboot"] and self._was_nice_shutdown_tried:
@@ -1008,9 +924,7 @@ class VM(PayloadMapper):
         # Send GET request every 10 seconds.
         # Returns True if successful, False if unsuccessful
         # Get fresh VM data, there is an error if VM is not running and shutdown request is sent.
-        vm_fresh_data = rest_client.get_record(
-            f"/rest/v1/VirDomain/{self.uuid}", must_exist=True
-        )
+        vm_fresh_data = rest_client.get_record(f"/rest/v1/VirDomain/{self.uuid}", must_exist=True)
         if vm_fresh_data["state"] in ["SHUTOFF", "SHUTDOWN"]:
             return True
         if (
@@ -1022,9 +936,7 @@ class VM(PayloadMapper):
             shutdown_timeout = module.params["shutdown_timeout"]
             start = time()
             while 1:
-                vm = rest_client.get_record(
-                    f"/rest/v1/VirDomain/{self.uuid}", must_exist=True
-                )
+                vm = rest_client.get_record(f"/rest/v1/VirDomain/{self.uuid}", must_exist=True)
                 current_time = time() - start
                 if vm["state"] in ["SHUTDOWN", "SHUTOFF"]:
                     self._did_nice_shutdown_work = True
@@ -1076,9 +988,7 @@ class VM(PayloadMapper):
         # UEFI machine type must have NVRAM disk.
         disk_type_list = [disk.type for disk in self.disks]
         if self.machine_type == "UEFI" and "nvram" not in disk_type_list:
-            raise errors.ScaleComputingError(
-                "Machine of type UEFI requires NVRAM disk."
-            )
+            raise errors.ScaleComputingError("Machine of type UEFI requires NVRAM disk.")
         # vTPM+UEFI machine type must have NVRAM and VTPM disks.
         # This in not implemented yet, since this version of API does not support VTPM.
         if (
@@ -1087,9 +997,7 @@ class VM(PayloadMapper):
             and "nvram" not in disk_type_list
             and "vtpm" not in disk_type_list
         ):
-            raise errors.ScaleComputingError(
-                "Machine of type vTPM+UEFI requires NVRAM disk and VTPM disk."
-            )
+            raise errors.ScaleComputingError("Machine of type vTPM+UEFI requires NVRAM disk and VTPM disk.")
 
 
 class ManageVMParams(VM):
@@ -1103,9 +1011,7 @@ class ManageVMParams(VM):
         if module.params["description"] is not None:  # we want to be able to write ""
             payload["description"] = module.params["description"]
         if module.params["tags"] is not None:  # we want to be able to write ""
-            payload["tags"] = ",".join(
-                module.params["tags"]
-            )  # tags is a list of strings
+            payload["tags"] = ",".join(module.params["tags"])  # tags is a list of strings
         if module.params["memory"] is not None:
             payload["mem"] = module.params["memory"]
         if module.params["vcpu"] is not None:
@@ -1114,20 +1020,14 @@ class ManageVMParams(VM):
             # On create/POST, machineTypeKeyword can be used (if HC3>=9.3.0).
             # On update/PATCH, machineTypeKeyword cannot be used (tested with HC3 9.3.5).
             hcversion = HyperCoreVersion(rest_client)
-            hc3_machine_type = VmMachineType.from_ansible_to_hypercore(
-                module.params["machine_type"], hcversion
-            )
+            hc3_machine_type = VmMachineType.from_ansible_to_hypercore(module.params["machine_type"], hcversion)
             payload["machineType"] = hc3_machine_type
-        if (
-            module.params["snapshot_schedule"] is not None
-        ):  # we want to be able to write ""
+        if module.params["snapshot_schedule"] is not None:  # we want to be able to write ""
             if module.params["snapshot_schedule"] == "":
                 payload["snapshotScheduleUUID"] = ""
             else:
                 query = {"name": module.params["snapshot_schedule"]}
-                snapshot_schedule = SnapshotSchedule.get_snapshot_schedule(
-                    query, rest_client, must_exist=True
-                )
+                snapshot_schedule = SnapshotSchedule.get_snapshot_schedule(query, rest_client, must_exist=True)
                 payload["snapshotScheduleUUID"] = snapshot_schedule.uuid
         return payload
 
@@ -1156,13 +1056,9 @@ class ManageVMParams(VM):
         if module.params["vm_name_new"]:
             changed_params["vm_name"] = vm.name != module.params["vm_name_new"]
         if module.params["operating_system"]:
-            changed_params["operating_system"] = (
-                vm.operating_system != module.params["operating_system"]
-            )
+            changed_params["operating_system"] = vm.operating_system != module.params["operating_system"]
         if module.params["description"] is not None:  # we want to be able to write ""
-            changed_params["description"] = (
-                vm.description != module.params["description"]
-            )
+            changed_params["description"] = vm.description != module.params["description"]
         if module.params["tags"] is not None:  # we want to be able to write ""
             changed_params["tags"] = vm.tags != module.params["tags"]
         if module.params["memory"]:
@@ -1187,29 +1083,19 @@ class ManageVMParams(VM):
                 # "reset" and "reboot" needs to be applied always.
                 changed_params["power_state"] = True
             else:
-                desired_power_state = FROM_ANSIBLE_POWER_ACTION_TO_ANSIBLE_POWER_STATE[
-                    requested_power_action
-                ]
+                desired_power_state = FROM_ANSIBLE_POWER_ACTION_TO_ANSIBLE_POWER_STATE[requested_power_action]
                 changed_params["power_state"] = desired_power_state != vm._power_state
 
         if module.params.get("machine_type") is not None:
-            changed_params["machine_type"] = (
-                vm.machine_type != module.params["machine_type"]
-            )
-        if (
-            module.params["snapshot_schedule"] is not None
-        ):  # we want to be able to write ""
-            changed_params["snapshot_schedule"] = (
-                vm.snapshot_schedule != module.params["snapshot_schedule"]
-            )
+            changed_params["machine_type"] = vm.machine_type != module.params["machine_type"]
+        if module.params["snapshot_schedule"] is not None:  # we want to be able to write ""
+            changed_params["snapshot_schedule"] = vm.snapshot_schedule != module.params["snapshot_schedule"]
 
         if param_subset:
             # Caller can decide to change only subset of all needed changes.
             # This allows applying a change in two steps.
             changed_params_filtered = {
-                param_name: changed_params[param_name]
-                for param_name in param_subset
-                if param_name in changed_params
+                param_name: changed_params[param_name] for param_name in param_subset if param_name in changed_params
             }
         else:
             changed_params_filtered = changed_params
@@ -1238,13 +1124,7 @@ class ManageVMParams(VM):
                 after["snapshot_schedule"] = module.params["snapshot_schedule"]
             return after
 
-        query = {
-            "name": (
-                module.params["vm_name_new"]
-                if module.params["vm_name_new"]
-                else module.params["vm_name"]
-            )
-        }
+        query = {"name": (module.params["vm_name_new"] if module.params["vm_name_new"] else module.params["vm_name"])}
         vm = VM.get_or_fail(query, rest_client)[0]
         if module.params["operating_system"]:
             after["operating_system"] = vm.operating_system
@@ -1287,21 +1167,21 @@ class ManageVMParams(VM):
 
     @classmethod
     def set_vm_params(cls, module, rest_client, vm, param_subset: List[str]):
-        changed, changed_parameters = ManageVMParams._to_be_changed(
-            vm, module, param_subset
-        )
+        changed, changed_parameters = ManageVMParams._to_be_changed(vm, module, param_subset)
         cls._check_if_required_disks_are_present(module, vm, changed_parameters)
 
         if changed:
             payload = ManageVMParams._build_payload(module, rest_client)
-            endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
+            endpoint = f"/rest/v1/VirDomain/{vm.uuid}"
             task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
             TaskTag.wait_task(rest_client, task_tag)
 
             # shutdown VM if it needs to be rebooted to apply NIC/disk changes
-            if ManageVMParams._needs_reboot(
-                module, changed_parameters
-            ) and vm._power_action not in ["stop", "stopped", "shutdown"]:
+            if ManageVMParams._needs_reboot(module, changed_parameters) and vm._power_action not in [
+                "stop",
+                "stopped",
+                "shutdown",
+            ]:
                 vm.do_shutdown_steps(module, rest_client)
 
             return (
@@ -1320,9 +1200,7 @@ class ManageVMParams(VM):
             )
 
     @classmethod
-    def _check_if_required_disks_are_present(
-        cls, module, vm, changed_parameters: dict[str, bool]
-    ):
+    def _check_if_required_disks_are_present(cls, module, vm, changed_parameters: dict[str, bool]):
         if "machine_type" in changed_parameters:
             # Changing machineType can make VM unbootable (from BIOS to UEFI, without NVRAM disk).
             # After boot is tried, VM does not boot, type cannot be changed back, and support is needed.
@@ -1337,15 +1215,11 @@ class ManageVMParams(VM):
                 nvram_needed = True
                 vtpm_needed = True
             else:
-                raise AssertionError(
-                    f"machine_type={module.params['machine_type']} not included in set_vm_params."
-                )
+                raise AssertionError(f"machine_type={module.params['machine_type']} not included in set_vm_params.")
             # At end of module execution we will have VM with final_disks.
             if "disks" in module.params:
                 # vm module, "disks" param was passed
-                final_disks = [
-                    Disk.from_ansible(disk) for disk in module.params["disks"]
-                ]
+                final_disks = [Disk.from_ansible(disk) for disk in module.params["disks"]]
             else:
                 # vm_params has no disks, we need to check the actual VM disks
                 final_disks = vm.disks
@@ -1358,9 +1232,7 @@ class ManageVMParams(VM):
                 fail_message_requirements.append("vtpm disk")
             if fail_message_requirements:
                 fail_details = ", ".join(fail_message_requirements)
-                module.fail_json(
-                    f"Changing machineType to {module.params['machine_type']} requires {fail_details}."
-                )
+                module.fail_json(f"Changing machineType to {module.params['machine_type']} requires {fail_details}.")
 
 
 class ManageVMDisks:
@@ -1393,7 +1265,7 @@ class ManageVMDisks:
         # If false, it means you're detaching an image.
         payload = iso.attach_iso_payload() if attach else iso.detach_iso_payload()
         task_tag = rest_client.update_record(
-            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
+            f"/rest/v1/VirDomainBlockDevice/{uuid}",
             payload,
             module.check_mode,
         )
@@ -1402,14 +1274,12 @@ class ManageVMDisks:
         TaskTag.wait_task(rest_client, task_tag, module.check_mode)
 
     @staticmethod
-    def _update_block_device(
-        module, rest_client, desired_disk, existing_disk: Disk, vm
-    ):
+    def _update_block_device(module, rest_client, desired_disk, existing_disk: Disk, vm):
         payload = desired_disk.post_and_patch_payload(vm, existing_disk)
         if existing_disk.needs_reboot("update", desired_disk):
             vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
-            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
+            f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
             payload,
             module.check_mode,
         )
@@ -1423,17 +1293,11 @@ class ManageVMDisks:
             existing_disk = Disk.from_ansible(updated_ansible_disk)
             to_delete = True
             # Ensure idempotence with cloud-init and guest-tools IDE_DISKs
-            if existing_disk.name and (
-                "cloud-init" in existing_disk.name
-                or "guest-tools" in existing_disk.name
-            ):
+            if existing_disk.name and ("cloud-init" in existing_disk.name or "guest-tools" in existing_disk.name):
                 continue
             for ansible_desired_disk in module.params[disk_key]:
                 desired_disk = Disk.from_ansible(ansible_desired_disk)
-                if (
-                    desired_disk.slot == existing_disk.slot
-                    and desired_disk.type == existing_disk.type
-                ):
+                if desired_disk.slot == existing_disk.slot and desired_disk.type == existing_disk.type:
                     to_delete = False
             if to_delete:
                 # HyperCore is sometimes able to delete disk on running VM,
@@ -1443,9 +1307,7 @@ class ManageVMDisks:
                 if existing_disk.needs_reboot("delete"):
                     vm.do_shutdown_steps(module, rest_client)
                 task_tag = rest_client.delete_record(
-                    "{0}/{1}".format(
-                        "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
-                    ),
+                    f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
                     module.check_mode,
                 )
                 try:
@@ -1457,17 +1319,13 @@ class ManageVMDisks:
                         raise
                     if not cls._disk_remove_failed_because_vm_running(ex.task_status):
                         raise
-                    vm_fresh_data = rest_client.get_record(
-                        f"/rest/v1/VirDomain/{vm.uuid}", must_exist=True
-                    )
+                    vm_fresh_data = rest_client.get_record(f"/rest/v1/VirDomain/{vm.uuid}", must_exist=True)
                     if vm_fresh_data["state"] != "RUNNING":
                         raise
                     # shutdown and retry remove
                     vm.do_shutdown_steps(module, rest_client)
                     task_tag = rest_client.delete_record(
-                        "{0}/{1}".format(
-                            "/rest/v1/VirDomainBlockDevice", existing_disk.uuid
-                        ),
+                        f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
                         module.check_mode,
                     )
                     TaskTag.wait_task(rest_client, task_tag, module.check_mode)
@@ -1482,10 +1340,7 @@ class ManageVMDisks:
         #   9.2.17 - "Unable to delete block device from VM '%@': Still in use"
         #   9.1.14 - "Virt Exception, code: 84, domain 10: Operation not supported: This type of disk cannot be hot unplugged"
 
-        if (
-            task_status["formattedMessage"]
-            == "Unable to delete block device from VM '%@': Still in use"
-        ):
+        if task_status["formattedMessage"] == "Unable to delete block device from VM '%@': Still in use":
             return True
         if task_status["formattedMessage"].endswith(
             "Operation not supported: This type of disk cannot be hot unplugged"
@@ -1498,13 +1353,11 @@ class ManageVMDisks:
         # It's important to check if items is equal to empty list and empty list only (no None-s)
         # This method is going to be called in vm_disk class only.
         if module.params["items"] != []:
-            raise errors.ScaleComputingError(
-                "If force set to true, items should be set to empty list"
-            )
+            raise errors.ScaleComputingError("If force set to true, items should be set to empty list")
         # Delete all disks
         for existing_disk in vm.disks:
             task_tag = rest_client.delete_record(
-                "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", existing_disk.uuid),
+                f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
                 module.check_mode,
             )
             TaskTag.wait_task(rest_client, task_tag, module.check_mode)
@@ -1519,14 +1372,8 @@ class ManageVMDisks:
         disk_key = "items" if called_from_vm_disk else "disks"
         # vm_before, disks_before = cls.get_vm_by_name(module, rest_client)
         disks_before = [disk.to_ansible() for disk in vm_before.disks]
-        if (
-            called_from_vm_disk
-            and module.params["state"] == "set"
-            and module.params["force"]
-        ):
-            return cls._force_remove_all_disks(
-                module, rest_client, vm_before, disks_before
-            )
+        if called_from_vm_disk and module.params["state"] == "set" and module.params["force"]:
+            return cls._force_remove_all_disks(module, rest_client, vm_before, disks_before)
         for ansible_desired_disk in module.params[disk_key]:
             # For the given VM, disk can be uniquely identified with disk_slot and type or
             # just name, if not empty string
@@ -1539,15 +1386,10 @@ class ManageVMDisks:
                 and ansible_desired_disk["size"] is not None
                 and ansible_existing_disk["size"] > ansible_desired_disk["size"]
             ):
-                raise errors.ScaleComputingError(
-                    "Disk size can only be enlarged, never downsized."
-                )
+                raise errors.ScaleComputingError("Disk size can only be enlarged, never downsized.")
             if ansible_desired_disk["type"] == "ide_cdrom":
                 if ansible_existing_disk:
-                    if (
-                        ansible_existing_disk["iso_name"]
-                        == ansible_desired_disk["iso_name"]
-                    ):
+                    if ansible_existing_disk["iso_name"] == ansible_desired_disk["iso_name"]:
                         continue  # CD-ROM with such iso_name already exists
                     existing_disk = Disk.from_ansible(ansible_existing_disk)
                     uuid = existing_disk.uuid
@@ -1556,66 +1398,46 @@ class ManageVMDisks:
                     # size is not relevant when creating CD-ROM -->
                     # https://github.com/ScaleComputing/HyperCoreAnsibleCollection/issues/11
                     desired_disk.size = 0
-                    uuid = cls._create_block_device(
-                        module, rest_client, vm_before, desired_disk
-                    )
+                    uuid = cls._create_block_device(module, rest_client, vm_before, desired_disk)
                     changed = True
                 # Attach ISO image
                 # If ISO image's name is specified, it's assumed you want to attach ISO image
                 name = ansible_desired_disk["iso_name"]
                 if name:  # Not creating empty CD-ROM without attaching anything
                     iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
-                    cls.iso_image_management(
-                        module, rest_client, iso, uuid, attach=True
-                    )
+                    cls.iso_image_management(module, rest_client, iso, uuid, attach=True)
                     changed = True
                 else:
                     # Empty CD-ROM is requested. Detach ISO if needed.
                     if ansible_existing_disk:
                         name = ansible_existing_disk["iso_name"]  #
-                        existing_iso = ISO.get_by_name(
-                            dict(name=name), rest_client, must_exist=False
-                        )
+                        existing_iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=False)
                         if existing_iso:
-                            cls.iso_image_management(
-                                module, rest_client, existing_iso, uuid, attach=False
-                            )
+                            cls.iso_image_management(module, rest_client, existing_iso, uuid, attach=False)
                             changed = True
             else:
                 if ansible_existing_disk:
                     existing_disk = Disk.from_ansible(ansible_existing_disk)
                     # Check superset for idempotency
                     ansible_desired_disk_filtered = {
-                        k: v
-                        for k, v in desired_disk.to_ansible().items()
-                        if v is not None
+                        k: v for k, v in desired_disk.to_ansible().items() if v is not None
                     }
 
                     if existing_disk.type == "nvram":
                         # Special case: nvram disk, PATCH cannot change the size/capacity
                         # See also Disk.post_and_patch_payload
-                        ansible_desired_disk_filtered["size"] = ansible_existing_disk[
-                            "size"
-                        ]
+                        ansible_desired_disk_filtered["size"] = ansible_existing_disk["size"]
 
-                    if is_superset(
-                        ansible_existing_disk, ansible_desired_disk_filtered
-                    ):
+                    if is_superset(ansible_existing_disk, ansible_desired_disk_filtered):
                         # There's nothing to do - all properties are already set the way we want them to be
                         continue
 
-                    cls._update_block_device(
-                        module, rest_client, desired_disk, existing_disk, vm_before
-                    )
+                    cls._update_block_device(module, rest_client, desired_disk, existing_disk, vm_before)
                 else:
-                    cls._create_block_device(
-                        module, rest_client, vm_before, desired_disk
-                    )
+                    cls._create_block_device(module, rest_client, vm_before, desired_disk)
                 changed = True
         if module.params["state"] == "set" or not called_from_vm_disk:
-            changed = cls._delete_not_used_disks(
-                module, rest_client, vm_before, changed, disk_key
-            )
+            changed = cls._delete_not_used_disks(module, rest_client, vm_before, changed, disk_key)
         if called_from_vm_disk:
             vm_before.vm_power_up(module, rest_client)
             vm_after, disks_after = cls.get_vm_by_name(module, rest_client)
@@ -1632,9 +1454,7 @@ class ManageVMNics(Nic):
     @classmethod
     def get_by_uuid(cls, rest_client, nic_uuid):
         return Nic.from_hypercore(
-            rest_client.get_record(
-                "/rest/v1/VirDomainNetDevice", query={"uuid": nic_uuid}, must_exist=True
-            )
+            rest_client.get_record("/rest/v1/VirDomainNetDevice", query={"uuid": nic_uuid}, must_exist=True)
         )
 
     @classmethod
@@ -1649,9 +1469,7 @@ class ManageVMNics(Nic):
         after,
     ):
         if new_nic is None or existing_nic is None:
-            raise errors.MissingFunctionParameter(
-                "new_nic or existing_nic - nic.py - update_nic_to_hypercore()"
-            )
+            raise errors.MissingFunctionParameter("new_nic or existing_nic - nic.py - update_nic_to_hypercore()")
         before.append(existing_nic.to_ansible())
         data = new_nic.to_hypercore()
         virtual_machine_obj.do_shutdown_steps(module, rest_client)
@@ -1661,30 +1479,20 @@ class ManageVMNics(Nic):
             check_mode=False,
         )
         TaskTag.wait_task(rest_client=rest_client, task=response)
-        new_nic_obj = ManageVMNics.get_by_uuid(
-            rest_client=rest_client, nic_uuid=existing_nic.uuid
-        )
+        new_nic_obj = ManageVMNics.get_by_uuid(rest_client=rest_client, nic_uuid=existing_nic.uuid)
         after.append(new_nic_obj.to_ansible())
         return True, before, after
 
     @classmethod
-    def send_create_nic_request_to_hypercore(
-        cls, module, virtual_machine_obj, rest_client, new_nic, before, after
-    ):
+    def send_create_nic_request_to_hypercore(cls, module, virtual_machine_obj, rest_client, new_nic, before, after):
         if new_nic is None:
-            raise errors.MissingFunctionParameter(
-                "new_nic - nic.py - create_nic_to_hypercore()"
-            )
+            raise errors.MissingFunctionParameter("new_nic - nic.py - create_nic_to_hypercore()")
         before.append(None)
         data = new_nic.to_hypercore()
         virtual_machine_obj.do_shutdown_steps(module, rest_client)
-        response = rest_client.create_record(
-            endpoint="/rest/v1/VirDomainNetDevice", payload=data, check_mode=False
-        )
+        response = rest_client.create_record(endpoint="/rest/v1/VirDomainNetDevice", payload=data, check_mode=False)
         TaskTag.wait_task(rest_client=rest_client, task=response)
-        new_nic_obj = ManageVMNics.get_by_uuid(
-            rest_client=rest_client, nic_uuid=response["createdUUID"]
-        )
+        new_nic_obj = ManageVMNics.get_by_uuid(rest_client=rest_client, nic_uuid=response["createdUUID"])
         after.append(new_nic_obj.to_ansible())
         return True, before, after
 
@@ -1693,9 +1501,7 @@ class ManageVMNics(Nic):
         cls, virtual_machine_obj, module, rest_client, nic_to_delete, before, after
     ):
         if nic_to_delete is None:
-            raise errors.MissingFunctionParameter(
-                "nic_to_delete - nic.py - delete_nic_to_hypercore()"
-            )
+            raise errors.MissingFunctionParameter("nic_to_delete - nic.py - delete_nic_to_hypercore()")
         before.append(nic_to_delete.to_ansible())
         virtual_machine_obj.do_shutdown_steps(module, rest_client)
         response = rest_client.delete_record(
@@ -1792,16 +1598,12 @@ class ManageVMNics(Nic):
             for nic in vm_before.nic_list:
                 before.append(nic.to_ansible())
         else:
-            raise errors.MissingValueAnsible(
-                "items, cannot be null, empty must be set to []"
-            )
+            raise errors.MissingValueAnsible("items, cannot be null, empty must be set to []")
 
         # If the only change is to delete a NIC, then
         # the vm_before would not know VM was shutdown and reboot is needed.
         # The delete_unused_nics_to_hypercore_vm() must get updated VLANs.
-        updated_virtual_machine_TEMP = VM.get_by_old_or_new_name(
-            module.params, rest_client=rest_client
-        )
+        updated_virtual_machine_TEMP = VM.get_by_old_or_new_name(module.params, rest_client=rest_client)
         updated_virtual_machine = vm_before
         updated_virtual_machine.nics = updated_virtual_machine_TEMP.nics
         del updated_virtual_machine_TEMP
@@ -1809,9 +1611,7 @@ class ManageVMNics(Nic):
 
         if module.params["state"] == NicState.set or not called_from_vm_nic:
             # Check if any nics need to be deleted from the vm
-            changed_tmp = updated_virtual_machine.delete_unused_nics_to_hypercore_vm(
-                module, rest_client, nic_key
-            )
+            changed_tmp = updated_virtual_machine.delete_unused_nics_to_hypercore_vm(module, rest_client, nic_key)
             changed = changed or changed_tmp
         if called_from_vm_nic:
             return (

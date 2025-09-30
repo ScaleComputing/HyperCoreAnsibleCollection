@@ -4,7 +4,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -70,12 +72,8 @@ class RemoteCluster(PayloadMapper):
         )
 
     @classmethod
-    def get_cluster_name_from_replication_connection_uuid(
-        cls, rest_client, connection_uuid
-    ):
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/RemoteClusterConnection", {"uuid": connection_uuid}
-        )
+    def get_cluster_name_from_replication_connection_uuid(cls, rest_client, connection_uuid):
+        hypercore_dict = rest_client.get_record("/rest/v1/RemoteClusterConnection", {"uuid": connection_uuid})
         if hypercore_dict is None:
             return None
         record = cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()

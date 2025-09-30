@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -96,20 +98,23 @@ record:
       sample: 0
 """
 
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Tuple
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import arguments, errors
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
 from ..module_utils.cluster import Cluster
 from ..module_utils.hypercore_version import Update
+from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedUpdateToAnsible
-from typing import Tuple, Dict, Any, Optional
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[TypedUpdateToAnsible], Dict[Any, Any]]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[TypedUpdateToAnsible], Dict[Any, Any]]:
     cluster = Cluster.get(rest_client)
     new_icos_version = module.params["icos_version"]
     if cluster.icos_version == new_icos_version:

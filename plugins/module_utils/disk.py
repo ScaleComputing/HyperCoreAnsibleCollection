@@ -4,16 +4,19 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from ..module_utils.utils import PayloadMapper
+from typing import Any
+from typing import Optional
+
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
-from typing import Optional, Any
-
+from ..module_utils.utils import PayloadMapper
 
 TIERING_PRIORITY_MAPPING_TO_HYPERCORE = {
     0: 0,
@@ -50,7 +53,7 @@ TIERING_PRIORITY_DEFAULT = 4
 class Disk(PayloadMapper):
     def __init__(
         self,
-        type,
+        disk_type,
         slot,
         uuid=None,
         vm_uuid=None,
@@ -64,7 +67,7 @@ class Disk(PayloadMapper):
     ):
         self.uuid = uuid
         self.vm_uuid = vm_uuid
-        self.type = type
+        self.type = disk_type
         self.cache_mode = cache_mode
         self.size = size
         self.slot = slot
@@ -115,7 +118,7 @@ class Disk(PayloadMapper):
             return cls(
                 uuid=hypercore_data["uuid"],
                 vm_uuid=hypercore_data["virDomainUUID"],
-                type=hypercore_data["type"].lower(),
+                disk_type=hypercore_data["type"].lower(),
                 cache_mode=hypercore_data["cacheMode"].lower(),
                 size=hypercore_data["capacity"],
                 slot=hypercore_data["slot"],
@@ -123,11 +126,8 @@ class Disk(PayloadMapper):
                 disable_snapshotting=hypercore_data["disableSnapshotting"],
                 # Hypercore sometimes returns values outside the mapping table, so we set it to default.
                 tiering_priority_factor=(
-                    TIERING_PRIORITY_MAPPING_FROM_HYPERCORE[
-                        hypercore_data["tieringPriorityFactor"]
-                    ]
-                    if hypercore_data["tieringPriorityFactor"]
-                    in TIERING_PRIORITY_MAPPING_FROM_HYPERCORE
+                    TIERING_PRIORITY_MAPPING_FROM_HYPERCORE[hypercore_data["tieringPriorityFactor"]]
+                    if hypercore_data["tieringPriorityFactor"] in TIERING_PRIORITY_MAPPING_FROM_HYPERCORE
                     else TIERING_PRIORITY_DEFAULT
                 ),
                 mount_points=hypercore_data["mountPoints"],
@@ -153,7 +153,7 @@ class Disk(PayloadMapper):
         else:
             size = None
         return cls(
-            type=disk_type,
+            disk_type=disk_type,
             slot=ansible_data["disk_slot"],
             size=size,
             cache_mode=ansible_data.get("cache_mode", None),
@@ -222,10 +222,6 @@ class Disk(PayloadMapper):
         return False
 
     @classmethod
-    def get_by_uuid(
-        cls, uuid: str, rest_client: RestClient, must_exist: bool
-    ) -> Optional[Disk]:
-        hypercore_dict = rest_client.get_record(
-            f"/rest/v1/VirDomainBlockDevice/{uuid}", must_exist=must_exist
-        )
+    def get_by_uuid(cls, uuid: str, rest_client: RestClient, must_exist: bool) -> Optional[Disk]:
+        hypercore_dict = rest_client.get_record(f"/rest/v1/VirDomainBlockDevice/{uuid}", must_exist=must_exist)
         return cls.from_hypercore(hypercore_dict)

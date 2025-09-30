@@ -3,22 +3,27 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from .rest_client import RestClient
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
+
+from ..module_utils.typed_classes import TypedEmailAlertFromAnsible
+from ..module_utils.typed_classes import TypedEmailAlertToAnsible
+from ..module_utils.typed_classes import TypedTaskTag
 
 # from .client import Client
-from ..module_utils.utils import PayloadMapper, get_query
-
-from ..module_utils.typed_classes import (
-    TypedTaskTag,
-    TypedEmailAlertToAnsible,
-    TypedEmailAlertFromAnsible,
-)
-from typing import Union, Any, Dict, Optional, List
+from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import get_query
+from .rest_client import RestClient
 
 
 class EmailAlert(PayloadMapper):
@@ -100,9 +105,7 @@ class EmailAlert(PayloadMapper):
         must_exist: bool = False,
     ) -> Optional[EmailAlert]:
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/AlertEmailTarget", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/AlertEmailTarget", query, must_exist=must_exist)
         alert_email_from_hypercore = cls.from_hypercore(hypercore_dict)
         return alert_email_from_hypercore
 
@@ -118,9 +121,7 @@ class EmailAlert(PayloadMapper):
             "email",
             ansible_hypercore_map=dict(email="emailAddress"),
         )
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/AlertEmailTarget", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/AlertEmailTarget", query, must_exist=must_exist)
 
         alert_email_from_hypercore = EmailAlert.from_hypercore(hypercore_dict)
         return alert_email_from_hypercore
@@ -136,13 +137,9 @@ class EmailAlert(PayloadMapper):
             "email",
             ansible_hypercore_map=dict(email="emailAddress"),
         )
-        hypercore_dict_list = rest_client.list_records(
-            "/rest/v1/AlertEmailTarget", query
-        )
+        hypercore_dict_list = rest_client.list_records("/rest/v1/AlertEmailTarget", query)
 
-        alert_email_from_hypercore_list = [
-            EmailAlert.from_hypercore(hc_dict) for hc_dict in hypercore_dict_list
-        ]
+        alert_email_from_hypercore_list = [EmailAlert.from_hypercore(hc_dict) for hc_dict in hypercore_dict_list]
         return alert_email_from_hypercore_list
 
     @classmethod
@@ -164,9 +161,7 @@ class EmailAlert(PayloadMapper):
         payload: Dict[Any, Any],
         check_mode: bool = False,
     ):
-        task_tag = rest_client.create_record(
-            "/rest/v1/AlertEmailTarget/", payload, check_mode
-        )
+        task_tag = rest_client.create_record("/rest/v1/AlertEmailTarget/", payload, check_mode)
         email_alert = cls.get_by_uuid(
             dict(uuid=task_tag["createdUUID"]),
             rest_client,
@@ -180,9 +175,7 @@ class EmailAlert(PayloadMapper):
         payload: Dict[Any, Any],
         check_mode: bool = False,
     ) -> None:
-        rest_client.update_record(
-            f"/rest/v1/AlertEmailTarget/{self.uuid}", payload, check_mode
-        )
+        rest_client.update_record(f"/rest/v1/AlertEmailTarget/{self.uuid}", payload, check_mode)
 
     def delete(
         self,
@@ -195,7 +188,5 @@ class EmailAlert(PayloadMapper):
         self,
         rest_client: RestClient,
     ) -> TypedTaskTag:
-        response = rest_client.client.post(
-            f"/rest/v1/AlertEmailTarget/{self.uuid}/test", None
-        )
+        response = rest_client.client.post(f"/rest/v1/AlertEmailTarget/{self.uuid}/test", None)
         return response

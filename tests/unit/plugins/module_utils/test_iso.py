@@ -1,15 +1,14 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.iso import ISO
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -145,9 +144,7 @@ class TestISO:
             ready_for_insert=False,
         )
 
-        assert iso.build_iso_post_paylaod() == dict(
-            name="ISO-test-name", size=8000, readyForInsert=False
-        )
+        assert iso.build_iso_post_paylaod() == dict(name="ISO-test-name", size=8000, readyForInsert=False)
 
     def test_get_by_name(self, rest_client):
         ansible_dict = dict(

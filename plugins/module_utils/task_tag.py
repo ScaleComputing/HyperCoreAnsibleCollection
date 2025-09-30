@@ -4,17 +4,21 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 from time import sleep
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedTaskTag
-from typing import Optional, Dict, Any
 
 
 class TaskTag:
@@ -37,9 +41,7 @@ class TaskTag:
             return
 
         while True:
-            task_status = rest_client.get_record(
-                "{0}/{1}".format("/rest/v1/TaskTag", task["taskTag"]), query={}
-            )
+            task_status = rest_client.get_record(f"/rest/v1/TaskTag/{task['taskTag']}", query={})
             if task_status is None:  # No such task_status is found
                 break
             if task_status.get("state", "") in (
@@ -55,9 +57,7 @@ class TaskTag:
             sleep(1)
 
     @staticmethod
-    def get_task_status(
-        rest_client: RestClient, task: Optional[TypedTaskTag]
-    ) -> Optional[Dict[Any, Any]]:
+    def get_task_status(rest_client: RestClient, task: Optional[TypedTaskTag]) -> Optional[Dict[Any, Any]]:
         if not task:
             return None
         if not isinstance(task, dict):
@@ -66,7 +66,5 @@ class TaskTag:
             raise errors.ScaleComputingError("taskTag is not in task dictionary.")
         if not task["taskTag"]:
             return None
-        task_status: Optional[Dict[Any, Any]] = rest_client.get_record(
-            "{0}/{1}".format("/rest/v1/TaskTag", task["taskTag"]), query={}
-        )
+        task_status: Optional[Dict[Any, Any]] = rest_client.get_record(f"/rest/v1/TaskTag/{task['taskTag']}", query={})
         return task_status if task_status else None

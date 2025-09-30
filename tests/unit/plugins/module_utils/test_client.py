@@ -3,7 +3,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -11,18 +13,15 @@ import io
 import sys
 
 import pytest
+from ansible_collections.scale_computing.hypercore.plugins.module_utils import client
+from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 
 from ansible.module_utils.common.text.converters import to_text
-from ansible.module_utils.six.moves.urllib.error import HTTPError, URLError
-from ansible.module_utils.six.moves.urllib.parse import urlparse, parse_qs
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils import (
-    client,
-    errors,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible.module_utils.six.moves.urllib.error import HTTPError
+from ansible.module_utils.six.moves.urllib.error import URLError
+from ansible.module_utils.six.moves.urllib.parse import parse_qs
+from ansible.module_utils.six.moves.urllib.parse import urlparse
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -47,11 +46,11 @@ class TestResponseInit:
         resp = client.Response(
             200,
             '{"a": ["b", "c"], "d": 1}',
-            headers=[("Content-type", "applcation/json")],
+            headers=[("Content-type", "application/json")],
         )
 
         assert resp.status == 200
-        assert resp.headers == {"content-type": "applcation/json"}
+        assert resp.headers == {"content-type": "application/json"}
         assert resp.data == '{"a": ["b", "c"], "d": 1}'
         assert resp.json == {"a": ["b", "c"], "d": 1}
 
@@ -62,17 +61,17 @@ class TestResponseInit:
         assert resp.headers == {}
         assert resp.data == "Not Found"
         with pytest.raises(errors.ApiResponseNotJson):
-            resp.json
+            resp.json  # pylint: disable=pointless-statement
 
     def test_json_is_cached(self, mocker):
         json_mock = mocker.patch.object(client, "json")
         resp = client.Response(
             200,
             '{"a": ["b", "c"], "d": 1}',
-            headers=[("Content-type", "applcation/json")],
+            headers=[("Content-type", "application/json")],
         )
-        resp.json
-        resp.json
+        resp.json  # pylint: disable=pointless-statement
+        resp.json  # pylint: disable=pointless-statement
 
         assert json_mock.loads.call_count == 1
 
@@ -80,9 +79,7 @@ class TestResponseInit:
 class TestClientInit:
     @pytest.mark.parametrize("host", [None, "", "invalid", "missing.schema"])
     def test_invalid_host(self, host):
-        with pytest.raises(
-            errors.ScaleComputingError, match="Invalid instance host value"
-        ):
+        with pytest.raises(errors.ScaleComputingError, match="Invalid instance host value"):
             client.Client(host, "user", "pass", None, "local")
 
     @pytest.mark.parametrize("host", ["http://insecure.host", "https://secure.host"])
@@ -94,26 +91,20 @@ class TestClientAuthHeader:
     def test_basic_auth(self, mocker):
         resp_mock = mocker.MagicMock()
         resp_mock.status = 200  # Used when testing on Python 3
-        resp_mock.read.return_value = (
-            '{"sessionID":"7e3a2a70-7130-41c4-9402-fc0953cc1d7b"}'.encode("utf-8")
-        )
+        resp_mock.read.return_value = '{"sessionID":"7e3a2a70-7130-41c4-9402-fc0953cc1d7b"}'.encode("utf-8")
 
         request_mock = mocker.patch.object(client, "Request").return_value
         request_mock.open.return_value = resp_mock
 
         c = client.Client("https://instance.com", "user", "pass", None, "local")
-        assert c.auth_header == {
-            "Cookie": "sessionID=7e3a2a70-7130-41c4-9402-fc0953cc1d7b"
-        }
+        assert c.auth_header == {"Cookie": "sessionID=7e3a2a70-7130-41c4-9402-fc0953cc1d7b"}
 
 
 class TestClientRequest:
     def test_request_without_data_success(self, mocker):
         c = client.Client("https://instance.com", "user", "pass", None, "local")
         c._auth_header = {"Cookie": "sessionID=7e3a2a70-7130-41c4-9402-fc0953cc1d7b"}
-        mock_response = client.Response(
-            200, '{"returned": "data"}', headers=[("Content-type", "application/json")]
-        )
+        mock_response = client.Response(200, '{"returned": "data"}', headers=[("Content-type", "application/json")])
         request_mock = mocker.patch.object(c, "_request")
         request_mock.return_value = mock_response
 
@@ -131,9 +122,7 @@ class TestClientRequest:
     def test_request_with_data_success(self, mocker):
         c = client.Client("https://instance.com", "user", "pass", None, "local")
         c._auth_header = {"Cookie": "sessionID=7e3a2a70-7130-41c4-9402-fc0953cc1d7b"}
-        mock_response = client.Response(
-            200, '{"returned": "data"}', headers=[("Content-type", "application/json")]
-        )
+        mock_response = client.Response(200, '{"returned": "data"}', headers=[("Content-type", "application/json")])
         request_mock = mocker.patch.object(c, "_request")
         request_mock.return_value = mock_response
 
@@ -163,9 +152,7 @@ class TestClientRequest:
 
     def test_http_error(self, mocker):
         request_mock = mocker.patch.object(client, "Request").return_value
-        request_mock.open.side_effect = HTTPError(
-            "", 404, "Not Found", {}, io.StringIO(to_text("My Error"))
-        )
+        request_mock.open.side_effect = HTTPError("", 404, "Not Found", {}, io.StringIO(to_text("My Error")))
 
         c = client.Client("https://instance.com", "user", "pass", None, "local")
         c._auth_header = {"Cookie": "sessionID=7e3a2a70-7130-41c4-9402-fc0953cc1d7b"}
@@ -237,9 +224,7 @@ class TestClientRequest:
     def test_request_without_data_binary_success(self, mocker):
         c = client.Client("https://instance.com", "user", "pass", None, "local")
         c._auth_header = {"Cookie": "sessionID=7e3a2a70-7130-41c4-9402-fc0953cc1d7b"}
-        mock_response = client.Response(
-            200, "data", headers=[("Content-type", "image/apng")]
-        )
+        mock_response = client.Response(200, "data", headers=[("Content-type", "image/apng")])
         request_mock = mocker.patch.object(c, "_request")
         request_mock.return_value = mock_response
 
@@ -253,9 +238,7 @@ class TestClientRequest:
             "GET",
             "https://instance.com/api/rest/v1/some/path",
             data=None,
-            headers=dict(
-                {"Accept": "image/apng", "Content-type": "text/plain"}, **c.auth_header
-            ),
+            headers=dict({"Accept": "image/apng", "Content-type": "text/plain"}, **c.auth_header),
             timeout=None,
         )
         assert resp == mock_response
@@ -298,9 +281,7 @@ class TestClientGet:
 
         c.get("api/rest/v1/table/incident/1", query=dict(a="1"))
 
-        request_mock.assert_called_with(
-            "GET", "api/rest/v1/table/incident/1", query=dict(a="1"), timeout=None
-        )
+        request_mock.assert_called_with("GET", "api/rest/v1/table/incident/1", query=dict(a="1"), timeout=None)
 
 
 class TestClientPost:
@@ -436,6 +417,4 @@ class TestClientDelete:
 
         c.delete("api/rest/v1/table/resource/1", query=dict(x="y"))
 
-        request_mock.assert_called_with(
-            "DELETE", "api/rest/v1/table/resource/1", query=dict(x="y"), timeout=None
-        )
+        request_mock.assert_called_with("DELETE", "api/rest/v1/table/resource/1", query=dict(x="y"), timeout=None)

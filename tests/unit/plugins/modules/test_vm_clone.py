@@ -1,17 +1,16 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.modules import vm_clone
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.modules import vm_clone
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -22,9 +21,7 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_minimal_set_of_params(self, run_main_info):
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             vm_name=dict(
                 type="str",
                 required=True,
@@ -167,9 +164,7 @@ class TestRun:
             "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone.",
         )
 
-    def test_run_when_VM_cloned_with_tag_and_cloud_init(
-        self, rest_client, create_module, mocker
-    ):
+    def test_run_when_VM_cloned_with_tag_and_cloud_init(self, rest_client, create_module, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

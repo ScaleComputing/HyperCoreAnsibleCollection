@@ -3,22 +3,26 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
-from ansible.module_utils.basic import AnsibleModule
-from ..module_utils.typed_classes import (
-    TypedVirtualDiskFromAnsible,
-    TypedVirtualDiskToAnsible,
-    TypedTaskTag,
-)
-from typing import Dict, List, Any, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from .rest_client import RestClient
-from ..module_utils.utils import PayloadMapper
+from ansible.module_utils.basic import AnsibleModule
+
 from ..module_utils import errors
+from ..module_utils.typed_classes import TypedTaskTag
+from ..module_utils.typed_classes import TypedVirtualDiskFromAnsible
+from ..module_utils.typed_classes import TypedVirtualDiskToAnsible
+from ..module_utils.utils import PayloadMapper
+from .rest_client import RestClient
 
 REQUEST_TIMEOUT_TIME = 3600
 
@@ -98,52 +102,32 @@ class VirtualDisk(PayloadMapper):
     #     return virtual_disk
 
     @classmethod
-    def get_by_name(
-        cls, rest_client: RestClient, name: str, must_exist: bool = False
-    ) -> Optional[VirtualDisk]:
+    def get_by_name(cls, rest_client: RestClient, name: str, must_exist: bool = False) -> Optional[VirtualDisk]:
         result = rest_client.list_records("/rest/v1/VirtualDisk", query=dict(name=name))
         if not isinstance(result, list):
-            raise errors.ScaleComputingError(
-                "Virtual disk API return value is not a list."
-            )
+            raise errors.ScaleComputingError("Virtual disk API return value is not a list.")
         elif must_exist and (not result or not result[0]):
-            raise errors.ScaleComputingError(
-                f"Virtual disk with name {name} does not exist."
-            )
+            raise errors.ScaleComputingError(f"Virtual disk with name {name} does not exist.")
         elif not result or not result[0]:
             return None
         elif len(result) > 1:
-            raise errors.ScaleComputingError(
-                f"Virtual disk {name} has multiple instances and is not unique."
-            )
+            raise errors.ScaleComputingError(f"Virtual disk {name} has multiple instances and is not unique.")
         return cls.from_hypercore(result[0])
 
     @classmethod
-    def get_state(
-        cls, rest_client: RestClient, query: Dict[Any, Any]
-    ) -> List[TypedVirtualDiskToAnsible]:
+    def get_state(cls, rest_client: RestClient, query: Dict[Any, Any]) -> List[TypedVirtualDiskToAnsible]:
         state = [
             cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
-            for hypercore_dict in rest_client.list_records(
-                "/rest/v1/VirtualDisk", query
-            )
+            for hypercore_dict in rest_client.list_records("/rest/v1/VirtualDisk", query)
         ]
         return state
 
     # Uploads a disk file (qcow2, vmdk, vhd); Hypercore creates virtual disk from uploaded file.
     # Filename and filesize need to be send as parameters in PUT request.
     @staticmethod
-    def send_upload_request(
-        rest_client: RestClient, file_size: int, module: AnsibleModule
-    ) -> TypedTaskTag:
-        if (
-            file_size is None
-            or not module.params["name"]
-            or not module.params["source"]
-        ):
-            raise errors.ScaleComputingError(
-                "Missing some virtual disk file values inside upload request."
-            )
+    def send_upload_request(rest_client: RestClient, file_size: int, module: AnsibleModule) -> TypedTaskTag:
+        if file_size is None or not module.params["name"] or not module.params["source"]:
+            raise errors.ScaleComputingError("Missing some virtual disk file values inside upload request.")
         try:
             with open(module.params["source"], "rb") as source_file:
                 task = rest_client.put_record(
@@ -160,23 +144,15 @@ class VirtualDisk(PayloadMapper):
                     },
                 )
         except FileNotFoundError:
-            raise errors.ScaleComputingError(
-                f"Disk file {module.params['source']} not found."
-            )
+            raise errors.ScaleComputingError(f"Disk file {module.params['source']} not found.")
         return task
 
     def send_delete_request(self, rest_client: RestClient) -> TypedTaskTag:
         if not self.uuid:
-            raise errors.ScaleComputingError(
-                "Missing virtual disk UUID inside delete request."
-            )
-        return rest_client.delete_record(
-            f"/rest/v1/VirtualDisk/{self.uuid}", check_mode=False
-        )
+            raise errors.ScaleComputingError("Missing virtual disk UUID inside delete request.")
+        return rest_client.delete_record(f"/rest/v1/VirtualDisk/{self.uuid}", check_mode=False)
 
-    def attach_to_vm(
-        self, rest_client: RestClient, payload: dict[Any, Any]
-    ) -> TypedTaskTag:
+    def attach_to_vm(self, rest_client: RestClient, payload: dict[Any, Any]) -> TypedTaskTag:
         return rest_client.create_record(
             endpoint=f"/rest/v1/VirtualDisk/{self.uuid}/attach",
             payload=payload,

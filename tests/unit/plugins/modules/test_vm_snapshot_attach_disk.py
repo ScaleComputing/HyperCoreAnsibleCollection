@@ -3,7 +3,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -11,19 +13,10 @@ import sys
 from unittest import mock
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import (
-    VM,
-    VMSnapshot,
-)
-
-from ansible_collections.scale_computing.hypercore.plugins.modules import (
-    vm_snapshot_attach_disk,
-)
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import VM
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import VMSnapshot
+from ansible_collections.scale_computing.hypercore.plugins.modules import vm_snapshot_attach_disk
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -84,7 +77,7 @@ class TestAttachDisk:
             ],
             timestamp=123,
             label="snapshot",
-            type="USER",
+            snapshot_type="USER",
             automated_trigger_timestamp=111,
             local_retain_until_timestamp=222,
             remote_retain_until_timestamp=333,
@@ -223,17 +216,12 @@ class TestAttachDisk:
             check_mode=False,
         )
 
-        changed, record, diff, vm_rebooted = vm_snapshot_attach_disk.attach_disk(
-            module, rest_client
-        )
+        changed, record, diff, vm_rebooted = vm_snapshot_attach_disk.attach_disk(module, rest_client)
 
         if destination_vm_disk_info is None:
             rest_client.create_record.assert_any_call(**called_with_dict)
         else:
-            assert (
-                mock.call(**called_with_dict)
-                not in rest_client.create_record.mock_calls
-            )
+            assert mock.call(**called_with_dict) not in rest_client.create_record.mock_calls
 
         assert changed == expected_return[0]
         assert record == expected_return[1]

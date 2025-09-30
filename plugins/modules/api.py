@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -179,10 +181,12 @@ record:
 """
 
 
-from ansible.module_utils.basic import AnsibleModule
 import os
 
-from ..module_utils import errors, arguments
+from ansible.module_utils.basic import AnsibleModule
+
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
@@ -247,7 +251,7 @@ def delete_record(module, rest_client):
     return False, dict()
 
 
-"""
+__COMMENT = """
 PUT_TIMEOUT_TIME was copied from the iso module for ISO data upload.
 Currently, assume we have 4.7 GB ISO and speed 1 MB/s -> 4700 seconds.
 Rounded to 3600.

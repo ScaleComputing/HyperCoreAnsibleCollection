@@ -3,18 +3,17 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_disk
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -103,9 +102,7 @@ class TestEnsureAbsent:
             False,
         )
 
-    def test_ensure_absent_delete_record(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_absent_delete_record(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -218,9 +215,7 @@ class TestEnsureAbsent:
             False,
         )
 
-    def test_ensure_absent_cdrom_name_in_desired_disk_and_query(
-        self, create_module, rest_client, task_wait, mocker
-    ):
+    def test_ensure_absent_cdrom_name_in_desired_disk_and_query(self, create_module, rest_client, task_wait, mocker):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

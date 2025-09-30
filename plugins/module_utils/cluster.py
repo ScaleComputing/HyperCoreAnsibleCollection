@@ -3,17 +3,21 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
 from __future__ import annotations
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 from time import sleep
-from ..module_utils.utils import PayloadMapper
-from ..module_utils.rest_client import RestClient
-from ..module_utils.errors import ScaleTimeoutError
-from ..module_utils.typed_classes import TypedClusterToAnsible, TypedTaskTag
 from typing import Any
+
+from ..module_utils.errors import ScaleTimeoutError
+from ..module_utils.rest_client import RestClient
+from ..module_utils.typed_classes import TypedClusterToAnsible
+from ..module_utils.typed_classes import TypedTaskTag
+from ..module_utils.utils import PayloadMapper
 
 
 class Cluster(PayloadMapper):
@@ -61,23 +65,15 @@ class Cluster(PayloadMapper):
 
     @classmethod
     def get(cls, rest_client: RestClient, must_exist: bool = True) -> Cluster:
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/Cluster", must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/Cluster", must_exist=must_exist)
         cluster = cls.from_hypercore(hypercore_dict)  # type: ignore # cluster never None
         return cluster
 
-    def update_name(
-        self, rest_client: RestClient, name_new: str, check_mode: bool = False
-    ) -> TypedTaskTag:
-        return rest_client.update_record(
-            f"/rest/v1/Cluster/{self.uuid}", dict(clusterName=name_new), check_mode
-        )
+    def update_name(self, rest_client: RestClient, name_new: str, check_mode: bool = False) -> TypedTaskTag:
+        return rest_client.update_record(f"/rest/v1/Cluster/{self.uuid}", dict(clusterName=name_new), check_mode)
 
     @staticmethod
-    def shutdown(
-        rest_client: RestClient, force_shutdown: bool = False, check_mode: bool = False
-    ) -> None:
+    def shutdown(rest_client: RestClient, force_shutdown: bool = False, check_mode: bool = False) -> None:
         try:
             rest_client.create_record(
                 "/rest/v1/Cluster/shutdown",

@@ -3,12 +3,17 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import json
-from typing import Union, Dict, Any
+from typing import Any
+from typing import Dict
+from typing import Union
+
 from ansible.module_utils.urls import Request
 
 
@@ -28,71 +33,65 @@ class InvalidModuleParam(ScaleComputingError):
 
 class UnexpectedAPIResponse(ScaleComputingError):
     def __init__(self, response: Request):
-        self.message = "Unexpected response - {0} {1}".format(
-            response.status, response.data
-        )
+        self.message = f"Unexpected response - {response.status} {response.data}"
         self.response_status = response.status
         super(UnexpectedAPIResponse, self).__init__(self.message)
 
 
 class InvalidUuidFormatError(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "Invalid UUID - {0}".format(data)
+        self.message = f"Invalid UUID - {data}"
         super(InvalidUuidFormatError, self).__init__(self.message)
 
 
 # In-case function parameter is optional but required
 class MissingFunctionParameter(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "Missing parameter - {0}".format(data)
+        self.message = f"Missing parameter - {data}"
         super(MissingFunctionParameter, self).__init__(self.message)
 
 
 # In-case argument spec doesn't catch exception
 class MissingValueAnsible(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "Missing value - {0}".format(data)
+        self.message = f"Missing value - {data}"
         super(MissingValueAnsible, self).__init__(self.message)
 
 
 # In-case argument spec doesn't catch exception
 class MissingValueHypercore(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "Missing values from hypercore API - {0}".format(data)
+        self.message = f"Missing values from hypercore API - {data}"
         super(MissingValueHypercore, self).__init__(self.message)
 
 
 class DeviceNotUnique(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "Device is not unique - {0} - already exists".format(data)
+        self.message = f"Device is not unique - {data} - already exists"
         super(DeviceNotUnique, self).__init__(self.message)
 
 
 class VMNotFound(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "Virtual machine - {0} - not found".format(data)
+        self.message = f"Virtual machine - {data} - not found"
         super(VMNotFound, self).__init__(self.message)
 
 
 class ReplicationNotUnique(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = (
-            "There is already a replication on - {0} - virtual machine".format(data)
-        )
+        self.message = f"There is already a replication on - {data} - virtual machine"
         super(ReplicationNotUnique, self).__init__(self.message)
 
 
 class ClusterConnectionNotFound(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "No cluster connection found - {0}".format(data)
+        self.message = f"No cluster connection found - {data}"
         super(ClusterConnectionNotFound, self).__init__(self.message)
 
 
 class SMBServerNotFound(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "SMB server is either not connected or not in the same network - {0}".format(
-            data
-        )
+        self.message = f"SMB server is either not connected or not in the same network - {data}"
         super(SMBServerNotFound, self).__init__(self.message)
 
 
@@ -104,7 +103,7 @@ class VMInvalidParams(ScaleComputingError):
 
 class SupportTunnelError(ScaleComputingError):
     def __init__(self, data: Union[str, Exception]):
-        self.message = "{0}".format(data)
+        self.message = f"{data}"
         super(SupportTunnelError, self).__init__(self.message)
 
 

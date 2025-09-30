@@ -1,17 +1,14 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.remote_cluster import (
-    RemoteCluster,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.remote_cluster import RemoteCluster
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -107,22 +104,16 @@ class TestRemoteCluster:
             remoteNodeUUIDs=["895033ed-b863-4a42-8215-477a1a4ef812"],
         )
 
-        remote_cluster_name = (
-            RemoteCluster.get_cluster_name_from_replication_connection_uuid(
-                rest_client, "891f482a-8f5f-4755-bea4-bbcc338f566f"
-            )
+        remote_cluster_name = RemoteCluster.get_cluster_name_from_replication_connection_uuid(
+            rest_client, "891f482a-8f5f-4755-bea4-bbcc338f566f"
         )
 
         assert remote_cluster_name == "PUB4"
 
-    def test_get_cluster_name_from_replication_connection_uuid_record_missing(
-        self, rest_client
-    ):
+    def test_get_cluster_name_from_replication_connection_uuid_record_missing(self, rest_client):
         rest_client.get_record.return_value = None
-        remote_cluster_name = (
-            RemoteCluster.get_cluster_name_from_replication_connection_uuid(
-                rest_client, "891f482a-8f5f-4755-bea4-bbcc338f566f"
-            )
+        remote_cluster_name = RemoteCluster.get_cluster_name_from_replication_connection_uuid(
+            rest_client, "891f482a-8f5f-4755-bea4-bbcc338f566f"
         )
 
         assert remote_cluster_name is None

@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -79,19 +81,18 @@ records:
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import arguments, errors
-from ..module_utils.rest_client import RestClient
-from ..module_utils.utils import filter_results
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.remote_cluster import RemoteCluster
+from ..module_utils.rest_client import RestClient
+from ..module_utils.utils import filter_results
 
 
 def run(module, rest_client):
     records = [
         RemoteCluster.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
-        for hypercore_dict in rest_client.list_records(
-            "/rest/v1/RemoteClusterConnection"
-        )
+        for hypercore_dict in rest_client.list_records("/rest/v1/RemoteClusterConnection")
     ]
     # Since get_query doesn't work for nested parameters (name -> remoteClusterInfo.clusterName) we have this workaround
     # In case of additional modules needing this functionality, get_query (and is_superset()) will have to be updated

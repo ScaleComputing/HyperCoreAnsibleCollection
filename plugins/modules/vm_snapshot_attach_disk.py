@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -113,16 +115,21 @@ vm_rebooted:
 """
 
 
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Tuple
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import errors, arguments
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
-from ..module_utils.vm_snapshot import VMSnapshot
-from ..module_utils.vm import VM
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.typed_classes import TypedDiff
-from typing import Tuple, Dict, Any, Optional
+from ..module_utils.vm import VM
+from ..module_utils.vm_snapshot import VMSnapshot
 
 
 def attach_disk(
@@ -137,9 +144,7 @@ def attach_disk(
     # source
     source_snapshot_uuid = module.params["source_snapshot_uuid"]
     source_disk_type = module.params["source_disk_type"]
-    source_disk_slot = int(
-        module.params["source_disk_slot"]
-    )  # the higher the index, the newer the disk
+    source_disk_slot = int(module.params["source_disk_slot"])  # the higher the index, the newer the disk
 
     # Get destination VM object
     vm_object = VM.get_by_name(module.params, rest_client, must_exist=True)
@@ -147,15 +152,11 @@ def attach_disk(
         raise errors.ScaleComputingError("VM named '" + vm_name + "' doesn't exist.")
 
     # =============== IMPLEMENTATION ===================
-    vm_snapshot_hypercore = VMSnapshot.get_snapshot_by_uuid(
-        source_snapshot_uuid, rest_client
-    )
+    vm_snapshot_hypercore = VMSnapshot.get_snapshot_by_uuid(source_snapshot_uuid, rest_client)
 
     # if the desired snapshot (with source_snapshot_uuid) doesn't exist, raise an error.
     if vm_snapshot_hypercore is None:
-        raise errors.ScaleComputingError(
-            "Snapshot with uuid='" + source_snapshot_uuid + "' doesn't exist."
-        )
+        raise errors.ScaleComputingError("Snapshot with uuid='" + source_snapshot_uuid + "' doesn't exist.")
 
     vm_snapshot = vm_snapshot_hypercore.to_ansible()
 
@@ -182,9 +183,7 @@ def attach_disk(
     # First power off the destination VM
     vm_object.do_shutdown_steps(module, rest_client)  # type: ignore
 
-    source_disk_info = VMSnapshot.get_snapshot_disk(
-        vm_snapshot, slot=source_disk_slot, _type=source_disk_type
-    )
+    source_disk_info = VMSnapshot.get_snapshot_disk(vm_snapshot, slot=source_disk_slot, _type=source_disk_type)
 
     # build a payload according to /rest/v1/VirDomainBlockDevice/{uuid}/clone documentation
     payload = dict(
@@ -205,17 +204,13 @@ def attach_disk(
     )
 
     create_task_tag = rest_client.create_record(
-        endpoint="/rest/v1/VirDomainBlockDevice/{0}/clone".format(
-            source_disk_info["uuid"]
-        ),
+        endpoint=f"/rest/v1/VirDomainBlockDevice/{source_disk_info['uuid']}/clone",
         payload=payload,
         check_mode=module.check_mode,
     )
 
     TaskTag.wait_task(rest_client, create_task_tag)
-    created_disk = VMSnapshot.get_vm_disk_info_by_uuid(
-        create_task_tag["createdUUID"], rest_client
-    )
+    created_disk = VMSnapshot.get_vm_disk_info_by_uuid(create_task_tag["createdUUID"], rest_client)
 
     # Restart the previously running VM (destination)
     vm_object.vm_power_up(module, rest_client)  # type: ignore
@@ -232,9 +227,7 @@ def attach_disk(
     )
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff, bool]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, Optional[Dict[Any, Any]], TypedDiff, bool]:
     return attach_disk(module, rest_client)
 
 

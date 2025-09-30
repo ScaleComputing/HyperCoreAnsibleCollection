@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -130,19 +132,18 @@ msg:
 
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import arguments, errors
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
-from ..module_utils.vm import VM
 from ..module_utils.node import Node
-from ..module_utils.utils import get_query
+from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
+from ..module_utils.utils import get_query
+from ..module_utils.vm import VM
 
 
 def get_node_uuid(module, node, rest_client):
-    if module.params[node] and any(
-        value == "" for value in module.params[node].values()
-    ):  # delete node
+    if module.params[node] and any(value == "" for value in module.params[node].values()):  # delete node
         node_uuid = ""
         return node_uuid
     if module.params[node] and any(
@@ -191,13 +192,9 @@ def set_parameters_for_payload(module, vm, rest_client):
 
 
 def run(module, rest_client):
-    vm = VM.get_by_name(
-        module.params, rest_client, must_exist=True
-    )  # get vm from vm_name
+    vm = VM.get_by_name(module.params, rest_client, must_exist=True)  # get vm from vm_name
 
-    strict_affinity, preferred_node_uuid, backup_node_uuid = set_parameters_for_payload(
-        module, vm, rest_client
-    )
+    strict_affinity, preferred_node_uuid, backup_node_uuid = set_parameters_for_payload(module, vm, rest_client)
 
     if strict_affinity is True and preferred_node_uuid == "" and backup_node_uuid == "":
         raise errors.VMInvalidParams
@@ -221,7 +218,7 @@ def run(module, rest_client):
             "backupNodeUUID": backup_node_uuid,
         }
     }
-    endpoint = "{0}/{1}".format("/rest/v1/VirDomain", vm.uuid)
+    endpoint = f"/rest/v1/VirDomain/{vm.uuid}"
     task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
     TaskTag.wait_task(rest_client, task_tag)
     vm_after = VM.get_by_name(module.params, rest_client, must_exist=True)
@@ -234,9 +231,7 @@ def run(module, rest_client):
                 else None
             ),
             backup_node=(
-                Node.get_node({"uuid": backup_node_uuid}, rest_client).to_ansible()
-                if backup_node_uuid != ""
-                else None
+                Node.get_node({"uuid": backup_node_uuid}, rest_client).to_ansible() if backup_node_uuid != "" else None
             ),
         )
     msg = "Node affinity successfully updated."

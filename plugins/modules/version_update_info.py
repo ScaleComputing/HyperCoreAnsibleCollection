@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -150,15 +152,19 @@ latest:
       sample: 0
 """
 
+import operator
+from typing import List
+from typing import Optional
+from typing import Tuple
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import arguments, errors
-from ..module_utils.rest_client import RestClient
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.hypercore_version import Update
+from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedUpdateToAnsible
-from typing import List, Optional, Tuple
-import operator
 
 
 def run(
@@ -173,11 +179,7 @@ def run(
         for hypercore_dict in rest_client.list_records("/rest/v1/Update")
     ]
     if records:
-        records.sort(
-            key=operator.itemgetter(
-                "major_version", "minor_version", "revision", "build_id"
-            )
-        )
+        records.sort(key=operator.itemgetter("major_version", "minor_version", "revision", "build_id"))
         return records, records[0], records[-1]
     return records, None, None
 
@@ -193,8 +195,8 @@ def main() -> None:
     try:
         client = Client.get_client(module.params["cluster_instance"])
         rest_client = RestClient(client)
-        records, next, latest = run(rest_client)
-        module.exit_json(changed=False, records=records, next=next, latest=latest)
+        records, next_version, latest_version = run(rest_client)
+        module.exit_json(changed=False, records=records, next=next_version, latest=latest_version)
 
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))

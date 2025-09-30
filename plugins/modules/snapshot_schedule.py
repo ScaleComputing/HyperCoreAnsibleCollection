@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -130,10 +132,12 @@ record:
         replication: true
 """
 
-from ansible.module_utils.basic import AnsibleModule
 import time
 
-from ..module_utils import arguments, errors
+from ansible.module_utils.basic import AnsibleModule
+
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.snapshot_schedule import SnapshotSchedule
@@ -147,18 +151,11 @@ def ensure_present(module, rest_client):
     if snapshot_schedule_before:
         before = snapshot_schedule_before.to_ansible()
         snapshot_schedule_desired = SnapshotSchedule.from_ansible(module.params)
-        if (
-            snapshot_schedule_desired.recurrences
-            != snapshot_schedule_before.recurrences
-        ):
+        if snapshot_schedule_desired.recurrences != snapshot_schedule_before.recurrences:
             # If desired and recurrence rules before differ, snapshot schedule has to be updated
             rest_client.update_record(
-                "{0}/{1}".format(
-                    "/rest/v1/VirDomainSnapshotSchedule", snapshot_schedule_before.uuid
-                ),
-                snapshot_schedule_before.create_patch_payload(
-                    module.params["recurrences"]
-                ),
+                f"/rest/v1/VirDomainSnapshotSchedule/{snapshot_schedule_before.uuid}",
+                snapshot_schedule_before.create_patch_payload(module.params["recurrences"]),
                 module.check_mode,
             )
             changed = True
@@ -181,9 +178,7 @@ def ensure_absent(module, rest_client):
     if snapshot_schedule:
         # No task tag is returned with DELETE on "/rest/v1/VirDomainSnapshotSchedule/{uuid}"
         task = rest_client.delete_record(
-            "{0}/{1}".format(
-                "/rest/v1/VirDomainSnapshotSchedule", snapshot_schedule.uuid
-            ),
+            f"/rest/v1/VirDomainSnapshotSchedule/{snapshot_schedule.uuid}",
             module.check_mode,
         )
         if task["taskTag"] == "":

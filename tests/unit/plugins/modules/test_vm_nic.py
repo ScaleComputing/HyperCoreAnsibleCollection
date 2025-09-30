@@ -3,20 +3,18 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.modules import vm_nic
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
-
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
+from ansible_collections.scale_computing.hypercore.plugins.modules import vm_nic
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -120,9 +118,7 @@ class TestEnsureAbsent:
         # rest_client.list_records.return_value = [self._get_empty_test_vm()]
         vm_before = VM.from_hypercore(self._get_empty_test_vm(), rest_client)
         # rest_client.create_record.return_value = {"taskTag": "1234"}
-        results = vm_nic.ensure_absent(
-            module=module, rest_client=rest_client, vm_before=vm_before
-        )
+        results = vm_nic.ensure_absent(module=module, rest_client=rest_client, vm_before=vm_before)
         assert results == (False, [], {"before": [], "after": []})
 
     def test_ensure_absent_when_change(self, create_module, rest_client, mocker):
@@ -157,9 +153,7 @@ class TestEnsureAbsent:
         vm_before = VM.from_hypercore(self._get_test_vm(), rest_client)
         rest_client.get_record.return_value = {"state": "COMPLETED"}
         # rest_client.create_record.return_value = {"taskTag": "1234"}
-        results = vm_nic.ensure_absent(
-            module=module, rest_client=rest_client, vm_before=vm_before
-        )
+        results = vm_nic.ensure_absent(module=module, rest_client=rest_client, vm_before=vm_before)
         assert results == (
             True,
             [None, None],
@@ -190,9 +184,7 @@ class TestEnsureAbsent:
 class TestMain:
     def test_minimal_set_of_params(self, run_main_with_reboot, mocker):
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             state="present",
             vm_name=dict(
                 type="str",

@@ -4,7 +4,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -26,8 +28,7 @@ class SnapshotSchedule(PayloadMapper):
         return SnapshotSchedule(
             name=vm_dict["name"],
             recurrences=[
-                Recurrence.from_ansible(recurrence_dict)
-                for recurrence_dict in vm_dict.get("recurrences", [])
+                Recurrence.from_ansible(recurrence_dict) for recurrence_dict in vm_dict.get("recurrences", [])
             ],
         )
 
@@ -39,10 +40,7 @@ class SnapshotSchedule(PayloadMapper):
         return SnapshotSchedule(
             name=vm_dict["name"],
             uuid=vm_dict["uuid"],
-            recurrences=[
-                Recurrence.from_hypercore(recurrence_dict)
-                for recurrence_dict in vm_dict["rrules"]
-            ],
+            recurrences=[Recurrence.from_hypercore(recurrence_dict) for recurrence_dict in vm_dict["rrules"]],
         )
 
     def to_hypercore(self):
@@ -79,19 +77,13 @@ class SnapshotSchedule(PayloadMapper):
         object SnapshotSchedule if the record exists. If there is no record with such name, None is returned.
         """
         query = get_query(ansible_dict, "name", ansible_hypercore_map=dict(name="name"))
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/VirDomainSnapshotSchedule", query, must_exist=must_exist
-        )
-        snapshot_schedule_from_hypercore = SnapshotSchedule.from_hypercore(
-            hypercore_dict
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/VirDomainSnapshotSchedule", query, must_exist=must_exist)
+        snapshot_schedule_from_hypercore = SnapshotSchedule.from_hypercore(hypercore_dict)
         return snapshot_schedule_from_hypercore
 
     @classmethod
     def get_snapshot_schedule(cls, query, rest_client, must_exist=False):
-        hypercore_dict = rest_client.get_record(
-            "/rest/v1/VirDomainSnapshotSchedule", query, must_exist=must_exist
-        )
+        hypercore_dict = rest_client.get_record("/rest/v1/VirDomainSnapshotSchedule", query, must_exist=must_exist)
         return cls.from_hypercore(hypercore_dict)
 
     def create_post_payload(self):
@@ -100,20 +92,14 @@ class SnapshotSchedule(PayloadMapper):
     def create_patch_payload(self, new_recurrences_ansible_list):
         # Override the existing Recurrence objects with the new ones.
         # Then construct the same payload as in create_post_payload.
-        self.recurrences = [
-            Recurrence.from_ansible(new_recurrence)
-            for new_recurrence in new_recurrences_ansible_list
-        ]
+        self.recurrences = [Recurrence.from_ansible(new_recurrence) for new_recurrence in new_recurrences_ansible_list]
         return self._post_and_patch_payload()
 
     def _post_and_patch_payload(self):
         """Method shared by create_post_payload and create_patch_payload"""
         return dict(
             name=self.name,
-            rrules=[
-                recurrence.create_post_and_patch_payload()
-                for recurrence in self.recurrences
-            ],
+            rrules=[recurrence.create_post_and_patch_payload() for recurrence in self.recurrences],
         )
 
 

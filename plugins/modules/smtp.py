@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -151,15 +153,20 @@ record:
 """
 
 
+from typing import Any
+from typing import Dict
+from typing import Tuple
+from typing import Union
+
 from ansible.module_utils.basic import AnsibleModule
 
-from typing import Tuple, Union, Any, Dict
-from ..module_utils.typed_classes import TypedSmtpToAnsible
-from ..module_utils.task_tag import TaskTag
-from ..module_utils import arguments, errors
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.smtp import SMTP
+from ..module_utils.task_tag import TaskTag
+from ..module_utils.typed_classes import TypedSmtpToAnsible
 
 
 def build_entry(
@@ -217,22 +224,12 @@ def modify_smtp_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[
 
     # Otherwise, continue with modifying the configuration
     before = smtp.to_ansible()
-    old_state = smtp.get_state(
-        rest_client
-    )  # get the state of SMTP config before modification
+    old_state = smtp.get_state(rest_client)  # get the state of SMTP config before modification
 
-    new_smtp_server, new_smtp_server_change_needed = build_entry(
-        before.get("server"), module.params["server"]
-    )
-    new_port, new_port_change_needed = build_entry(
-        before.get("port"), module.params["port"]
-    )
-    new_use_ssl, new_use_ssl_change_needed = build_entry(
-        before.get("use_ssl"), module.params["use_ssl"]
-    )
-    new_auth_user, new_auth_user_change_needed = build_entry(
-        before.get("auth_user"), module.params["auth_user"]
-    )
+    new_smtp_server, new_smtp_server_change_needed = build_entry(before.get("server"), module.params["server"])
+    new_port, new_port_change_needed = build_entry(before.get("port"), module.params["port"])
+    new_use_ssl, new_use_ssl_change_needed = build_entry(before.get("use_ssl"), module.params["use_ssl"])
+    new_auth_user, new_auth_user_change_needed = build_entry(before.get("auth_user"), module.params["auth_user"])
     new_auth_password, new_auth_password_change_needed = build_entry(
         before.get("auth_password"), module.params["auth_password"]
     )
@@ -270,7 +267,7 @@ def modify_smtp_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     # Set the task tag
     # update_record -> PATCH
     update_task_tag = rest_client.update_record(
-        endpoint="{0}/{1}".format("/rest/v1/AlertSMTPConfig", smtp.uuid),
+        endpoint=f"/rest/v1/AlertSMTPConfig/{smtp.uuid}",
         payload=payload,
         check_mode=module.check_mode,
     )

@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -64,37 +66,34 @@ record:
     code: 4422
 """
 
-from ansible.module_utils.basic import AnsibleModule
-from ..module_utils import arguments, errors
-from ..module_utils.client import Client
-from ..module_utils.typed_classes import TypedSupportTunnelToAnsible, TypedDiff
-from ..module_utils.support_tunnel import SupportTunnel
-
 # validate-modules does not agree with "from __future__ import annotations"
 from typing import Tuple
 
+from ansible.module_utils.basic import AnsibleModule
 
-def open_tunnel(
-    module: AnsibleModule, client: Client
-) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
+from ..module_utils import arguments
+from ..module_utils import errors
+from ..module_utils.client import Client
+from ..module_utils.support_tunnel import SupportTunnel
+from ..module_utils.typed_classes import TypedDiff
+from ..module_utils.typed_classes import TypedSupportTunnelToAnsible
+
+
+def open_tunnel(module: AnsibleModule, client: Client) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
     tunnel_status = SupportTunnel.check_tunnel_status(client)
     if tunnel_status.open:  # if tunnel already opened
         if tunnel_status.code == module.params["code"]:
             return (
                 False,
                 tunnel_status.to_ansible(),
-                dict(
-                    before=tunnel_status.to_ansible(), after=tunnel_status.to_ansible()
-                ),
+                dict(before=tunnel_status.to_ansible(), after=tunnel_status.to_ansible()),
             )
         else:
             SupportTunnel.close_tunnel(client)
     SupportTunnel.open_tunnel(module, client)
     new_tunnel_status = SupportTunnel.check_tunnel_status(client)
     if new_tunnel_status.open is False:
-        raise errors.SupportTunnelError(
-            "Support tunnel can't be opened, probably the code is already in use."
-        )
+        raise errors.SupportTunnelError("Support tunnel can't be opened, probably the code is already in use.")
     return (
         True,
         new_tunnel_status.to_ansible(),
@@ -121,9 +120,7 @@ def close_tunnel(
     )
 
 
-def run(
-    module: AnsibleModule, client: Client
-) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
+def run(module: AnsibleModule, client: Client) -> Tuple[bool, TypedSupportTunnelToAnsible, TypedDiff]:
     if module.params["state"] == "present":
         return open_tunnel(module, client)
     else:

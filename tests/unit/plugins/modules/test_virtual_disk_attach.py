@@ -3,25 +3,20 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.modules import (
-    virtual_disk_attach,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.disk import Disk
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.virtual_disk import (
-    VirtualDisk,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.virtual_disk import VirtualDisk
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
+from ansible_collections.scale_computing.hypercore.plugins.modules import virtual_disk_attach
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -29,6 +24,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def virtual_machine():
     return VM(
@@ -36,11 +32,12 @@ def virtual_machine():
         name="vm_name",
         memory=1024,
         vcpu=4,
-        disks=[Disk(type="virtio_disk", slot=0), Disk(type="virtio_disk", slot=1)],
+        disks=[Disk(disk_type="virtio_disk", slot=0), Disk(disk_type="virtio_disk", slot=1)],
         power_state="stopped",
     )
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def virtual_disk():
     return VirtualDisk(
@@ -56,13 +53,11 @@ class TestIsSlotAvailable:
     @pytest.mark.parametrize(
         "disk_slot, expected_result",
         [
-            (1, (False, Disk(type="virtio_disk", slot=1))),
+            (1, (False, Disk(disk_type="virtio_disk", slot=1))),
             (5, (True, None)),
         ],
     )
-    def test_is_slot_available(
-        self, create_module, disk_slot, expected_result, virtual_machine
-    ):
+    def test_is_slot_available(self, create_module, disk_slot, expected_result, virtual_machine):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -76,9 +71,7 @@ class TestIsSlotAvailable:
             )
         )
 
-        assert expected_result == virtual_disk_attach.is_slot_available(
-            module, virtual_machine
-        )
+        assert expected_result == virtual_disk_attach.is_slot_available(module, virtual_machine)
 
 
 class TestCreatePayload:
@@ -105,9 +98,7 @@ class TestCreatePayload:
             )
         )
 
-        payload = virtual_disk_attach.create_payload(
-            module, virtual_machine, virtual_disk
-        )
+        payload = virtual_disk_attach.create_payload(module, virtual_machine, virtual_disk)
 
         assert payload == dict(
             options={"regenerateDiskID": False, "readOnly": True},
@@ -122,9 +113,7 @@ class TestCreatePayload:
             },
         )
 
-    def test_create_payload_min_params(
-        self, create_module, virtual_machine, virtual_disk
-    ):
+    def test_create_payload_min_params(self, create_module, virtual_machine, virtual_disk):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -147,9 +136,7 @@ class TestCreatePayload:
             )
         )
 
-        payload = virtual_disk_attach.create_payload(
-            module, virtual_machine, virtual_disk
-        )
+        payload = virtual_disk_attach.create_payload(module, virtual_machine, virtual_disk)
 
         assert payload == dict(
             options={

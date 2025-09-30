@@ -3,20 +3,17 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.modules import (
-    snapshot_schedule,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.modules import snapshot_schedule
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -60,9 +57,7 @@ class TestEnsureAbsent:
 
 
 class TestEnsurePresent:
-    def test_ensure_present_snapshot_schedule_record_present_no_update(
-        self, create_module, rest_client
-    ):
+    def test_ensure_present_snapshot_schedule_record_present_no_update(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -106,9 +101,7 @@ class TestEnsurePresent:
             },
         )
 
-    def test_ensure_present_snapshot_schedule_record_updated(
-        self, create_module, rest_client
-    ):
+    def test_ensure_present_snapshot_schedule_record_updated(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -160,9 +153,7 @@ class TestEnsurePresent:
             },
         )
 
-    def test_ensure_present_snapshot_schedule_image_absent(
-        self, create_module, rest_client
-    ):
+    def test_ensure_present_snapshot_schedule_image_absent(self, create_module, rest_client):
         module = create_module(
             params=dict(
                 cluster_instance=dict(

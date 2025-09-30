@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -63,25 +65,24 @@ record:
       sample: a5d9148c-37f7-4b43-843c-196751d3c050
 """
 
+from typing import Tuple
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import arguments, errors
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
 from ..module_utils.cluster import Cluster
+from ..module_utils.hypercore_version import HyperCoreVersion
+from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
-from ..module_utils.typed_classes import TypedClusterToAnsible, TypedDiff
-from typing import Tuple
-from ..module_utils.hypercore_version import (
-    HyperCoreVersion,
-)
+from ..module_utils.typed_classes import TypedClusterToAnsible
+from ..module_utils.typed_classes import TypedDiff
 
 HYPERCORE_VERSION_REQUIREMENTS = ">=9.1.21 <9.2.0 || >=9.2.11"
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, TypedClusterToAnsible, TypedDiff]:
+def run(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, TypedClusterToAnsible, TypedDiff]:
     cluster = Cluster.get(rest_client)
     if cluster.name == module.params["name_new"]:
         return (

@@ -4,13 +4,16 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 from typing import Optional
-from ..module_utils.utils import PayloadMapper
+
 from ..module_utils import errors
+from ..module_utils.utils import PayloadMapper
 
 FROM_HYPERCORE_TO_ANSIBLE_NIC_TYPE = {
     None: None,
@@ -18,9 +21,7 @@ FROM_HYPERCORE_TO_ANSIBLE_NIC_TYPE = {
     "VIRTIO": "virtio",
     "INTEL_E1000": "INTEL_E1000",
 }
-FROM_ANSIBLE_TO_HYPERCORE_NIC_TYPE = {
-    v: k for k, v in FROM_HYPERCORE_TO_ANSIBLE_NIC_TYPE.items()
-}
+FROM_ANSIBLE_TO_HYPERCORE_NIC_TYPE = {v: k for k, v in FROM_HYPERCORE_TO_ANSIBLE_NIC_TYPE.items()}
 
 
 # Maybe create enums.py or scale_enums.py and move all enum classes there? @Jure @Justin
@@ -53,29 +54,13 @@ class Nic(PayloadMapper):
         elif other.vlan_new is not None and not other.mac_new:
             return self.vlan == other.vlan_new and self.type == other.type
         elif self.mac_new and self.vlan_new is None:
-            return (
-                self.vlan == other.vlan
-                and self.type == other.type
-                and self.mac_new == other.mac
-            )
+            return self.vlan == other.vlan and self.type == other.type and self.mac_new == other.mac
         elif other.mac_new and other.vlan_new is None:
-            return (
-                self.vlan == other.vlan
-                and self.type == other.type
-                and self.mac == other.mac_new
-            )
+            return self.vlan == other.vlan and self.type == other.type and self.mac == other.mac_new
         elif self.vlan_new is not None and self.mac_new:
-            return (
-                self.vlan_new == other.vlan
-                and self.type == other.type
-                and self.mac_new == other.mac
-            )
+            return self.vlan_new == other.vlan and self.type == other.type and self.mac_new == other.mac
         elif other.vlan_new is not None and other.mac_new:
-            return (
-                self.vlan == other.vlan_new
-                and self.type == other.type
-                and self.mac == other.mac_new
-            )
+            return self.vlan == other.vlan_new and self.type == other.type and self.mac == other.mac_new
         return self.vlan == other.vlan and self.type == other.type
 
     @classmethod

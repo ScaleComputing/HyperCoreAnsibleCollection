@@ -3,18 +3,17 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import certificate
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -25,9 +24,7 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_params_certificate(self, run_main) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
             private_key="this_key",
             certificate="this_certificate",
         )
@@ -43,9 +40,7 @@ class TestMain:
 
 
 class TestRun:
-    def test_run_with_present_certificate(
-        self, create_module, rest_client, mocker
-    ) -> None:
+    def test_run_with_present_certificate(self, create_module, rest_client, mocker) -> None:
         module = create_module(
             params=dict(
                 cluster_instance=dict(

@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -215,20 +217,19 @@ vm_rebooted:
   sample: true
 """
 
-from ansible.module_utils.basic import AnsibleModule
 from copy import deepcopy
 
+from ansible.module_utils.basic import AnsibleModule
+
 from ..module_utils import arguments
-from ..module_utils.errors import ScaleComputingError
 from ..module_utils.client import Client
+from ..module_utils.errors import ScaleComputingError
 from ..module_utils.rest_client import RestClient
 from ..module_utils.vm import VM
 
 
 def ensure_absent(module, rest_client):
-    vm_before, boot_devices_before, before = VM.get_vm_and_boot_devices(
-        module.params, rest_client
-    )
+    vm_before, boot_devices_before, before = VM.get_vm_and_boot_devices(module.params, rest_client)
     changed = False
     for desired_boot_device in module.params["items"]:
         vm_device = vm_before.get_vm_device(desired_boot_device)
@@ -239,16 +240,12 @@ def ensure_absent(module, rest_client):
         boot_order.remove(uuid)
         VM.update_boot_device_order(module, rest_client, vm_before, boot_order)
         changed = True
-    vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
-        module.params, rest_client
-    )
+    vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(module.params, rest_client)
     return changed, after, dict(before=before, after=after), vm_before.was_vm_rebooted()
 
 
 def ensure_present(module, rest_client):
-    vm_before, boot_devices_before, before = VM.get_vm_and_boot_devices(
-        module.params, rest_client
-    )
+    vm_before, boot_devices_before, before = VM.get_vm_and_boot_devices(module.params, rest_client)
     changed = False
     for desired_boot_device in module.params["items"]:
         vm_device = vm_before.get_vm_device(desired_boot_device)
@@ -268,29 +265,19 @@ def ensure_present(module, rest_client):
             continue
         VM.update_boot_device_order(module, rest_client, vm_before, desired_boot_order)
         changed = True
-    vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
-        module.params, rest_client
-    )
+    vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(module.params, rest_client)
     return changed, after, dict(before=before, after=after), vm_before.was_vm_rebooted()
 
 
 def ensure_set(module, rest_client):
-    vm_before, boot_devices_before, before = VM.get_vm_and_boot_devices(
-        module.params, rest_client
-    )
-    changed = vm_before.set_boot_devices(
-        module.params["items"], module, rest_client, boot_devices_before
-    )
-    vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(
-        module.params, rest_client
-    )
+    vm_before, boot_devices_before, before = VM.get_vm_and_boot_devices(module.params, rest_client)
+    changed = vm_before.set_boot_devices(module.params["items"], module, rest_client, boot_devices_before)
+    vm_after, boot_devices_after, after = VM.get_vm_and_boot_devices(module.params, rest_client)
     return changed, after, dict(before=before, after=after), vm_before.was_vm_rebooted()
 
 
 def run(module, rest_client):
-    vm, boot_devices_before, before = VM.get_vm_and_boot_devices(
-        module.params, rest_client
-    )
+    vm, boot_devices_before, before = VM.get_vm_and_boot_devices(module.params, rest_client)
     if module.params["state"] == "absent":
         changed, after, diff, reboot = ensure_absent(module, rest_client)
     elif module.params["state"] == "set":

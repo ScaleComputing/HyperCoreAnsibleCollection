@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -129,16 +131,24 @@ record:
       sample: 51e6d073-7566-4273-9196-58720117bd7f
 """
 
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import arguments, errors
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
 from ..module_utils.rest_client import CachedRestClient
-from ..module_utils.user import User
+from ..module_utils.rest_client import RestClient
 from ..module_utils.role import Role
-from ..module_utils.typed_classes import TypedUserToAnsible, TypedDiff
-from typing import List, Tuple, Union, Dict, Any, Optional
+from ..module_utils.typed_classes import TypedDiff
+from ..module_utils.typed_classes import TypedUserToAnsible
+from ..module_utils.user import User
 
 
 def get_role_uuids(module: AnsibleModule, rest_client: RestClient) -> List[str]:
@@ -150,9 +160,7 @@ def get_role_uuids(module: AnsibleModule, rest_client: RestClient) -> List[str]:
     return role_uuids
 
 
-def data_for_create_user(
-    module: AnsibleModule, rest_client: RestClient
-) -> Dict[Any, Any]:
+def data_for_create_user(module: AnsibleModule, rest_client: RestClient) -> Dict[Any, Any]:
     data = {}
     data["username"] = module.params[
         "username"
@@ -168,9 +176,7 @@ def data_for_create_user(
     return data
 
 
-def create_user(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, TypedUserToAnsible, TypedDiff]:
+def create_user(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, TypedUserToAnsible, TypedDiff]:
     data = data_for_create_user(module, rest_client)
     user = User.create(rest_client, data).to_ansible(rest_client)
     return (
@@ -180,9 +186,7 @@ def create_user(
     )
 
 
-def data_for_update_user(
-    module: AnsibleModule, rest_client: RestClient, user: User
-) -> Dict[Any, Any]:
+def data_for_update_user(module: AnsibleModule, rest_client: RestClient, user: User) -> Dict[Any, Any]:
     data = {}
     if module.params["username_new"]:
         if user.username != module.params["username_new"]:
@@ -196,9 +200,7 @@ def data_for_update_user(
         role_uuids = get_role_uuids(module, rest_client)
         if user.role_uuids != role_uuids:
             data["roleUUIDs"] = role_uuids
-    if (
-        module.params["session_limit"] is not None
-    ):  # "is not None" needed to be able to write zero
+    if module.params["session_limit"] is not None:  # "is not None" needed to be able to write zero
         if user.session_limit != module.params["session_limit"]:
             data["sessionLimit"] = module.params["session_limit"]
     return data
@@ -238,9 +240,7 @@ def delete_user(
 def run(
     module: AnsibleModule, rest_client: RestClient
 ) -> Tuple[bool, Union[TypedUserToAnsible, Dict[None, None]], TypedDiff]:
-    user = User.get_user_from_username(
-        module.params["username"], rest_client, must_exist=False
-    )
+    user = User.get_user_from_username(module.params["username"], rest_client, must_exist=False)
     if module.params["state"] == "present":
         if user:
             return update_user(module, rest_client, user)

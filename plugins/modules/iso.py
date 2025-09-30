@@ -5,7 +5,9 @@
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -150,17 +152,19 @@ results:
 """
 
 
-import os
-from ansible.module_utils.basic import AnsibleModule
 import json
+import os
 
-from ..module_utils import errors, arguments
+from ansible.module_utils.basic import AnsibleModule
+
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
+from ..module_utils.iso import ISO
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
-from ..module_utils.iso import ISO
 
-"""
+__COMMENT = """
 ISO_TIMEOUT_TIME is timeout for ISO data upload.
 Currently, assume we have 4.7 GB ISO and speed 1 MB/s -> 4700 seconds.
 Rounded to 3600.
@@ -197,7 +201,7 @@ def ensure_present(module, rest_client):
         file_size = os.stat(module.params["source"]).st_size
         with open(module.params["source"], "rb") as source_file:
             rest_client.put_record(
-                endpoint="/rest/v1/ISO/%s/data" % iso_uuid,
+                endpoint=f"/rest/v1/ISO/{iso_uuid}/data",
                 payload=None,
                 check_mode=module.check_mode,
                 timeout=ISO_TIMEOUT_TIME,
@@ -209,15 +213,13 @@ def ensure_present(module, rest_client):
                 },
             )
     except FileNotFoundError:
-        raise errors.ScaleComputingError(
-            f"ISO file {module.params['source']} not found."
-        )
+        raise errors.ScaleComputingError(f"ISO file {module.params['source']} not found.")
     except (json.JSONDecodeError, errors.ApiResponseNotJson):
         pass  # ISO API endpoint returns binary content.
 
     # Now the ISO image is ready for insertion. Updating readyForInsert to True.
     task_tag_update = rest_client.update_record(
-        endpoint="{0}/{1}".format("/rest/v1/ISO", iso_uuid),
+        endpoint=f"/rest/v1/ISO/{iso_uuid}",
         payload=dict(readyForInsert=True),
         check_mode=module.check_mode,
     )
@@ -230,7 +232,7 @@ def ensure_absent(module, rest_client):
     iso_image = ISO.get_by_name(module.params, rest_client)
     if iso_image:
         task_tag_delete = rest_client.delete_record(
-            endpoint="{0}/{1}".format("/rest/v1/ISO", iso_image.uuid),
+            endpoint=f"/rest/v1/ISO/{iso_image.uuid}",
             check_mode=module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag_delete)

@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -289,15 +291,15 @@ vm_rebooted:
 from ansible.module_utils.basic import AnsibleModule
 
 from ..module_utils import arguments
-from ..module_utils.errors import ScaleComputingError
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
-from ..module_utils.vm import ManageVMDisks, compute_params_disk_slot
-from ..module_utils.task_tag import TaskTag
 from ..module_utils.disk import Disk
+from ..module_utils.errors import ScaleComputingError
 from ..module_utils.iso import ISO
+from ..module_utils.rest_client import RestClient
+from ..module_utils.task_tag import TaskTag
 from ..module_utils.utils import filter_dict
-
+from ..module_utils.vm import ManageVMDisks
+from ..module_utils.vm import compute_params_disk_slot
 
 MODULE_PATH = "scale_computing.hypercore.vm_disk"
 
@@ -323,14 +325,12 @@ def ensure_absent(module, rest_client):
             if name:
                 # Detach the ISO image
                 iso = ISO.get_by_name(dict(name=name), rest_client, must_exist=True)
-                ManageVMDisks.iso_image_management(
-                    module, rest_client, iso, uuid, attach=False
-                )
+                ManageVMDisks.iso_image_management(module, rest_client, iso, uuid, attach=False)
         # Remove the disk
         if existing_disk.needs_reboot("delete"):
             vm_before.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.delete_record(
-            "{0}/{1}".format("/rest/v1/VirDomainBlockDevice", uuid),
+            f"/rest/v1/VirDomainBlockDevice/{uuid}",
             module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag, module.check_mode)

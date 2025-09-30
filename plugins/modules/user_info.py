@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -77,27 +79,24 @@ records:
 """
 
 
+from typing import List
+from typing import Optional
+
 from ansible.module_utils.basic import AnsibleModule
 
-from ..module_utils import arguments, errors
-from ..module_utils.rest_client import RestClient
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
+from ..module_utils.rest_client import RestClient
+from ..module_utils.typed_classes import TypedUserToAnsible
 from ..module_utils.user import User
 from ..module_utils.utils import get_query
-from ..module_utils.typed_classes import TypedUserToAnsible
-from typing import List, Optional
 
 
-def run(
-    module: AnsibleModule, rest_client: RestClient
-) -> List[Optional[TypedUserToAnsible]]:
-    query = get_query(
-        module.params, "username", ansible_hypercore_map=dict(username="username")
-    )
+def run(module: AnsibleModule, rest_client: RestClient) -> List[Optional[TypedUserToAnsible]]:
+    query = get_query(module.params, "username", ansible_hypercore_map=dict(username="username"))
     return [
-        User.from_hypercore(hypercore_data=hypercore_dict).to_ansible(  # type: ignore
-            rest_client
-        )
+        User.from_hypercore(hypercore_data=hypercore_dict).to_ansible(rest_client)  # type: ignore
         for hypercore_dict in rest_client.list_records("/rest/v1/User", query)
     ]
 
@@ -105,9 +104,7 @@ def run(
 def main() -> None:
     module = AnsibleModule(
         supports_check_mode=True,
-        argument_spec=dict(
-            arguments.get_spec("cluster_instance"), username=dict(type="str")
-        ),
+        argument_spec=dict(arguments.get_spec("cluster_instance"), username=dict(type="str")),
     )
 
     try:

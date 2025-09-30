@@ -20,7 +20,6 @@ import select
 import socket
 import time
 
-
 FORMAT = "%(asctime)-15s %(levelname)-10s %(message)s"
 logging.basicConfig(format=FORMAT)
 LOGGER = logging.getLogger()
@@ -153,9 +152,7 @@ def tcp_proxy_one_conn(s, dst, connection_count):
                     restart = True
                     break
                 if inject_ssl_eof_error(connection_count):
-                    LOGGER.info(
-                        "Injecting SSL EOF to connection %s", s_src.getpeername()
-                    )
+                    LOGGER.info("Injecting SSL EOF to connection %s", s_src.getpeername())
                     restart = True
                     break
                 s_src.sendall(d)
@@ -205,9 +202,7 @@ def main():
     proto_group.add_argument("--tcp", action="store_true", help="TCP proxy")
     proto_group.add_argument("--udp", action="store_true", help="UDP proxy")
 
-    parser.add_argument(
-        "-s", "--src", required=True, help="Source IP and port, i.e.: 127.0.0.1:8000"
-    )
+    parser.add_argument("-s", "--src", required=True, help="Source IP and port, i.e.: 127.0.0.1:8000")
     parser.add_argument(
         "-d",
         "--dst",

@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -86,12 +88,14 @@ msg:
 """
 
 from ansible.module_utils.basic import AnsibleModule
-from ..module_utils import arguments, errors
+
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
+from ..module_utils.task_tag import TaskTag
 from ..module_utils.vm import VM
 from ..module_utils.vm_snapshot import VMSnapshot as Snapshot
-from ..module_utils.task_tag import TaskTag
 
 
 # Check snapshot list, raise error if necessary.
@@ -114,9 +118,7 @@ def check_snapshot_list(module: AnsibleModule, snapshot_list: list) -> None:
         )
 
 
-def get_snapshot(
-    module: AnsibleModule, rest_client: RestClient, virtual_machine_obj: VM
-) -> AnsibleModule:
+def get_snapshot(module: AnsibleModule, rest_client: RestClient, virtual_machine_obj: VM) -> AnsibleModule:
     snapshot_list = []
     # Get snapshot from uuid.
     if module.params["source_snapshot_uuid"]:
@@ -154,9 +156,7 @@ def run(module, rest_client):
         )
 
     # Get Source VM, fail if not found.
-    virtual_machine_obj = VM.get_or_fail(
-        query={"name": module.params["source_vm_name"]}, rest_client=rest_client
-    )[0]
+    virtual_machine_obj = VM.get_or_fail(query={"name": module.params["source_vm_name"]}, rest_client=rest_client)[0]
 
     if module.params["source_snapshot_label"] or module.params["source_snapshot_uuid"]:
         module = get_snapshot(module, rest_client, virtual_machine_obj)
@@ -188,9 +188,7 @@ def main():
                 type="str",
                 required=True,
             ),
-            tags=dict(  # We give user a chance to add aditional tags here.
-                type="list", elements="str"
-            ),
+            tags=dict(type="list", elements="str"),  # We give user a chance to add aditional tags here.
             cloud_init=dict(
                 type="dict",
                 default={},

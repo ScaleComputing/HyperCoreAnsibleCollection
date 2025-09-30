@@ -1,20 +1,15 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.modules import (
-    oidc_config_info,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc import (
-    Oidc,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.oidc import Oidc
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.modules import oidc_config_info
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -25,9 +20,7 @@ pytestmark = pytest.mark.skipif(
 class TestMain:
     def test_minimal_set_of_params(self, run_main_info) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
         )
 
         success, results = run_main_info(oidc_config_info, params)
@@ -36,9 +29,7 @@ class TestMain:
 
     def test_maximum_set_of_params(self, run_main_info) -> None:
         params = dict(
-            cluster_instance=dict(
-                host="https://my.host.name", username="user", password="pass"
-            ),
+            cluster_instance=dict(host="https://my.host.name", username="user", password="pass"),
         )
 
         success, results = run_main_info(oidc_config_info, params)
@@ -47,9 +38,7 @@ class TestMain:
 
 
 class TestRun:
-    def test_run_oidc_info_without_record(
-        self, create_module, rest_client, mocker
-    ) -> None:
+    def test_run_oidc_info_without_record(self, create_module, rest_client, mocker) -> None:
         module = create_module(
             params=dict(
                 cluster_instance=dict(
@@ -64,9 +53,7 @@ class TestRun:
         assert isinstance(results, tuple)
         assert results == (False, None)
 
-    def test_run_oidc_info_with_record(
-        self, create_module, rest_client, mocker
-    ) -> None:
+    def test_run_oidc_info_with_record(self, create_module, rest_client, mocker) -> None:
         module = create_module(
             params=dict(
                 cluster_instance=dict(

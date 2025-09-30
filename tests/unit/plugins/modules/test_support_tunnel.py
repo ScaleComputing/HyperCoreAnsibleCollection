@@ -1,15 +1,14 @@
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import support_tunnel
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -57,10 +56,7 @@ class TestMain:
         success, result = run_main(support_tunnel, params)
 
         assert success is False
-        assert (
-            "state is present but all of the following are missing: code"
-            in result["msg"]
-        )
+        assert "state is present but all of the following are missing: code" in result["msg"]
 
     def test_fail(self, run_main):
         success, result = run_main(support_tunnel)

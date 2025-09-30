@@ -3,26 +3,21 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
-
 from unittest import mock
 from unittest.mock import call
 
 import pytest
-
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert import (
-    EmailAlert,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.email_alert import EmailAlert
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import email_alert
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -235,9 +230,7 @@ class TestModifyEmailAlert:
             if update_email == email_on_client or email == email_new:
                 EmailAlert.update.assert_not_called()
             else:
-                EmailAlert.update.assert_called_once_with(
-                    rc_email_alert, **called_with_dict
-                )
+                EmailAlert.update.assert_called_once_with(rc_email_alert, **called_with_dict)
 
             assert changed == expected_return[0]
             assert record == expected_return[1]
@@ -327,10 +320,7 @@ class TestModifyEmailAlert:
         email_alert.delete_email_alert(module, rest_client)
         assert EmailAlert.delete.call_count == len(rc_email_alerts)
         EmailAlert.delete.assert_has_calls(
-            [
-                call(rc_email_alert, **called_with_dict)
-                for rc_email_alert in rc_email_alerts
-            ]
+            [call(rc_email_alert, **called_with_dict) for rc_email_alert in rc_email_alerts]
         )
         assert changed == expected_return[0]
         assert record == expected_return[1]
@@ -352,9 +342,7 @@ class TestModifyEmailAlert:
             ),
         ],
     )
-    def test_send_test(
-        self, create_module, rest_client, task_wait, mocker, rc_email_alert, email
-    ):
+    def test_send_test(self, create_module, rest_client, task_wait, mocker, rc_email_alert, email):
         module = create_module(
             params=dict(
                 cluster_instance=self.cluster_instance,

@@ -4,7 +4,9 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
@@ -116,14 +118,16 @@ results:
 """
 
 
-from ansible.module_utils.basic import AnsibleModule
 from typing import Tuple
 
-from ..module_utils.task_tag import TaskTag
-from ..module_utils import arguments, errors
+from ansible.module_utils.basic import AnsibleModule
+
+from ..module_utils import arguments
+from ..module_utils import errors
 from ..module_utils.client import Client
-from ..module_utils.rest_client import RestClient
 from ..module_utils.dns_config import DNSConfig
+from ..module_utils.rest_client import RestClient
+from ..module_utils.task_tag import TaskTag
 
 
 def build_entry_list(
@@ -165,9 +169,7 @@ def build_entry_list(
     )
 
 
-def modify_dns_config(
-    module: AnsibleModule, rest_client: RestClient
-) -> Tuple[bool, dict, dict]:
+def modify_dns_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[bool, dict, dict]:
     # GET method to get the DNS Config by UUID
     dns_config = DNSConfig.get_by_uuid(module.params, rest_client)
 
@@ -190,9 +192,7 @@ def modify_dns_config(
 
     # Otherwise, continue with modifying the configuration
     before = dns_config.to_ansible()
-    old_state = DNSConfig.get_state(
-        rest_client
-    )  # get the state of DNS config before modification
+    old_state = DNSConfig.get_state(rest_client)  # get the state of DNS config before modification
 
     # Set action according to specified state param
     action = "create"
@@ -226,8 +226,8 @@ def modify_dns_config(
     # update_record method uses method PATCH,
     # create_record method uses method POST.
     # [ NOTE: PUT method is not allowed on DNS Config ]
-    task_tag = getattr(rest_client, "{0}_record".format(action))(
-        endpoint="{0}/{1}".format("/rest/v1/DNSConfig", dns_config.uuid),
+    task_tag = getattr(rest_client, f"{action}_record")(
+        endpoint=f"/rest/v1/DNSConfig/{dns_config.uuid}",
         payload=dict(searchDomains=new_search_domains, serverIPs=new_dns_servers),
         check_mode=module.check_mode,
     )

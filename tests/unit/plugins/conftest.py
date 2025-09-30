@@ -3,37 +3,25 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import json
+import os
+from unittest.mock import MagicMock
 
 import pytest
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import Client
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import HyperCoreVersion
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.rest_client import RestClient
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag import TaskTag
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
 
 from ansible.module_utils import basic
 from ansible.module_utils._text import to_bytes
-from unittest.mock import MagicMock
-import os
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
-    Client,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.rest_client import (
-    RestClient,
-)
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import (
-    VM,
-)
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.task_tag import (
-    TaskTag,
-)
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import (
-    HyperCoreVersion,
-)
 
 
 @pytest.fixture
@@ -103,20 +91,20 @@ def fail_json_mock(self, **result):
     raise AnsibleRunEnd(False, result)
 
 
-def run_mock(module, client, another_client=None):
+def run_mock(module, _client, _another_client=None):
     return False, {}, dict(before={}, after={})
 
 
-def run_mock_with_reboot(module, client, another_client=None):
+def run_mock_with_reboot(module, _client, _another_client=None):
     return False, {}, dict(before={}, after={}), False
 
 
 # for syslog_server module
-def run_mock_with_record_and_records(module, client, another_client=None):
+def run_mock_with_record_and_records(module, _client, _another_client=None):
     return False, {}, [], dict(before={}, after={})
 
 
-def run_mock_info(module, client, another_client=None):
+def run_mock_info(module, _client, _another_client=None):
     return False, []
 
 
@@ -142,9 +130,7 @@ def run_main(mocker):
             return e.success, e.result
         assert False, "Module is not calling exit_json or fail_json."
 
-    mocker.patch.multiple(
-        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
-    )
+    mocker.patch.multiple(basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock)
     return runner
 
 
@@ -170,9 +156,7 @@ def run_main_with_reboot(mocker):
             return e.success, e.result
         assert False, "Module is not calling exit_json or fail_json."
 
-    mocker.patch.multiple(
-        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
-    )
+    mocker.patch.multiple(basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock)
     return runner
 
 
@@ -198,9 +182,7 @@ def run_main_with_record_and_records(mocker):
             return e.success, e.result
         assert False, "Module is not calling exit_json or fail_json."
 
-    mocker.patch.multiple(
-        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
-    )
+    mocker.patch.multiple(basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock)
     return runner
 
 
@@ -226,9 +208,7 @@ def run_main_info(mocker):
             return e.success, e.result
         assert False, "Module is not calling exit_json or fail_json."
 
-    mocker.patch.multiple(
-        basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock
-    )
+    mocker.patch.multiple(basic.AnsibleModule, exit_json=exit_json_mock, fail_json=fail_json_mock)
     return runner
 
 

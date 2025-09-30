@@ -3,23 +3,18 @@
 #
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from __future__ import absolute_import, division, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 __metaclass__ = type
 
 import sys
 
 import pytest
-
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.support_tunnel import (
-    SupportTunnel,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import (
-    Response,
-)
-from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import (
-    MIN_PYTHON_VERSION,
-)
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.client import Response
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.support_tunnel import SupportTunnel
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -30,7 +25,7 @@ pytestmark = pytest.mark.skipif(
 class TestSupportTunnel:
     def test_support_tunnel_from_hypercore(self):
         support_tunnel = SupportTunnel(
-            open=True,
+            open_flag=True,
             code=4422,
         )
 
@@ -43,7 +38,7 @@ class TestSupportTunnel:
 
     def test_support_tunnel_from_hypercore_false(self):
         support_tunnel = SupportTunnel(
-            open=False,
+            open_flag=False,
             code=None,
         )
 
@@ -55,21 +50,21 @@ class TestSupportTunnel:
         assert support_tunnel == support_tunnel_from_hypercore
 
     def test_support_tunnel_to_ansible(self):
-        support_tunnel = SupportTunnel(open=True, code=4422)
+        support_tunnel = SupportTunnel(open_flag=True, code=4422)
 
         ansible_dict = dict(open=True, code=4422)
 
         assert support_tunnel.to_ansible() == ansible_dict
 
     def test_support_tunnel_equal_true(self):
-        support_tunnel1 = SupportTunnel(open=True, code=4422)
-        support_tunnel2 = SupportTunnel(open=True, code=4422)
+        support_tunnel1 = SupportTunnel(open_flag=True, code=4422)
+        support_tunnel2 = SupportTunnel(open_flag=True, code=4422)
 
         assert support_tunnel1 == support_tunnel2
 
     def test_support_tunnel_equal_false(self):
-        support_tunnel1 = SupportTunnel(open=True, code=4422)
-        support_tunnel2 = SupportTunnel(open=False, code=None)
+        support_tunnel1 = SupportTunnel(open_flag=True, code=4422)
+        support_tunnel2 = SupportTunnel(open_flag=False, code=None)
 
         assert support_tunnel1 != support_tunnel2
 
@@ -107,14 +102,10 @@ class TestSupportTunnel:
 
         SupportTunnel.open_tunnel(module, client)
 
-        client.get.assert_called_with(
-            "/support-api/open", query={"code": 4422, "user": "mock_username"}
-        )
+        client.get.assert_called_with("/support-api/open", query={"code": 4422, "user": "mock_username"})
 
     def test_close_tunnel(self, client):
         client.get.return_value = Response(status=200, data="")
         SupportTunnel.close_tunnel(client)
 
-        client.get.assert_called_with(
-            "/support-api/close", query={"user": "mock_username"}
-        )
+        client.get.assert_called_with("/support-api/close", query={"user": "mock_username"})
