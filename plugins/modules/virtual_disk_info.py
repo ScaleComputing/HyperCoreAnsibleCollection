@@ -111,12 +111,12 @@ def main() -> None:
     )
 
     try:
-        client = Client.get_client(module.params["cluster_instance"])
-        rest_client = CachedRestClient(client)
-        hcversion = HyperCoreVersion(rest_client)
-        hcversion.check_version(module, HYPERCORE_VERSION_REQUIREMENTS)
-        records = run(module, rest_client)
-        module.exit_json(changed=False, records=records)
+        with Client.get_client(module.params["cluster_instance"]) as client:
+            rest_client = CachedRestClient(client)
+            hcversion = HyperCoreVersion(rest_client)
+            hcversion.check_version(module, HYPERCORE_VERSION_REQUIREMENTS)
+            records = run(module, rest_client)
+            module.exit_json(changed=False, records=records)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 

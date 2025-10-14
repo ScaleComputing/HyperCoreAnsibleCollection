@@ -145,9 +145,9 @@ def main() -> None:
     )
 
     try:
-        client = Client.get_client(module.params["cluster_instance"])
-        changed, record, diff = run(module, client)
-        module.exit_json(changed=changed, record=record, diff=diff)
+        with Client.get_client(module.params["cluster_instance"]) as client:
+            changed, record, diff = run(module, client)
+            module.exit_json(changed=changed, record=record, diff=diff)
     except errors.ScaleComputingError as e:
         module.fail_json(msg=str(e))
 
