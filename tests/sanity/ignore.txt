@@ -1,0 +1,1 @@
+ci-infra/helpers/run-tests.sh shebang
