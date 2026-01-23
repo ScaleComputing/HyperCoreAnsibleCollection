@@ -213,6 +213,33 @@ Sample ansible.cfg is there to ensure collection does not need to be installed.
 ansible-playbook -i localhost, examples/iso_info.yml -v
 ```
 
+## Running integration tests
+
+The `ansible-test integration` will try to run all integration test, and will fail on first problematic test.
+It does allow you to continue from the failed test.
+
+You might want to automatically continue running remaining tests.
+A few failed tests can be reviewed and retried later.
+The `./ci-infra/helpers/run-tests.sh` was made for this.
+If N tests fail in first pass, the `run-tests.sh` will retry only those N test in second pass.
+The script is used like:
+
+```bash
+source ci-infra/local-dev/env-host-4.sh
+./ci-infra/helpers/run-tests.sh outdir <tests.txt>
+```
+
+File `tests.txt` is optional input.
+It contains one test name per line.
+If ommited, all tests from `tests/integration` are run.
+
+After run, the scripts create in `outd` directory:
+
+- directory `log-${timestamp}` directory containing a log file for each run test
+- file `status.txt` contains OK/ERR/PEND/SKIP status for each run test
+
+On next run, only tests that have PEND/ERR status are retried.
+
 ## Creating a release
 
 Releases are automatically created when a tag is created with a name matching
