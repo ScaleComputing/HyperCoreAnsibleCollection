@@ -231,7 +231,7 @@ ScaleComputing does setup new VSNS, with suitable HyperCore version installed.
 
 Steps:
  - Request / reserve static IP address from Alex
-   - either replacing existing static IP or using next in series 105.11.20x
+   - either replacing existing static IP or using next in series 10.5.11.20x
  - create empty VM with 1 virtio disk, type other, tag hc3nested, 16GB ram, 4 cores.
  - image new vSNS node using test iso image (vs. release - this may change in upcoming releases)
  - (optional) Save it as template VM, example name `vsns9213-unconfigured`
@@ -240,6 +240,7 @@ Steps:
    - `sudo singleNodeCluster=1 scclusterinit`
  - Save it as template VM, example name `vsns9213-template`
  - Create a final vSNS from template VM, example name `vsns9213-ci`
+   - keep same MAC address?
  - Add vSNS login URL to Azure OIDC redirectUris
    - ensure ip address is added to entraAD (azure) app registration for OIDC integration (ask Dave if needed)
       - "app_display_name": "Scale Computing HC3",
