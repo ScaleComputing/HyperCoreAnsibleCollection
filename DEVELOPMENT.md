@@ -215,6 +215,15 @@ ansible-playbook -i localhost, examples/iso_info.yml -v
 
 ## Running integration tests
 
+Some test objects (ISO image, VirtualDisk, VM) needs to be created before we run integration tests.
+Use command:
+
+```bash
+ansible-playbook -i localhost, tests/integration/prepare/prepare_vm.yml -v
+ansible-playbook -i localhost, tests/integration/prepare/prepare_iso.yml -v
+ansible-playbook -i localhost, tests/integration/prepare/prepare_examples.yml -v
+```
+
 The `ansible-test integration` will try to run all integration test, and will fail on first problematic test.
 It does allow you to continue from the failed test.
 
