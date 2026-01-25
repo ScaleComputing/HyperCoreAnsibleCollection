@@ -167,6 +167,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.smtp import SMTP
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.typed_classes import TypedSmtpToAnsible
+from ..module_utils.utils import REST_API_VERSION
 
 
 def build_entry(
@@ -213,7 +214,7 @@ def modify_smtp_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     if not smtp:
         module.warn("SMTP: There is no SMTP configuration.")
         create_task_tag = rest_client.create_record(
-            endpoint="/rest/v1/AlertSMTPConfig",
+            endpoint=f"{REST_API_VERSION}/AlertSMTPConfig",
             payload=payload,
             check_mode=module.check_mode,
         )
@@ -267,7 +268,7 @@ def modify_smtp_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     # Set the task tag
     # update_record -> PATCH
     update_task_tag = rest_client.update_record(
-        endpoint=f"/rest/v1/AlertSMTPConfig/{smtp.uuid}",
+        endpoint=f"{REST_API_VERSION}/AlertSMTPConfig/{smtp.uuid}",
         payload=payload,
         check_mode=module.check_mode,
     )

@@ -91,13 +91,14 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedUserToAnsible
 from ..module_utils.user import User
 from ..module_utils.utils import get_query
+from ..module_utils.utils import REST_API_VERSION
 
 
 def run(module: AnsibleModule, rest_client: RestClient) -> List[Optional[TypedUserToAnsible]]:
     query = get_query(module.params, "username", ansible_hypercore_map=dict(username="username"))
     return [
         User.from_hypercore(hypercore_data=hypercore_dict).to_ansible(rest_client)  # type: ignore
-        for hypercore_dict in rest_client.list_records("/rest/v1/User", query)
+        for hypercore_dict in rest_client.list_records(f"{REST_API_VERSION}/User", query)
     ]
 
 

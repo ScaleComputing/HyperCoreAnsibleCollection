@@ -91,6 +91,7 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.time_server import TimeServer
+from ..module_utils.utils import REST_API_VERSION
 
 
 # Remove not needed
@@ -104,7 +105,7 @@ def modify_time_server(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     # If Time Server doesn't exist, create one
     if not time_server:
         create_task_tag = rest_client.create_record(
-            endpoint="/rest/v1/TimeSource",
+            endpoint=f"{REST_API_VERSION}/TimeSource",
             payload=dict(host=new_time_server_source),
             check_mode=module.check_mode,
         )
@@ -128,7 +129,7 @@ def modify_time_server(module: AnsibleModule, rest_client: RestClient) -> Tuple[
     # Set the task tag:
     # update_record -> PATCH
     update_task_tag = rest_client.update_record(
-        endpoint=f"/rest/v1/TimeSource/{time_server.uuid}",
+        endpoint=f"{REST_API_VERSION}/TimeSource/{time_server.uuid}",
         payload=dict(host=new_time_server_source),
         check_mode=module.check_mode,
     )

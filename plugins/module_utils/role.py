@@ -17,6 +17,7 @@ from typing import Optional
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedRoleToAnsible
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 
 
 class Role(PayloadMapper):
@@ -63,12 +64,12 @@ class Role(PayloadMapper):
 
     @classmethod
     def get_role_from_uuid(cls, role_uuid: str, rest_client: RestClient, must_exist: bool = False) -> Optional[Role]:
-        hypercore_dict = rest_client.get_record(f"/rest/v1/Role/{role_uuid}", must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/Role/{role_uuid}", must_exist=must_exist)
         role = cls.from_hypercore(hypercore_dict)
         return role
 
     @classmethod
     def get_role_from_name(cls, role_name: str, rest_client: RestClient, must_exist: bool = False) -> Optional[Role]:
-        hypercore_dict = rest_client.get_record("/rest/v1/Role", {"name": role_name}, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/Role", {"name": role_name}, must_exist=must_exist)
         role = cls.from_hypercore(hypercore_dict)
         return role

@@ -15,6 +15,7 @@ from unittest.mock import patch
 
 import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import iso
 
 pytestmark = pytest.mark.skipif(
@@ -51,7 +52,7 @@ class TestEnsureAbsent:
         rest_client.delete_record.return_value = None
         result = iso.ensure_absent(module, rest_client)
         rest_client.delete_record.assert_called_once_with(
-            endpoint="/rest/v1/ISO/id",
+            endpoint=f"{REST_API_VERSION}/ISO/id",
             check_mode=False,
         )
         assert result == (

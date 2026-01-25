@@ -15,6 +15,7 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.role import Role
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.user import User
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -149,7 +150,7 @@ class TestUser:
         user = User.get_user_from_username(username, rest_client)
 
         rest_client.get_record.assert_called_with(
-            "/rest/v1/User",
+            f"{REST_API_VERSION}/User",
             {"username": "my_name"},
             must_exist=False,
         )
@@ -179,7 +180,7 @@ class TestUser:
         user = User.get_user_from_uuid(user_uuid, rest_client)
 
         rest_client.get_record.assert_called_with(
-            "/rest/v1/User/51e6d073-7566-4273-9196-58720117bd7f",
+            f"{REST_API_VERSION}/User/51e6d073-7566-4273-9196-58720117bd7f",
             must_exist=False,
         )
         assert user == User(

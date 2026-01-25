@@ -12,6 +12,7 @@ __metaclass__ = type
 from ..module_utils import errors
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.utils import get_query
+from ..module_utils.utils import REST_API_VERSION
 
 
 class DNSConfig(PayloadMapper):
@@ -76,7 +77,7 @@ class DNSConfig(PayloadMapper):
     @classmethod
     def get_by_uuid(cls, ansible_dict, rest_client, must_exist=False):
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record("/rest/v1/DNSConfig", query, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/DNSConfig", query, must_exist=must_exist)
         dns_config_from_hypercore = DNSConfig.from_hypercore(hypercore_dict)
         return dns_config_from_hypercore
 
@@ -85,7 +86,7 @@ class DNSConfig(PayloadMapper):
     def get_state(cls, rest_client):
         state = [
             DNSConfig.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
-            for hypercore_dict in rest_client.list_records("/rest/v1/DNSConfig/")
+            for hypercore_dict in rest_client.list_records(f"{REST_API_VERSION}/DNSConfig/")
         ]
 
         # Raise an error if there is more than 1 DNS configuration available

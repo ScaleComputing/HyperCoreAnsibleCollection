@@ -17,6 +17,7 @@ from typing import Optional
 from ..module_utils import errors
 from ..module_utils.rest_client import RestClient
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 
 TIERING_PRIORITY_MAPPING_TO_HYPERCORE = {
     0: 0,
@@ -223,5 +224,5 @@ class Disk(PayloadMapper):
 
     @classmethod
     def get_by_uuid(cls, uuid: str, rest_client: RestClient, must_exist: bool) -> Optional[Disk]:
-        hypercore_dict = rest_client.get_record(f"/rest/v1/VirDomainBlockDevice/{uuid}", must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/VirDomainBlockDevice/{uuid}", must_exist=must_exist)
         return cls.from_hypercore(hypercore_dict)

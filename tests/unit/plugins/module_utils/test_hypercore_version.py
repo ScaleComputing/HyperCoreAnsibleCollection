@@ -21,6 +21,7 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercor
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import VersionSpec
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.hypercore_version import VersionSpecSimple
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -278,7 +279,7 @@ class TestUpdate:
         Update.apply_update(rest_client, new_icos_version)
 
         rest_client.create_record.assert_called_with(
-            "/rest/v1/Update/9.2.11.210763/apply", payload=None, check_mode=False
+            f"{REST_API_VERSION}/Update/9.2.11.210763/apply", payload=None, check_mode=False
         )
 
 

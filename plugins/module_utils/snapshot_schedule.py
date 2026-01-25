@@ -12,6 +12,7 @@ __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.utils import get_query
+from ..module_utils.utils import REST_API_VERSION
 
 
 class SnapshotSchedule(PayloadMapper):
@@ -77,13 +78,13 @@ class SnapshotSchedule(PayloadMapper):
         object SnapshotSchedule if the record exists. If there is no record with such name, None is returned.
         """
         query = get_query(ansible_dict, "name", ansible_hypercore_map=dict(name="name"))
-        hypercore_dict = rest_client.get_record("/rest/v1/VirDomainSnapshotSchedule", query, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/VirDomainSnapshotSchedule", query, must_exist=must_exist)
         snapshot_schedule_from_hypercore = SnapshotSchedule.from_hypercore(hypercore_dict)
         return snapshot_schedule_from_hypercore
 
     @classmethod
     def get_snapshot_schedule(cls, query, rest_client, must_exist=False):
-        hypercore_dict = rest_client.get_record("/rest/v1/VirDomainSnapshotSchedule", query, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/VirDomainSnapshotSchedule", query, must_exist=must_exist)
         return cls.from_hypercore(hypercore_dict)
 
     def create_post_payload(self):

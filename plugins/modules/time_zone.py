@@ -489,6 +489,7 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.time_zone import TimeZone
+from ..module_utils.utils import REST_API_VERSION
 
 # List is based on date_time_zonespec.csv.
 SUPPORTED_ZONES = [
@@ -901,7 +902,7 @@ def modify_time_zone(module: AnsibleModule, rest_client: RestClient) -> Tuple[bo
     # If Time Zone doesn't exist, create one
     if not time_zone:
         create_task_tag = rest_client.create_record(
-            endpoint="/rest/v1/TimeZone",
+            endpoint=f"{REST_API_VERSION}/TimeZone",
             payload=dict(timeZone=new_time_zone_entry),
             check_mode=module.check_mode,
         )
@@ -928,7 +929,7 @@ def modify_time_zone(module: AnsibleModule, rest_client: RestClient) -> Tuple[bo
     # Set the task tag:
     # update_record -> PATCH
     update_task_tag = rest_client.update_record(
-        endpoint=f"/rest/v1/TimeZone/{time_zone.uuid}",
+        endpoint=f"{REST_API_VERSION}/TimeZone/{time_zone.uuid}",
         payload=dict(timeZone=new_time_zone_entry),
         check_mode=module.check_mode,
     )

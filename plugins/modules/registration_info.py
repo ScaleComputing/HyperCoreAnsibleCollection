@@ -72,10 +72,11 @@ from ..module_utils.client import Client
 from ..module_utils.registration import Registration
 from ..module_utils.rest_client import CachedRestClient
 from ..module_utils.typed_classes import TypedRegistrationToAnsible
+from ..module_utils.utils import REST_API_VERSION
 
 
 def run(module: AnsibleModule, rest_client: CachedRestClient) -> Optional[TypedRegistrationToAnsible]:
-    registration_list = rest_client.list_records("/rest/v1/Registration")
+    registration_list = rest_client.list_records(f"{REST_API_VERSION}/Registration")
     if registration_list:
         return Registration.from_hypercore(registration_list[0]).to_ansible()
     return None

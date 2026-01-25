@@ -20,6 +20,7 @@ from ..module_utils.typed_classes import TypedRegistrationFromAnsible
 from ..module_utils.typed_classes import TypedRegistrationToAnsible
 from ..module_utils.typed_classes import TypedTaskTag
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 
 
 class Registration(PayloadMapper):
@@ -47,7 +48,7 @@ class Registration(PayloadMapper):
 
     @classmethod
     def get(cls, rest_client: RestClient) -> Optional[Registration]:
-        result = rest_client.list_records("/rest/v1/Registration")
+        result = rest_client.list_records(f"{REST_API_VERSION}/Registration")
         if result:
             # One registration per cluster.
             return cls.from_hypercore(result[0])
@@ -101,11 +102,11 @@ class Registration(PayloadMapper):
 
     def send_create_request(self, rest_client: RestClient) -> TypedTaskTag:
         payload = self.to_hypercore()
-        return rest_client.create_record("/rest/v1/Registration", payload, False)
+        return rest_client.create_record(f"{REST_API_VERSION}/Registration", payload, False)
 
     def send_delete_request(self, rest_client: RestClient) -> TypedTaskTag:
-        return rest_client.delete_record("/rest/v1/Registration/registration_guid", False)
+        return rest_client.delete_record(f"{REST_API_VERSION}/Registration/registration_guid", False)
 
     def send_update_request(self, rest_client: RestClient) -> TypedTaskTag:
         payload = self.to_hypercore()
-        return rest_client.update_record("/rest/v1/Registration/registration_guid", payload, False)
+        return rest_client.update_record(f"{REST_API_VERSION}/Registration/registration_guid", payload, False)

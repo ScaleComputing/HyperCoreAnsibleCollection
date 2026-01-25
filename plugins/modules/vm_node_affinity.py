@@ -139,6 +139,7 @@ from ..module_utils.node import Node
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.utils import get_query
+from ..module_utils.utils import REST_API_VERSION
 from ..module_utils.vm import VM
 
 
@@ -218,7 +219,7 @@ def run(module, rest_client):
             "backupNodeUUID": backup_node_uuid,
         }
     }
-    endpoint = f"/rest/v1/VirDomain/{vm.uuid}"
+    endpoint = f"{REST_API_VERSION}/VirDomain/{vm.uuid}"
     task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
     TaskTag.wait_task(rest_client, task_tag)
     vm_after = VM.get_by_name(module.params, rest_client, must_exist=True)

@@ -10,6 +10,7 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.cluster import Cluster
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import ScaleTimeoutError
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -102,7 +103,7 @@ class TestCluster:
         cluster.update_name(rest_client, name_new)
 
         rest_client.update_record.assert_called_with(
-            "/rest/v1/Cluster/51e6d073-7566-4273-9196-58720117bd7f",
+            f"{REST_API_VERSION}/Cluster/51e6d073-7566-4273-9196-58720117bd7f",
             {"clusterName": "Updated_name"},
             False,
         )
@@ -115,7 +116,7 @@ class TestCluster:
         Cluster.shutdown(rest_client, force_shutdown)
 
         rest_client.create_record.assert_called_with(
-            "/rest/v1/Cluster/shutdown",
+            f"{REST_API_VERSION}/Cluster/shutdown",
             {"forceShutdown": True},
             False,
         )
@@ -127,7 +128,7 @@ class TestCluster:
         Cluster.shutdown(rest_client)
 
         rest_client.create_record.assert_called_with(
-            "/rest/v1/Cluster/shutdown",
+            f"{REST_API_VERSION}/Cluster/shutdown",
             {"forceShutdown": False},
             False,
         )

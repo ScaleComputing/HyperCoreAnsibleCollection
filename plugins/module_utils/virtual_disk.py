@@ -22,6 +22,7 @@ from ..module_utils.typed_classes import TypedTaskTag
 from ..module_utils.typed_classes import TypedVirtualDiskFromAnsible
 from ..module_utils.typed_classes import TypedVirtualDiskToAnsible
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 from .rest_client import RestClient
 
 REQUEST_TIMEOUT_TIME = 3600
@@ -103,7 +104,7 @@ class VirtualDisk(PayloadMapper):
 
     @classmethod
     def get_by_name(cls, rest_client: RestClient, name: str, must_exist: bool = False) -> Optional[VirtualDisk]:
-        result = rest_client.list_records("/rest/v1/VirtualDisk", query=dict(name=name))
+        result = rest_client.list_records(f"{REST_API_VERSION}/VirtualDisk", query=dict(name=name))
         if not isinstance(result, list):
             raise errors.ScaleComputingError("Virtual disk API return value is not a list.")
         elif must_exist and (not result or not result[0]):
@@ -118,7 +119,7 @@ class VirtualDisk(PayloadMapper):
     def get_state(cls, rest_client: RestClient, query: Dict[Any, Any]) -> List[TypedVirtualDiskToAnsible]:
         state = [
             cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
-            for hypercore_dict in rest_client.list_records("/rest/v1/VirtualDisk", query)
+            for hypercore_dict in rest_client.list_records(f"{REST_API_VERSION}/VirtualDisk", query)
         ]
         return state
 
@@ -131,7 +132,7 @@ class VirtualDisk(PayloadMapper):
         try:
             with open(module.params["source"], "rb") as source_file:
                 task = rest_client.put_record(
-                    endpoint="/rest/v1/VirtualDisk/upload",
+                    endpoint=f"{REST_API_VERSION}/VirtualDisk/upload",
                     payload=None,
                     check_mode=False,
                     query=dict(filename=module.params["name"], filesize=file_size),
@@ -150,11 +151,11 @@ class VirtualDisk(PayloadMapper):
     def send_delete_request(self, rest_client: RestClient) -> TypedTaskTag:
         if not self.uuid:
             raise errors.ScaleComputingError("Missing virtual disk UUID inside delete request.")
-        return rest_client.delete_record(f"/rest/v1/VirtualDisk/{self.uuid}", check_mode=False)
+        return rest_client.delete_record(f"{REST_API_VERSION}/VirtualDisk/{self.uuid}", check_mode=False)
 
     def attach_to_vm(self, rest_client: RestClient, payload: dict[Any, Any]) -> TypedTaskTag:
         return rest_client.create_record(
-            endpoint=f"/rest/v1/VirtualDisk/{self.uuid}/attach",
+            endpoint=f"{REST_API_VERSION}/VirtualDisk/{self.uuid}/attach",
             payload=payload,
             check_mode=False,
         )

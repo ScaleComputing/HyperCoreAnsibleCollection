@@ -13,6 +13,7 @@ import sys
 
 import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import api
 
 pytestmark = pytest.mark.skipif(
@@ -35,7 +36,7 @@ class TestGetMethod:
                     password="admin",
                 ),
                 action="get",
-                endpoint="/rest/v1/VirDomain/id",
+                endpoint=f"{REST_API_VERSION}/VirDomain/id",
                 data=dict(),
             )
         )
@@ -46,7 +47,7 @@ class TestGetMethod:
 
         rest_client.list_records_raw.assert_called_once()
         rest_client.list_records_raw.assert_called_with(
-            endpoint="/rest/v1/VirDomain/id",
+            endpoint=f"{REST_API_VERSION}/VirDomain/id",
         )
 
         assert result == (False, list_records_raw_return)
@@ -60,7 +61,7 @@ class TestGetMethod:
                     password="admin",
                 ),
                 action="get",
-                endpoint="/rest/v1/VirDomain",
+                endpoint=f"{REST_API_VERSION}/VirDomain",
                 data=dict(),
             )
         )
@@ -71,7 +72,7 @@ class TestGetMethod:
 
         rest_client.list_records_raw.assert_called_once()
         rest_client.list_records_raw.assert_called_with(
-            endpoint="/rest/v1/VirDomain",
+            endpoint=f"{REST_API_VERSION}/VirDomain",
         )
 
         assert result == (False, [])
@@ -89,7 +90,7 @@ class TestPutMethod:
                     password="admin",
                 ),
                 action="put",
-                endpoint="/rest/v1/VirDomain",
+                endpoint=f"{REST_API_VERSION}/VirDomain",
                 unique_id="id",
                 source="this-source",
                 data=dict(),
@@ -113,7 +114,7 @@ class TestDeleteRecord:
                     password="admin",
                 ),
                 action="delete",
-                endpoint="/rest/v1/VirDomain/id",
+                endpoint=f"{REST_API_VERSION}/VirDomain/id",
                 data=dict(),
             )
         )
@@ -126,7 +127,7 @@ class TestDeleteRecord:
         result = api.run(module, rest_client)
         rest_client.delete_record.assert_called_once()
         rest_client.delete_record.assert_called_with(
-            endpoint="/rest/v1/VirDomain/id",
+            endpoint=f"{REST_API_VERSION}/VirDomain/id",
             check_mode=False,
         )
 
@@ -141,7 +142,7 @@ class TestDeleteRecord:
                     password="admin",
                 ),
                 action="delete",
-                endpoint="/rest/v1/VirDomain/id",
+                endpoint=f"{REST_API_VERSION}/VirDomain/id",
                 data=dict(),
             )
         )
@@ -162,7 +163,7 @@ class TestPostMethod:
                     password="admin",
                 ),
                 action="post",
-                endpoint="/rest/v1/VirDomain",
+                endpoint=f"{REST_API_VERSION}/VirDomain",
                 data=dict(),
             )
         )
@@ -174,7 +175,7 @@ class TestPostMethod:
         result = api.post_record(module, rest_client)
 
         rest_client.create_record.assert_called_with(
-            endpoint="/rest/v1/VirDomain",
+            endpoint=f"{REST_API_VERSION}/VirDomain",
             check_mode=False,
             payload=dict(),
         )

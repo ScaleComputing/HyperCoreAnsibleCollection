@@ -14,6 +14,7 @@ from unittest import mock
 
 import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import VM
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm_snapshot import VMSnapshot
 from ansible_collections.scale_computing.hypercore.plugins.modules import vm_snapshot_attach_disk
@@ -196,7 +197,7 @@ class TestAttachDisk:
         ).return_value = expected_return[1]
 
         called_with_dict = dict(
-            endpoint="/rest/v1/VirDomainBlockDevice/snapshot-block-uuid-1/clone",
+            endpoint=f"{REST_API_VERSION}/VirDomainBlockDevice/snapshot-block-uuid-1/clone",
             payload=dict(
                 options=dict(
                     regenerateDiskID=True,  # required

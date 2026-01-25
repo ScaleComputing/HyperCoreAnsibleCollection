@@ -128,6 +128,7 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.typed_classes import TypedDiff
+from ..module_utils.utils import REST_API_VERSION
 from ..module_utils.vm import VM
 from ..module_utils.vm_snapshot import VMSnapshot
 
@@ -204,7 +205,7 @@ def attach_disk(
     )
 
     create_task_tag = rest_client.create_record(
-        endpoint=f"/rest/v1/VirDomainBlockDevice/{source_disk_info['uuid']}/clone",
+        endpoint=f"{REST_API_VERSION}/VirDomainBlockDevice/{source_disk_info['uuid']}/clone",
         payload=payload,
         check_mode=module.check_mode,
     )

@@ -14,6 +14,7 @@ from ansible_collections.scale_computing.hypercore.plugins.module_utils.iso impo
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.nic import Nic
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.snapshot_schedule import SnapshotSchedule
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import ManageVMDisks
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import ManageVMNics
@@ -865,7 +866,7 @@ class TestVM:
         }
         VM.update_boot_device_order(module, rest_client, vm, boot_order)
         rest_client.update_record.assert_called_with(
-            "/rest/v1/VirDomain/7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
+            f"{REST_API_VERSION}/VirDomain/7542f2gg-5f9a-51ff-8a91-8ceahgf47ghg",
             dict(
                 bootDevices=["device1-id", "device2-id"],
             ),
@@ -2346,7 +2347,7 @@ class TestManageVMDisks:
         ).return_value = True
         result = ManageVMDisks._create_block_device(module, rest_client, vm, desired_disk)
         rest_client.create_record.assert_called_with(
-            "/rest/v1/VirDomainBlockDevice",
+            f"{REST_API_VERSION}/VirDomainBlockDevice",
             {
                 "cacheMode": "NONE",
                 "capacity": 4200,
@@ -2386,7 +2387,7 @@ class TestManageVMDisks:
         attach = True
         result = ManageVMDisks.iso_image_management(module, rest_client, iso, uuid, attach)
         rest_client.update_record.assert_called_with(
-            "/rest/v1/VirDomainBlockDevice/disk_id",
+            f"{REST_API_VERSION}/VirDomainBlockDevice/disk_id",
             dict(
                 path="scribe/123",
                 name="ISO-test-name",
@@ -2418,7 +2419,7 @@ class TestManageVMDisks:
         attach = False
         result = ManageVMDisks.iso_image_management(module, rest_client, iso, uuid, attach)
         rest_client.update_record.assert_called_with(
-            "/rest/v1/VirDomainBlockDevice/disk_id",
+            f"{REST_API_VERSION}/VirDomainBlockDevice/disk_id",
             dict(
                 path="",
                 name="",
@@ -2476,7 +2477,7 @@ class TestManageVMDisks:
         vm = VM(name="vm-name", memory=42, vcpu=2, uuid="id", power_state="shutdown")
         ManageVMDisks._update_block_device(module, rest_client, desired_disk, existing_disk, vm)
         rest_client.update_record.assert_called_with(
-            "/rest/v1/VirDomainBlockDevice/id",
+            f"{REST_API_VERSION}/VirDomainBlockDevice/id",
             {
                 "cacheMode": "NONE",
                 "capacity": 4200,
@@ -2637,7 +2638,7 @@ class TestManageVMDisks:
             module, rest_client, VM.from_hypercore(vm, rest_client), changed, disk_key
         )
         rest_client.delete_record.assert_called_with(
-            "/rest/v1/VirDomainBlockDevice/disk-id",
+            f"{REST_API_VERSION}/VirDomainBlockDevice/disk-id",
             False,
         )
         assert changed

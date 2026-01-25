@@ -148,6 +148,7 @@ from ansible.plugins.inventory import Constructable
 from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
+from ..module_utils.utils import REST_API_VERSION
 
 logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
@@ -247,7 +248,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             )
         client = Client(host, username, password, timeout, auth_method)
         rest_client = RestClient(client)
-        vms = rest_client.list_records("/rest/v1/VirDomain")
+        vms = rest_client.list_records(f"{REST_API_VERSION}/VirDomain")
 
         for vm in vms:
             groups = []

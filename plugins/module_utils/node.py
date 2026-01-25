@@ -11,6 +11,7 @@ from __future__ import print_function
 __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 
 
 class Node(PayloadMapper):
@@ -63,6 +64,6 @@ class Node(PayloadMapper):
 
     @classmethod
     def get_node(cls, query, rest_client, must_exist=False):
-        hypercore_dict = rest_client.get_record("/rest/v1/Node", query, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/Node", query, must_exist=must_exist)
         node_from_hypercore = cls.from_hypercore(hypercore_dict)
         return node_from_hypercore

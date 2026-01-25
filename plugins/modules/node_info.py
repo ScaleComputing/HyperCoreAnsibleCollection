@@ -67,12 +67,13 @@ from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.node import Node
 from ..module_utils.rest_client import RestClient
+from ..module_utils.utils import REST_API_VERSION
 
 
 def run(rest_client):
     return [
         Node.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
-        for hypercore_dict in rest_client.list_records("/rest/v1/Node")
+        for hypercore_dict in rest_client.list_records(f"{REST_API_VERSION}/Node")
     ]
 
 

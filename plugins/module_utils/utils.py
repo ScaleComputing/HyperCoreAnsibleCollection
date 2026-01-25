@@ -26,6 +26,9 @@ from ..module_utils.typed_classes import TypedVMSnapshotToAnsible
 
 MIN_PYTHON_VERSION = (3, 8)
 
+# REST API version - can be changed to "/rest/v2" when migrating to v2 API
+REST_API_VERSION = "/rest/v1"
+
 
 # Used in case of check mode
 MOCKED_TASK_TAG = TypedTaskTag(

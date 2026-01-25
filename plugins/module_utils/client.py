@@ -31,6 +31,7 @@ from .errors import ApiResponseNotJson
 from .errors import AuthError
 from .errors import ScaleComputingError
 from .errors import UnexpectedAPIResponse
+from .utils import REST_API_VERSION
 
 DEFAULT_HEADERS = dict(Accept="application/json")
 
@@ -128,7 +129,7 @@ class Client:
         use_oidc = self.auth_method == AuthMethod.oidc.value
         resp = self._request(
             "POST",
-            f"{self.host}/rest/v1/login",
+            f"{self.host}{REST_API_VERSION}/login",
             data=json.dumps(
                 dict(
                     username=self.username,
@@ -150,7 +151,7 @@ class Client:
         }
         self._request(
             "POST",
-            f"{self.host}/rest/v1/logout",
+            f"{self.host}{REST_API_VERSION}/logout",
             # data=json.dumps({}),
             headers=headers,
             timeout=self.timeout,

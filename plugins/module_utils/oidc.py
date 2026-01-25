@@ -20,6 +20,7 @@ from ..module_utils.typed_classes import TypedOidcFromAnsible
 from ..module_utils.typed_classes import TypedOidcToAnsible
 from ..module_utils.typed_classes import TypedTaskTag
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 
 
 class Oidc(PayloadMapper):
@@ -41,7 +42,7 @@ class Oidc(PayloadMapper):
 
     @classmethod
     def get(cls, rest_client: RestClient) -> Optional[Oidc]:
-        result = rest_client.list_records("/rest/v1/OIDCConfig")
+        result = rest_client.list_records(f"{REST_API_VERSION}/OIDCConfig")
         if result:
             # One OIDC per cluster.
             return cls.from_hypercore(result[0])
@@ -93,8 +94,8 @@ class Oidc(PayloadMapper):
 
     def send_create_request(self, rest_client: RestClient) -> TypedTaskTag:
         payload = self.to_hypercore()
-        return rest_client.create_record("/rest/v1/OIDCConfig", payload, False)
+        return rest_client.create_record(f"{REST_API_VERSION}/OIDCConfig", payload, False)
 
     def send_update_request(self, rest_client: RestClient) -> TypedTaskTag:
         payload = self.to_hypercore()
-        return rest_client.update_record("/rest/v1/OIDCConfig/oidcconfig_uuid", payload, False)
+        return rest_client.update_record(f"{REST_API_VERSION}/OIDCConfig/oidcconfig_uuid", payload, False)

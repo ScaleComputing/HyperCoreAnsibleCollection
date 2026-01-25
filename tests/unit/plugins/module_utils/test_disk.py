@@ -10,6 +10,7 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.disk import Disk
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import ScaleComputingError
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.vm import VM
 
 pytestmark = pytest.mark.skipif(
@@ -428,7 +429,7 @@ class TestDisk:
         disk = Disk.get_by_uuid(disk_uuid, rest_client, must_exist=True)
 
         rest_client.get_record.assert_called_with(
-            "/rest/v1/VirDomainBlockDevice/disk_uuid",
+            f"{REST_API_VERSION}/VirDomainBlockDevice/disk_uuid",
             must_exist=True,
         )
 

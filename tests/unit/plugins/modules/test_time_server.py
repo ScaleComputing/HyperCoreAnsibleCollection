@@ -15,6 +15,7 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.time_server import TimeServer
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import time_server
 
 pytestmark = pytest.mark.skipif(
@@ -58,7 +59,7 @@ class TestModifyTimeServer:
         }
 
         called_with_dict = dict(
-            endpoint="/rest/v1/TimeSource/test",
+            endpoint=f"{REST_API_VERSION}/TimeSource/test",
             payload=dict(
                 host=param_source,
             ),

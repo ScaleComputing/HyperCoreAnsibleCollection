@@ -15,6 +15,7 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.time_zone import TimeZone
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import time_zone
 
 pytestmark = pytest.mark.skipif(
@@ -56,7 +57,7 @@ class TestModifyTimeZone:
         }
 
         called_with_dict = dict(
-            endpoint="/rest/v1/TimeZone/test",
+            endpoint=f"{REST_API_VERSION}/TimeZone/test",
             payload=dict(
                 timeZone=param_zone,
             ),

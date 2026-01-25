@@ -15,6 +15,7 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.smtp import SMTP
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import smtp
 
 pytestmark = pytest.mark.skipif(
@@ -206,7 +207,7 @@ class TestModifySMTP:
         }
 
         called_with_dict = dict(
-            endpoint="/rest/v1/AlertSMTPConfig/test",
+            endpoint=f"{REST_API_VERSION}/AlertSMTPConfig/test",
             payload=dict(
                 smtpServer=expected_server,
                 port=expected_port,

@@ -78,6 +78,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.typed_classes import TypedCertificateToAnsible
 from ..module_utils.typed_classes import TypedDiff
+from ..module_utils.utils import REST_API_VERSION
 from ..module_utils.typed_classes import TypedTaskTag
 
 
@@ -92,7 +93,7 @@ def upload_cert(module: AnsibleModule, rest_client: RestClient) -> TypedTaskTag:
         certificate=module.params["certificate"],
         privateKey=module.params["private_key"],
     )
-    response = rest_client.create_record("/rest/v1/Certificate", payload, False)
+    response = rest_client.create_record(f"{REST_API_VERSION}/Certificate", payload, False)
     return response
 
 

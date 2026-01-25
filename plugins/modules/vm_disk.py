@@ -298,6 +298,7 @@ from ..module_utils.iso import ISO
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
 from ..module_utils.utils import filter_dict
+from ..module_utils.utils import REST_API_VERSION
 from ..module_utils.vm import ManageVMDisks
 from ..module_utils.vm import compute_params_disk_slot
 
@@ -330,7 +331,7 @@ def ensure_absent(module, rest_client):
         if existing_disk.needs_reboot("delete"):
             vm_before.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.delete_record(
-            f"/rest/v1/VirDomainBlockDevice/{uuid}",
+            f"{REST_API_VERSION}/VirDomainBlockDevice/{uuid}",
             module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag, module.check_mode)

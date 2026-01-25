@@ -93,6 +93,7 @@ from ..module_utils.replication import Replication
 from ..module_utils.rest_client import RestClient
 from ..module_utils.state import ReplicationState
 from ..module_utils.task_tag import TaskTag
+from ..module_utils.utils import REST_API_VERSION
 from ..module_utils.vm import VM
 
 
@@ -114,7 +115,7 @@ def ensure_enabled_or_reenabled(module, rest_client):
             existing_replication_obj_list[0].state = ReplicationState.enabled
             data = existing_replication_obj_list[0].to_hypercore()
             rest_client.update_record(
-                endpoint="/rest/v1/VirDomainReplication/" + existing_replication_obj_list[0].replication_uuid,
+                endpoint=f"{REST_API_VERSION}/VirDomainReplication/{existing_replication_obj_list[0].replication_uuid}",
                 payload=data,
                 check_mode=False,
             )
@@ -136,7 +137,7 @@ def ensure_enabled_or_reenabled(module, rest_client):
             cluster_connection=cluster_connection,
         )
         data = new_replication_obj.to_hypercore()
-        response = rest_client.create_record(endpoint="/rest/v1/VirDomainReplication", payload=data, check_mode=False)
+        response = rest_client.create_record(endpoint=f"{REST_API_VERSION}/VirDomainReplication", payload=data, check_mode=False)
         TaskTag.wait_task(rest_client=rest_client, task=response)
         after = Replication.get(
             rest_client=rest_client,
@@ -164,7 +165,7 @@ def ensure_disabled(module, rest_client):
         existing_replication_obj_list[0].state = ReplicationState.disabled
         data = existing_replication_obj_list[0].to_hypercore()
         rest_client.update_record(
-            endpoint="/rest/v1/VirDomainReplication/" + existing_replication_obj_list[0].replication_uuid,
+            endpoint=f"{REST_API_VERSION}/VirDomainReplication/{existing_replication_obj_list[0].replication_uuid}",
             payload=data,
             check_mode=False,
         )

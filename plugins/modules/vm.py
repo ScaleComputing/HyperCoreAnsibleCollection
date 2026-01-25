@@ -409,6 +409,7 @@ from ..module_utils.client import Client
 from ..module_utils.hypercore_version import HyperCoreVersion
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
+from ..module_utils.utils import REST_API_VERSION
 from ..module_utils.vm import VM
 from ..module_utils.vm import ManageVMDisks
 from ..module_utils.vm import ManageVMNics
@@ -484,7 +485,7 @@ def ensure_present(module, rest_client):
         # Define the payload and create the VM
         payload = new_vm.post_vm_payload(rest_client, module.params)
         task_tag = rest_client.create_record(
-            "/rest/v1/VirDomain",
+            f"{REST_API_VERSION}/VirDomain",
             payload,
             module.check_mode,
         )
@@ -517,7 +518,7 @@ def ensure_absent(module, rest_client):
         if vm._power_state != "shutdown":  # First, shut it off and then delete
             # TODO ==shutdown or ==stopped ??
             vm.update_vm_power_state(module, rest_client, "stop", False)
-        task_tag = rest_client.delete_record(f"/rest/v1/VirDomain/{vm.uuid}", module.check_mode)
+        task_tag = rest_client.delete_record(f"{REST_API_VERSION}/VirDomain/{vm.uuid}", module.check_mode)
         TaskTag.wait_task(rest_client, task_tag)
         output = vm.to_ansible()
         return True, [output], dict(before=output, after=None), reboot

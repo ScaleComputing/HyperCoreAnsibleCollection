@@ -13,6 +13,7 @@ import sys
 
 import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import virtual_disk_info
 
 pytestmark = pytest.mark.skipif(
@@ -46,7 +47,7 @@ class TestRun:
 
         result = virtual_disk_info.run(module, rest_client)
         rest_client.list_records.assert_called_once_with(
-            "/rest/v1/VirtualDisk",
+            f"{REST_API_VERSION}/VirtualDisk",
             dict(name="vdisk-0"),
         )
         assert result == [

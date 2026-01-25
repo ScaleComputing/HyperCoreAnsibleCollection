@@ -65,10 +65,11 @@ from ..module_utils.client import Client
 from ..module_utils.oidc import Oidc
 from ..module_utils.rest_client import CachedRestClient
 from ..module_utils.typed_classes import TypedOidcToAnsible
+from ..module_utils.utils import REST_API_VERSION
 
 
 def run(module: AnsibleModule, rest_client: CachedRestClient) -> Tuple[bool, Optional[TypedOidcToAnsible]]:
-    oidc_list = rest_client.list_records("/rest/v1/OIDCConfig")
+    oidc_list = rest_client.list_records(f"{REST_API_VERSION}/OIDCConfig")
     if oidc_list:
         return False, Oidc.from_hypercore(oidc_list[0]).to_ansible()
     return False, None

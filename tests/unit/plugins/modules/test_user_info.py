@@ -13,6 +13,7 @@ import sys
 
 import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import user_info
 
 pytestmark = pytest.mark.skipif(
@@ -87,7 +88,7 @@ class TestRun:
 
         result = user_info.run(module, rest_client)
 
-        rest_client.list_records.assert_called_with("/rest/v1/User", {})
+        rest_client.list_records.assert_called_with(f"{REST_API_VERSION}/User", {})
         assert result == [
             {
                 "fullname": "fullname",
@@ -153,7 +154,7 @@ class TestRun:
 
         result = user_info.run(module, rest_client)
 
-        rest_client.list_records.assert_called_with("/rest/v1/User", {"username": "admin"})
+        rest_client.list_records.assert_called_with(f"{REST_API_VERSION}/User", {"username": "admin"})
         assert result == [
             {
                 "fullname": "admin",

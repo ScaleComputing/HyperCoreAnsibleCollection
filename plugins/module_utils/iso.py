@@ -12,6 +12,7 @@ __metaclass__ = type
 
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.utils import get_query
+from ..module_utils.utils import REST_API_VERSION
 
 
 class ISO(PayloadMapper):
@@ -99,7 +100,7 @@ class ISO(PayloadMapper):
         the record exists. If there is no record with such name, None is returned.
         """
         query = get_query(ansible_dict, "name", ansible_hypercore_map=dict(name="name"))
-        hypercore_dict = rest_client.get_record("/rest/v1/ISO", query, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/ISO", query, must_exist=must_exist)
         iso_from_hypercore = ISO.from_hypercore(hypercore_dict)
         return iso_from_hypercore
 

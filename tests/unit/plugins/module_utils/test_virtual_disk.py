@@ -15,6 +15,7 @@ from copy import deepcopy
 import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.errors import ScaleComputingError
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.virtual_disk import VirtualDisk
 
 pytestmark = pytest.mark.skipif(
@@ -799,7 +800,7 @@ class TestAttachToVm:
         virtual_disk.attach_to_vm(rest_client, payload)
 
         rest_client.create_record.assert_called_with(
-            endpoint="/rest/v1/VirtualDisk/asd-123123/attach",
+            endpoint=f"{REST_API_VERSION}/VirtualDisk/asd-123123/attach",
             payload=payload,
             check_mode=False,
         )

@@ -15,6 +15,7 @@ import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils import errors
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.dns_config import DNSConfig
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 from ansible_collections.scale_computing.hypercore.plugins.modules import dns_config
 
 pytestmark = pytest.mark.skipif(
@@ -166,7 +167,7 @@ class TestModifyDNSConfig:
         }
 
         called_with_dict = dict(
-            endpoint="/rest/v1/DNSConfig/test",
+            endpoint=f"{REST_API_VERSION}/DNSConfig/test",
             payload=dict(searchDomains=expected_search_domains, serverIPs=expected_server_ips),
             check_mode=False,
         )

@@ -142,6 +142,7 @@ from ..module_utils.client import Client
 from ..module_utils.rest_client import RestClient
 from ..module_utils.snapshot_schedule import SnapshotSchedule
 from ..module_utils.task_tag import TaskTag
+from ..module_utils.utils import REST_API_VERSION
 
 
 def ensure_present(module, rest_client):
@@ -154,7 +155,7 @@ def ensure_present(module, rest_client):
         if snapshot_schedule_desired.recurrences != snapshot_schedule_before.recurrences:
             # If desired and recurrence rules before differ, snapshot schedule has to be updated
             rest_client.update_record(
-                f"/rest/v1/VirDomainSnapshotSchedule/{snapshot_schedule_before.uuid}",
+                f"{REST_API_VERSION}/VirDomainSnapshotSchedule/{snapshot_schedule_before.uuid}",
                 snapshot_schedule_before.create_patch_payload(module.params["recurrences"]),
                 module.check_mode,
             )
@@ -163,7 +164,7 @@ def ensure_present(module, rest_client):
         before = None
         new_snapshot_schedule = SnapshotSchedule.from_ansible(module.params)
         task = rest_client.create_record(
-            "/rest/v1/VirDomainSnapshotSchedule",
+            f"{REST_API_VERSION}/VirDomainSnapshotSchedule",
             new_snapshot_schedule.create_post_payload(),
             module.check_mode,
         )
@@ -176,9 +177,9 @@ def ensure_present(module, rest_client):
 def ensure_absent(module, rest_client):
     snapshot_schedule = SnapshotSchedule.get_by_name(module.params, rest_client)
     if snapshot_schedule:
-        # No task tag is returned with DELETE on "/rest/v1/VirDomainSnapshotSchedule/{uuid}"
+        # No task tag is returned with DELETE on "{REST_API_VERSION}/VirDomainSnapshotSchedule/{uuid}"
         task = rest_client.delete_record(
-            f"/rest/v1/VirDomainSnapshotSchedule/{snapshot_schedule.uuid}",
+            f"{REST_API_VERSION}/VirDomainSnapshotSchedule/{snapshot_schedule.uuid}",
             module.check_mode,
         )
         if task["taskTag"] == "":

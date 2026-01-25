@@ -23,6 +23,7 @@ from ..module_utils.typed_classes import TypedTaskTag
 # from .client import Client
 from ..module_utils.utils import PayloadMapper
 from ..module_utils.utils import get_query
+from ..module_utils.utils import REST_API_VERSION
 from .rest_client import RestClient
 
 
@@ -105,7 +106,7 @@ class EmailAlert(PayloadMapper):
         must_exist: bool = False,
     ) -> Optional[EmailAlert]:
         query = get_query(ansible_dict, "uuid", ansible_hypercore_map=dict(uuid="uuid"))
-        hypercore_dict = rest_client.get_record("/rest/v1/AlertEmailTarget", query, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/AlertEmailTarget", query, must_exist=must_exist)
         alert_email_from_hypercore = cls.from_hypercore(hypercore_dict)
         return alert_email_from_hypercore
 
@@ -121,7 +122,7 @@ class EmailAlert(PayloadMapper):
             "email",
             ansible_hypercore_map=dict(email="emailAddress"),
         )
-        hypercore_dict = rest_client.get_record("/rest/v1/AlertEmailTarget", query, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/AlertEmailTarget", query, must_exist=must_exist)
 
         alert_email_from_hypercore = EmailAlert.from_hypercore(hypercore_dict)
         return alert_email_from_hypercore
@@ -137,7 +138,7 @@ class EmailAlert(PayloadMapper):
             "email",
             ansible_hypercore_map=dict(email="emailAddress"),
         )
-        hypercore_dict_list = rest_client.list_records("/rest/v1/AlertEmailTarget", query)
+        hypercore_dict_list = rest_client.list_records(f"{REST_API_VERSION}/AlertEmailTarget", query)
 
         alert_email_from_hypercore_list = [EmailAlert.from_hypercore(hc_dict) for hc_dict in hypercore_dict_list]
         return alert_email_from_hypercore_list
@@ -149,7 +150,7 @@ class EmailAlert(PayloadMapper):
     ):
         state = [
             EmailAlert.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
-            for hypercore_dict in rest_client.list_records("/rest/v1/AlertEmailTarget/")
+            for hypercore_dict in rest_client.list_records(f"{REST_API_VERSION}/AlertEmailTarget/")
         ]
 
         return state
@@ -161,7 +162,7 @@ class EmailAlert(PayloadMapper):
         payload: Dict[Any, Any],
         check_mode: bool = False,
     ):
-        task_tag = rest_client.create_record("/rest/v1/AlertEmailTarget/", payload, check_mode)
+        task_tag = rest_client.create_record(f"{REST_API_VERSION}/AlertEmailTarget/", payload, check_mode)
         email_alert = cls.get_by_uuid(
             dict(uuid=task_tag["createdUUID"]),
             rest_client,
@@ -175,18 +176,18 @@ class EmailAlert(PayloadMapper):
         payload: Dict[Any, Any],
         check_mode: bool = False,
     ) -> None:
-        rest_client.update_record(f"/rest/v1/AlertEmailTarget/{self.uuid}", payload, check_mode)
+        rest_client.update_record(f"{REST_API_VERSION}/AlertEmailTarget/{self.uuid}", payload, check_mode)
 
     def delete(
         self,
         rest_client: RestClient,
         check_mode: bool = False,
     ) -> None:
-        rest_client.delete_record(f"/rest/v1/AlertEmailTarget/{self.uuid}", check_mode)
+        rest_client.delete_record(f"{REST_API_VERSION}/AlertEmailTarget/{self.uuid}", check_mode)
 
     def test(
         self,
         rest_client: RestClient,
     ) -> TypedTaskTag:
-        response = rest_client.client.post(f"/rest/v1/AlertEmailTarget/{self.uuid}/test", None)
+        response = rest_client.client.post(f"{REST_API_VERSION}/AlertEmailTarget/{self.uuid}/test", None)
         return response

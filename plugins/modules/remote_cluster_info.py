@@ -87,12 +87,13 @@ from ..module_utils.client import Client
 from ..module_utils.remote_cluster import RemoteCluster
 from ..module_utils.rest_client import RestClient
 from ..module_utils.utils import filter_results
+from ..module_utils.utils import REST_API_VERSION
 
 
 def run(module, rest_client):
     records = [
         RemoteCluster.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
-        for hypercore_dict in rest_client.list_records("/rest/v1/RemoteClusterConnection")
+        for hypercore_dict in rest_client.list_records(f"{REST_API_VERSION}/RemoteClusterConnection")
     ]
     # Since get_query doesn't work for nested parameters (name -> remoteClusterInfo.clusterName) we have this workaround
     # In case of additional modules needing this functionality, get_query (and is_superset()) will have to be updated

@@ -163,6 +163,7 @@ from ..module_utils.client import Client
 from ..module_utils.iso import ISO
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
+from ..module_utils.utils import REST_API_VERSION
 
 __COMMENT = """
 ISO_TIMEOUT_TIME is timeout for ISO data upload.
@@ -189,7 +190,7 @@ def ensure_present(module, rest_client):
         ready_for_insert=False,
     )
     task_tag_create = rest_client.create_record(
-        "/rest/v1/ISO",
+        f"{REST_API_VERSION}/ISO",
         payload=iso_image.build_iso_post_paylaod(),
         check_mode=False,
     )
@@ -201,7 +202,7 @@ def ensure_present(module, rest_client):
         file_size = os.stat(module.params["source"]).st_size
         with open(module.params["source"], "rb") as source_file:
             rest_client.put_record(
-                endpoint=f"/rest/v1/ISO/{iso_uuid}/data",
+                endpoint=f"{REST_API_VERSION}/ISO/{iso_uuid}/data",
                 payload=None,
                 check_mode=module.check_mode,
                 timeout=ISO_TIMEOUT_TIME,
@@ -219,7 +220,7 @@ def ensure_present(module, rest_client):
 
     # Now the ISO image is ready for insertion. Updating readyForInsert to True.
     task_tag_update = rest_client.update_record(
-        endpoint=f"/rest/v1/ISO/{iso_uuid}",
+        endpoint=f"{REST_API_VERSION}/ISO/{iso_uuid}",
         payload=dict(readyForInsert=True),
         check_mode=module.check_mode,
     )
@@ -232,7 +233,7 @@ def ensure_absent(module, rest_client):
     iso_image = ISO.get_by_name(module.params, rest_client)
     if iso_image:
         task_tag_delete = rest_client.delete_record(
-            endpoint=f"/rest/v1/ISO/{iso_image.uuid}",
+            endpoint=f"{REST_API_VERSION}/ISO/{iso_image.uuid}",
             check_mode=module.check_mode,
         )
         TaskTag.wait_task(rest_client, task_tag_delete)

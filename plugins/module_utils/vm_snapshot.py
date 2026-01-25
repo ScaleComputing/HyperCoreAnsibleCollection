@@ -24,6 +24,7 @@ from ..module_utils.typed_classes import TypedTaskTag
 from ..module_utils.typed_classes import TypedVMSnapshotFromAnsible
 from ..module_utils.typed_classes import TypedVMSnapshotToAnsible
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 from ..module_utils.vm import VM
 from .rest_client import RestClient
 
@@ -206,7 +207,7 @@ class VMSnapshot(PayloadMapper):
         cls, snapshot_uuid: str, rest_client: RestClient, must_exist: bool = False
     ) -> Optional[VMSnapshot]:
         hypercore_dict = rest_client.get_record(
-            endpoint=f"/rest/v1/VirDomainSnapshot/{snapshot_uuid}",
+            endpoint=f"{REST_API_VERSION}/VirDomainSnapshot/{snapshot_uuid}",
             must_exist=must_exist,
         )
         vm_snapshot = cls.from_hypercore(hypercore_dict)
@@ -220,7 +221,7 @@ class VMSnapshot(PayloadMapper):
     ) -> List[TypedVMSnapshotToAnsible]:
         snapshots = [
             cls.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
-            for hypercore_dict in rest_client.list_records("/rest/v1/VirDomainSnapshot", query)
+            for hypercore_dict in rest_client.list_records(f"{REST_API_VERSION}/VirDomainSnapshot", query)
         ]
 
         return snapshots
@@ -253,13 +254,13 @@ class VMSnapshot(PayloadMapper):
     def send_create_request(self, rest_client: RestClient) -> TypedTaskTag:
         payload = self.to_hypercore()
         payload.pop("uuid")  # "uuid" is not allowed
-        return rest_client.create_record("/rest/v1/VirDomainSnapshot", payload, False)
+        return rest_client.create_record(f"{REST_API_VERSION}/VirDomainSnapshot", payload, False)
 
     @staticmethod
     def send_delete_request(rest_client: RestClient, snapshot_uuid: Optional[str]) -> TypedTaskTag:
         if not snapshot_uuid:
             raise ScaleComputingError("Missing Snapshot UUID inside delete request.")
-        return rest_client.delete_record(f"/rest/v1/VirDomainSnapshot/{snapshot_uuid}", False)
+        return rest_client.delete_record(f"{REST_API_VERSION}/VirDomainSnapshot/{snapshot_uuid}", False)
 
     @classmethod
     # Used to rename dict keys of a hypercore object that doesn't have an implemented class
@@ -278,7 +279,7 @@ class VMSnapshot(PayloadMapper):
     @classmethod
     def get_vm_disk_info_by_uuid(cls, disk_uuid: str, rest_client: RestClient) -> Optional[Dict[Any, Any]]:
         record_dict = rest_client.get_record(
-            endpoint="/rest/v1/VirDomainBlockDevice",
+            endpoint=f"{REST_API_VERSION}/VirDomainBlockDevice",
             query={"uuid": disk_uuid},
         )
         return cls.hypercore_disk_to_ansible(record_dict)
@@ -286,7 +287,7 @@ class VMSnapshot(PayloadMapper):
     @classmethod
     def get_vm_disk_info(cls, vm_uuid: str, slot: int, _type: str, rest_client: RestClient) -> Optional[Dict[Any, Any]]:
         record_dict = rest_client.get_record(
-            endpoint="/rest/v1/VirDomainBlockDevice",
+            endpoint=f"{REST_API_VERSION}/VirDomainBlockDevice",
             query={
                 "virDomainUUID": vm_uuid,
                 "slot": slot,
@@ -319,7 +320,7 @@ class VMSnapshot(PayloadMapper):
     @classmethod
     # Get VM UUID of a VM which does not have this snapshot
     def get_external_vm_uuid(cls, vm_name: str, rest_client: RestClient) -> Any:
-        vm_hypercore_dict = rest_client.get_record(endpoint="/rest/v1/VirDomain", query={"name": vm_name})
+        vm_hypercore_dict = rest_client.get_record(endpoint=f"{REST_API_VERSION}/VirDomain", query={"name": vm_name})
         if vm_hypercore_dict is None:
             return None
 

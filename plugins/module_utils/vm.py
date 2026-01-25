@@ -37,6 +37,7 @@ from ..module_utils.utils import filter_results
 from ..module_utils.utils import get_query
 from ..module_utils.utils import is_superset
 from ..module_utils.utils import transform_query
+from ..module_utils.utils import REST_API_VERSION
 
 # HyperCore state (ansible power_state) are a state machine.
 # We have states and actions to move between states.
@@ -461,7 +462,7 @@ class VM(PayloadMapper):
     @classmethod
     def get(cls, query, rest_client):  # if query is None, return list of all VMs
         record = rest_client.list_records(
-            "/rest/v1/VirDomain",
+            f"{REST_API_VERSION}/VirDomain",
             query,
         )
         if not record:
@@ -471,7 +472,7 @@ class VM(PayloadMapper):
     @classmethod
     def get_or_fail(cls, query, rest_client):  # if vm is not found, raise exception
         record = rest_client.list_records(
-            "/rest/v1/VirDomain",
+            f"{REST_API_VERSION}/VirDomain",
             query,
         )
         if not record:
@@ -493,7 +494,7 @@ class VM(PayloadMapper):
         # name_field won't be equal to "vm_name" in case of updating the vm.
         # In that case, it's going to be equal to vm_name_new.
         query = get_query(ansible_dict, name_field, ansible_hypercore_map={name_field: "name"})
-        hypercore_dict = rest_client.get_record("/rest/v1/VirDomain", query, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/VirDomain", query, must_exist=must_exist)
         vm_from_hypercore = cls.from_hypercore(hypercore_dict, rest_client)
         return vm_from_hypercore
 
@@ -524,7 +525,7 @@ class VM(PayloadMapper):
             is_export=False,
         )
         return rest_client.create_record(
-            endpoint="/rest/v1/VirDomain/import",
+            endpoint=f"{REST_API_VERSION}/VirDomain/import",
             payload=data,
             check_mode=False,
             timeout=None,
@@ -662,7 +663,7 @@ class VM(PayloadMapper):
             if nic.vlan not in ansible_nic_uuid_list:
                 self.do_shutdown_steps(module, rest_client)
                 response = rest_client.delete_record(
-                    endpoint="/rest/v1/VirDomainNetDevice/" + nic.uuid, check_mode=False
+                    endpoint=f"{REST_API_VERSION}/VirDomainNetDevice/" + nic.uuid, check_mode=False
                 )
                 TaskTag.wait_task(rest_client, response)
                 changed = True
@@ -675,7 +676,7 @@ class VM(PayloadMapper):
             is_export=True,
         )
         return rest_client.create_record(
-            endpoint=f"/rest/v1/VirDomain/{self.uuid}/export",
+            endpoint=f"{REST_API_VERSION}/VirDomain/{self.uuid}/export",
             payload=data,
             check_mode=False,
             timeout=None,
@@ -705,7 +706,7 @@ class VM(PayloadMapper):
             source_snapshot_uuid=source_snapshot_uuid,
         )
         return rest_client.create_record(
-            endpoint=f"/rest/v1/VirDomain/{self.uuid}/clone",
+            endpoint=f"{REST_API_VERSION}/VirDomain/{self.uuid}/clone",
             payload=data,
             check_mode=False,
             timeout=None,
@@ -780,7 +781,7 @@ class VM(PayloadMapper):
         # uuid is vm's uuid. boot_order is the desired order we want to set to boot devices
         vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
-            f"/rest/v1/VirDomain/{vm.uuid}",
+            f"{REST_API_VERSION}/VirDomain/{vm.uuid}",
             dict(bootDevices=boot_order),
             module.check_mode,
         )
@@ -844,7 +845,7 @@ class VM(PayloadMapper):
 
         try:
             task_tag = rest_client.create_record(
-                "/rest/v1/VirDomain/action",
+                f"{REST_API_VERSION}/VirDomain/action",
                 [
                     dict(
                         virDomainUUID=self.uuid,
@@ -907,7 +908,7 @@ class VM(PayloadMapper):
         if "force_reboot" not in module.params:
             raise errors.ScaleComputingError("Force shutdown is not supported by this module.")
         # Get fresh VM data, in case vm_params changed power state.
-        vm_fresh_data = rest_client.get_record(f"/rest/v1/VirDomain/{self.uuid}", must_exist=True)
+        vm_fresh_data = rest_client.get_record(f"{REST_API_VERSION}/VirDomain/{self.uuid}", must_exist=True)
         if vm_fresh_data["state"] in ["SHUTOFF", "SHUTDOWN"]:
             return True
         if module.params["force_reboot"] and self._was_nice_shutdown_tried:
@@ -924,7 +925,7 @@ class VM(PayloadMapper):
         # Send GET request every 10 seconds.
         # Returns True if successful, False if unsuccessful
         # Get fresh VM data, there is an error if VM is not running and shutdown request is sent.
-        vm_fresh_data = rest_client.get_record(f"/rest/v1/VirDomain/{self.uuid}", must_exist=True)
+        vm_fresh_data = rest_client.get_record(f"{REST_API_VERSION}/VirDomain/{self.uuid}", must_exist=True)
         if vm_fresh_data["state"] in ["SHUTOFF", "SHUTDOWN"]:
             return True
         if (
@@ -936,7 +937,7 @@ class VM(PayloadMapper):
             shutdown_timeout = module.params["shutdown_timeout"]
             start = time()
             while 1:
-                vm = rest_client.get_record(f"/rest/v1/VirDomain/{self.uuid}", must_exist=True)
+                vm = rest_client.get_record(f"{REST_API_VERSION}/VirDomain/{self.uuid}", must_exist=True)
                 current_time = time() - start
                 if vm["state"] in ["SHUTDOWN", "SHUTOFF"]:
                     self._did_nice_shutdown_work = True
@@ -1172,7 +1173,7 @@ class ManageVMParams(VM):
 
         if changed:
             payload = ManageVMParams._build_payload(module, rest_client)
-            endpoint = f"/rest/v1/VirDomain/{vm.uuid}"
+            endpoint = f"{REST_API_VERSION}/VirDomain/{vm.uuid}"
             task_tag = rest_client.update_record(endpoint, payload, module.check_mode)
             TaskTag.wait_task(rest_client, task_tag)
 
@@ -1251,7 +1252,7 @@ class ManageVMDisks:
         # vm is instance of VM, desired_disk is instance of Disk
         payload = desired_disk.post_and_patch_payload(vm, None)
         task_tag = rest_client.create_record(
-            "/rest/v1/VirDomainBlockDevice",
+            f"{REST_API_VERSION}/VirDomainBlockDevice",
             payload,
             module.check_mode,
         )
@@ -1265,7 +1266,7 @@ class ManageVMDisks:
         # If false, it means you're detaching an image.
         payload = iso.attach_iso_payload() if attach else iso.detach_iso_payload()
         task_tag = rest_client.update_record(
-            f"/rest/v1/VirDomainBlockDevice/{uuid}",
+            f"{REST_API_VERSION}/VirDomainBlockDevice/{uuid}",
             payload,
             module.check_mode,
         )
@@ -1279,7 +1280,7 @@ class ManageVMDisks:
         if existing_disk.needs_reboot("update", desired_disk):
             vm.do_shutdown_steps(module, rest_client)
         task_tag = rest_client.update_record(
-            f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
+            f"{REST_API_VERSION}/VirDomainBlockDevice/{existing_disk.uuid}",
             payload,
             module.check_mode,
         )
@@ -1307,7 +1308,7 @@ class ManageVMDisks:
                 if existing_disk.needs_reboot("delete"):
                     vm.do_shutdown_steps(module, rest_client)
                 task_tag = rest_client.delete_record(
-                    f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
+                    f"{REST_API_VERSION}/VirDomainBlockDevice/{existing_disk.uuid}",
                     module.check_mode,
                 )
                 try:
@@ -1319,13 +1320,13 @@ class ManageVMDisks:
                         raise
                     if not cls._disk_remove_failed_because_vm_running(ex.task_status):
                         raise
-                    vm_fresh_data = rest_client.get_record(f"/rest/v1/VirDomain/{vm.uuid}", must_exist=True)
+                    vm_fresh_data = rest_client.get_record(f"{REST_API_VERSION}/VirDomain/{vm.uuid}", must_exist=True)
                     if vm_fresh_data["state"] != "RUNNING":
                         raise
                     # shutdown and retry remove
                     vm.do_shutdown_steps(module, rest_client)
                     task_tag = rest_client.delete_record(
-                        f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
+                        f"{REST_API_VERSION}/VirDomainBlockDevice/{existing_disk.uuid}",
                         module.check_mode,
                     )
                     TaskTag.wait_task(rest_client, task_tag, module.check_mode)
@@ -1357,7 +1358,7 @@ class ManageVMDisks:
         # Delete all disks
         for existing_disk in vm.disks:
             task_tag = rest_client.delete_record(
-                f"/rest/v1/VirDomainBlockDevice/{existing_disk.uuid}",
+                f"{REST_API_VERSION}/VirDomainBlockDevice/{existing_disk.uuid}",
                 module.check_mode,
             )
             TaskTag.wait_task(rest_client, task_tag, module.check_mode)
@@ -1454,7 +1455,7 @@ class ManageVMNics(Nic):
     @classmethod
     def get_by_uuid(cls, rest_client, nic_uuid):
         return Nic.from_hypercore(
-            rest_client.get_record("/rest/v1/VirDomainNetDevice", query={"uuid": nic_uuid}, must_exist=True)
+            rest_client.get_record(f"{REST_API_VERSION}/VirDomainNetDevice", query={"uuid": nic_uuid}, must_exist=True)
         )
 
     @classmethod
@@ -1474,7 +1475,7 @@ class ManageVMNics(Nic):
         data = new_nic.to_hypercore()
         virtual_machine_obj.do_shutdown_steps(module, rest_client)
         response = rest_client.update_record(
-            endpoint="/rest/v1/VirDomainNetDevice/" + existing_nic.uuid,
+            endpoint=f"{REST_API_VERSION}/VirDomainNetDevice/" + existing_nic.uuid,
             payload=data,
             check_mode=False,
         )
@@ -1490,7 +1491,7 @@ class ManageVMNics(Nic):
         before.append(None)
         data = new_nic.to_hypercore()
         virtual_machine_obj.do_shutdown_steps(module, rest_client)
-        response = rest_client.create_record(endpoint="/rest/v1/VirDomainNetDevice", payload=data, check_mode=False)
+        response = rest_client.create_record(endpoint=f"{REST_API_VERSION}/VirDomainNetDevice", payload=data, check_mode=False)
         TaskTag.wait_task(rest_client=rest_client, task=response)
         new_nic_obj = ManageVMNics.get_by_uuid(rest_client=rest_client, nic_uuid=response["createdUUID"])
         after.append(new_nic_obj.to_ansible())
@@ -1505,7 +1506,7 @@ class ManageVMNics(Nic):
         before.append(nic_to_delete.to_ansible())
         virtual_machine_obj.do_shutdown_steps(module, rest_client)
         response = rest_client.delete_record(
-            endpoint="/rest/v1/VirDomainNetDevice/" + nic_to_delete.uuid,
+            endpoint=f"{REST_API_VERSION}/VirDomainNetDevice/" + nic_to_delete.uuid,
             check_mode=False,
         )
         TaskTag.wait_task(rest_client=rest_client, task=response)

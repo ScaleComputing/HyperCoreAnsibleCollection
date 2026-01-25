@@ -14,6 +14,7 @@ from ..module_utils import errors
 from ..module_utils.remote_cluster import RemoteCluster
 from ..module_utils.state import ReplicationState
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 from ..module_utils.vm import VM
 
 
@@ -48,7 +49,7 @@ class Replication(PayloadMapper):
     @classmethod
     def get(cls, query, rest_client):
         record = rest_client.list_records(
-            endpoint="/rest/v1/VirDomainReplication/",
+            endpoint=f"{REST_API_VERSION}/VirDomainReplication/",
             query=query,
         )
         if not record:
@@ -83,7 +84,7 @@ class Replication(PayloadMapper):
     def find_available_cluster_connection_or_fail(rest_client, ansible_dict):
         # Find the right cluster connection or fail!
         records = rest_client.list_records(
-            endpoint="/rest/v1/RemoteClusterConnection",
+            endpoint=f"{REST_API_VERSION}/RemoteClusterConnection",
             query=None,
         )
         if not records:

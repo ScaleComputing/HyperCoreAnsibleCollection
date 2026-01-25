@@ -24,6 +24,7 @@ from ..module_utils.typed_classes import TypedTaskTag
 from ..module_utils.typed_classes import TypedUpdateStatusToAnsible
 from ..module_utils.typed_classes import TypedUpdateToAnsible
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 
 
 class HyperCoreVersion:
@@ -41,7 +42,7 @@ class HyperCoreVersion:
     @property
     def version(self) -> str:
         if not self._version:
-            record = self._rest_client.get_record("/rest/v1/Cluster")
+            record = self._rest_client.get_record(f"{REST_API_VERSION}/Cluster")
             if record is None or "icosVersion" not in record or not isinstance(record["icosVersion"], str):
                 raise AssertionError("HyperCore version not found in REST API response.")
             self._version = record["icosVersion"]
@@ -235,7 +236,7 @@ class Update(PayloadMapper):
     ) -> Optional[Update]:
         # api has a bug - the endpoint "/rest/v1/Update/{uuid}" returns a list of all available updates (and uuid can actually be anything),
         # that is why query is used
-        update = rest_client.get_record(f"/rest/v1/Update/{uuid}", query=dict(uuid=uuid), must_exist=must_exist)
+        update = rest_client.get_record(f"{REST_API_VERSION}/Update/{uuid}", query=dict(uuid=uuid), must_exist=must_exist)
         return cls.from_hypercore(update)
 
     @classmethod
@@ -245,7 +246,7 @@ class Update(PayloadMapper):
         version: str,
         check_mode: bool = False,
     ) -> TypedTaskTag:
-        return rest_client.create_record(f"/rest/v1/Update/{version}/apply", payload=None, check_mode=check_mode)
+        return rest_client.create_record(f"{REST_API_VERSION}/Update/{version}/apply", payload=None, check_mode=check_mode)
 
 
 class UpdateStatus(PayloadMapper):

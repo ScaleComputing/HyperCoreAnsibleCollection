@@ -9,6 +9,7 @@ import sys
 import pytest
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.role import Role
 from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import MIN_PYTHON_VERSION
+from ansible_collections.scale_computing.hypercore.plugins.module_utils.utils import REST_API_VERSION
 
 pytestmark = pytest.mark.skipif(
     sys.version_info < MIN_PYTHON_VERSION,
@@ -81,7 +82,7 @@ class TestRole:
         role_from_hypercore = Role.get_role_from_uuid(role_uuid, rest_client)
 
         rest_client.get_record.assert_called_with(
-            "/rest/v1/Role/51e6d073-7566-4273-9196-58720117bd7f",
+            f"{REST_API_VERSION}/Role/51e6d073-7566-4273-9196-58720117bd7f",
             must_exist=False,
         )
         assert role_from_hypercore == Role(
@@ -99,7 +100,7 @@ class TestRole:
         role_from_hypercore = Role.get_role_from_name(role_name, rest_client)
 
         rest_client.get_record.assert_called_with(
-            "/rest/v1/Role",
+            f"{REST_API_VERSION}/Role",
             {"name": "Admin"},
             must_exist=False,
         )

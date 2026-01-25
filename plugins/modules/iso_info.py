@@ -100,13 +100,14 @@ from ..module_utils.client import Client
 from ..module_utils.iso import ISO
 from ..module_utils.rest_client import RestClient
 from ..module_utils.utils import get_query
+from ..module_utils.utils import REST_API_VERSION
 
 
 def run(module, rest_client):
     query = get_query(module.params, "name", ansible_hypercore_map=dict(name="name"))
     return [
         ISO.from_hypercore(hypercore_data=hypercore_dict).to_ansible()
-        for hypercore_dict in rest_client.list_records("/rest/v1/ISO", query)
+        for hypercore_dict in rest_client.list_records(f"{REST_API_VERSION}/ISO", query)
     ]
 
 

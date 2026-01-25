@@ -154,6 +154,7 @@ from ..module_utils import errors
 from ..module_utils.client import Client
 from ..module_utils.rest_client import CachedRestClient
 from ..module_utils.utils import get_query
+from ..module_utils.utils import REST_API_VERSION
 from ..module_utils.vm import VM
 
 
@@ -165,7 +166,7 @@ def run(module, rest_client):
     )
     return [
         VM.from_hypercore(vm_dict, rest_client).to_ansible()
-        for vm_dict in rest_client.list_records("/rest/v1/VirDomain", query)
+        for vm_dict in rest_client.list_records(f"{REST_API_VERSION}/VirDomain", query)
     ]
 
 

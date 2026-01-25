@@ -16,6 +16,7 @@ from ..module_utils.rest_client import RestClient
 from ..module_utils.role import Role
 from ..module_utils.typed_classes import TypedUserToAnsible
 from ..module_utils.utils import PayloadMapper
+from ..module_utils.utils import REST_API_VERSION
 
 
 class User(PayloadMapper):
@@ -84,18 +85,18 @@ class User(PayloadMapper):
 
     @classmethod
     def get_user_from_uuid(cls, user_uuid, rest_client: RestClient, must_exist: bool = False) -> Optional[User]:
-        hypercore_dict = rest_client.get_record(f"/rest/v1/User/{user_uuid}", must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/User/{user_uuid}", must_exist=must_exist)
         user = cls.from_hypercore(hypercore_dict)
         return user
 
     @classmethod
     def get_user_from_username(cls, username, rest_client: RestClient, must_exist: bool = False) -> Optional[User]:
-        hypercore_dict = rest_client.get_record("/rest/v1/User", {"username": username}, must_exist=must_exist)
+        hypercore_dict = rest_client.get_record(f"{REST_API_VERSION}/User", {"username": username}, must_exist=must_exist)
         user = cls.from_hypercore(hypercore_dict)
         return user
 
     def delete(self, rest_client: RestClient, check_mode: bool = False) -> None:
-        rest_client.delete_record(f"/rest/v1/User/{self.uuid}", check_mode)
+        rest_client.delete_record(f"{REST_API_VERSION}/User/{self.uuid}", check_mode)
         # returned:
         # {
         #     "taskTag": "",
@@ -103,7 +104,7 @@ class User(PayloadMapper):
         # }
 
     def update(self, rest_client: RestClient, payload, check_mode: bool = False) -> None:
-        rest_client.update_record(f"/rest/v1/User/{self.uuid}", payload, check_mode)
+        rest_client.update_record(f"{REST_API_VERSION}/User/{self.uuid}", payload, check_mode)
         # returned:
         # {
         #     "taskTag": "",
@@ -112,7 +113,7 @@ class User(PayloadMapper):
 
     @classmethod
     def create(cls, rest_client: RestClient, payload, check_mode=False) -> User:
-        task_tag = rest_client.create_record("/rest/v1/User", payload, check_mode)
+        task_tag = rest_client.create_record(f"{REST_API_VERSION}/User", payload, check_mode)
         user = cls.get_user_from_uuid(task_tag["createdUUID"], rest_client, must_exist=True)
         return user  # type: ignore # user is never None
         # returned

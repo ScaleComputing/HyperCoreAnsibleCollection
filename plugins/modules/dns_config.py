@@ -128,6 +128,7 @@ from ..module_utils.client import Client
 from ..module_utils.dns_config import DNSConfig
 from ..module_utils.rest_client import RestClient
 from ..module_utils.task_tag import TaskTag
+from ..module_utils.utils import REST_API_VERSION
 
 
 def build_entry_list(
@@ -182,7 +183,7 @@ def modify_dns_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[b
     if not dns_config:
         module.warn("DNS Config: There is no DNS configuration.")
         create_task_tag = rest_client.create_record(
-            endpoint="/rest/v1/DNSConfig",
+            endpoint=f"{REST_API_VERSION}/DNSConfig",
             payload=dict(searchDomains=new_search_domains, serverIPs=new_dns_servers),
             check_mode=module.check_mode,
         )
@@ -227,7 +228,7 @@ def modify_dns_config(module: AnsibleModule, rest_client: RestClient) -> Tuple[b
     # create_record method uses method POST.
     # [ NOTE: PUT method is not allowed on DNS Config ]
     task_tag = getattr(rest_client, f"{action}_record")(
-        endpoint=f"/rest/v1/DNSConfig/{dns_config.uuid}",
+        endpoint=f"{REST_API_VERSION}/DNSConfig/{dns_config.uuid}",
         payload=dict(searchDomains=new_search_domains, serverIPs=new_dns_servers),
         check_mode=module.check_mode,
     )

@@ -165,6 +165,7 @@ from ..module_utils.client import Client
 from ..module_utils.hypercore_version import Update
 from ..module_utils.rest_client import RestClient
 from ..module_utils.typed_classes import TypedUpdateToAnsible
+from ..module_utils.utils import REST_API_VERSION
 
 
 def run(
@@ -176,7 +177,7 @@ def run(
 ]:
     records = [
         Update.from_hypercore(hypercore_data=hypercore_dict).to_ansible()  # type: ignore
-        for hypercore_dict in rest_client.list_records("/rest/v1/Update")
+        for hypercore_dict in rest_client.list_records(f"{REST_API_VERSION}/Update")
     ]
     if records:
         records.sort(key=operator.itemgetter("major_version", "minor_version", "revision", "build_id"))
