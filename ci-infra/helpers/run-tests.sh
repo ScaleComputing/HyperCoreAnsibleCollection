@@ -5,6 +5,7 @@
 # Input:
 # - outdir will contain status/progress file, and log files of individual tests
 # - (optional) test-names.txt contains integration tests to be run, one per line.
+#   If not given, all tests in tests/integration/targets/ are run.
 # Output:
 # - logs are one test per file, in outdir/log-timestamp/
 # - list of succeded/failed tests are in outdir/status.txt
@@ -12,6 +13,8 @@
 # - PEND (or contains just test name), test will be run
 # - SKIP means skip this test
 # - OK or ERR are set after test is run
+# On second run, only PEND tests are run.
+# If there are no PEND tests, the ERR tests are retried.
 
 set -ue
 # set -v
@@ -43,10 +46,22 @@ fi
 /bin/cp "$TSTATUS" "$OUTD2/status.txt"
 
 TEST_NAMES=$(grep "^PEND" "$TSTATUS" | awk '{print $2}')
+if [ -z "$TEST_NAMES" ]
+then
+    echo "No PEND tests, retrying ERR tests"
+    sed -i 's/^ERR/PEND/' "$TSTATUS"
+fi
+TEST_NAMES=$(grep "^PEND" "$TSTATUS" | awk '{print $2}')
+if [ -z "$TEST_NAMES" ]
+then
+    echo "No tests to run, exiting."
+    exit 0
+fi
 # shellcheck disable=SC2086
 echo "Pending tests: "$TEST_NAMES
 # shellcheck disable=SC2086
 TEST_COUNT=$(echo $TEST_NAMES | wc -w)
+
 ii=0
 for TN in $TEST_NAMES
 do
