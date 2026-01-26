@@ -40,14 +40,17 @@ then
     echo "ERROR file content $TSTATUS" 1>&2
     exit 1
 fi
+/bin/cp "$TSTATUS" "$OUTD2/status.txt"
 
 TEST_NAMES=$(grep "^PEND" "$TSTATUS" | awk '{print $2}')
 # shellcheck disable=SC2086
 echo "Pending tests: "$TEST_NAMES
 # shellcheck disable=SC2086
+TEST_COUNT=$(echo $TEST_NAMES | wc -w)
+ii=0
 for TN in $TEST_NAMES
 do
-    echo "Running test $TN"
+    echo "Running test $TN ($ii/$TEST_COUNT)"
     (
         echo ansible-test integration --local "$TN"
         echo "======================"
@@ -67,4 +70,5 @@ do
     ) >"$OUTD2/$TN.log" 2>&1
     res=$(grep $'\t'"$TN\$" "$TSTATUS" | awk '{print $1}')
     echo "  result $res $TN"
+    ii=$((ii+1))
 done
