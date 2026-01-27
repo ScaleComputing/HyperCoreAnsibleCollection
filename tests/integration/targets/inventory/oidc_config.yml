@@ -1,0 +1,10 @@
+---
+- name: Set OIDC configuration
+  hosts: localhost
+  gather_facts: False
+  vars:
+    oidc_config: "{{ sc_config[sc_host].oidc }}"
+
+  tasks:
+    - name: Import tasks setup_oidc_config.yml
+      import_tasks: tasks/setup_oidc_config.yml

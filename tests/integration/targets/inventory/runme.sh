@@ -55,6 +55,8 @@ ansible-playbook -i localhost, -i hypercore_inventory_ansible_both_false.yml run
 
 # test with OIDC user
 # We can do this only if OIDC login is configured.
+echo "Ensure OIDC login is setup on tested HyperCore."
+ansible-playbook -e @"$vars_file" oidc_config.yml
 echo "Testing inventory plugin with OIDC user."
 eval "$(cat <<EOF | python
 import yaml
