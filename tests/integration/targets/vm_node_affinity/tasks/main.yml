@@ -278,7 +278,9 @@
         that:
           - output is failed
           - output is not changed
-          - "'No records from endpoint /rest/v1/Node' in output.msg"
+          - >
+            ('No records from endpoint /rest/v1/Node' in output.msg) or
+            ('No records from endpoint /rest/v2/Node' in output.msg)
 
     - name: Check that affinity is not changed
       scale_computing.hypercore.vm_info:
@@ -304,7 +306,9 @@
         that:
           - output is failed
           - output is not changed
-          - "'No records from endpoint /rest/v1/Node' in output.msg"
+          - >
+            ('No records from endpoint /rest/v1/Node' in output.msg) or
+            ('No records from endpoint /rest/v2/Node' in output.msg)
 
     - name: Check that affinity is not changed
       scale_computing.hypercore.vm_info:
@@ -330,7 +334,9 @@
         that:
           - output is failed
           - output is not changed
-          - "'No records from endpoint /rest/v1/Node' in output.msg"
+          - >
+            ('No records from endpoint /rest/v1/Node' in output.msg) or
+            ('No records from endpoint /rest/v2/Node' in output.msg)
 
     - name: Check that affinity is not changed
       scale_computing.hypercore.vm_info:
@@ -356,7 +362,9 @@
         that:
           - output is failed
           - output is not changed
-          - "'No records from endpoint /rest/v1/Node' in output.msg"
+          - >
+            ('No records from endpoint /rest/v1/Node' in output.msg) or
+            ('No records from endpoint /rest/v2/Node' in output.msg)
 
     - name: Check that affinity is not changed
       scale_computing.hypercore.vm_info:

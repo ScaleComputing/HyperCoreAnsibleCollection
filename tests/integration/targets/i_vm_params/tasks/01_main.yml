@@ -184,7 +184,9 @@
     register: output
   - ansible.builtin.assert:
       that:
-        - "'No records from endpoint /rest/v1/VirDomainSnapshotSchedule' in output.msg"
+        - >
+          ('No records from endpoint /rest/v1/VirDomainSnapshotSchedule' in output.msg) or
+          ('No records from endpoint /rest/v2/VirDomainSnapshotSchedule' in output.msg)
 
   - name: Check VMs snapshot schedule isn't changed
     scale_computing.hypercore.vm_info:
