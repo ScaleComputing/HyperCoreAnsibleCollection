@@ -1,5 +1,11 @@
 dsmode: local
 local-hostname: "{{ vm_name }}"
+{#
+  Comment out network configuration to use cloud-init default
+  which is to enable DHCP on the first detected interface.
+  In generated /var/lib/cloud/instance/network-config.json is string "_orig_eni_name".
+  This is invalid cloud-init config.
+
 network-interfaces: |
   auto lo
   iface lo inet loopback
@@ -13,6 +19,8 @@ network-interfaces: |
   #   - CI VSNS v9.3.5 (https://10.5.11.203/)
   #   - CI VSNS v9.4.17 (https://10.5.11.205/)
   iface ens1 inet dhcp
+  # Device enp1s1 on VSNS 4.7.0.221603 prerelease
+  iface enp1 inet dhcp
 {% endif %}
 {% if vm_network_mode == "static" %}
   iface {{ vm_network_iface }} inet static
@@ -21,3 +29,4 @@ network-interfaces: |
     gateway {{ vm_network_gateway }}
     dns-nameservers {{ vm_network_dns_nameservers }}
 {% endif %}
+#}
