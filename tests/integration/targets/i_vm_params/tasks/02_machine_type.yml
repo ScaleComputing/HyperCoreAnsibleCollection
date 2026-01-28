@@ -210,6 +210,12 @@
         - not output.records[0].snapshot_schedule
 
   # ===================================================================
+  # Reset a running VM
+  - name: Check initial VM power_state
+    ansible.builtin.assert:
+      that:
+        - output.records[0].power_state == "started"
+
   - name: Set VMs power_state - reset
     scale_computing.hypercore.vm_params:
       vm_name: "{{ vm_name }}"
