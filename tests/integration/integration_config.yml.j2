@@ -35,6 +35,10 @@ sc_config:
       # pool.ntp.org servers frequently return KOD.
       # time.google.com does not complain.
       source: time.google.com
+      # We need 2 NTP servers.
+      # Set them up per ci-infra/ntp-chrony/Readme.md.
+      time_server_a: 10.5.11.5
+      time_server_b: 10.5.11.75
     time_zone:
       zone: US/Eastern
     dns_config:

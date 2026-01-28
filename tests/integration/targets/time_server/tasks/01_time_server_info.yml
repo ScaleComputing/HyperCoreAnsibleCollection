@@ -6,9 +6,7 @@
 
   vars:
     actual_uuid: "timesource_guid"
-    # We need 2 NTP servers.
-    # Set them up per ci-infra/ntp-chrony/Readme.md.
-    actual_host: "10.5.11.5"
+    actual_host: "{{ sc_config[sc_host].time_server.time_server_a }}"
 
   block:
     # -------------------------------------------------------

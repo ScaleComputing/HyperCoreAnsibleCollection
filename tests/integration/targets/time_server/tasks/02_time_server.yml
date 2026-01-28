@@ -5,10 +5,8 @@
     SC_PASSWORD: "{{ sc_config[sc_host].sc_password }}"
     SC_TIMEOUT: "{{ sc_timeout * 10 }}"
   vars:
-    # We need 2 NTP servers.
-    # Set them up per ci-infra/ntp-chrony/Readme.md.
-    time_server_a: 10.5.11.5
-    time_server_b: 10.5.11.75
+    time_server_a: "{{ sc_config[sc_host].time_server.time_server_a }}"
+    time_server_b: "{{ sc_config[sc_host].time_server.time_server_b }}"
     actual_uuid: timesource_guid
 
   block:
