@@ -213,6 +213,42 @@ Sample ansible.cfg is there to ensure collection does not need to be installed.
 ansible-playbook -i localhost, examples/iso_info.yml -v
 ```
 
+## Running integration tests
+
+Some test objects (ISO image, VirtualDisk, VM) needs to be created before we run integration tests.
+Use command:
+
+```bash
+ansible-playbook -i localhost, tests/integration/prepare/prepare_vm.yml -v
+ansible-playbook -i localhost, tests/integration/prepare/prepare_iso.yml -v
+ansible-playbook -i localhost, tests/integration/prepare/prepare_examples.yml -v
+```
+
+The `ansible-test integration` will try to run all integration test, and will fail on first problematic test.
+It does allow you to continue from the failed test.
+
+You might want to automatically continue running remaining tests.
+A few failed tests can be reviewed and retried later.
+The `./ci-infra/helpers/run-tests.sh` was made for this.
+If N tests fail in first pass, the `run-tests.sh` will retry only those N test in second pass.
+The script is used like:
+
+```bash
+source ci-infra/local-dev/env-host-4.sh
+./ci-infra/helpers/run-tests.sh outdir <tests.txt>
+```
+
+File `tests.txt` is optional input.
+It contains one test name per line.
+If ommited, all tests from `tests/integration` are run.
+
+After run, the scripts create in `outd` directory:
+
+- directory `log-${timestamp}` directory containing a log file for each run test
+- file `status.txt` contains OK/ERR/PEND/SKIP status for each run test
+
+On next run, only tests that have PEND/ERR status are retried.
+
 ## Creating a release
 
 Releases are automatically created when a tag is created with a name matching
@@ -231,7 +267,7 @@ ScaleComputing does setup new VSNS, with suitable HyperCore version installed.
 
 Steps:
  - Request / reserve static IP address from Alex
-   - either replacing existing static IP or using next in series 105.11.20x
+   - either replacing existing static IP or using next in series 10.5.11.20x
  - create empty VM with 1 virtio disk, type other, tag hc3nested, 16GB ram, 4 cores.
  - image new vSNS node using test iso image (vs. release - this may change in upcoming releases)
  - (optional) Save it as template VM, example name `vsns9213-unconfigured`
@@ -240,6 +276,7 @@ Steps:
    - `sudo singleNodeCluster=1 scclusterinit`
  - Save it as template VM, example name `vsns9213-template`
  - Create a final vSNS from template VM, example name `vsns9213-ci`
+   - keep same MAC address?
  - Add vSNS login URL to Azure OIDC redirectUris
    - ensure ip address is added to entraAD (azure) app registration for OIDC integration (ask Dave if needed)
       - "app_display_name": "Scale Computing HC3",

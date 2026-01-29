@@ -1,0 +1,20 @@
+---
+- name: Set OIDC configuration
+  scale_computing.hypercore.oidc_config:
+    client_id: "{{ oidc_config.client_id_default }}"
+    shared_secret: "{{ oidc_config.shared_secret_default }}"
+    config_url: "{{ oidc_config.config_url_default }}"
+    scopes: "openid+profile"
+
+- name: Get OIDC configuration
+  scale_computing.hypercore.api:
+    action: get
+    endpoint: /rest/v1/OIDCConfig
+  register: oidc_config_response
+
+- name: Assert OIDC is configured
+  ansible.builtin.assert:
+    that:
+      - oidc_config_response.record | length == 1
+      - oidc_config_response.record.0.clientID == oidc_config.client_id_default
+    fail_msg: "OIDC is not configured on the Scale Computing cluster."
