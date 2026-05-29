@@ -126,7 +126,7 @@
 - ansible.builtin.assert:
     that:
       - output is changed
-      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot-source - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone."
+      - output.msg == "Virtual machine - XLAB-vm_clone_CI-test-clone-from-snapshot-source - cloning complete to - XLAB-vm_clone_CI-test-clone-from-snapshot-clone and boot order was set - you can change it with vm_boot_devices module."
 
 - name: Assert that cloning was successful
   scale_computing.hypercore.vm_info:
