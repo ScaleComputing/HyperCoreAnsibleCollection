@@ -149,9 +149,22 @@ class TestRun:
                 source_snapshot_uuid=None,
             )
         )
-        rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
+        rest_client.get_record.side_effect = [
+            None,
+            None,
+            {},
+            {"state": "COMPLETE"},
+            None,
+            None,
+            {},
+            {"state": "COMPLETE"},
+        ]
         rest_client.create_record.return_value = {"taskTag": "1234"}
-        rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
+        rest_client.update_record.return_value = {"taskTag": "1234"}
+        rest_client.list_records.side_effect = [[], [self._get_empty_vm()], [self._get_empty_vm()]]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
@@ -161,7 +174,9 @@ class TestRun:
         results = vm_clone.run(module, rest_client)
         assert results == (
             True,
-            "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone.",
+            "Virtual machine - XLAB-test-vm - cloning complete to - "
+            "XLAB-test-vm-clone and boot order was not set - you can set it "
+            "with vm_boot_devices module.",
         )
 
     def test_run_when_VM_cloned_with_tag_and_cloud_init(self, rest_client, create_module, mocker):
@@ -184,9 +199,22 @@ class TestRun:
                 source_snapshot_uuid=None,
             )
         )
-        rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
+        rest_client.get_record.side_effect = [
+            None,
+            None,
+            {},
+            {"state": "COMPLETE"},
+            None,
+            None,
+            {},
+            {"state": "COMPLETE"},
+        ]
         rest_client.create_record.return_value = {"taskTag": "1234"}
-        rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
+        rest_client.update_record.return_value = {"taskTag": "1234"}
+        rest_client.list_records.side_effect = [[], [self._get_empty_vm()], [self._get_empty_vm()]]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
@@ -196,7 +224,9 @@ class TestRun:
         results = vm_clone.run(module, rest_client)
         assert results == (
             True,
-            "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone.",
+            "Virtual machine - XLAB-test-vm - cloning complete to - "
+            "XLAB-test-vm-clone and boot order was not set - you can set it "
+            "with vm_boot_devices module.",
         )
 
     def test_run_with_preserve_mac_address(self, rest_client, create_module, mocker):
@@ -219,9 +249,22 @@ class TestRun:
                 source_snapshot_uuid=None,
             )
         )
-        rest_client.get_record.side_effect = [None, None, {}, {"state": "COMPLETE"}]
+        rest_client.get_record.side_effect = [
+            None,
+            None,
+            {},
+            {"state": "COMPLETE"},
+            None,
+            None,
+            {},
+            {"state": "COMPLETE"},
+        ]
         rest_client.create_record.return_value = {"taskTag": "1234"}
-        rest_client.list_records.side_effect = [[], [self._get_empty_vm()]]
+        rest_client.update_record.return_value = {"taskTag": "1234"}
+        rest_client.list_records.side_effect = [[], [self._get_empty_vm()], [self._get_empty_vm()]]
+        mocker.patch(
+            "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
+        ).return_value = None
         mocker.patch(
             "ansible_collections.scale_computing.hypercore.plugins.module_utils.vm.SnapshotSchedule.get_snapshot_schedule"
         ).return_value = None
@@ -231,7 +274,9 @@ class TestRun:
         results = vm_clone.run(module, rest_client)
         assert results == (
             True,
-            "Virtual machine - XLAB-test-vm - cloning complete to - XLAB-test-vm-clone.",
+            "Virtual machine - XLAB-test-vm - cloning complete to - "
+            "XLAB-test-vm-clone and boot order was not set - you can set it "
+            "with vm_boot_devices module.",
         )
 
 

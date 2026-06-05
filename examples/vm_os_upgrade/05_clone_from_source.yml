@@ -15,7 +15,12 @@
 - ansible.builtin.assert:
     that:
       - vm_cloned is changed
-      - vm_cloned.msg == "Virtual machine - {{ source_vm_name }} - cloning complete to - {{ cloned_vm_name }}."
+      - vm_cloned.msg == expected_clone_msg
+    vars:
+      expected_clone_msg: >-
+        Virtual machine - {{ source_vm_name }} - cloning complete to -
+        {{ cloned_vm_name }} and boot order was set - you can change it with
+        vm_boot_devices module.
 
 - name: Get info about VM {{ cloned_vm_name }}
   scale_computing.hypercore.vm_info:
