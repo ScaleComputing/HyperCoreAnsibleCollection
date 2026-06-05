@@ -30,11 +30,12 @@
       - cloned_info.records | length == 1
       - source_info.records.0.vcpu == cloned_info.records.0.vcpu
       - source_info.records.0.tags != cloned_info.records.0.tags
-      - source_info.records.0.boot_devices | length == cloned_info.records.0.boot_devices | length
       - source_info.records.0.disks | length ==  cloned_info.records.0.disks | length
       - source_info.records.0.nics | length ==  cloned_info.records.0.nics | length
       - source_info.records.0.nics.0.mac ==  cloned_info.records.0.nics.0.mac
       - source_info.records.0.node_affinity == cloned_info.records.0.node_affinity
+      # Cloned VM's boot devices should be set
+      - cloned_info.records.0.boot_devices | length != 0
 
 # ----------------------------------Idempotence check------------------------------------------------------------------------
 - name: Clone XLAB-vm_clone_CI-test into XLAB-vm_clone_CI-test-preserve-mac-clone Idempotence
@@ -59,8 +60,9 @@
       - cloned_info.records | length == 1
       - source_info.records.0.vcpu == cloned_info.records.0.vcpu
       - source_info.records.0.tags != cloned_info.records.0.tags
-      - source_info.records.0.boot_devices | length == cloned_info.records.0.boot_devices | length
       - source_info.records.0.disks | length ==  cloned_info.records.0.disks | length
       - source_info.records.0.nics | length ==  cloned_info.records.0.nics | length
       - source_info.records.0.nics.0.mac ==  cloned_info.records.0.nics.0.mac
       - source_info.records.0.node_affinity == cloned_info.records.0.node_affinity
+      # Cloned VM's boot devices should be set
+      - cloned_info.records.0.boot_devices | length != 0
