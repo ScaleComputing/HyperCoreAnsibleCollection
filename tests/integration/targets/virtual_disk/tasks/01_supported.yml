@@ -41,12 +41,17 @@
       #
       # It used to be built with a bare `qemu-img create -f vmdk ... 10M`, which produces a
       # 65536-byte file with nothing allocated. On HyperCore 9.8.2.226476 that upload fails with
-      # HTTP 502 and this target cannot pass. Measured: the boundary is the FILE size, not the
-      # virtual size. A monolithicSparse vmdk whose file is 65536 bytes fails; 131072 bytes or more
-      # succeeds. 1M/10M/100M/400M virtual all produce a 65536-byte file and all fail, while 500M
-      # produces 131072 bytes and passes. HyperCore 9.7.6.226153 accepts every one of them, so this
-      # is new in 9.8.x. An issue has been filed with Scale Computing against the HyperCore product
-      # for the underlying defect; the change here only stops the test depending on the affected case.
+      # HTTP 502 and this target cannot pass; 9.7.6.226153 and 9.7.8.226633 accept it, so the
+      # behaviour is new in 9.8.x.
+      #
+      # The exact trigger is NOT fully characterised. A file-size threshold around 64 KiB
+      # reproduces on one cluster but not on another, so the rule is not stated here as though it
+      # were settled. Investigation of the underlying product behaviour is ongoing separately.
+      # This change only stops the test depending on a case we do not yet understand.
+      #
+      # Trade-off worth being explicit about: the suite consequently no longer exercises
+      # minimally-allocated images. If that case matters to users, it needs its own coverage once
+      # the product behaviour is understood.
       #
       # A few KiB of data is enough to cross that boundary. Deliberately NOT an ext4 image: the
       # older comment here warned that a non-empty ext4 filesystem inside a vmdk was itself a
