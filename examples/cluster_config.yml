@@ -3,6 +3,16 @@
   hosts: localhost
   connection: local
   gather_facts: false
+  # The cluster_config role takes no connection parameters (no cluster_instance).
+  # Its modules read SC_HOST, SC_USERNAME and SC_PASSWORD from the environment.
+  # Either export them in your shell before running the playbook, or uncomment
+  # and set them here (keep the password in Ansible Vault).
+  # Set environment at play level: on an include_role task it would apply only
+  # to the include itself, not to the tasks inside the role.
+  # environment:
+  #   SC_HOST: https://1.2.3.4
+  #   SC_USERNAME: admin
+  #   SC_PASSWORD: "{{ vault_sc_password }}"
   # We do not want to reconfigure cluster with bogus example values.
   check_mode: true
 
