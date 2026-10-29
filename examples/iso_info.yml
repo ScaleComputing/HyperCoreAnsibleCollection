@@ -5,9 +5,9 @@
   gather_facts: false
   environment:
     MY_VAR: my_value
-    # - SC_HOST: https://1.2.3.4
-    # - SC_USERNAME: admin
-    # - SC_PASSWORD: todo
+    # SC_HOST: https://1.2.3.4
+    # SC_USERNAME: admin
+    # SC_PASSWORD: todo
 
   tasks:
   # ------------------------------------------------------
