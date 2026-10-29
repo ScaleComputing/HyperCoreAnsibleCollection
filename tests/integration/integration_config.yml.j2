@@ -324,27 +324,31 @@ sc_config:
     <<: *base_cfg
     # One of the two REQUIRED hosts (last two Standard lines -- hypercore-ci-fleet's
     # inventory/ci_versions.yml current_standard, as of its 2026-10-23 refresh). 3-node
-    # cluster (vsns64/vsns65/vsns68 on vjb93a) -- also the multi-node test target. Also the
-    # replication SOURCE, paired by hand to vsns67 (below) on 2026-10-29: /rest/v2 needs
-    # HyperCore >=9.7.0 on both sides and this cluster is 9.6.32, so
-    # remote_cluster_connection's own create path can't do it here.
-    ci_system_name: vsns64
+    # cluster (VMs vhc6-1/vhc6-2/vhc6-3 on vjb93a, renamed from vsns64/65/68 by hcds
+    # 2026-10-29) -- also the multi-node test target. Also the replication SOURCE, paired by
+    # hand to vsns67 (below) on 2026-10-29: /rest/v2 needs HyperCore >=9.7.0 on both sides and
+    # this cluster is 9.6.32, so remote_cluster_connection's own create path can't do it here.
+    ci_system_name: vhc6
     sc_username: admin
     sc_password: admin
     sc_replication_dest_host: "https://10.6.112.67"
-    # vsns67 was never renamed off the HyperCore default -- VERIFIED 2026-10-29 via
-    # GET /rest/v1/Cluster on 10.6.112.67.
-    sc_replication_dest_cluster_name: "HyperCore System"
+    # Both clusters renamed off the HyperCore default 2026-10-29 (REST PATCH /Cluster,
+    # task-tag confirmed COMPLETE on each). The RemoteClusterConnection record's own cached
+    # remoteClusterInfo.clusterName took ~15s to pick up vsns67's new name after its rename --
+    # VERIFIED propagated via GET /rest/v1/RemoteClusterConnection on 10.6.112.64 before
+    # setting this value, so vm_clone__replicated's remote_cluster lookup (which uses this
+    # config value directly, unlike vm_replication's own dynamic live lookup) still resolves.
+    sc_replication_dest_cluster_name: "vsns67"
     sc_replication_dest_username: admin
     sc_replication_dest_password: admin
     cluster:
-      name: "HyperCore System"
+      name: "vhc6"
     support_tunnel:
       open: true
       code: "6064"
     smtp:
       <<: *base_smtp
-      from_address: vsns64@scalecomputing.com
+      from_address: vhc6@scalecomputing.com
     version_update:
       magic_allow_string: "oh-no-no"
       vm_shutdown_restart_allow_string: "allow-vm-shutdown-restart-test"
@@ -404,14 +408,14 @@ sc_config:
     features:
       version_update:
         current_version: "9.5.10.221215"
-        # MEASURED 2026-10-29, same method as the vsns64 block above.
+        # MEASURED 2026-10-29, same method as the vhc6 block above.
         next_version: "9.5.11.222200"
         latest_version: "9.9.0.228665"
         can_be_applied: True
         old_update_status_present: False
       virtual_disk:
         is_supported: True
-        replication_factor: 2  # INFERRED, not measured -- see the vsns64 comment above
+        replication_factor: 2  # INFERRED, not measured -- see the vhc6 comment above
       vtpm_disk:
         is_supported: True
       cluster_name:
