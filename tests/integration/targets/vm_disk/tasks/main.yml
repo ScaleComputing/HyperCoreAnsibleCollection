@@ -349,6 +349,108 @@
     - *vminfo
     - *check_vminfo_nodisk
 
+# =========================================================================================
+# Regression coverage for #30 - a NON-DEFAULT tiering_priority_factor must be applied on the
+# FIRST pass, at disk-creation time.
+#
+# Every other tiering_priority_factor assertion in this file checks the DEFAULT (4), so none of
+# them can detect the #30 behaviour: HyperCore used to ignore tieringPriorityFactor in a disk
+# CREATE request and silently force the default, which made the module non-idempotent and needed
+# a second pass to take effect (internal Scale REST issue 5143).
+#
+# That was fixed on the HyperCore side - the collection never carried a workaround - so these
+# assertions pass on 9.7.7. They exist to catch a re-regression, in either direction.
+# The VM has no disks at this point, so this creates its own and cleans up after itself.
+# =========================================================================================
+
+    - name: "#30 - create disk with a non-default tiering_priority_factor in ONE pass"
+      scale_computing.hypercore.vm_disk:
+        vm_name: vm-integration-test-disks
+        items:
+          - disk_slot: 0
+            type: virtio_disk
+            size: "{{ '1 GB' | human_to_bytes }}"
+            tiering_priority_factor: 8
+        state: present
+      register: tiering_first_pass
+    - name: "#30 - non-default tiering must be set on the first pass, not the second"
+      ansible.builtin.assert:
+        that:
+          - tiering_first_pass is succeeded
+          - tiering_first_pass is changed
+          - tiering_first_pass.record.0.tiering_priority_factor == 8
+        fail_msg: >-
+          tiering_priority_factor was not applied when the disk was created.
+          Wanted 8, got {{ tiering_first_pass.record.0.tiering_priority_factor | default('unset') }}.
+          This is a regression of #30 - HyperCore ignoring tieringPriorityFactor on disk create.
+
+    - name: "#30 - confirm via vm_info that it persisted"
+      scale_computing.hypercore.vm_info:
+        vm_name: vm-integration-test-disks
+      register: tiering_vminfo
+    - ansible.builtin.assert:
+        that:
+          - tiering_vminfo.records.0.disks.0.tiering_priority_factor == 8
+
+    - name: "#30 - repeating the same task must be idempotent"
+      scale_computing.hypercore.vm_disk:
+        vm_name: vm-integration-test-disks
+        items:
+          - disk_slot: 0
+            type: virtio_disk
+            size: "{{ '1 GB' | human_to_bytes }}"
+            tiering_priority_factor: 8
+        state: present
+      register: tiering_second_pass
+    - ansible.builtin.assert:
+        that:
+          - tiering_second_pass is succeeded
+          - tiering_second_pass is not changed
+        fail_msg: >-
+          Second pass reported changed={{ tiering_second_pass.changed }}. If the first pass had
+          applied tiering correctly this should be a no-op - a changed=true here is the original
+          #30 symptom.
+
+    - name: "#30 - changing tiering_priority_factor on an EXISTING disk"
+      scale_computing.hypercore.vm_disk:
+        vm_name: vm-integration-test-disks
+        items:
+          - disk_slot: 0
+            type: virtio_disk
+            size: "{{ '1 GB' | human_to_bytes }}"
+            tiering_priority_factor: 3
+        state: present
+      register: tiering_change
+    - ansible.builtin.assert:
+        that:
+          - tiering_change is changed
+
+    # NOTE (observed on 9.7.7.226383): unlike the create path above, changing tiering on an
+    # EXISTING disk is NOT reflected in a GET straight away. The module returns changed=true but
+    # its own `record` still carries the OLD factor, and vm_info agrees, for a few seconds.
+    # It settles to the requested value well within 60s. So this is a read-after-write
+    # propagation lag on the change path, distinct from #30 (which was create ignoring the value
+    # outright and forcing the default). Hence the retry here rather than a bare assert - a bare
+    # assert immediately after the change WILL fail intermittently.
+    - name: "#30 - the changed value must land (allowing for read-after-write lag)"
+      scale_computing.hypercore.vm_info:
+        vm_name: vm-integration-test-disks
+      register: tiering_vminfo_changed
+      retries: 12
+      delay: 5
+      until: tiering_vminfo_changed.records.0.disks.0.tiering_priority_factor == 3
+    - ansible.builtin.assert:
+        that:
+          - tiering_vminfo_changed.records.0.disks.0.tiering_priority_factor == 3
+
+    - name: "#30 - clean up the tiering test disk"
+      scale_computing.hypercore.vm_disk:
+        vm_name: vm-integration-test-disks
+        items: [ ]
+        state: set
+        force: True
+# =========================================================================================
+
     - name: Delete the VM on which the tests were performed
       scale_computing.hypercore.vm: *vm-delete
       register: result
