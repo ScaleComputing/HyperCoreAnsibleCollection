@@ -20,9 +20,12 @@
 
   block:
     - name: Check replication is configured
+      # sc_replication_dest_host is a non-empty URL string when configured, "" when not --
+      # a bare string here used to be truthy-tested implicitly, but ansible-core 2.17.4
+      # rejects it the first time the string is genuinely non-empty (MEASURED 2026-10-29).
       ansible.builtin.assert:
         that:
-          - sc_config[sc_host].sc_replication_dest_host
+          - sc_config[sc_host].sc_replication_dest_host | length > 0
 
     - include_tasks: 01_cleanup.yml
     - include_tasks: 02_prepare_source_vms.yml
