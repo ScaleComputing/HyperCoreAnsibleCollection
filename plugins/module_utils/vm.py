@@ -218,7 +218,7 @@ class VM(PayloadMapper):
         power_state=None,
         power_action=None,
         nics=None,  # nics represents a list of type Nic
-        disks=None,  # disks represents a list of type Nic
+        disks=None,  # disks represents a list of type Disk
         # boot_devices are stored as list of nics and/or disks internally.
         boot_devices=None,
         attach_guest_tools_iso=False,
@@ -423,6 +423,27 @@ class VM(PayloadMapper):
             payload["template"]["cloudInitData"] = cloud_init
         return payload
 
+    @staticmethod
+    def clone_add_user_data_to_cloud_init(cloud_init):
+        # Task 370 - the generated cloud-init should include a runcmd
+        # to fix the grub UUID issue at first boot
+
+        user_data = cloud_init.get("user_data")
+        if not user_data:
+            return cloud_init
+
+        cloud_init["user_data"] = (
+            user_data.rstrip()
+            + """
+
+        runcmd:
+        - sed -i 's/^GRUB_DISABLE_LINUX_UUID=true/#GRUB_DISABLE_LINUX_UUID=true/' /etc/default/grub
+        - update-grub
+        """
+        )
+
+        return cloud_init
+
     @classmethod
     def create_clone_vm_payload(
         cls,
@@ -446,6 +467,7 @@ class VM(PayloadMapper):
                     hypercore_tags.append(tag)
             data["template"]["tags"] = ",".join(hypercore_tags)
         if cloud_init:
+            cloud_init = cls.clone_add_user_data_to_cloud_init(cloud_init)
             data["template"]["cloudInitData"] = cloud_init
         if preserve_mac_address:
             data["template"]["netDevs"] = [
@@ -609,6 +631,13 @@ class VM(PayloadMapper):
         for disk in self.disk_list:
             if disk.slot == slot:
                 return disk
+
+    # primary disk is the largest Virtio disk
+    def get_primary_disk(self):
+        virtio_disks = [disk for disk in self.disk_list if disk.type == "virtio_disk"]
+        if not virtio_disks:
+            return None
+        return max(virtio_disks, key=lambda disk: disk.size)
 
     def post_vm_payload(self, rest_client, ansible_dict):
         # The rest of the keys from VM_PAYLOAD_KEYS will get set properly automatically

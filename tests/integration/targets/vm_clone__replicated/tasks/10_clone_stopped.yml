@@ -9,7 +9,7 @@
 - ansible.builtin.assert:
     that:
       - output is changed
-      - output.msg == "Virtual machine - {{ vm_name_src }} - cloning complete to - {{ vm_name_dest }}."
+      - output.msg == "Virtual machine - {{ vm_name_src }} - cloning complete to - {{ vm_name_dest }} and boot order was set - you can change it with vm_boot_devices module."
 
 - name: dest-cluster Retrieve {{ vm_name_dest }}
   scale_computing.hypercore.vm_info:
@@ -21,7 +21,6 @@
       - cloned_info.records | length == 1
       - source_info.records.0.vcpu == cloned_info.records.0.vcpu
       - source_info.records.0.tags != cloned_info.records.0.tags
-      - source_info.records.0.boot_devices | length == cloned_info.records.0.boot_devices | length
       - source_info.records.0.disks | length ==  cloned_info.records.0.disks | length
       - source_info.records.0.nics | length ==  cloned_info.records.0.nics | length
       - source_info.records.0.nics.0.mac !=  cloned_info.records.0.nics.0.mac
@@ -51,7 +50,6 @@
       - cloned_info.records | length == 1
       - source_info.records.0.vcpu == cloned_info.records.0.vcpu
       - source_info.records.0.tags != cloned_info.records.0.tags
-      - source_info.records.0.boot_devices | length == cloned_info.records.0.boot_devices | length
       - source_info.records.0.disks | length ==  cloned_info.records.0.disks | length
       - source_info.records.0.nics | length ==  cloned_info.records.0.nics | length
       - source_info.records.0.nics.0.mac !=  cloned_info.records.0.nics.0.mac

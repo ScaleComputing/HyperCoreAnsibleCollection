@@ -166,10 +166,29 @@ def run(module, rest_client):
     TaskTag.wait_task(rest_client, task)
     task_status = TaskTag.get_task_status(rest_client, task)
     if task_status and task_status.get("state", "") == "COMPLETE":
-        return (
-            True,
-            f"Virtual machine - {module.params['source_vm_name']} - cloning complete to - {module.params['vm_name']}.",
-        )
+        # Get cloned VM
+        virtual_machine_cloned_obj = VM.get_or_fail(query={"name": module.params["vm_name"]}, rest_client=rest_client)[
+            0
+        ]
+        # Set boot devices after cloning Issue-370 (VM starts failing as soon as another disk is attahed if boot is not specified)
+        # By default we always set the largest Virtio disk which is the "primary disk"
+        primary_disk = virtual_machine_cloned_obj.get_primary_disk()
+        boot_items = [primary_disk.to_ansible()] if primary_disk else []
+        # previous boot order after cloning is always empty
+        previous_boot_order = []
+        changed = virtual_machine_cloned_obj.set_boot_devices(boot_items, module, rest_client, previous_boot_order)
+        if changed:
+            msg = "and boot order was set - you can change it with vm_boot_devices module"
+            return (
+                True,
+                f"Virtual machine - {module.params['source_vm_name']} - cloning complete to - {module.params['vm_name']} {msg}.",
+            )
+        else:
+            msg = "and boot order was not set - you can set it with vm_boot_devices module"
+            return (
+                True,
+                f"Virtual machine - {module.params['source_vm_name']} - cloning complete to - {module.params['vm_name']} {msg}.",
+            )
     raise errors.ScaleComputingError(
         f"There was a problem during cloning of {module.params['source_vm_name']}, cloning failed."
     )
