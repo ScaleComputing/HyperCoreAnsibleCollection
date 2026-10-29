@@ -67,6 +67,15 @@ concurrency:
   group: ${{ github.ref_name }}
   cancel-in-progress: true
 
+# ----------------------------------------------------------------------------------------
+# Indy-lab failover, 2026-10-29: PUB5/XLab (10.5.11.x) became unreachable ~2026-10-27, taking
+# out every sc_host this workflow used to run against. Replaced with the two hosts required
+# by hypercore-ci-fleet's CI policy (last two Standard lines): the 10.5.11.x matrix entries
+# below are commented inline for when that hardware returns, not deleted. See
+# hypercore-ci-fleet's local/ci-failover-2026-10-28/ANSIBLE_INDY_LAB_FIXTURE.md (gitignored
+# there -- ask Dave) and tests/integration/integration_config.yml.j2's own matching comment
+# block for the new https://10.6.112.64 / https://10.6.42.19 entries.
+# ----------------------------------------------------------------------------------------
 jobs:
   # This should be run at least once before first integration tests run.
   # As long as prepared HC3 host remains prepared, we do not need (except on very first run)
@@ -83,10 +92,12 @@ jobs:
       fail-fast: false
       matrix:
         sc_host:
-          - https://10.5.11.200  # HC 9.1.x
-          - https://10.5.11.201  # HC 9.2.x
-          - https://10.5.11.203  # HC 9.3.x
-          - https://10.5.11.205  # HC 9.4.x
+          - https://10.6.112.64  # required: 9.6.32, 3-node, also replication source -> vsns67
+          - https://10.6.42.19   # required: 9.5.10 (vsns19, reused as-is)
+          # - https://10.5.11.200  # HC 9.1.x -- PUB5/XLab, unreachable since 2026-10-27
+          # - https://10.5.11.201  # HC 9.2.x -- PUB5/XLab, unreachable since 2026-10-27
+          # - https://10.5.11.203  # HC 9.3.x -- PUB5/XLab, unreachable since 2026-10-27
+          # - https://10.5.11.205  # HC 9.4.x -- PUB5/XLab, unreachable since 2026-10-27
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -98,7 +109,10 @@ jobs:
         with:
           sc_host: ${{ matrix.sc_host }}
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          # 10.5.11.39's secret, CI_CONFIG_HC_IP50_SMB_PASSWORD, is kept for when PUB5/XLab
+          # returns. 10.6.42.5 needs its own secret -- Dave: `gh secret set
+          # CI_CONFIG_INDY_SMB_PASSWORD --repo ScaleComputing/HyperCoreAnsibleCollection`.
+          smb_password: ${{ secrets.CI_CONFIG_INDY_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
@@ -243,9 +257,14 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used in "uses:"
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          sc_host: https://10.5.11.205
+          # Was https://10.5.11.205 (PUB5/XLab, dead since 2026-10-27). Pointed at vsns19
+          # rather than vsns64 so examples-run doesn't contend with the main matrix's host.
+          sc_host: https://10.6.42.19
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          # 10.5.11.39's secret, CI_CONFIG_HC_IP50_SMB_PASSWORD, is kept for when PUB5/XLab
+          # returns. 10.6.42.5 needs its own secret -- Dave: `gh secret set
+          # CI_CONFIG_INDY_SMB_PASSWORD --repo ScaleComputing/HyperCoreAnsibleCollection`.
+          smb_password: ${{ secrets.CI_CONFIG_INDY_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
@@ -260,8 +279,11 @@ jobs:
         run: |
           [ "$X_GITHUB_SKIP_TEST" == "1" ] && exit 0
           eval export SC_HOST=$(cat tests/integration/integration_config.yml | yq '.sc_host')
-          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_username')
-          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq '.sc_config."https://10.5.11.200".sc_password')
+          # Was hardcoded to the "https://10.5.11.200" key regardless of sc_host above --
+          # only worked because every vsns2xx block shares admin/admin. Fixed to actually
+          # look up the host this job configured, 2026-10-29.
+          eval export SC_USERNAME=$(cat tests/integration/integration_config.yml | yq ".sc_config.\"$SC_HOST\".sc_username")
+          eval export SC_PASSWORD=$(cat tests/integration/integration_config.yml | yq ".sc_config.\"$SC_HOST\".sc_password")
           eval export SC_TIMEOUT=$(cat tests/integration/integration_config.yml | yq '.sc_timeout')
           ansible-playbook -i localhost, -e hypercore_example_check_mode=true examples/${{ matrix.example_name }}
 
@@ -273,10 +295,12 @@ jobs:
       fail-fast: false
       matrix:
         sc_host:
-          - https://10.5.11.200
-          - https://10.5.11.201
-          - https://10.5.11.203
-          - https://10.5.11.205
+          - https://10.6.112.64  # required: 9.6.32, 3-node, also replication source -> vsns67
+          - https://10.6.42.19   # required: 9.5.10 (vsns19, reused as-is)
+          # - https://10.5.11.200  # HC 9.1.x -- PUB5/XLab, unreachable since 2026-10-27
+          # - https://10.5.11.201  # HC 9.2.x -- PUB5/XLab, unreachable since 2026-10-27
+          # - https://10.5.11.203  # HC 9.3.x -- PUB5/XLab, unreachable since 2026-10-27
+          # - https://10.5.11.205  # HC 9.4.x -- PUB5/XLab, unreachable since 2026-10-27
     secrets: inherit
     uses: ./.github/workflows/z_ansible-test.yml
     with:
@@ -293,10 +317,12 @@ jobs:
       fail-fast: false
       matrix:
         sc_host:
-          - https://10.5.11.200
-          - https://10.5.11.201
-          - https://10.5.11.203
-          - https://10.5.11.205
+          - https://10.6.112.64  # required: 9.6.32, 3-node, also replication source -> vsns67
+          - https://10.6.42.19   # required: 9.5.10 (vsns19, reused as-is)
+          # - https://10.5.11.200  # HC 9.1.x -- PUB5/XLab, unreachable since 2026-10-27
+          # - https://10.5.11.201  # HC 9.2.x -- PUB5/XLab, unreachable since 2026-10-27
+          # - https://10.5.11.203  # HC 9.3.x -- PUB5/XLab, unreachable since 2026-10-27
+          # - https://10.5.11.205  # HC 9.4.x -- PUB5/XLab, unreachable since 2026-10-27
     secrets: inherit
     uses: ./.github/workflows/z_ansible-test.yml
     with:
@@ -304,16 +330,29 @@ jobs:
       test_names: ${{ needs.integ-seq-matrix.outputs.matrix }}
       outer_job_name: integ-seq-run
 
-  # On physical HyperCore
+  # Was "On physical HyperCore" against PUB5's .50 (dead since 2026-10-27). Repointed
+  # 2026-10-29 at the new required 9.6.32 cluster, which is also the replication source now
+  # that vsns67 is paired to it, so these can run there instead of a dedicated physical node.
+  # needs/if added because .64 is now also the main matrix's host -- it was a dedicated node
+  # before, so nothing serialized these against it previously.
+  #
+  # test_names had a quote typo ('vm_replication_info" -- single open, double close) that
+  # broke fromJson(inputs.test_names) in z_ansible-test.yml. Per `git log -S`, this landed in
+  # b9a0f30 and was never caught, so this job's replication/support_tunnel coverage was
+  # already failing at matrix generation before the outage -- fixed here, not something this
+  # outage broke.
   integ-physical:
+    needs:
+      - integ-seq-run
+    if: "(!cancelled())"
     secrets: inherit
     uses: ./.github/workflows/z_ansible-test.yml
     with:
-      sc_host: https://10.5.11.50
+      sc_host: https://10.6.112.64
       test_names: >-
         [
           "vm_replication",
-          'vm_replication_info",
+          "vm_replication_info",
           "vm_clone__replicated",
           "support_tunnel"
         ]
@@ -337,9 +376,14 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          sc_host: https://10.5.11.50
+          # Was https://10.5.11.50 (PUB5, dead since 2026-10-27). .64 is now the replication
+          # source (paired to vsns67), so its RemoteClusterConnection is what this cleans up.
+          sc_host: https://10.6.112.64
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          # 10.5.11.39's secret, CI_CONFIG_HC_IP50_SMB_PASSWORD, is kept for when PUB5/XLab
+          # returns. 10.6.42.5 needs its own secret -- Dave: `gh secret set
+          # CI_CONFIG_INDY_SMB_PASSWORD --repo ScaleComputing/HyperCoreAnsibleCollection`.
+          smb_password: ${{ secrets.CI_CONFIG_INDY_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
@@ -361,9 +405,15 @@ jobs:
       # ${{ env.WORKDIR }} cannot be used
       - uses: ./work-dir/ansible_collections/scale_computing/hypercore/.github/actions/make-integ-config
         with:
-          sc_host: https://10.5.11.200
+          # Was https://10.5.11.200 (PUB5/XLab, dead since 2026-10-27). smb_* fields are
+          # top-level in integration_config.yml, not per-host, so any sc_host works here --
+          # .64 picked for consistency with replica_cleanup above.
+          sc_host: https://10.6.112.64
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          # 10.5.11.39's secret, CI_CONFIG_HC_IP50_SMB_PASSWORD, is kept for when PUB5/XLab
+          # returns. 10.6.42.5 needs its own secret -- Dave: `gh secret set
+          # CI_CONFIG_INDY_SMB_PASSWORD --repo ScaleComputing/HyperCoreAnsibleCollection`.
+          smb_password: ${{ secrets.CI_CONFIG_INDY_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}

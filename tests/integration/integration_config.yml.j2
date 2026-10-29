@@ -311,3 +311,108 @@ sc_config:
         is_supported: True
       cluster_name:
         is_writable: True
+
+  # Indy-lab failover fixture, added 2026-10-29. PUB5/XLab (10.5.11.x, every block above)
+  # went unreachable ~2026-10-27 -- same outage that took out terraform-provider-hypercore's
+  # CI. Every 10.5.11.x block above is PRESERVED, not deleted, for when that hardware
+  # returns. These two blocks are what integ-test.yml's sc_host matrix actually points at
+  # now. Full build record: hypercore-ci-fleet's
+  # local/ci-failover-2026-10-28/ANSIBLE_INDY_LAB_FIXTURE.md (gitignored there, ask Dave).
+  # ============================================================================
+
+  https://10.6.112.64:
+    <<: *base_cfg
+    # One of the two REQUIRED hosts (last two Standard lines -- hypercore-ci-fleet's
+    # inventory/ci_versions.yml current_standard, as of its 2026-10-23 refresh). 3-node
+    # cluster (vsns64/vsns65/vsns68 on vjb93a) -- also the multi-node test target. Also the
+    # replication SOURCE, paired by hand to vsns67 (below) on 2026-10-29: /rest/v2 needs
+    # HyperCore >=9.7.0 on both sides and this cluster is 9.6.32, so
+    # remote_cluster_connection's own create path can't do it here.
+    ci_system_name: vsns64
+    sc_username: admin
+    sc_password: admin
+    sc_replication_dest_host: "https://10.6.112.67"
+    # vsns67 was never renamed off the HyperCore default -- VERIFIED 2026-10-29 via
+    # GET /rest/v1/Cluster on 10.6.112.67.
+    sc_replication_dest_cluster_name: "HyperCore System"
+    sc_replication_dest_username: admin
+    sc_replication_dest_password: admin
+    cluster:
+      name: "HyperCore System"
+    support_tunnel:
+      open: true
+      code: "6064"
+    smtp:
+      <<: *base_smtp
+      from_address: vsns64@scalecomputing.com
+    version_update:
+      magic_allow_string: "oh-no-no"
+      vm_shutdown_restart_allow_string: "allow-vm-shutdown-restart-test"
+    syslog_server:
+      host: 10.6.42.222  # UDP; unreachable is harmless if this placeholder is wrong
+    features:
+      version_update:
+        current_version: "9.6.32.226689"
+        # MEASURED 2026-10-29: GET /rest/v1/Update returns a real, non-empty list here
+        # (unlike every 10.5.11.x host above, which times out to []). next/latest computed
+        # the same way version_update_info.py sorts: by (majorVersion, minorVersion,
+        # revision, buildID) ascending -- records[0] and records[-1].
+        next_version: "9.7.9.227018"
+        latest_version: "9.9.0.228665"
+        can_be_applied: True
+        # 404 on /update/update_status.json (never updated before) -- MEASURED 2026-10-29.
+        # version_update itself is excluded from the default scheduled run, so can_be_applied
+        # is untested either way.
+        old_update_status_present: False
+      virtual_disk:
+        is_supported: True
+        # INFERRED, not measured: GET /rest/v1/Drive shows 4 drives/node (12 total across 3
+        # nodes, MEASURED 2026-10-29), matching the "4 drives -> RF2" pattern already
+        # established by the other vSNS blocks in this file. No VirtualDisk has actually been
+        # uploaded yet to confirm replicationFactor directly -- recheck on first real run.
+        replication_factor: 2
+      vtpm_disk:
+        is_supported: True
+      cluster_name:
+        is_writable: True
+
+  https://10.6.42.19:
+    <<: *base_cfg
+    # The other REQUIRED host (previous_standard_line in hypercore-ci-fleet's
+    # inventory/ci_versions.yml). Existing vsns19 on vfz31a, reused as-is -- not a new build;
+    # hcds caught that a new 9.5.10 node wasn't needed here. Not part of the replication pair.
+    ci_system_name: vsns19
+    sc_username: admin
+    sc_password: admin
+    sc_replication_dest_host: ""
+    sc_replication_dest_cluster_name: ""
+    sc_replication_dest_username: ""
+    sc_replication_dest_password: ""
+    cluster:
+      name: "vsns19"  # VERIFIED 2026-10-29 via GET /rest/v1/Cluster
+    support_tunnel:
+      open: true
+      code: "6019"
+    smtp:
+      <<: *base_smtp
+      from_address: vsns19@scalecomputing.com
+    version_update:
+      magic_allow_string: "oh-no-no"
+      vm_shutdown_restart_allow_string: "allow-vm-shutdown-restart-test"
+    syslog_server:
+      host: 10.6.42.222
+    features:
+      version_update:
+        current_version: "9.5.10.221215"
+        # MEASURED 2026-10-29, same method as the vsns64 block above.
+        next_version: "9.5.11.222200"
+        latest_version: "9.9.0.228665"
+        can_be_applied: True
+        old_update_status_present: False
+      virtual_disk:
+        is_supported: True
+        replication_factor: 2  # INFERRED, not measured -- see the vsns64 comment above
+      vtpm_disk:
+        is_supported: True
+      cluster_name:
+        is_writable: True

@@ -66,6 +66,10 @@ main () {
     do
       ci_system_name_all+=" vsns$ii "
     done
+    # Indy-lab failover fixture, 2026-10-29 -- see integration_config.yml.j2's matching
+    # ci_system_name values (vsns64, vsns19). pub5/vsns200-210 above are kept for when
+    # PUB5/XLab returns.
+    ci_system_name_all+=" vsns64 vsns19 "
 
     folder='integration-test-vm-export'
     delete_files "$1" "$2" "${username[1]}" "$4" "$folder"

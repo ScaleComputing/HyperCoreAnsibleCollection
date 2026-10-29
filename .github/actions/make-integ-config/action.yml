@@ -32,10 +32,14 @@ runs:
         cat <<EOF >integ_config_vars.yml
         sc_username_50: xlab
         sc_password_50: ${{ inputs.sc_password_50 }}
-        smb_username: ;administrator
+        # 10.5.11.39 (XLab) went unreachable ~2026-10-27, same outage as PUB5/XLab generally.
+        # Repointed 2026-10-29 at 10.6.42.5 (azuresync/remotedc.local), the existing shared
+        # Indy-lab SMB server hcds already uses -- terraform-provider-hypercore's CI proved
+        # this exact server+username format working for a real SMB import on 2026-10-28.
+        smb_username: "remotedc.local;administrator"
         smb_password: ${{ inputs.smb_password }}
-        smb_server: 10.5.11.39
-        smb_share: /cidata
+        smb_server: 10.6.42.5
+        smb_share: /exports
         oidc_client_id: d2298ec0-0596-49d2-9554-840a2fe20603
         oidc_client_secret: ${{ inputs.oidc_client_secret }}
         oidc_users_0_username: xlabciuser@scalemsdnscalecomputing.onmicrosoft.com
