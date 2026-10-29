@@ -19,16 +19,21 @@
     - include_tasks: 01_vm_replication_info_missing_vm.yml
 
     - include_tasks: 02_cleanup_destination_vms.yml
-      when: sc_config[sc_host].sc_replication_dest_host
+      # sc_replication_dest_host is a non-empty URL string when configured, "" when not --
+      # a bare string in `when:` used to be truthy-tested implicitly, but ansible-core
+      # 2.17.4 rejects it with "Conditionals must have a boolean result" the first time the
+      # string is genuinely non-empty (MEASURED 2026-10-29, hypercore-ci-fleet's Indy-lab
+      # fixture is the first host in a long time to set a real non-empty value here).
+      when: sc_config[sc_host].sc_replication_dest_host | length > 0
 
     # We can create VM and check vm_replication_info output also on
     # cluster without replication
     - include_tasks: 03_recreate_source_vms.yml
 
     - include_tasks: 10_vm_replication_info.yml
-      when: sc_config[sc_host].sc_replication_dest_host
+      when: sc_config[sc_host].sc_replication_dest_host | length > 0
 
     - include_tasks: 20_vm_info.yml
-      when: sc_config[sc_host].sc_replication_dest_host
+      when: sc_config[sc_host].sc_replication_dest_host | length > 0
 
     - include_tasks: 99_cleanup.yml

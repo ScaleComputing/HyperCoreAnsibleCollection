@@ -11,7 +11,11 @@
       register: initial
 
     - name: If remote cluster is configured
-      when: sc_config[sc_host].sc_replication_dest_host
+      # sc_replication_dest_host is a non-empty URL string when configured, "" when not --
+      # a bare string in `when:` used to be truthy-tested implicitly, but ansible-core
+      # 2.17.4 rejects it with "Conditionals must have a boolean result" the first time the
+      # string is genuinely non-empty (MEASURED 2026-10-29).
+      when: sc_config[sc_host].sc_replication_dest_host | length > 0
       block:
         - ansible.builtin.assert:
             that:
@@ -33,7 +37,7 @@
               - results.records[0].name == initial.records[0].name
 
     - name: If remote cluster is not configured
-      when: not sc_config[sc_host].sc_replication_dest_host
+      when: sc_config[sc_host].sc_replication_dest_host | length == 0
       block:
         - ansible.builtin.assert:
             that:
