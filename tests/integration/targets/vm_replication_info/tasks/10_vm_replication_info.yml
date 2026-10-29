@@ -71,13 +71,16 @@
   scale_computing.hypercore.vm_replication_info:
   register: replication_info_all
 - ansible.builtin.assert:
+    # vm_name/remote_cluster are non-empty strings here, not real booleans -- a bare string
+    # in assert.that used to be truthy-tested implicitly, but ansible-core 2.17.4 rejects it
+    # with "Conditionals must have a boolean result" (MEASURED 2026-10-29).
     that:
       - replication_info_all is succeeded
       - replication_info_all is not changed
       - replication_info_all.records | length >= 2
-      - replication_info_all.records[0].vm_name
+      - replication_info_all.records[0].vm_name | length > 0
       - replication_info_all.records[0].state in ['enabled', 'disabled']
-      - replication_info_all.records[0].remote_cluster
-      - replication_info_all.records[1].vm_name
+      - replication_info_all.records[0].remote_cluster | length > 0
+      - replication_info_all.records[1].vm_name | length > 0
       - replication_info_all.records[1].state in ['enabled', 'disabled']
-      - replication_info_all.records[1].remote_cluster
+      - replication_info_all.records[1].remote_cluster | length > 0
