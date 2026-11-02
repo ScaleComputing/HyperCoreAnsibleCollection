@@ -35,10 +35,14 @@ sc_config:
       # pool.ntp.org servers frequently return KOD.
       # time.google.com does not complain.
       source: time.google.com
-      # We need 2 NTP servers.
-      # Set them up per ci-infra/ntp-chrony/Readme.md.
-      time_server_a: 10.5.11.5
-      time_server_b: 10.5.11.75
+      # We need 2 NTP servers. 10.5.11.5/10.5.11.75 were dedicated chrony VMs on PUB5/XLab
+      # (see ci-infra/ntp-chrony/Readme.md), dead in the same 2026-10-27 outage as the rest of
+      # that network. Repointed 2026-11-02 at two public NTP providers instead of rebuilding
+      # that infra -- smtp-relay.gmail.com (used by the smtp test, same config file) already
+      # confirms these clusters have outbound internet reachability. Avoid pool.ntp.org
+      # domains for either value -- the comment above is still correct, they return KOD.
+      time_server_a: time.google.com
+      time_server_b: time.cloudflare.com
     time_zone:
       zone: US/Eastern
     dns_config:
