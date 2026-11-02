@@ -63,7 +63,13 @@ jobs:
         shell: bash
         run: |
           [ "$X_GITHUB_SKIP_TEST" == "1" ] && exit 0
-          pip install -U ansible-core  # ~=2.16.0
+          # Pinned to 2.16.0 (2026-11-02): matches examples-run's pin and Red Hat's
+          # partner-certification-checker v3.0.0 floor (>=2.16.0, #373). The prior
+          # "pip install -U ansible-core" silently floated to whatever's newest -- 2.17.4
+          # on this container -- which enforces strict boolean conditionals and broke ~15
+          # targets that use the bare-truthy-string idiom (#387). The comment here said
+          # "~=2.16.0" already; the command just never matched it.
+          pip install ansible-core~=2.16.0
           ansible-galaxy collection install community.general community.crypto --force
           ansible-galaxy collection list
       # ${{ env.WORKDIR }} cannot be used in "uses:"
@@ -71,7 +77,12 @@ jobs:
         with:
           sc_host: ${{ inputs.sc_host }}
           sc_password_50: ${{ secrets.CI_CONFIG_HC_IP50_SC_PASSWORD }}
-          smb_password: ${{ secrets.CI_CONFIG_HC_IP50_SMB_PASSWORD }}
+          # 10.5.11.39's secret, CI_CONFIG_HC_IP50_SMB_PASSWORD, is kept for when PUB5/XLab
+          # returns. This call site was missed by the 2026-10-29 Indy-lab repoint (which only
+          # touched integ-test.yml's own make-integ-config calls) -- it was still sending the
+          # old PUB5 password against the new 10.6.42.5 server, which make-integ-config/action.yml
+          # hardcodes regardless of caller.
+          smb_password: ${{ secrets.CI_CONFIG_INDY_SMB_PASSWORD }}
           oidc_client_secret: ${{ secrets.OIDC_CLIENT_SECRET }}
           oidc_users_0_password: ${{ secrets.OIDC_USERS_0_PASSWORD }}
           working_directory: ${{ env.WORKDIR }}
